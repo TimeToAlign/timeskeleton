@@ -1,0 +1,160 @@
+"""The TimeSkeleton schema and its validator.
+
+The schema files and the golden fixtures live at the repository root and are
+bundled into the wheel under ``timeskeleton/schema`` and
+``timeskeleton/fixtures``. The resource helpers below find them in either
+place, so the package works from an installed wheel and from a source
+checkout alike.
+"""
+
+from __future__ import annotations
+
+import json
+from collections.abc import Iterable, Mapping
+from functools import cache
+from importlib.resources import files
+from pathlib import Path
+from typing import Any
+
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
+
+SCHEMA_VERSION = "0.1.0"
+"""The schema version this release publishes: the latest one."""
+
+SUPPORTED_VERSIONS: tuple[str, ...] = ("0.1.0",)
+"""Every schema version this release validates and migrates, oldest first."""
+
+
+class UnsupportedVersionError(ValueError):
+    """Raised when a document declares a schema version this release does not know.
+
+    Attributes:
+        version: The declared version, or ``None`` when the document carries no
+            string ``meta.schema_version``.
+    """
+
+    def __init__(self, version: object) -> None:
+        self.version = version
+        supported = ", ".join(SUPPORTED_VERSIONS)
+        super().__init__(
+            f"unsupported schema_version {version!r}; this release supports {supported}"
+        )
+
+
+class SchemaValidationError(ValueError):
+    """Raised when a document violates the schema.
+
+    Attributes:
+        path: The location of the offending value as a tuple of object keys and
+            array indices, empty for the document root.
+        message: The validator's description of the violation.
+    """
+
+    def __init__(self, path: tuple[str | int, ...], message: str) -> None:
+        self.path = path
+        self.message = message
+        super().__init__(f"{json_pointer(path)}: {message}")
+
+
+def json_pointer(path: Iterable[str | int]) -> str:
+    """Render a path as a JSON pointer in URI fragment form (``#`` for the root)."""
+    segments = [str(segment).replace("~", "~0").replace("/", "~1") for segment in path]
+    return "#" + "".join(f"/{segment}" for segment in segments)
+
+
+def _data_root() -> Path:
+    """Return the directory holding ``schema/`` and ``fixtures/``."""
+    package = Path(str(files("timeskeleton")))
+    if (package / "schema").is_dir():
+        return package
+    return Path(__file__).resolve().parents[3]
+
+
+def _require_supported(version: str) -> None:
+    if version not in SUPPORTED_VERSIONS:
+        raise UnsupportedVersionError(version)
+
+
+def schema_path(version: str = SCHEMA_VERSION) -> Path:
+    """Return the path of the schema file for ``version``.
+
+    Raises:
+        UnsupportedVersionError: If no schema of that version is bundled.
+    """
+    _require_supported(version)
+    return _data_root() / "schema" / f"timeskeleton-{version}.schema.json"
+
+
+@cache
+def load_schema(version: str = SCHEMA_VERSION) -> dict[str, Any]:
+    """Return the parsed schema for ``version``.
+
+    The result is cached and shared; treat it as read-only.
+
+    Raises:
+        UnsupportedVersionError: If no schema of that version is bundled.
+    """
+    with schema_path(version).open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def fixture_paths(version: str = SCHEMA_VERSION) -> list[Path]:
+    """Return the bundled fixture documents for ``version``, sorted by name.
+
+    Raises:
+        UnsupportedVersionError: If no fixtures of that version are bundled.
+    """
+    _require_supported(version)
+    return sorted((_data_root() / "fixtures" / version).glob("*.json"))
+
+
+@cache
+def _validator(version: str) -> Draft202012Validator:
+    schema = load_schema(version)
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
+
+
+def declared_version(document: object) -> str | None:
+    """Return ``meta.schema_version`` if present as a string, else ``None``."""
+    if not isinstance(document, Mapping):
+        return None
+    meta = document.get("meta")
+    if not isinstance(meta, Mapping):
+        return None
+    version = meta.get("schema_version")
+    return version if isinstance(version, str) else None
+
+
+def _select(errors: Iterable[ValidationError]) -> ValidationError | None:
+    """Pick the error to report: the first one with the deepest path.
+
+    The validator reports every violation at the top level; the alternatives
+    of a failed ``oneOf`` are not candidates, the ``oneOf`` violation itself
+    stands for them. Among the candidates, the deepest path points closest to
+    the offending value; ties go to the first reported.
+    """
+    best: ValidationError | None = None
+    for error in errors:
+        if best is None or len(error.absolute_path) > len(best.absolute_path):
+            best = error
+    return best
+
+
+def validate(document: Mapping[str, Any]) -> None:
+    """Check ``document`` against the schema version it declares.
+
+    A document whose ``meta.schema_version`` is one of ``SUPPORTED_VERSIONS``
+    is checked against that version's schema. Any other document is checked
+    against the latest schema, which rejects it at ``meta.schema_version``.
+
+    Raises:
+        SchemaValidationError: On the first violation found, with the path to
+            the offending value.
+    """
+    version = declared_version(document)
+    target = version if version in SUPPORTED_VERSIONS else SCHEMA_VERSION
+    error = _select(_validator(target).iter_errors(document))
+    if error is not None:
+        raise SchemaValidationError(tuple(error.absolute_path), error.message)

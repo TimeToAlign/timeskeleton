@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "schema_version": "0.1.0",
+    "generator": "timetoalign 1.2.0 (1bacf504)"
+  },
+  "manifest": {
+    "timelines": {
+      "tl:19": {
+        "id": "tl:19",
+        "name": null,
+        "class": "ContinuousLogicalTimeline",
+        "unit": "quarters",
+        "number_type": "fraction",
+        "length": {
+          "value": 12.0,
+          "numerator": 12,
+          "denominator": 1
+        },
+        "locked": false,
+        "meta": {},
+        "children": {
+          "tl:20": {
+            "offset": {
+              "value": 0.3333333333333333,
+              "numerator": 1,
+              "denominator": 3
+            },
+            "timeline": {
+              "id": "tl:20",
+              "name": null,
+              "class": "ContinuousLogicalTimeline",
+              "unit": "quarters",
+              "number_type": "fraction",
+              "length": {
+                "value": 4.0,
+                "numerator": 4,
+                "denominator": 1
+              },
+              "locked": true,
+              "meta": {},
+              "children": {},
+              "conversion_maps": [],
+              "regions": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": {}
+              },
+              "measure_map": null,
+              "metric_hierarchy": null
+            }
+          },
+          "tl:21": {
+            "offset": {
+              "value": 2.0,
+              "numerator": 2,
+              "denominator": 1
+            },
+            "timeline": {
+              "id": "tl:21",
+              "name": null,
+              "class": "ContinuousLogicalTimeline",
+              "unit": "quarters",
+              "number_type": "fraction",
+              "length": {
+                "value": 3.0,
+                "numerator": 3,
+                "denominator": 1
+              },
+              "locked": true,
+              "meta": {},
+              "children": {},
+              "conversion_maps": [],
+              "regions": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": {}
+              },
+              "measure_map": null,
+              "metric_hierarchy": null
+            }
+          }
+        },
+        "conversion_maps": [],
+        "regions": [
+          {
+            "name": "theme",
+            "start": {
+              "value": 2.0,
+              "numerator": 2,
+              "denominator": 1,
+              "unit": "quarters",
+              "number_type": "fraction"
+            },
+            "end": {
+              "value": 6.0,
+              "numerator": 6,
+              "denominator": 1,
+              "unit": "quarters",
+              "number_type": "fraction"
+            },
+            "meta": {}
+          }
+        ],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": {}
+        },
+        "measure_map": null,
+        "metric_hierarchy": null
+      }
+    }
+  }
+}

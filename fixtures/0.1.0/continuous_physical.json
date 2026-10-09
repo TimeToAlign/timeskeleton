@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "schema_version": "0.1.0",
+    "generator": "timetoalign 1.2.0 (1bacf504)"
+  },
+  "manifest": {
+    "timelines": {
+      "tl:7": {
+        "id": "tl:7",
+        "name": null,
+        "class": "ContinuousPhysicalTimeline",
+        "unit": "seconds",
+        "number_type": "float",
+        "length": {
+          "value": 12.5,
+          "numerator": null,
+          "denominator": null
+        },
+        "locked": false,
+        "meta": {},
+        "children": {
+          "tl:8": {
+            "offset": {
+              "value": 0.5,
+              "numerator": null,
+              "denominator": null
+            },
+            "timeline": {
+              "id": "tl:8",
+              "name": null,
+              "class": "ContinuousPhysicalTimeline",
+              "unit": "seconds",
+              "number_type": "float",
+              "length": {
+                "value": 4.25,
+                "numerator": null,
+                "denominator": null
+              },
+              "locked": true,
+              "meta": {},
+              "children": {},
+              "conversion_maps": [],
+              "regions": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": {}
+              },
+              "measure_map": null,
+              "metric_hierarchy": null
+            }
+          },
+          "tl:9": {
+            "offset": {
+              "value": 6.0,
+              "numerator": null,
+              "denominator": null
+            },
+            "timeline": {
+              "id": "tl:9",
+              "name": null,
+              "class": "ContinuousPhysicalTimeline",
+              "unit": "seconds",
+              "number_type": "float",
+              "length": {
+                "value": 3.0,
+                "numerator": null,
+                "denominator": null
+              },
+              "locked": true,
+              "meta": {},
+              "children": {},
+              "conversion_maps": [],
+              "regions": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": {}
+              },
+              "measure_map": null,
+              "metric_hierarchy": null
+            }
+          }
+        },
+        "conversion_maps": [],
+        "regions": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": {}
+        },
+        "measure_map": null,
+        "metric_hierarchy": null
+      }
+    }
+  }
+}

@@ -1,0 +1,57 @@
+[build-system]
+requires = ["hatchling>=1.32.4"]
+build-backend = "hatchling.build"
+
+[project]
+name = "timeskeleton"
+version = "0.1.0"
+description = "The TimeSkeleton document schema, its golden fixtures and a validator"
+dynamic = ["readme"]
+requires-python = ">=3.11"
+license = "MIT"
+keywords = ["music", "timeline", "json-schema", "timetoalign"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Multimedia :: Sound/Audio",
+  "Topic :: File Formats :: JSON :: JSON Schema",
+  "Typing :: Typed",
+]
+dependencies = ["jsonschema>=4.26.0,<5"]
+
+[project.urls]
+Repository = "https://github.com/timetoalign/timeskeleton"
+Issues = "https://github.com/timetoalign/timeskeleton/issues"
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "ruff==0.16.9"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/timeskeleton"]
+
+# The schema and fixture directories and the README live at the repository
+# root. The hooks bundle them into the sdist and the wheel without copying
+# them into the source tree; see hatch_build.py.
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.metadata.hooks.custom]
+path = "hatch_build.py"
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["timeskeleton"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"

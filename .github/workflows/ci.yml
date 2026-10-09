@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.12"
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pytest -q
+
+  js:
+    name: npm package
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: js
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: js/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: js/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - name: Generated files match a fresh generation
+        run: pnpm generate && git diff --exit-code -- src/generated
+      - run: pnpm build
+
+  release-dry-run:
+    name: Release dry run
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Version declarations agree
+        run: python3 scripts/check_versions.py
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.12"
+      - name: Build the Python package
+        run: uv build
+        working-directory: python
+      - name: Check the Python distributions
+        run: uvx twine check --strict python/dist/*
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: js/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: js/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+        working-directory: js
+      - run: pnpm build
+        working-directory: js
+      - name: Dry-run the npm publish
+        run: pnpm publish --dry-run --no-git-checks
+        working-directory: js

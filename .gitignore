@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+python/dist/
+python/build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# JavaScript
+node_modules/
+js/dist/
+# Copied into the npm package by `pnpm build`; the originals live at the repository root.
+js/schema/
+js/fixtures/
+js/README.md
+
+# Editors and systems
+.DS_Store
+.idea/
+.vscode/

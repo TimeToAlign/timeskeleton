@@ -1,0 +1,59 @@
+# One tag releases both packages. Pushing `vX.Y.Z` checks that every version
+# declaration carries X.Y.Z, builds the Python and the npm package, and
+# publishes them through trusted publishing (OIDC): no token is stored. The
+# steps run in one job, in sequence, so a failure anywhere fails the release.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to PyPI and npm
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Version declarations carry the tag
+        run: python3 scripts/check_versions.py --tag "$GITHUB_REF_NAME"
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: "3.12"
+      - name: Build the Python package
+        run: uv build
+        working-directory: python
+      - name: Check the Python distributions
+        run: uvx twine check --strict python/dist/*
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: js/package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - run: pnpm install --frozen-lockfile
+        working-directory: js
+      - run: pnpm lint && pnpm typecheck && pnpm test
+        working-directory: js
+      - run: pnpm build
+        working-directory: js
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        working-directory: js

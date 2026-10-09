@@ -1,0 +1,3 @@
+# pnpm settings (this is a single package, not a workspace).
+# Versions younger than fourteen days are not installed, matching renovate.json.
+minimumReleaseAge: 20160
