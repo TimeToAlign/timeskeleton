@@ -13,10 +13,10 @@ version on PyPI. Each document records the exact revision it was produced
 with in `meta.generator`:
 
 ```
-timetoalign 1.2.0 (1bacf504)
+timetoalign 1.2.0 (cc7c4e55)
 ```
 
-that is, installed version 1.2.0 of timetoalign at commit `1bacf504`
+that is, installed version 1.2.0 of timetoalign at commit `cc7c4e55`
 (https://github.com/timetoalign/timetoalign). To regenerate, run the script
 with an interpreter that has that revision (or a later one) installed:
 
@@ -32,18 +32,18 @@ script, which is part of the fixture contract.
 ## Schema 0.1.0
 
 Nine documents. Six cover the timeline classes, one per class, each with two
-children at offsets of both kinds the format distinguishes: an exact
-ratio (`Fraction` values, including the discrete examples) and a value whose
-ratio members are null (the float-axis examples).
+children at offsets represented as an exact `Fraction` pair or a JSON float.
+Each coordinate records its unit and number type alongside that selected value
+representation.
 
 | File | Built from | Proves |
 |---|---|---|
-| `continuous_logical.json` | `ContinuousLogicalTimeline(length=12, unit="quarters")`; children of lengths 4 and 3 at offsets `Fraction(1, 3)` and `2` | a `fraction` axis: every coordinate carries an exact ratio, including the non-integer offset `1/3` |
-| `discrete_logical.json` | `DiscreteLogicalTimeline(length=Fraction(480), unit="ticks")`; children `Fraction(120)` and `Fraction(96)` at offsets `Fraction(3)` and `Fraction(7)` | an `int` axis with exact integer ratios |
-| `continuous_physical.json` | `ContinuousPhysicalTimeline(length=12.5, unit="seconds")`; children 4.25 and 3.0 at offsets 0.5 and 6.0 | a `float` axis: inexact values use a null ratio |
-| `discrete_physical.json` | `DiscretePhysicalTimeline(length=Fraction(44100), unit="samples")`; children `Fraction(11025)` and `Fraction(2205)` at offsets `Fraction(100)` and `Fraction(20000)` | an `int` axis with exact ratios in the physical domain |
+| `continuous_logical.json` | `ContinuousLogicalTimeline(length=12, unit="quarters")`; children of lengths 4 and 3 at offsets `Fraction(1, 3)` and `2` | a `fraction` axis: every coordinate has a `[numerator, denominator]` value, including the non-integer offset `[1, 3]` |
+| `discrete_logical.json` | `DiscreteLogicalTimeline(length=Fraction(480), unit="ticks")`; children `Fraction(120)` and `Fraction(96)` at offsets `Fraction(3)` and `Fraction(7)` | an `int` axis with JSON integer values |
+| `continuous_physical.json` | `ContinuousPhysicalTimeline(length=12.5, unit="seconds")`; children 4.25 and 3.0 at offsets 0.5 and 6.0 | a `float` axis with JSON number values |
+| `discrete_physical.json` | `DiscretePhysicalTimeline(length=Fraction(44100), unit="samples")`; children `Fraction(11025)` and `Fraction(2205)` at offsets `Fraction(100)` and `Fraction(20000)` | an `int` axis with JSON integer values in the physical domain |
 | `continuous_graphical.json` | `ContinuousGraphicalTimeline(length=600.0, unit="points")`; children 200.0 and 150.0 at offsets 10.0 and 300.0 | a `float` axis in the graphical domain |
-| `discrete_graphical.json` | `DiscreteGraphicalTimeline(length=Fraction(1920), unit="pixels")`; children `Fraction(640)` and `Fraction(480)` at offsets `Fraction(16)` and `Fraction(1000)` | an `int` axis with exact ratios in the graphical domain |
+| `discrete_graphical.json` | `DiscreteGraphicalTimeline(length=Fraction(1920), unit="pixels")`; children `Fraction(640)` and `Fraction(480)` at offsets `Fraction(16)` and `Fraction(1000)` | an `int` axis with JSON integer values in the graphical domain |
 | `with_region.json` | the `continuous_logical` construction plus `create_region("theme", 2, 6)` | a populated `regions` array; its items are opaque objects in 0.1.0 |
 | `empty.json` | no timelines | the smallest valid document: an empty `timelines` map |
 | `nested.json` | `ContinuousLogicalTimeline(length=16, unit="quarters")` with a child of length 8 at offset 4 that holds a child of length 2 at offset `Fraction(3, 2)` | three levels of nesting through the recursive `children` member |

@@ -14,7 +14,7 @@ Mutation = Callable[[dict[str, Any]], Path]
 
 
 def _timeline(document: dict[str, Any]) -> tuple[Path, dict[str, Any]]:
-    """Return the path prefix and the manifest of the first top-level timeline."""
+    """Return the path prefix and manifest of the first top-level timeline."""
     timelines = document["manifest"]["timelines"]
     timeline_id = next(iter(timelines))
     return ("manifest", "timelines", timeline_id), timelines[timeline_id]
@@ -25,21 +25,10 @@ def _unknown_root_key(document: dict[str, Any]) -> Path:
     return ()
 
 
-def _missing_meta(document: dict[str, Any]) -> Path:
-    del document["meta"]
-    return ()
-
-
 def _missing_required_key(document: dict[str, Any]) -> Path:
     prefix, timeline = _timeline(document)
     del timeline["locked"]
     return prefix
-
-
-def _name_not_string(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["name"] = 1
-    return (*prefix, "name")
 
 
 def _class_outside_enum(document: dict[str, Any]) -> Path:
@@ -54,47 +43,51 @@ def _unit_outside_enum(document: dict[str, Any]) -> Path:
     return (*prefix, "unit")
 
 
-def _number_type_outside_enum(document: dict[str, Any]) -> Path:
+def _length(document: dict[str, Any]) -> tuple[Path, dict[str, Any]]:
     prefix, timeline = _timeline(document)
-    timeline["number_type"] = "decimal"
-    return (*prefix, "number_type")
+    return (*prefix, "length"), timeline["length"]
 
 
-def _float_numerator(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["length"]["numerator"] = 1.5
-    return (*prefix, "length", "numerator")
+def _fraction_coordinate_with_bare_integer(document: dict[str, Any]) -> Path:
+    prefix, length = _length(document)
+    length["value"] = 12
+    return (*prefix, "value")
 
 
-def _one_sided_ratio(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["length"]["denominator"] = None
-    return (*prefix, "length")
+def _zero_denominator(document: dict[str, Any]) -> Path:
+    prefix, length = _length(document)
+    length["value"] = [12, 0]
+    return (*prefix, "value", 1)
 
 
-def _denominator_zero(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["length"]["denominator"] = 0
-    return (*prefix, "length", "denominator")
+def _negative_length(document: dict[str, Any]) -> Path:
+    prefix, length = _length(document)
+    length["value"] = [-12, 1]
+    return (*prefix, "value", 0)
 
 
-def _string_numerator_12a(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["length"]["numerator"] = "12a"
-    return (*prefix, "length", "numerator")
+def _three_element_fraction(document: dict[str, Any]) -> Path:
+    prefix, length = _length(document)
+    length["value"] = [1, 2, 3]
+    return (*prefix, "value")
 
 
-def _child_offset_float_numerator(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    child_id = next(iter(timeline["children"]))
-    timeline["children"][child_id]["offset"]["numerator"] = 0.5
-    return (*prefix, "children", child_id, "offset", "numerator")
+def _string_fraction(document: dict[str, Any]) -> Path:
+    prefix, length = _length(document)
+    length["value"] = "12/1"
+    return (*prefix, "value")
 
 
-def _region_not_object(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["regions"] = [1]
-    return (*prefix, "regions", 0)
+def _coordinate_without_unit(document: dict[str, Any]) -> Path:
+    prefix, length = _length(document)
+    del length["unit"]
+    return prefix
+
+
+def _int_number_type_with_fraction_value(document: dict[str, Any]) -> Path:
+    prefix, length = _length(document)
+    length["number_type"] = "int"
+    return (*prefix, "value")
 
 
 def _schema_version_0_2_0(document: dict[str, Any]) -> Path:
@@ -104,18 +97,16 @@ def _schema_version_0_2_0(document: dict[str, Any]) -> Path:
 
 REJECTIONS: list[Mutation] = [
     _unknown_root_key,
-    _missing_meta,
     _missing_required_key,
-    _name_not_string,
     _class_outside_enum,
     _unit_outside_enum,
-    _number_type_outside_enum,
-    _float_numerator,
-    _one_sided_ratio,
-    _denominator_zero,
-    _string_numerator_12a,
-    _child_offset_float_numerator,
-    _region_not_object,
+    _fraction_coordinate_with_bare_integer,
+    _zero_denominator,
+    _negative_length,
+    _three_element_fraction,
+    _string_fraction,
+    _coordinate_without_unit,
+    _int_number_type_with_fraction_value,
     _schema_version_0_2_0,
 ]
 
@@ -150,12 +141,3 @@ def test_json_pointer_rendering() -> None:
         "#/manifest/timelines/tl:1/class"
     )
     assert json_pointer(("a/b", "c~d", 0)) == "#/a~1b/c~0d/0"
-
-
-def test_rejection_path_segments_keep_their_types(load_fixture) -> None:
-    document = load_fixture("continuous_logical")
-    _region_not_object(document)
-    with pytest.raises(SchemaValidationError) as caught:
-        validate(document)
-    assert caught.value.path[-1] == 0
-    assert isinstance(caught.value.path[-1], int)

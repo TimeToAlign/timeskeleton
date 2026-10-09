@@ -9,11 +9,10 @@
 export { schema } from "./generated/schema.js";
 export type {
   Coordinate,
-  Denominator,
+  CoordinateNonnegative,
+  Fraction,
+  FractionNonnegative,
   NumberType,
-  Numerator,
-  Rational,
-  RatioPairing,
   TimelineClass,
   TimelineManifest,
   TimeSkeletonDocument,

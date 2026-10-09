@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "0.1.0",
-    "generator": "timetoalign 1.2.0 (1bacf504)"
+    "generator": "timetoalign 1.2.0 (cc7c4e55)"
   },
   "manifest": {
     "timelines": {
@@ -12,18 +12,18 @@
         "unit": "samples",
         "number_type": "int",
         "length": {
-          "value": 44100.0,
-          "numerator": 44100,
-          "denominator": 1
+          "unit": "samples",
+          "number_type": "int",
+          "value": 44100
         },
         "locked": false,
         "meta": {},
         "children": {
           "tl:11": {
             "offset": {
-              "value": 100.0,
-              "numerator": 100,
-              "denominator": 1
+              "unit": "samples",
+              "number_type": "int",
+              "value": 100
             },
             "timeline": {
               "id": "tl:11",
@@ -32,9 +32,9 @@
               "unit": "samples",
               "number_type": "int",
               "length": {
-                "value": 11025.0,
-                "numerator": 11025,
-                "denominator": 1
+                "unit": "samples",
+                "number_type": "int",
+                "value": 11025
               },
               "locked": true,
               "meta": {},
@@ -52,9 +52,9 @@
           },
           "tl:12": {
             "offset": {
-              "value": 20000.0,
-              "numerator": 20000,
-              "denominator": 1
+              "unit": "samples",
+              "number_type": "int",
+              "value": 20000
             },
             "timeline": {
               "id": "tl:12",
@@ -63,9 +63,9 @@
               "unit": "samples",
               "number_type": "int",
               "length": {
-                "value": 2205.0,
-                "numerator": 2205,
-                "denominator": 1
+                "unit": "samples",
+                "number_type": "int",
+                "value": 2205
               },
               "locked": true,
               "meta": {},

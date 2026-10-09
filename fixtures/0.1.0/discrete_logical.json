@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "0.1.0",
-    "generator": "timetoalign 1.2.0 (1bacf504)"
+    "generator": "timetoalign 1.2.0 (cc7c4e55)"
   },
   "manifest": {
     "timelines": {
@@ -12,18 +12,18 @@
         "unit": "ticks",
         "number_type": "int",
         "length": {
-          "value": 480.0,
-          "numerator": 480,
-          "denominator": 1
+          "unit": "ticks",
+          "number_type": "int",
+          "value": 480
         },
         "locked": false,
         "meta": {},
         "children": {
           "tl:5": {
             "offset": {
-              "value": 3.0,
-              "numerator": 3,
-              "denominator": 1
+              "unit": "ticks",
+              "number_type": "int",
+              "value": 3
             },
             "timeline": {
               "id": "tl:5",
@@ -32,9 +32,9 @@
               "unit": "ticks",
               "number_type": "int",
               "length": {
-                "value": 120.0,
-                "numerator": 120,
-                "denominator": 1
+                "unit": "ticks",
+                "number_type": "int",
+                "value": 120
               },
               "locked": true,
               "meta": {},
@@ -52,9 +52,9 @@
           },
           "tl:6": {
             "offset": {
-              "value": 7.0,
-              "numerator": 7,
-              "denominator": 1
+              "unit": "ticks",
+              "number_type": "int",
+              "value": 7
             },
             "timeline": {
               "id": "tl:6",
@@ -63,9 +63,9 @@
               "unit": "ticks",
               "number_type": "int",
               "length": {
-                "value": 96.0,
-                "numerator": 96,
-                "denominator": 1
+                "unit": "ticks",
+                "number_type": "int",
+                "value": 96
               },
               "locked": true,
               "meta": {},

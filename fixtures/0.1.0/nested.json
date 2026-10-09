@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "0.1.0",
-    "generator": "timetoalign 1.2.0 (1bacf504)"
+    "generator": "timetoalign 1.2.0 (cc7c4e55)"
   },
   "manifest": {
     "timelines": {
@@ -12,18 +12,24 @@
         "unit": "quarters",
         "number_type": "fraction",
         "length": {
-          "value": 16.0,
-          "numerator": 16,
-          "denominator": 1
+          "unit": "quarters",
+          "number_type": "fraction",
+          "value": [
+            16,
+            1
+          ]
         },
         "locked": false,
         "meta": {},
         "children": {
           "tl:23": {
             "offset": {
-              "value": 4.0,
-              "numerator": 4,
-              "denominator": 1
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                4,
+                1
+              ]
             },
             "timeline": {
               "id": "tl:23",
@@ -32,18 +38,24 @@
               "unit": "quarters",
               "number_type": "fraction",
               "length": {
-                "value": 8.0,
-                "numerator": 8,
-                "denominator": 1
+                "unit": "quarters",
+                "number_type": "fraction",
+                "value": [
+                  8,
+                  1
+                ]
               },
               "locked": true,
               "meta": {},
               "children": {
                 "tl:22": {
                   "offset": {
-                    "value": 1.5,
-                    "numerator": 3,
-                    "denominator": 2
+                    "unit": "quarters",
+                    "number_type": "fraction",
+                    "value": [
+                      3,
+                      2
+                    ]
                   },
                   "timeline": {
                     "id": "tl:22",
@@ -52,9 +64,12 @@
                     "unit": "quarters",
                     "number_type": "fraction",
                     "length": {
-                      "value": 2.0,
-                      "numerator": 2,
-                      "denominator": 1
+                      "unit": "quarters",
+                      "number_type": "fraction",
+                      "value": [
+                        2,
+                        1
+                      ]
                     },
                     "locked": true,
                     "meta": {},

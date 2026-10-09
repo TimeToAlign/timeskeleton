@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "0.1.0",
-    "generator": "timetoalign 1.2.0 (1bacf504)"
+    "generator": "timetoalign 1.2.0 (cc7c4e55)"
   },
   "manifest": {
     "timelines": {
@@ -12,18 +12,18 @@
         "unit": "seconds",
         "number_type": "float",
         "length": {
-          "value": 12.5,
-          "numerator": null,
-          "denominator": null
+          "unit": "seconds",
+          "number_type": "float",
+          "value": 12.5
         },
         "locked": false,
         "meta": {},
         "children": {
           "tl:8": {
             "offset": {
-              "value": 0.5,
-              "numerator": null,
-              "denominator": null
+              "unit": "seconds",
+              "number_type": "float",
+              "value": 0.5
             },
             "timeline": {
               "id": "tl:8",
@@ -32,9 +32,9 @@
               "unit": "seconds",
               "number_type": "float",
               "length": {
-                "value": 4.25,
-                "numerator": null,
-                "denominator": null
+                "unit": "seconds",
+                "number_type": "float",
+                "value": 4.25
               },
               "locked": true,
               "meta": {},
@@ -52,9 +52,9 @@
           },
           "tl:9": {
             "offset": {
-              "value": 6.0,
-              "numerator": null,
-              "denominator": null
+              "unit": "seconds",
+              "number_type": "float",
+              "value": 6.0
             },
             "timeline": {
               "id": "tl:9",
@@ -63,9 +63,9 @@
               "unit": "seconds",
               "number_type": "float",
               "length": {
-                "value": 3.0,
-                "numerator": null,
-                "denominator": null
+                "unit": "seconds",
+                "number_type": "float",
+                "value": 3.0
               },
               "locked": true,
               "meta": {},

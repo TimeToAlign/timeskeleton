@@ -127,18 +127,49 @@ def declared_version(document: object) -> str | None:
     return version if isinstance(version, str) else None
 
 
-def _select(errors: Iterable[ValidationError]) -> ValidationError | None:
-    """Pick the error to report: the first one with the deepest path.
+def _leaf_errors(error: ValidationError) -> Iterable[ValidationError]:
+    """Yield the leaves beneath a validator error, left to right."""
+    if not error.context:
+        yield error
+        return
+    for child in error.context:
+        yield from _leaf_errors(child)
 
-    The validator reports every violation at the top level; the alternatives
-    of a failed ``oneOf`` are not candidates, the ``oneOf`` violation itself
-    stands for them. Among the candidates, the deepest path points closest to
-    the offending value; ties go to the first reported.
+
+def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
+    """Yield diagnostic leaves for the selected discriminated branch."""
+    if error.validator != "oneOf" or not isinstance(error.instance, Mapping):
+        yield from _leaf_errors(error)
+        return
+    branch_for_type = {"int": 0, "float": 1, "fraction": 2}
+    branch = branch_for_type.get(error.instance.get("number_type"))
+    if branch is None:
+        yield from _leaf_errors(error)
+        return
+    selected = [
+        child
+        for child in error.context
+        if child.schema_path and child.schema_path[0] == branch
+    ]
+    if not selected:
+        yield from _leaf_errors(error)
+        return
+    for child in selected:
+        yield from _leaf_errors(child)
+
+
+def _select(errors: Iterable[ValidationError]) -> ValidationError | None:
+    """Pick the error to report: the first leaf with the deepest path.
+
+    A failed ``oneOf`` holds its branch diagnostics in ``context``. Looking at
+    its leaves keeps the reported location as close as possible to the bad
+    value, matching the Ajv validator. Ties go to the first reported leaf.
     """
     best: ValidationError | None = None
     for error in errors:
-        if best is None or len(error.absolute_path) > len(best.absolute_path):
-            best = error
+        for leaf in _candidate_leaves(error):
+            if best is None or len(leaf.absolute_path) > len(best.absolute_path):
+                best = leaf
     return best
 
 

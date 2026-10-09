@@ -37,60 +37,125 @@ export type TimeUnit =
   | "inches"
   | "points";
 /**
- * The number type of every coordinate on a timeline axis.
+ * The number type of every coordinate on a timeline axis. It selects the representation of a coordinate's value: int is a JSON integer, float a JSON number, fraction a Fraction pair.
  *
  * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
  * via the `definition` "NumberType".
  */
 export type NumberType = "int" | "float" | "fraction";
 /**
- * A number with its exact ratio. A null ratio (both members null) encodes an inexact float; otherwise numerator and denominator carry the exact value, as integers below 2^53 or as decimal integer strings at or above it.
- *
- * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
- * via the `definition` "Rational".
+ * The end of the timeline on its own axis.
  */
-export type Rational = RatioPairing & {
+export type CoordinateNonnegative = {
+  unit: TimeUnit;
+  number_type: NumberType;
   /**
-   * The float projection of the number.
+   * The non-negative position, represented as selected by number_type.
    */
-  value: number;
-  numerator: Numerator;
-  denominator: Denominator;
-};
-/**
- * The two ratio members are null together (an inexact float) or present together (an exact ratio).
- *
- * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
- * via the `definition` "RatioPairing".
- */
-export type RatioPairing =
+  value: {
+    [k: string]: unknown;
+  };
+} & (
   | {
-      numerator?: null;
-      denominator?: null;
+      number_type?: "int";
+      value?: number;
       [k: string]: unknown;
     }
   | {
-      numerator?: number | string;
-      denominator?: number | string;
+      number_type?: "float";
+      value?: number;
+      [k: string]: unknown;
+    }
+  | {
+      number_type?: "fraction";
+      value?: FractionNonnegative;
+      [k: string]: unknown;
+    }
+);
+/**
+ * Non-negative rational number
+ *
+ * @minItems 2
+ * @maxItems 2
+ *
+ * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
+ * via the `definition` "FractionNonnegative".
+ */
+export type FractionNonnegative = [number, number];
+/**
+ * Where the child's origin lies on this timeline's axis.
+ */
+export type Coordinate = {
+  unit: TimeUnit;
+  number_type: NumberType;
+  /**
+   * The position, represented as selected by number_type.
+   */
+  value: {
+    [k: string]: unknown;
+  };
+} & (
+  | {
+      number_type?: "int";
+      value?: number;
+      [k: string]: unknown;
+    }
+  | {
+      number_type?: "float";
+      value?: number;
+      [k: string]: unknown;
+    }
+  | {
+      number_type?: "fraction";
+      value?: Fraction;
+      [k: string]: unknown;
+    }
+);
+/**
+ * Rational number encoded as numerator and non-zero denominator
+ *
+ * @minItems 2
+ * @maxItems 2
+ *
+ * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
+ * via the `definition` "Fraction".
+ */
+export type Fraction = [number, number];
+export type Coordinate1 =
+  | {
+      number_type?: "int";
+      value?: number;
+      [k: string]: unknown;
+    }
+  | {
+      number_type?: "float";
+      value?: number;
+      [k: string]: unknown;
+    }
+  | {
+      number_type?: "fraction";
+      value?: Fraction;
       [k: string]: unknown;
     };
-/**
- * The exact numerator as an integer or a decimal integer string, or null for an inexact float.
- *
- * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
- * via the `definition` "Numerator".
- */
-export type Numerator = number | string | null;
-/**
- * The exact positive denominator as an integer or a decimal integer string, or null for an inexact float.
- *
- * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
- * via the `definition` "Denominator".
- */
-export type Denominator = number | string | null;
+export type CoordinateNonnegative1 =
+  | {
+      number_type?: "int";
+      value?: number;
+      [k: string]: unknown;
+    }
+  | {
+      number_type?: "float";
+      value?: number;
+      [k: string]: unknown;
+    }
+  | {
+      number_type?: "fraction";
+      value?: FractionNonnegative;
+      [k: string]: unknown;
+    };
 
 /**
- * A set of musical timelines with their structure: axis, children at exact offsets, conversion maps, regions, flow control, measure map and metric hierarchy. The timeline manifest mirrors the eventless payload of timetoalign's Timeline.to_dict(). Version 0.1.0 specifies the envelope and the top level of a timeline; the structured members are opaque.
+ * A set of musical timelines with their structure: axis, children at exact offsets, conversion maps, regions, flow control, measure map and metric hierarchy. The timeline manifest mirrors the eventless payload of timetoalign's Timeline.to_dict(). Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Version 0.1.0 specifies the envelope, the top level of a timeline and its coordinates; the structured members are opaque.
  */
 export interface TimeSkeletonDocument {
   /**
@@ -119,7 +184,7 @@ export interface TimeSkeletonDocument {
   };
 }
 /**
- * The structure of one timeline without its events.
+ * The structure of one timeline without its events. The axis is unit and number_type; length and every child offset are coordinates on that axis and carry the same unit and number type.
  *
  * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
  * via the `definition` "TimelineManifest".
@@ -136,7 +201,7 @@ export interface TimelineManifest {
   class: TimelineClass;
   unit: TimeUnit;
   number_type: NumberType;
-  length: Rational;
+  length: CoordinateNonnegative;
   /**
    * Whether the timeline refuses to expand.
    */
@@ -148,11 +213,11 @@ export interface TimelineManifest {
     [k: string]: unknown;
   };
   /**
-   * Child timelines keyed by their id, each at an exact offset on this axis.
+   * Child timelines keyed by their id, each placed at an offset on this timeline's axis.
    */
   children: {
     [k: string]: {
-      offset: Rational;
+      offset: Coordinate;
       timeline: TimelineManifest;
     };
   };
@@ -187,13 +252,23 @@ export interface TimelineManifest {
     [k: string]: unknown;
   } | null;
 }
-export interface Coordinate {
-  /**
-   * The float projection of the number.
-   */
-  value: number;
-  numerator: Numerator;
-  denominator: Denominator;
+export interface Coordinate2 {
   unit: TimeUnit;
   number_type: NumberType;
+  /**
+   * The position, represented as selected by number_type.
+   */
+  value: {
+    [k: string]: unknown;
+  };
+}
+export interface CoordinateNonnegative2 {
+  unit: TimeUnit;
+  number_type: NumberType;
+  /**
+   * The non-negative position, represented as selected by number_type.
+   */
+  value: {
+    [k: string]: unknown;
+  };
 }

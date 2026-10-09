@@ -71,7 +71,12 @@ export function declaredVersion(document: unknown): string | null {
   return typeof version === "string" ? version : null;
 }
 
-const ajv = new Ajv2020({ strict: true, allErrors: true, allowUnionTypes: true });
+const ajv = new Ajv2020({
+  strict: true,
+  allErrors: true,
+  allowUnionTypes: true,
+  discriminator: true,
+});
 const validators = new Map<string, ReturnType<typeof ajv.compile>>();
 
 function validatorFor(version: string): ReturnType<typeof ajv.compile> {
@@ -111,23 +116,17 @@ function toPath(instancePath: string, document: unknown): PathSegment[] {
   return path;
 }
 
-const ONE_OF_BRANCH = /\/oneOf\/\d+\//;
-
 /**
  * Pick the error to report: the first one with the deepest path.
  *
- * Ajv reports the violations inside every failed `oneOf` alternative next to
- * the `oneOf` violation itself; the alternatives are not candidates, the
- * `oneOf` violation stands for them. Among the candidates, the deepest path
- * points closest to the offending value; ties go to the first reported.
+ * With the discriminator enabled, Ajv reports the selected `oneOf` branch's
+ * value error directly. The deepest path points closest to the offending
+ * value; ties go to the first reported, matching the Python validator.
  */
 function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
   let best: ErrorObject | undefined;
   let bestDepth = -1;
   for (const error of errors) {
-    if (ONE_OF_BRANCH.test(error.schemaPath)) {
-      continue;
-    }
     const depth = error.instancePath === "" ? 0 : error.instancePath.split("/").length - 1;
     if (depth > bestDepth) {
       best = error;

@@ -50,12 +50,43 @@ function banner(schemaFile: string): string {
 
 /** Render the TypeScript types for a schema. */
 export async function renderTypes(schemaText: string, schemaFile: string): Promise<string> {
-  return compile(JSON.parse(schemaText), "TimeSkeletonDocument", {
+  return compile(schemaForTypes(schemaText), "TimeSkeletonDocument", {
     bannerComment: banner(schemaFile),
     additionalProperties: true,
     declareExternallyReferenced: true,
     unreachableDefinitions: true,
   });
+}
+
+/**
+ * Convert 2020-12 tuple notation for the generator's older tuple reader.
+ *
+ * The emitted schema keeps the source document unchanged. This compatibility
+ * view affects only TypeScript generation, where `prefixItems` would otherwise
+ * become `never[]` instead of a two-item tuple.
+ */
+function schemaForTypes(schemaText: string): object {
+  const schema: unknown = JSON.parse(schemaText);
+
+  function visit(value: unknown): void {
+    if (Array.isArray(value)) {
+      value.forEach(visit);
+      return;
+    }
+    if (typeof value !== "object" || value === null) {
+      return;
+    }
+    const node = value as Record<string, unknown>;
+    Object.values(node).forEach(visit);
+    if (Array.isArray(node.prefixItems) && node.items === false) {
+      node.items = node.prefixItems;
+      node.additionalItems = false;
+      delete node.prefixItems;
+    }
+  }
+
+  visit(schema);
+  return schema as object;
 }
 
 /** Render the schema object as a TypeScript constant. */

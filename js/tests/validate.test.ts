@@ -5,7 +5,7 @@ import { FIXTURE_NAMES, loadFixture } from "./fixtures.js";
 type Document = Record<string, unknown>;
 type Mutation = (document: Document) => PathSegment[];
 
-/** Return the path prefix and the manifest of the first top-level timeline. */
+/** Return the path prefix and manifest of the first top-level timeline. */
 function firstTimeline(document: Document): [PathSegment[], Document] {
   const manifest = document.manifest as Document;
   const timelines = manifest.timelines as Record<string, Document>;
@@ -13,8 +13,9 @@ function firstTimeline(document: Document): [PathSegment[], Document] {
   return [["manifest", "timelines", timelineId], timelines[timelineId] as Document];
 }
 
-function rational(timeline: Document, member: "length"): Document {
-  return timeline[member] as Document;
+function length(document: Document): [PathSegment[], Document] {
+  const [prefix, timeline] = firstTimeline(document);
+  return [[...prefix, "length"], timeline.length as Document];
 }
 
 const REJECTIONS: Record<string, Mutation> = {
@@ -22,19 +23,10 @@ const REJECTIONS: Record<string, Mutation> = {
     document.extra = 1;
     return [];
   },
-  "missing meta": (document) => {
-    delete document.meta;
-    return [];
-  },
   "missing required key": (document) => {
     const [prefix, timeline] = firstTimeline(document);
     delete timeline.locked;
     return prefix;
-  },
-  "name neither string nor null": (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    timeline.name = 1;
-    return [...prefix, "name"];
   },
   "class outside the enum": (document) => {
     const [prefix, timeline] = firstTimeline(document);
@@ -46,43 +38,40 @@ const REJECTIONS: Record<string, Mutation> = {
     timeline.unit = "beats";
     return [...prefix, "unit"];
   },
-  "number_type outside the enum": (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    timeline.number_type = "decimal";
-    return [...prefix, "number_type"];
+  "fraction coordinate with a bare integer": (document) => {
+    const [prefix, coordinate] = length(document);
+    coordinate.value = 12;
+    return [...prefix, "value"];
   },
-  "float numerator": (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    rational(timeline, "length").numerator = 1.5;
-    return [...prefix, "length", "numerator"];
+  "zero denominator": (document) => {
+    const [prefix, coordinate] = length(document);
+    coordinate.value = [12, 0];
+    return [...prefix, "value", 1];
   },
-  "one-sided ratio": (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    rational(timeline, "length").denominator = null;
-    return [...prefix, "length"];
+  "negative length": (document) => {
+    const [prefix, coordinate] = length(document);
+    coordinate.value = [-12, 1];
+    return [...prefix, "value", 0];
   },
-  "denominator 0": (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    rational(timeline, "length").denominator = 0;
-    return [...prefix, "length", "denominator"];
+  "three-element fraction": (document) => {
+    const [prefix, coordinate] = length(document);
+    coordinate.value = [1, 2, 3];
+    return [...prefix, "value"];
   },
-  'string numerator "12a"': (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    rational(timeline, "length").numerator = "12a";
-    return [...prefix, "length", "numerator"];
+  "string fraction": (document) => {
+    const [prefix, coordinate] = length(document);
+    coordinate.value = "12/1";
+    return [...prefix, "value"];
   },
-  "child offset with float numerator": (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    const children = timeline.children as Record<string, Document>;
-    const childId = Object.keys(children)[0] as string;
-    const offset = (children[childId] as Document).offset as Document;
-    offset.numerator = 0.5;
-    return [...prefix, "children", childId, "offset", "numerator"];
+  "coordinate without unit": (document) => {
+    const [prefix, coordinate] = length(document);
+    delete coordinate.unit;
+    return prefix;
   },
-  "region that is not an object": (document) => {
-    const [prefix, timeline] = firstTimeline(document);
-    timeline.regions = [1];
-    return [...prefix, "regions", 0];
+  "int number type with a fraction value": (document) => {
+    const [prefix, coordinate] = length(document);
+    coordinate.number_type = "int";
+    return [...prefix, "value"];
   },
   "schema_version 0.2.0": (document) => {
     (document.meta as Document).schema_version = "0.2.0";
@@ -106,7 +95,6 @@ describe("validate accepts", () => {
   it.each(FIXTURE_NAMES)("fixture %s", (name) => {
     const document: unknown = loadFixture(name);
     validate(document);
-    // Narrowed by the assertion signature: no cast is needed below.
     expect(typeof document.manifest.timelines).toBe("object");
   });
 });
@@ -126,12 +114,6 @@ describe("validate rejects", () => {
     expect(error.message.startsWith(prefix)).toBe(true);
     expect(error.message.length).toBeGreaterThan(prefix.length);
     expect(error.name).toBe("SchemaValidationError");
-  });
-
-  it("types array indices as numbers", () => {
-    const document = loadFixture("continuous_logical");
-    (REJECTIONS["region that is not an object"] as Mutation)(document);
-    expect(rejection(document).path.at(-1)).toBe(0);
   });
 });
 

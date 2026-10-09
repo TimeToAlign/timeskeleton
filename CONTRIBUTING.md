@@ -53,7 +53,7 @@ python3 scripts/check_versions.py
 
 ## Known limitations
 
-- The validator tests do not pin the exact `2^53` boundary value or negative-denominator rejection in either implementation.
+- The validator tests do not pin the JSON implementation's maximum safe-integer boundary in either implementation.
 - Python and TypeScript rejection paths are independently compared with expected values, but no test compares both implementations' paths for the same generated invalid documents.
 
 ## Release
