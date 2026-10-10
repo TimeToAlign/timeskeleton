@@ -38,17 +38,20 @@ export class UnsupportedVersionError extends Error {
 /**
  * Thrown when a document violates the schema.
  *
- * `path` locates the offending value; `message` reads
- * `<JSON pointer>: <the validator's description>`, the pointer in URI fragment
- * form (`#` for the document root).
+ * `path` locates the offending value and `detail` is the validator's
+ * description; `message` reads `<JSON pointer>: <detail>`, the pointer in URI
+ * fragment form (`#` for the document root).
  */
 export class SchemaValidationError extends Error {
   readonly path: readonly PathSegment[];
+  /** The validator's description of the violation, without the path. */
+  readonly detail: string;
 
   constructor(path: readonly PathSegment[], detail: string) {
     super(`${jsonPointer(path)}: ${detail}`);
     this.name = "SchemaValidationError";
     this.path = path;
+    this.detail = detail;
   }
 }
 
@@ -117,11 +120,14 @@ function toPath(instancePath: string, document: unknown): PathSegment[] {
 }
 
 /**
- * Pick the error to report: the first one with the deepest path.
+ * Pick the error to report under the shared path rule.
  *
- * With the discriminator enabled, Ajv reports the selected `oneOf` branch's
- * value error directly. The deepest path points closest to the offending
- * value; ties go to the first reported, matching the Python validator.
+ * The rule, shared with the Python validator: among the diagnostic leaves of
+ * every violation, report the one with the deepest instance path; ties go to
+ * the first leaf reported. A discriminated `oneOf` contributes only the
+ * candidate whose tag `const` equals the instance's tag value, or itself when
+ * no candidate carries that value. Ajv's `discriminator` keyword applies that
+ * selection; the shared rejection fixtures pin the paths both validators report.
  */
 function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
   let best: ErrorObject | undefined;

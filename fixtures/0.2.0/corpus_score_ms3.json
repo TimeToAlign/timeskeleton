@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "0.2.0",
-    "generator": "timetoalign 1.2.0 (95b983b6)"
+    "generator": "timetoalign 1.2.0 (d4326f0f)"
   },
   "manifest": {
     "timelines": {
@@ -273,7 +273,11 @@
             "start_repeat": false,
             "end_repeat": false,
             "next": [
-              2
+              "2"
+            ],
+            "offset_within_measure": [
+              3,
+              1
             ]
           },
           {
@@ -296,8 +300,8 @@
             "start_repeat": false,
             "end_repeat": true,
             "next": [
-              1,
-              4
+              "1",
+              "4"
             ]
           },
           {
@@ -320,9 +324,9 @@
             "start_repeat": true,
             "end_repeat": false,
             "next": [
-              5,
-              6,
-              7
+              "5",
+              "6",
+              "7"
             ]
           },
           {
@@ -345,7 +349,7 @@
             "start_repeat": false,
             "end_repeat": true,
             "next": [
-              4
+              "4"
             ],
             "volta": 1
           },
@@ -369,7 +373,7 @@
             "start_repeat": false,
             "end_repeat": false,
             "next": [
-              8
+              "8"
             ],
             "volta": 2
           },
@@ -392,9 +396,7 @@
             ],
             "start_repeat": false,
             "end_repeat": false,
-            "next": [
-              8
-            ],
+            "next": [],
             "volta": 3
           },
           {
@@ -417,7 +419,7 @@
             "start_repeat": false,
             "end_repeat": true,
             "next": [
-              9
+              "9"
             ]
           },
           {
@@ -440,9 +442,9 @@
             "start_repeat": true,
             "end_repeat": false,
             "next": [
-              9,
-              10,
-              13
+              "9",
+              "10",
+              "13"
             ]
           },
           {
@@ -465,8 +467,8 @@
             "start_repeat": false,
             "end_repeat": false,
             "next": [
-              10,
-              11
+              "10",
+              "11"
             ]
           },
           {
@@ -489,8 +491,8 @@
             "start_repeat": false,
             "end_repeat": true,
             "next": [
-              11,
-              12
+              "11",
+              "12"
             ]
           },
           {
@@ -513,7 +515,7 @@
             "start_repeat": false,
             "end_repeat": false,
             "next": [
-              9
+              "9"
             ]
           },
           {
@@ -536,8 +538,8 @@
             "start_repeat": false,
             "end_repeat": false,
             "next": [
-              14,
-              15
+              "14",
+              "15"
             ]
           },
           {
@@ -560,9 +562,13 @@
             "start_repeat": false,
             "end_repeat": true,
             "next": [
-              12
+              "12"
             ],
-            "volta": 1
+            "volta": 1,
+            "offset_within_measure": [
+              2,
+              1
+            ]
           },
           {
             "count": 15,
@@ -583,6 +589,9 @@
             ],
             "start_repeat": false,
             "end_repeat": false,
+            "next": [
+              "1"
+            ],
             "volta": 2
           }
         ],

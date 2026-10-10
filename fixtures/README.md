@@ -2,9 +2,16 @@
 
 Every file under `fixtures/<schema version>/` is a complete TimeSkeleton
 document emitted by timetoalign through `scripts/emit_fixtures.py`. The
-script is the only writer of this directory: fixtures are never edited by
-hand, and a change to the library's serialization is landed by regenerating
-them and reviewing the diff.
+script is the only writer of those directories: golden fixtures are never
+edited by hand, and a change to the library's serialization is landed by
+regenerating them and reviewing the diff. Once the tag `v<version>` exists,
+the script refuses to write into `fixtures/<version>/`: a released version's
+fixtures are frozen.
+
+The rejection cases under `fixtures/rejections/` and the migration pairs
+under `fixtures/migrations/` are different: they are authored by hand, each
+for the one rule or migration step it pins, and the script never touches
+them.
 
 ## Provenance
 
@@ -13,11 +20,11 @@ version on PyPI. Each document records the exact revision it was produced
 with in `meta.generator`:
 
 ```
-timetoalign 1.2.0 (95b983b6)
+timetoalign <installed version> (<commit>)
 ```
 
-that is, installed version 1.2.0 of timetoalign at commit `95b983b6`
-(https://github.com/timetoalign/timetoalign). To regenerate, run the script
+that is, the installed version of timetoalign and the commit of
+https://github.com/timetoalign/timetoalign it was built from. To regenerate, run the script
 with an interpreter that has that revision (or a later one) installed:
 
 ```
@@ -76,10 +83,21 @@ synthetic `continuous_graphical.json` remains its coverage.
 | `corpus_audio_audio.json` | `AudioLoader` on `audio/` | continuous physical timeline |
 | `corpus_midi_score_midi.json` | MIDI loader on `midi/` | discrete logical timeline |
 | `corpus_parangonar_parangonada.json` | Parangonada loader on `parangonar/` | discrete physical timeline |
-| `corpus_score_ms3.json` | `Ms3Loader` on `score/` | flow control and 14 compressed Measure Map rows representing 15 measures; the acceptance check expands the rows through the library to verify the count |
+| `corpus_score_ms3.json` | `Ms3Loader` on `score/` (`out_of_the_flow_experience-flow_only`) | flow control and 14 compressed Measure Map rows representing 15 measures, with successors in `next` as row IDs; the anacrusis (count 1) and the second constituent of the split bar 9 (count 14) carry `offset_within_measure` (`[3, 1]` and `[2, 1]`, from the table's `mc_offset` of 3/4 and 1/2 whole notes); count 7, where the piece ends, has `next: []`; the acceptance check expands the rows through the library to verify the count |
 | `corpus_supra_iiif.json` | IIIF manifest loader on `supra/` | discrete graphical timeline |
 
-`fixtures/rejections/0.2.0/` contains complete one-mutation invalid documents,
-their expected deepest validation paths, and a reason. Both packages consume
-them. `fixtures/migrations/0.1.0-to-0.2.0/` contains the corresponding
-`before.json` and `after.json` migration pair.
+`fixtures/rejections/0.2.0/` contains 34 complete one-mutation invalid
+documents, each with the path both validators must report and a reason. Both
+packages consume them.
+
+`fixtures/migrations/0.1.0-to-0.2.0/` holds a populated pair. `before.json` is
+a 0.1.0 document in the shapes timetoalign wrote at 0.1.0: a tagged-measure
+measure map of four measures (an anacrusis as a `MeasureConstituent` at offset
+3, and a repeat whose last bar names the successors `["m2", "m4"]`), a
+`MetricalPositionMap` with its redundant `maps` and `names`, a `LinearMap`,
+and a region. `after.json` is the result of the migration, serialized with
+two-space indentation and a final newline: four compressed rows whose
+successors are row IDs (`["2", "4"]`) and whose first row carries
+`offset_within_measure: [3, 1]`, and the position map as `meter_map` plus
+`beat_map_id`, every other member unchanged. Both packages must reproduce it
+byte for byte.

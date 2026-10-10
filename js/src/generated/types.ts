@@ -225,6 +225,8 @@ export type ActivationCondition = "always" | "first_n" | "after_first" | "after_
  */
 export type MeasureMap = [MeasureMapRow, ...MeasureMapRow[]];
 /**
+ * One row of the Measure Map standard plus the TimeSkeleton extensions volta and offset_within_measure.
+ *
  * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
  * via the `definition` "MeasureMapRow".
  */
@@ -238,9 +240,9 @@ export type MeasureMapRow = MeasureMapRow1 & {
    */
   count?: number;
   /**
-   * A bare JSON number or an exact Fraction pair.
+   * The symbolic time to have elapsed since the beginning of the source, measured in quarter notes. Non-negative; TimeSkeleton additionally permits an exact Fraction pair.
    */
-  qstamp?: number | Fraction;
+  qstamp?: number | FractionNonnegative;
   /**
    * A number assigned to this measure based on a given set of rules or conventions. One wide-spread convention, for instance, is that a piece starts with measure number 0 if it has an anacrusis and with number 1 otherwise.
    */
@@ -256,11 +258,11 @@ export type MeasureMapRow = MeasureMapRow1 & {
   /**
    * The default duration that corresponds to the given 'time_signature', in quarter notes. Can be derived from 'time_signature' if it takes the form of an '<int>/<int>'-encoded fraction. Can take the value 'null' if the time signature has no corresponding duration (e.g. 'cadenza'). TimeSkeleton additionally permits an exact Fraction pair.
    */
-  nominal_length?: Number | null;
+  nominal_length?: NumberPositive | null;
   /**
-   * A bare JSON number or an exact Fraction pair.
+   * A strictly positive bare JSON number or a strictly positive exact Fraction pair.
    */
-  actual_length?: number | Fraction;
+  actual_length?: number | FractionPositive;
   /**
    * Typical usage is with the bool type, with 'true' indicating a start repeat at the beginning of the measure.
    */
@@ -274,13 +276,34 @@ export type MeasureMapRow = MeasureMapRow1 & {
    */
   next?: (string | number)[];
   /**
-   * A TimeSkeleton extension that identifies the volta ending.
+   * A TimeSkeleton extension that identifies the volta ending. It carries no structural constraint.
    */
   volta?: number;
+  /**
+   * A strictly positive bare JSON number or a strictly positive exact Fraction pair.
+   */
+  offset_within_measure?: number | FractionPositive;
 };
 export type MeasureMapRow1 = {
   [k: string]: unknown;
 };
+/**
+ * A strictly positive bare JSON number or a strictly positive exact Fraction pair.
+ *
+ * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
+ * via the `definition` "NumberPositive".
+ */
+export type NumberPositive = number | FractionPositive;
+/**
+ * Strictly positive rational number
+ *
+ * @minItems 2
+ * @maxItems 2
+ *
+ * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
+ * via the `definition` "FractionPositive".
+ */
+export type FractionPositive = [number, number];
 export type CoordinateNonnegative1 =
   | {
       number_type?: "int";
@@ -297,6 +320,13 @@ export type CoordinateNonnegative1 =
       value?: FractionNonnegative;
       [k: string]: unknown;
     };
+/**
+ * A non-negative bare JSON number or a non-negative exact Fraction pair.
+ *
+ * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
+ * via the `definition` "NumberNonnegative".
+ */
+export type NumberNonnegative = number | FractionNonnegative;
 
 /**
  * A set of musical timelines with their structure: axis, children at exact offsets, conversion maps, regions, flow control, compressed Measure Map standard rows and metric hierarchy. The timeline manifest mirrors the eventless payload of timetoalign's Timeline.to_dict(). Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Version 0.2.0 specifies conversion maps, regions, flow control and measure maps; the metric hierarchy is the one structured member that remains opaque.
@@ -375,7 +405,7 @@ export interface TimelineManifest {
   regions: Region[];
   flow_control: FlowControl;
   /**
-   * The measure map, or null.
+   * The measure map, or null. A measure map is anchored in quarter notes, so only a timeline whose unit is quarters may carry one.
    */
   measure_map: MeasureMap | null;
   /**
@@ -507,6 +537,8 @@ export interface LinearMap {
   offset: Number;
 }
 /**
+ * Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose identifier is beat_map_id.
+ *
  * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema
  * via the `definition` "MetricalPositionMap".
  */
@@ -516,11 +548,11 @@ export interface MetricalPositionMap {
   name: string | null;
   source_unit: TimeUnit | null;
   target_unit: TimeUnit | null;
-  maps: {
-    [k: string]: ConversionMap;
-  };
-  names: string[];
   meter_map: MetricMap;
+  /**
+   * The identifier of the BeatInMeasureMap derived from meter_map.
+   */
+  beat_map_id: string;
 }
 /**
  * This interface was referenced by `TimeSkeletonDocument`'s JSON-Schema

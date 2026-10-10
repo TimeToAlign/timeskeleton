@@ -2,6 +2,8 @@
 
 TimeSkeleton is the versioned JSON Schema for the structural serialization of musical timelines, with golden fixtures emitted by [timetoalign](https://github.com/timetoalign/timetoalign) and validation and migration packages for Python and TypeScript. It carries timeline structure, not event data.
 
+**Status: alpha.** Version 0.2.0 offers the schema (0.2.0, with 0.1.0 kept validatable), validators in Python and TypeScript that locate a violation under one shared path rule, the migration from 0.1.0 to 0.2.0 in both packages, and the golden, rejection, and migration fixtures. The format may still change incompatibly in a later 0.x version; every such change ships with a migration.
+
 ## The document
 
 A TimeSkeleton document is a JSON object with `meta` and `manifest`. `meta.schema_version` selects the schema and `meta.generator` is optional. `manifest.timelines` maps timeline ids to manifests matching `timetoalign`'s `Timeline.to_dict(events=False)` output: axis (`class`, `unit`, `number_type`, `length`), child timelines at exact offsets, conversion maps, regions, flow control, measure map, and metric hierarchy. Event tables travel separately, typically as Arrow or Parquet data, and are referenced rather than embedded.
@@ -10,7 +12,7 @@ Every coordinate-valued member is an object with `unit`, `number_type`, and `val
 
 Version 0.2.0 specifies conversion maps, regions, flow control, and measure maps in addition to the envelope, timeline manifests, and typed coordinates. `metric_hierarchy` remains opaque. Version 0.1.0 retains its original opaque members. The 0.2.0 schema identifier is [`https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json).
 
-In 0.2.0, a measure map is the [Measure Map standard](https://github.com/measure-map/specification)'s compressed row array: entries equal to the preceding entry's default successor are omitted. TimeSkeleton adds the integer `volta` extension and permits exact Fraction pairs for numeric values where the standard uses JSON numbers.
+In 0.2.0, a measure map is the [Measure Map standard](https://github.com/measure-map/specification)'s compressed row array: entries equal to the preceding entry's default successor are omitted. A row is the standard's Measure plus two extensions: the integer `volta`, and `offset_within_measure`, where the row begins inside its nominal measure in quarter notes (an anacrusis, or one constituent of a split measure; absent means 0). Lengths are strictly positive and `qstamp` is non-negative; exact Fraction pairs are permitted wherever the standard uses JSON numbers. A measure map is anchored in quarter notes, so only a timeline whose unit is `quarters` may carry one.
 
 The schema is the source of truth for timetoalign, the TimeLineEditor browser application, and its server. timetoalign's hand-written serialization is tested for schema conformance and fixture round trips. TypeScript types are generated in this repository, never by downstream consumers.
 
@@ -72,13 +74,13 @@ function load(document: unknown): TimeSkeletonDocument {
 
 `meta.schema_version` identifies a document's contract. Every published schema version remains validatable. Both packages provide `migrate()` as an ordered sequence of pure migration functions from earlier versions to the latest, with each migration pinned by a before-and-after fixture pair.
 
-The first migration, 0.1.0 to 0.2.0, stamps documents with 0.2.0; the newly specified members already used the library's emitted shapes.
+The first migration, 0.1.0 to 0.2.0, rewrites the shapes timetoalign wrote at 0.1.0 that 0.2.0 specifies differently: a tagged-measure measure map becomes compressed rows, and a `MetricalPositionMap` keeps its meter map once and names its derived beat map by `beat_map_id`. A member whose shape the migration does not know raises `MigrationError` with the member's path; a migrated document satisfies 0.2.0.
 
 A timeskeleton release is a schema-version event: one `vX.Y.Z` tag publishes both packages through trusted publishing without stored registry tokens. `scripts/check_versions.py` verifies that all version declarations agree before release.
 
 ## Fixtures
 
-The [golden fixtures](fixtures/README.md) are emitted only by `scripts/emit_fixtures.py` using timetoalign and ship in both packages. Each records the timetoalign version and commit in `meta.generator`; do not edit fixture JSON by hand.
+The [golden fixtures](fixtures/README.md) are emitted only by `scripts/emit_fixtures.py` using timetoalign and ship in both packages. Each records the timetoalign version and commit in `meta.generator`; do not edit golden fixture JSON by hand. The rejection cases and migration pairs beside them are authored by hand.
 
 ## Development
 

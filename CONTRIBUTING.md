@@ -6,13 +6,13 @@ TimeSkeleton is schema-first. The versioned schema is the contract; the Python a
 
 For a format change, add a new versioned file under `schema/`; do not alter a published schema. Update the supported-version and latest-version declarations in both packages, then implement an ordered, pure migration in each package from the prior version. Add before-and-after fixture pairs for each migration and shared rejection fixtures, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the golden fixtures through timetoalign. Keep every earlier schema version and its fixtures validatable.
 
-Fixtures under `fixtures/` are generated artifacts. Use an environment containing the timetoalign revision represented by the schema:
+The golden fixtures under `fixtures/<version>/` are generated artifacts. Use an environment containing the timetoalign revision represented by the schema:
 
 ```bash
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"
 ```
 
-Do not edit fixture JSON by hand.
+Do not edit golden fixture JSON by hand. The script refuses to write into the fixtures of a version whose `v<version>` tag exists. Rejection cases under `fixtures/rejections/` and migration pairs under `fixtures/migrations/` are authored by hand.
 
 ## Dependencies and decisions
 
@@ -66,7 +66,7 @@ git tag vX.Y.Z
 git push origin vX.Y.Z
 ```
 
-Pushing the tag invokes `.github/workflows/release.yml`. It checks version declarations, builds and checks the Python distributions, installs and tests the npm package, builds it, then publishes both packages through OIDC trusted publishing without stored registry tokens.
+Pushing the tag invokes `.github/workflows/release.yml`. It checks version declarations, lints and tests the Python package, builds and checks the Python distributions, installs and tests the npm package, builds it, then publishes both packages through OIDC trusted publishing without stored registry tokens.
 
 Configure each trusted publisher once before the first release:
 

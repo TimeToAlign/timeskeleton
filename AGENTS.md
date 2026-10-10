@@ -5,7 +5,7 @@ These rules apply to every contributor, human or automated.
 ## Repository layout
 
 - `schema/`: versioned JSON Schema files; the format contract and source of truth.
-- `fixtures/`: golden JSON documents emitted by timetoalign; see `fixtures/README.md`.
+- `fixtures/`: golden JSON documents emitted by timetoalign, plus hand-authored rejection cases and migration pairs; see `fixtures/README.md`.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
 - `js/`: the npm package, generated TypeScript types, tests, and lockfile.
 - `scripts/`: fixture emission and cross-repository version checks.
@@ -19,7 +19,8 @@ These rules apply to every contributor, human or automated.
 - Do not add speculative options or dependencies.
 - Package manifests declare compatible dependency ranges for published consumers. Lockfiles pin the exact audited versions, and a dependency may enter only after its selected release has been available for at least 14 days.
 - Write tests README-first: update the relevant `tests/README.md` with what proves the behavior, then implement tests with exact expected values.
-- Emit fixtures only through `scripts/emit_fixtures.py`; never hand-edit files under `fixtures/`.
+- Emit the golden fixtures under `fixtures/<version>/` only through `scripts/emit_fixtures.py`; never hand-edit them. The script refuses to overwrite the fixtures of a version whose `v<version>` tag exists, because a released version's fixtures are frozen.
+- Author rejection cases (`fixtures/rejections/`) and migration pairs (`fixtures/migrations/`) by hand, one rule or migration step per case; the script does not emit them.
 - Regenerate `js/src/generated/` after changing a schema. Those TypeScript types are generated here, not downstream.
 - Keep every published schema version validatable. Add pure ordered migrations in both packages and pin each with a before-and-after fixture pair.
 

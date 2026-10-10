@@ -445,6 +445,25 @@ export const schemas = {
         ],
         "items": false
       },
+      "FractionPositive": {
+        "type": "array",
+        "description": "Strictly positive rational number",
+        "minItems": 2,
+        "maxItems": 2,
+        "prefixItems": [
+          {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Numerator, positive integer"
+          },
+          {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+          }
+        ],
+        "items": false
+      },
       "TimeUnit": {
         "type": "string",
         "description": "The unit of a timeline axis.",
@@ -683,7 +702,7 @@ export const schemas = {
             "$ref": "#/$defs/FlowControl"
           },
           "measure_map": {
-            "description": "The measure map, or null.",
+            "description": "The measure map, or null. A measure map is anchored in quarter notes, so only a timeline whose unit is quarters may carry one.",
             "anyOf": [
               {
                 "$ref": "#/$defs/MeasureMap"
@@ -717,7 +736,24 @@ export const schemas = {
           "measure_map",
           "metric_hierarchy"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "if": {
+          "properties": {
+            "unit": {
+              "const": "quarters"
+            }
+          },
+          "required": [
+            "unit"
+          ]
+        },
+        "else": {
+          "properties": {
+            "measure_map": {
+              "type": "null"
+            }
+          }
+        }
       },
       "Number": {
         "description": "A bare JSON number or an exact Fraction pair.",
@@ -727,6 +763,30 @@ export const schemas = {
           },
           {
             "$ref": "#/$defs/Fraction"
+          }
+        ]
+      },
+      "NumberNonnegative": {
+        "description": "A non-negative bare JSON number or a non-negative exact Fraction pair.",
+        "oneOf": [
+          {
+            "type": "number",
+            "minimum": 0
+          },
+          {
+            "$ref": "#/$defs/FractionNonnegative"
+          }
+        ]
+      },
+      "NumberPositive": {
+        "description": "A strictly positive bare JSON number or a strictly positive exact Fraction pair.",
+        "oneOf": [
+          {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          {
+            "$ref": "#/$defs/FractionPositive"
           }
         ]
       },
@@ -1245,6 +1305,7 @@ export const schemas = {
       },
       "MetricalPositionMap": {
         "type": "object",
+        "description": "Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose identifier is beat_map_id.",
         "properties": {
           "type": {
             "const": "MetricalPositionMap"
@@ -1278,20 +1339,12 @@ export const schemas = {
               }
             ]
           },
-          "maps": {
-            "type": "object",
-            "additionalProperties": {
-              "$ref": "#/$defs/ConversionMap"
-            }
-          },
-          "names": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
           "meter_map": {
             "$ref": "#/$defs/MetricMap"
+          },
+          "beat_map_id": {
+            "type": "string",
+            "description": "The identifier of the BeatInMeasureMap derived from meter_map."
           }
         },
         "required": [
@@ -1300,9 +1353,8 @@ export const schemas = {
           "name",
           "source_unit",
           "target_unit",
-          "maps",
-          "names",
-          "meter_map"
+          "meter_map",
+          "beat_map_id"
         ],
         "additionalProperties": false
       },
@@ -2199,6 +2251,7 @@ export const schemas = {
       },
       "MeasureMapRow": {
         "type": "object",
+        "description": "One row of the Measure Map standard plus the TimeSkeleton extensions volta and offset_within_measure.",
         "properties": {
           "ID": {
             "type": "string",
@@ -2210,8 +2263,8 @@ export const schemas = {
             "description": "Position of this Measure object in the MeasureMap, using natural numbers starting with 1. This serves primarily as an index, and does not attempt detailed musical conventions. In the simplest case (e.g., a score with no anacrusis or other irregularities) this count matches the (most musical) number field below."
           },
           "qstamp": {
-            "$ref": "#/$defs/Number",
-            "description": "The symbolic time to have elapsed since the beginning of the source, measured in quarter notes. TimeSkeleton additionally permits an exact Fraction pair."
+            "$ref": "#/$defs/NumberNonnegative",
+            "description": "The symbolic time to have elapsed since the beginning of the source, measured in quarter notes. Non-negative; TimeSkeleton additionally permits an exact Fraction pair."
           },
           "number": {
             "type": "integer",
@@ -2229,7 +2282,7 @@ export const schemas = {
           "nominal_length": {
             "anyOf": [
               {
-                "$ref": "#/$defs/Number"
+                "$ref": "#/$defs/NumberPositive"
               },
               {
                 "type": "null"
@@ -2238,8 +2291,8 @@ export const schemas = {
             "description": "The default duration that corresponds to the given 'time_signature', in quarter notes. Can be derived from 'time_signature' if it takes the form of an '<int>/<int>'-encoded fraction. Can take the value 'null' if the time signature has no corresponding duration (e.g. 'cadenza'). TimeSkeleton additionally permits an exact Fraction pair."
           },
           "actual_length": {
-            "$ref": "#/$defs/Number",
-            "description": "The actual duration of the measure, in quarter notes. TimeSkeleton additionally permits an exact Fraction pair."
+            "$ref": "#/$defs/NumberPositive",
+            "description": "The actual duration of the measure, in quarter notes. Strictly positive; TimeSkeleton additionally permits an exact Fraction pair."
           },
           "start_repeat": {
             "type": [
@@ -2267,7 +2320,11 @@ export const schemas = {
           },
           "volta": {
             "type": "integer",
-            "description": "A TimeSkeleton extension that identifies the volta ending."
+            "description": "A TimeSkeleton extension that identifies the volta ending. It carries no structural constraint."
+          },
+          "offset_within_measure": {
+            "$ref": "#/$defs/NumberPositive",
+            "description": "A TimeSkeleton extension: where this row begins inside its nominal measure, in quarter notes, when the row represents only part of that measure (an anacrusis, or one constituent of a split measure). Absent means 0; a row never states 0."
           }
         },
         "anyOf": [

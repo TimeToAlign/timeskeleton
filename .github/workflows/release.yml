@@ -1,5 +1,5 @@
 # One tag releases both packages. Pushing `vX.Y.Z` checks that every version
-# declaration carries X.Y.Z, builds the Python and the npm package, and
+# declaration carries X.Y.Z, tests and builds the Python and the npm package, and
 # publishes them through trusted publishing (OIDC): no token is stored. The
 # steps run in one job, in sequence, so a failure anywhere fails the release.
 name: Release
@@ -29,6 +29,10 @@ jobs:
       - uses: astral-sh/setup-uv@v10
         with:
           python-version: "3.12"
+      - run: uv sync --locked
+        working-directory: python
+      - run: uv run ruff check . && uv run ruff format --check . && uv run pytest -q
+        working-directory: python
       - name: Build the Python package
         run: uv build
         working-directory: python

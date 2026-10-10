@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { generate, generatedDirectory } from "../scripts/generate.js";
+import { generate, generatedDirectory, orderSchemaFiles } from "../scripts/generate.js";
 
 describe("generated files", () => {
   it("equal a fresh run of the generator", async () => {
@@ -11,5 +11,20 @@ describe("generated files", () => {
       const committed = readFileSync(resolve(generatedDirectory, name), "utf8");
       expect(committed).toBe(content);
     }
+  });
+
+  it("order schema files by parsed version, not by text", () => {
+    expect(
+      orderSchemaFiles([
+        "timeskeleton-0.10.0.schema.json",
+        "README.md",
+        "timeskeleton-0.2.0.schema.json",
+        "timeskeleton-1.0.0.schema.json",
+      ]),
+    ).toEqual([
+      "timeskeleton-0.2.0.schema.json",
+      "timeskeleton-0.10.0.schema.json",
+      "timeskeleton-1.0.0.schema.json",
+    ]);
   });
 });

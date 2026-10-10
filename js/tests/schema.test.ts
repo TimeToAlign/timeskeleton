@@ -47,6 +47,7 @@ const MEASURE_MAP_ROW_KEYS = [
   "end_repeat",
   "next",
   "volta",
+  "offset_within_measure",
 ];
 
 const MANIFEST_KEYS = [
@@ -111,6 +112,36 @@ describe("schema vocabulary", () => {
     expect(Object.keys(row.properties)).toEqual(MEASURE_MAP_ROW_KEYS);
     expect(row.anyOf).toEqual([{ required: ["ID"] }, { required: ["count"] }]);
     expect(row.additionalProperties).toBe(false);
+    expect(row.properties.actual_length.$ref).toBe("#/$defs/NumberPositive");
+    expect(row.properties.offset_within_measure.$ref).toBe("#/$defs/NumberPositive");
+    expect(row.properties.qstamp.$ref).toBe("#/$defs/NumberNonnegative");
+    expect(row.properties.nominal_length.anyOf).toEqual([
+      { $ref: "#/$defs/NumberPositive" },
+      { type: "null" },
+    ]);
+  });
+
+  it("admits a measure map on a quarters timeline only", () => {
+    const manifest = schema.$defs.TimelineManifest;
+    expect(manifest.if).toEqual({
+      properties: { unit: { const: "quarters" } },
+      required: ["unit"],
+    });
+    expect(manifest.else).toEqual({ properties: { measure_map: { type: "null" } } });
+  });
+
+  it("states the metrical position map's meter map once", () => {
+    const positionMap = schema.$defs.MetricalPositionMap;
+    expect(positionMap.required).toEqual([
+      "type",
+      "id",
+      "name",
+      "source_unit",
+      "target_unit",
+      "meter_map",
+      "beat_map_id",
+    ]);
+    expect(positionMap.additionalProperties).toBe(false);
   });
 });
 

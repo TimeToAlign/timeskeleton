@@ -2,7 +2,7 @@
   "document": {
     "meta": {
       "schema_version": "0.2.0",
-      "generator": "timetoalign 1.2.0 (cc7c4e55)"
+      "generator": "timetoalign 1.2.0 (95b983b6)"
     },
     "manifest": {
       "timelines": {
@@ -30,89 +30,6 @@
               "name": "map:MetricalPositionMap_1",
               "source_unit": "quarters",
               "target_unit": null,
-              "maps": {
-                "mc": {
-                  "type": "MetricMap",
-                  "id": "map:MetricMap_1",
-                  "name": "measure_counts",
-                  "source_unit": "quarters",
-                  "target_unit": null,
-                  "starts": [
-                    [
-                      0,
-                      1
-                    ],
-                    [
-                      4,
-                      1
-                    ]
-                  ],
-                  "mcs": [
-                    1,
-                    2
-                  ],
-                  "mns": [
-                    "1",
-                    "2"
-                  ],
-                  "lengths": [
-                    [
-                      4,
-                      1
-                    ],
-                    [
-                      4,
-                      1
-                    ]
-                  ]
-                },
-                "beat": {
-                  "type": "BeatInMeasureMap",
-                  "id": "map:BeatInMeasureMap_1",
-                  "name": "beat_in_measure",
-                  "source_unit": "quarters",
-                  "target_unit": null,
-                  "meter_map": {
-                    "type": "MetricMap",
-                    "id": "map:MetricMap_1",
-                    "name": "measure_counts",
-                    "source_unit": "quarters",
-                    "target_unit": null,
-                    "starts": [
-                      [
-                        0,
-                        1
-                      ],
-                      [
-                        4,
-                        1
-                      ]
-                    ],
-                    "mcs": [
-                      1,
-                      2
-                    ],
-                    "mns": [
-                      "1",
-                      "2"
-                    ],
-                    "lengths": [
-                      [
-                        4,
-                        1
-                      ],
-                      [
-                        4,
-                        1
-                      ]
-                    ]
-                  }
-                }
-              },
-              "names": [
-                "mc",
-                "beat"
-              ],
               "meter_map": {
                 "type": "MetricMap",
                 "id": "map:MetricMap_1",
@@ -147,7 +64,8 @@
                     1
                   ]
                 ]
-              }
+              },
+              "beat_map_id": "map:BeatInMeasureMap_1"
             },
             {
               "type": "BeatInMeasureMap",

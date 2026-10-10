@@ -145,72 +145,72 @@ def declared_version(document: object) -> str | None:
     return version if isinstance(version, str) else None
 
 
-def _leaf_errors(error: ValidationError) -> Iterable[ValidationError]:
-    """Yield the leaves beneath a validator error, left to right."""
-    if not error.context:
+def _branch_tag(candidate: Mapping[str, Any], root: Mapping[str, Any], tag: str) -> Any:
+    """Return the ``const`` a ``oneOf`` candidate requires of the tag property.
+
+    A candidate is either inline or a local ``#/$defs/<name>`` reference,
+    which is resolved against the root schema.
+    """
+    reference = candidate.get("$ref")
+    if isinstance(reference, str) and reference.startswith("#/$defs/"):
+        candidate = root["$defs"][reference.removeprefix("#/$defs/")]
+    return candidate.get("properties", {}).get(tag, {}).get("const")
+
+
+def _candidate_leaves(
+    error: ValidationError, root: Mapping[str, Any]
+) -> Iterable[ValidationError]:
+    """Yield the diagnostic leaves beneath one validator error, left to right.
+
+    A failed ``oneOf``, ``anyOf`` or ``$ref`` holds its sub-errors in
+    ``context``. A discriminated ``oneOf`` descends only into the candidate
+    whose tag ``const`` equals the instance's tag value, and is itself the
+    leaf when no candidate carries that value. Every other error descends
+    into all its sub-errors.
+    """
+    children = list(error.context or ())
+    tag = error.schema.get("discriminator", {}).get("propertyName")
+    if (
+        error.validator == "oneOf"
+        and tag is not None
+        and isinstance(error.instance, Mapping)
+    ):
+        value = error.instance.get(tag)
+        branch = next(
+            (
+                index
+                for index, candidate in enumerate(error.schema["oneOf"])
+                if value is not None and _branch_tag(candidate, root, tag) == value
+            ),
+            None,
+        )
+        children = [
+            child
+            for child in children
+            if branch is not None
+            and child.schema_path
+            and child.schema_path[0] == branch
+        ]
+    if not children:
         yield error
         return
-    for child in error.context:
-        yield from _leaf_errors(child)
+    for child in children:
+        yield from _candidate_leaves(child, root)
 
 
-def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
-    """Yield diagnostic leaves for the selected discriminated branch."""
-    if error.validator != "oneOf" or not isinstance(error.instance, Mapping):
-        yield from _leaf_errors(error)
-        return
-    discriminator = error.schema.get("discriminator", {}).get("propertyName")
-    if discriminator is None:
-        branch_for_type = {"int": 0, "float": 1, "fraction": 2}
-        branch = branch_for_type.get(error.instance.get("number_type"))
-        if branch is not None:
-            selected = [
-                child
-                for child in error.context
-                if child.schema_path and child.schema_path[0] == branch
-            ]
-            if selected:
-                for child in selected:
-                    yield from _leaf_errors(child)
-                return
-        yield from _leaf_errors(error)
-        return
-    value = error.instance.get(discriminator)
-    branch = next(
-        (
-            index
-            for index, candidate in enumerate(error.schema.get("oneOf", []))
-            if candidate.get("$ref", "").rsplit("/", 1)[-1] == value
-            or candidate.get("properties", {}).get(discriminator, {}).get("const")
-            == value
-        ),
-        None,
-    )
-    if branch is None:
-        yield error
-        return
-    selected = [
-        child
-        for child in error.context
-        if child.schema_path and child.schema_path[0] == branch
-    ]
-    if not selected:
-        yield from _leaf_errors(error)
-        return
-    for child in selected:
-        yield from _leaf_errors(child)
+def _select(
+    errors: Iterable[ValidationError], root: Mapping[str, Any]
+) -> ValidationError | None:
+    """Pick the error to report under the shared path rule.
 
-
-def _select(errors: Iterable[ValidationError]) -> ValidationError | None:
-    """Pick the error to report: the first leaf with the deepest path.
-
-    A failed ``oneOf`` holds its branch diagnostics in ``context``. Looking at
-    its leaves keeps the reported location as close as possible to the bad
-    value, matching the Ajv validator. Ties go to the first reported leaf.
+    The rule, shared with the TypeScript validator: among the diagnostic
+    leaves of every violation, report the one with the deepest instance
+    path; ties go to the first leaf reported. A discriminated ``oneOf``
+    contributes only the candidate its tag selects.
     """
     best: ValidationError | None = None
     for error in errors:
-        for leaf in _candidate_leaves(error):
+        for leaf in _candidate_leaves(error, root):
             if best is None or len(leaf.absolute_path) > len(best.absolute_path):
                 best = leaf
     return best
@@ -229,9 +229,6 @@ def validate(document: Mapping[str, Any]) -> None:
     """
     version = declared_version(document)
     target = version if version in SUPPORTED_VERSIONS else SCHEMA_VERSION
-    error = _select(_validator(target).iter_errors(document))
+    error = _select(_validator(target).iter_errors(document), load_schema(target))
     if error is not None:
-        path = tuple(error.absolute_path)
-        if error.validator == "const" and path[-1:] == ("class",):
-            path = path[:-1]
-        raise SchemaValidationError(path, error.message)
+        raise SchemaValidationError(tuple(error.absolute_path), error.message)

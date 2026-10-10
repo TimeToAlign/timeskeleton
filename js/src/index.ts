@@ -18,7 +18,7 @@ export type {
   TimeSkeletonDocument,
   TimeUnit,
 } from "./generated/types.js";
-export { MIGRATIONS, type Migration, migrate } from "./migrate.js";
+export { MIGRATIONS, type Migration, MigrationError, migrate } from "./migrate.js";
 export {
   declaredVersion,
   jsonPointer,

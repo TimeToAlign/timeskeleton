@@ -22,9 +22,9 @@ export const generatedDirectory = resolve(here, "../src/generated");
 
 const SCHEMA_FILE = /^timeskeleton-(\d+)\.(\d+)\.(\d+)\.schema\.json$/;
 
-/** Return the path of the schema file with the highest version. */
-export function latestSchemaPath(): string {
-  const candidates = readdirSync(schemaDirectory)
+/** Keep the schema file names among `names`, ordered by parsed version (0.2.0 before 0.10.0). */
+export function orderSchemaFiles(names: readonly string[]): string[] {
+  return names
     .map((name) => ({ name, match: SCHEMA_FILE.exec(name) }))
     .filter((entry): entry is { name: string; match: RegExpExecArray } => entry.match !== null)
     .map(({ name, match }) => ({ name, version: match.slice(1, 4).map(Number) }))
@@ -36,12 +36,22 @@ export function latestSchemaPath(): string {
         }
       }
       return 0;
-    });
-  const latest = candidates.at(-1);
+    })
+    .map(({ name }) => name);
+}
+
+/** Return the schema file names at the repository root, ordered by parsed version. */
+export function schemaFileNames(): string[] {
+  return orderSchemaFiles(readdirSync(schemaDirectory));
+}
+
+/** Return the path of the schema file with the highest version. */
+export function latestSchemaPath(): string {
+  const latest = schemaFileNames().at(-1);
   if (latest === undefined) {
     throw new Error(`no schema file in ${schemaDirectory}`);
   }
-  return resolve(schemaDirectory, latest.name);
+  return resolve(schemaDirectory, latest);
 }
 
 function banner(schemaFile: string): string {
@@ -108,10 +118,10 @@ export async function generate(): Promise<Record<string, string>> {
   const schemaPath = latestSchemaPath();
   const schemaFile = schemaPath.slice(schemaDirectory.length + 1);
   const schemaText = readFileSync(schemaPath, "utf8");
-  const schemas = readdirSync(schemaDirectory)
-    .filter((name) => SCHEMA_FILE.test(name))
-    .sort()
-    .map((file) => ({ file, text: readFileSync(resolve(schemaDirectory, file), "utf8") }));
+  const schemas = schemaFileNames().map((file) => ({
+    file,
+    text: readFileSync(resolve(schemaDirectory, file), "utf8"),
+  }));
   return {
     "types.ts": await renderTypes(schemaText, schemaFile),
     "schema.ts": renderSchema(schemas),

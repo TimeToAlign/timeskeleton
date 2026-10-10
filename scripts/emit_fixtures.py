@@ -3,12 +3,18 @@
 
 Every document is built with public constructors or a public loader, serialized
 with ``Timeline.to_dict()`` and round-tripped through ``Timeline.from_dict``.
+The current schema version is ``timeskeleton.SCHEMA_VERSION``. The fixtures of
+a released version are frozen: the script refuses to write into
+``fixtures/<version>/`` once the tag ``v<version>`` exists. Map identifiers
+come from a per-process counter, so every run in a fresh interpreter emits the
+same documents.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import sys
 from fractions import Fraction
 from importlib.metadata import version
@@ -16,7 +22,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-
 from timetoalign import (
     ContinuousGraphicalTimeline,
     ContinuousLogicalTimeline,
@@ -41,8 +46,8 @@ from timetoalign.maps import (
     InterpolationMap,
     IntervalToConstantMap,
     LinearMap,
-    MetricMap,
     MetricalPositionMap,
+    MetricMap,
     PiecewiseMap,
     QuartersToFloatingMeasures,
     QuartersToMeasureNumber,
@@ -55,11 +60,11 @@ from timetoalign.maps import (
     TableMap,
     TicksToQuarters,
 )
-from timetoalign.maps.base import _reset_map_ids
 from timetoalign.testdata import ensure_data
 from timetoalign.timelines.flowcontrol import Break, Jump
 
-SCHEMA_VERSION = "0.2.0"
+from timeskeleton import SCHEMA_VERSION
+
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = REPOSITORY_ROOT / "fixtures" / SCHEMA_VERSION
 
@@ -376,6 +381,18 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
     generator = f"timetoalign {version('timetoalign')} ({args.timetoalign_commit})"
+    tag = f"v{SCHEMA_VERSION}"
+    tagged = subprocess.run(
+        ["git", "-C", str(REPOSITORY_ROOT), "tag", "--list", tag],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.split()
+    if tag in tagged and args.output.resolve() == FIXTURE_DIR.resolve():
+        raise SystemExit(
+            f"{tag} is released; its fixtures in {FIXTURE_DIR} are frozen. "
+            "Emit into another directory with --output."
+        )
 
     args.output.mkdir(parents=True, exist_ok=True)
     for stale in args.output.glob("*.json"):
@@ -386,9 +403,6 @@ def main(argv: list[str] | None = None) -> int:
         write(path, document(timelines, generator))
         written.append(path)
 
-    # MetricalPositionMap rebuilds an implicit nested map; restart map ids so
-    # its emitted first id can be reproduced during this same-process check.
-    _reset_map_ids()
     for path in written:
         manifests = check_round_trip(path)
         display = path.relative_to(REPOSITORY_ROOT) if path.is_relative_to(REPOSITORY_ROOT) else path

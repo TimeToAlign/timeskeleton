@@ -58,6 +58,7 @@ MEASURE_MAP_ROW_KEYS = [
     "end_repeat",
     "next",
     "volta",
+    "offset_within_measure",
 ]
 
 MANIFEST_KEYS = [
@@ -125,6 +126,37 @@ def test_measure_map_is_a_nonempty_compressed_row_list() -> None:
     assert list(row["properties"]) == MEASURE_MAP_ROW_KEYS
     assert row["anyOf"] == [{"required": ["ID"]}, {"required": ["count"]}]
     assert row["additionalProperties"] is False
+    properties = row["properties"]
+    assert properties["actual_length"]["$ref"] == "#/$defs/NumberPositive"
+    assert properties["offset_within_measure"]["$ref"] == "#/$defs/NumberPositive"
+    assert properties["qstamp"]["$ref"] == "#/$defs/NumberNonnegative"
+    assert properties["nominal_length"]["anyOf"] == [
+        {"$ref": "#/$defs/NumberPositive"},
+        {"type": "null"},
+    ]
+
+
+def test_measure_map_is_admitted_on_quarters_timelines_only() -> None:
+    manifest = load_schema()["$defs"]["TimelineManifest"]
+    assert manifest["if"] == {
+        "properties": {"unit": {"const": "quarters"}},
+        "required": ["unit"],
+    }
+    assert manifest["else"] == {"properties": {"measure_map": {"type": "null"}}}
+
+
+def test_metrical_position_map_states_its_meter_map_once() -> None:
+    position_map = load_schema()["$defs"]["MetricalPositionMap"]
+    assert position_map["required"] == [
+        "type",
+        "id",
+        "name",
+        "source_unit",
+        "target_unit",
+        "meter_map",
+        "beat_map_id",
+    ]
+    assert position_map["additionalProperties"] is False
 
 
 def test_fixture_set_contains_the_synthetic_and_extended_documents() -> None:

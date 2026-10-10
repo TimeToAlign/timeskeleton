@@ -9,7 +9,7 @@ the migrations that bring an older document to the latest version.
 
 from __future__ import annotations
 
-from .migrate import MIGRATIONS, migrate
+from .migrate import MIGRATIONS, MigrationError, migrate
 from .validate import (
     SCHEMA_VERSION,
     SUPPORTED_VERSIONS,
@@ -27,6 +27,7 @@ from .validate import (
 
 __all__ = [
     "MIGRATIONS",
+    "MigrationError",
     "SCHEMA_VERSION",
     "SUPPORTED_VERSIONS",
     "SchemaValidationError",
