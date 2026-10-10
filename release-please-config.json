@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
+  "bootstrap-sha": "a56ad11ae9ed7d70633d8f3d541342bd31f70039",
+  "packages": {
+    ".": {
+      "release-type": "simple",
+      "package-name": "timeskeleton",
+      "include-component-in-tag": false,
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}
