@@ -57,6 +57,8 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: python/dist/
+          # A re-run after a failed npm step finds the Python files published.
+          skip-existing: true
 
       - name: Trusted publishing needs npm 11.5.1 or later
         run: npm install -g npm@latest
