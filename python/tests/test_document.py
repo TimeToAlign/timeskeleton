@@ -47,12 +47,15 @@ NUMBER_CORPUS_TEXT = (
 
 
 def _standard_files() -> list:
-    ((after,),) = [
-        (after,)
-        for before, after in migration_paths()
-        if before.parent.name == "0.2.0-to-0.2.1"
+    afters = {before.parent.name: after for before, after in migration_paths()}
+    return [
+        *fixture_paths("0.2.1"),
+        *rejection_paths("0.2.1"),
+        afters["0.2.0-to-0.2.1"],
+        *fixture_paths("0.3.0"),
+        *rejection_paths("0.3.0"),
+        afters["0.2.1-to-0.3.0"],
     ]
-    return [*fixture_paths("0.2.1"), *rejection_paths("0.2.1"), after]
 
 
 @pytest.mark.parametrize(
@@ -63,8 +66,8 @@ def test_standard_files_round_trip_byte_for_byte(path) -> None:
     assert dumps(json.loads(text)) == text
 
 
-def test_the_standard_files_number_fifty_one() -> None:
-    assert len(_standard_files()) == 16 + 34 + 1
+def test_the_standard_files_number_one_hundred_and_seventeen() -> None:
+    assert len(_standard_files()) == (16 + 34 + 1) + (20 + 45 + 1)
 
 
 def test_non_ascii_text_is_written_unescaped() -> None:

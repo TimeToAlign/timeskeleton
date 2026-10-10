@@ -1,23 +1,29 @@
 /**
- * The TimeSkeleton schema and its validator.
+ * The TimeSkeleton schemas and their validators.
  *
- * The schema object is bundled from `schema/timeskeleton-<version>.schema.json`
- * at the repository root by `scripts/generate.ts`, which also derives the
- * TypeScript types in `generated/`.
+ * The schema objects are bundled from `schema/timeskeleton-<version>.schema.json`
+ * and, from 0.3.0 on, `schema/geometry-<version>.schema.json` (the geometry of
+ * a drawing, `docs/geometry.md`) at the repository root by
+ * `scripts/generate.ts`, which also derives the TypeScript types in
+ * `generated/`.
  */
 
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
 import { type Lossless, parseJson, plain } from "./document.js";
-import { schemas } from "./generated/schema.js";
-import type { TimeSkeletonDocument } from "./generated/types.js";
+import { geometrySchemas, schemas } from "./generated/schema.js";
+import type { Geometry, TimeSkeletonDocument } from "./generated/types.js";
 
 /** The schema version this release publishes: the latest one. */
-export const SCHEMA_VERSION = "0.2.1";
+export const SCHEMA_VERSION = "0.3.0";
 
 /** Every schema version this release validates and migrates, oldest first. */
-export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.2.1"];
+export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.2.1", "0.3.0"];
+
+/** Every schema version with a geometry schema, oldest first. */
+export const GEOMETRY_VERSIONS: readonly string[] = ["0.3.0"];
 
 const SCHEMAS: Readonly<Record<string, object>> = schemas;
+const GEOMETRY_SCHEMAS: Readonly<Record<string, object>> = geometrySchemas;
 
 /** One step of a path into a document: an object key or an array index. */
 export type PathSegment = string | number;
@@ -96,6 +102,24 @@ function validatorFor(version: string): ReturnType<typeof ajv.compile> {
   return validator;
 }
 
+const geometryValidators = new Map<string, ReturnType<typeof ajv.compile>>();
+
+function geometryValidatorFor(version: string): ReturnType<typeof ajv.compile> {
+  let validator = geometryValidators.get(version);
+  if (validator === undefined) {
+    const geometrySchema = GEOMETRY_SCHEMAS[version];
+    if (geometrySchema === undefined) {
+      throw new UnsupportedVersionError(version);
+    }
+    // The geometry schema refers to the document schema of its version by
+    // that schema's $id, which compiling the document schema registers.
+    validatorFor(version);
+    validator = ajv.compile(geometrySchema);
+    geometryValidators.set(version, validator);
+  }
+  return validator;
+}
+
 /** Convert an Ajv instance path to segments, typing array indices as numbers. */
 function toPath(instancePath: string, document: unknown): PathSegment[] {
   if (instancePath === "") {
@@ -159,10 +183,12 @@ export function validate(document: unknown): asserts document is TimeSkeletonDoc
     version !== null && SUPPORTED_VERSIONS.includes(version) ? version : SCHEMA_VERSION;
   const validator = validatorFor(target);
   const instance = plain(document);
-  if (validator(instance)) {
-    return;
-  }
-  const error = select(validator.errors ?? []);
+  if (!validator(instance)) reject(validator.errors ?? [], instance);
+}
+
+/** Throw the error the shared path rule selects among a failed validation's errors. */
+function reject(errors: readonly ErrorObject[], instance: unknown): never {
+  const error = select(errors);
   if (error === undefined) {
     throw new SchemaValidationError([], "document is invalid");
   }
@@ -170,6 +196,25 @@ export function validate(document: unknown): asserts document is TimeSkeletonDoc
     toPath(error.instancePath, instance),
     error.message ?? error.keyword,
   );
+}
+
+/**
+ * Check `geometry` against the geometry schema of the version it declares.
+ *
+ * A geometry whose `meta.schema_version` is one of `GEOMETRY_VERSIONS` is
+ * checked against that version's geometry schema; any other is checked
+ * against the latest one, which rejects it at `meta.schema_version`. A value
+ * read by `parseJson` is checked by the values of its numbers.
+ *
+ * @throws {SchemaValidationError} on the first violation found under the shared path rule.
+ */
+export function validateGeometry(geometry: unknown): asserts geometry is Geometry {
+  const version = declaredVersion(geometry);
+  const latest = GEOMETRY_VERSIONS[GEOMETRY_VERSIONS.length - 1] as string;
+  const target = version !== null && GEOMETRY_VERSIONS.includes(version) ? version : latest;
+  const validator = geometryValidatorFor(target);
+  const instance = plain(geometry);
+  if (!validator(instance)) reject(validator.errors ?? [], instance);
 }
 
 /**

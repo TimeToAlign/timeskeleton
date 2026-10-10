@@ -472,6 +472,21 @@ function migrate020To021(document: JsonObject): JsonObject {
   return canonicalOrder(stamped(document, "0.2.1"));
 }
 
+// -- 0.2.1 to 0.3.0 ---------------------------------------------------------------
+
+/**
+ * Declare 0.3.0.
+ *
+ * 0.3.0 keeps every definition of 0.2.1 and adds the optional `graphical`
+ * block, which a 0.2.1 document does not carry, so the shapes are unchanged.
+ * The document is validated against 0.3.0 and then put in canonical order.
+ *
+ * @throws {MigrationError} at the path of the first member with no 0.3.0 shape.
+ */
+function migrate021To030(document: JsonObject): JsonObject {
+  return canonicalOrder(stamped(document, "0.3.0"));
+}
+
 /** Return `document` declaring `version`, refused unless valid at it. */
 function stamped(document: JsonObject, version: string): JsonObject {
   const meta = isObject(document.meta) ? document.meta : {};
@@ -494,6 +509,7 @@ function stamped(document: JsonObject, version: string): JsonObject {
 export const MIGRATIONS: Readonly<Record<string, readonly [string, Migration]>> = {
   "0.1.0": ["0.2.0", migrate010To020],
   "0.2.0": ["0.2.1", migrate020To021],
+  "0.2.1": ["0.3.0", migrate021To030],
 };
 
 /**

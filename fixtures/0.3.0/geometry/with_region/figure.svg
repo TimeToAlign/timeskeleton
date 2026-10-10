@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="160" viewBox="-16 -16 432 160" font-family="DejaVu Sans, sans-serif" font-size="7">
+<rect x="0" y="0" width="400" height="128" fill="#BAC8D3"/>
+<path d="M133.3333 104Q133.3333 106 135.3333 106L184.6667 106Q186.6667 106 186.6667 108Q186.6667 106 188.6667 106L238 106Q240 106 240 104" fill="none" stroke="#00CC00" stroke-width="0.8"/>
+<line x1="80" y1="80" x2="396" y2="80" stroke="#00CC00" stroke-width="0.8"/>
+<circle cx="80" cy="80" r="2" fill="#00CC00"/>
+<path d="M400 80L394 78L396 80L394 82Z" fill="#00CC00"/>
+<line x1="88.8889" y1="48" x2="192.5556" y2="48" stroke="#00CC00" stroke-width="0.8"/>
+<circle cx="88.8889" cy="48" r="2" fill="#00CC00"/>
+<path d="M192.5556 48L195.5556 46L198.5556 48L195.5556 50Z" fill="none" stroke="#00CC00" stroke-width="0.8"/>
+<line x1="133.3333" y1="16" x2="210.3333" y2="16" stroke="#00CC00" stroke-width="0.8"/>
+<circle cx="133.3333" cy="16" r="2" fill="#00CC00"/>
+<path d="M210.3333 16L213.3333 14L216.3333 16L213.3333 18Z" fill="none" stroke="#00CC00" stroke-width="0.8"/>
+<path d="M80 80L77 84L83 84Z" fill="#00CC00"/>
+<path d="M400 80L397 84L403 84Z" fill="#00CC00"/>
+<path d="M88.8889 48L85.8889 52L91.8889 52Z" fill="#00CC00"/>
+<path d="M195.5556 48L192.5556 52L198.5556 52Z" fill="#00CC00"/>
+<path d="M133.3333 16L130.3333 20L136.3333 20Z" fill="#00CC00"/>
+<path d="M213.3333 16L210.3333 20L216.3333 20Z" fill="#00CC00"/>
+<text x="2" y="17.75" text-anchor="start" fill="#000000">tl:21</text>
+<text x="2" y="49.75" text-anchor="start" fill="#000000">tl:20</text>
+<text x="2" y="81.75" text-anchor="start" fill="#000000">tl:19</text>
+<text x="80" y="91.25" text-anchor="middle" fill="#000000">0 ♩</text>
+<text x="400" y="91.25" text-anchor="middle" fill="#000000">12 ♩</text>
+<text x="88.8889" y="59.25" text-anchor="middle" fill="#000000">0 ♩</text>
+<text x="195.5556" y="59.25" text-anchor="middle" fill="#000000">4 ♩</text>
+<text x="133.3333" y="27.25" text-anchor="middle" fill="#000000">0 ♩</text>
+<text x="213.3333" y="27.25" text-anchor="middle" fill="#000000">3 ♩</text>
+<text x="186.6667" y="115.25" text-anchor="middle" fill="#000000">theme</text>
+</svg>

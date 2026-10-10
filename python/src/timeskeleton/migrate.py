@@ -376,6 +376,22 @@ def _migrate_0_2_0_to_0_2_1(document: dict[str, Any]) -> dict[str, Any]:
     return canonical_order(_stamped(document, "0.2.1"))
 
 
+# -- 0.2.1 to 0.3.0 ----------------------------------------------------------
+
+
+def _migrate_0_2_1_to_0_3_0(document: dict[str, Any]) -> dict[str, Any]:
+    """Declare 0.3.0.
+
+    0.3.0 keeps every definition of 0.2.1 and adds the optional ``graphical``
+    block, which a 0.2.1 document does not carry, so the shapes are unchanged.
+    The document is validated against 0.3.0 and then put in canonical order.
+
+    Raises:
+        MigrationError: At the path of the first member with no 0.3.0 shape.
+    """
+    return canonical_order(_stamped(document, "0.3.0"))
+
+
 def _stamped(document: dict[str, Any], version: str) -> dict[str, Any]:
     """Return ``document`` declaring ``version``, refused unless valid at it."""
     stamped = {
@@ -394,6 +410,7 @@ def _stamped(document: dict[str, Any], version: str) -> dict[str, Any]:
 MIGRATIONS: dict[str, tuple[str, Migration]] = {
     "0.1.0": ("0.2.0", _migrate_0_1_0_to_0_2_0),
     "0.2.0": ("0.2.1", _migrate_0_2_0_to_0_2_1),
+    "0.2.1": ("0.3.0", _migrate_0_2_1_to_0_3_0),
 }
 """Source version to ``(target version, migration)``.
 

@@ -1,0 +1,31 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVu Sans}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,line width=0.8pt,inner sep=2pt,font=\sffamily\fontsize{7}{8.4}\selectfont]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsBAC8D3}{HTML}{BAC8D3}
+\fill[tsBAC8D3] (0,0) rectangle (400,96);
+\draw[ts00CC00,densely dotted,{Circle[length=4pt]}-{Stealth[length=6pt,width=4pt,inset=2pt]},shorten <=-2pt] (80,16) -- (400,16);
+\draw[ts00CC00,densely dotted,{Circle[length=4pt]}-{Diamond[open,length=6pt,width=4pt]},shorten <=-2pt,shorten >=-3pt] (82,48) -- (162,48);
+\draw[ts00CC00,densely dotted,{Circle[length=4pt]}-{Diamond[open,length=6pt,width=4pt]},shorten <=-2pt,shorten >=-3pt] (84.6667,80) -- (148.6667,80);
+\fill[ts00CC00] (80,16) -- (77,12) -- (83,12) -- cycle;
+\fill[ts00CC00] (400,16) -- (397,12) -- (403,12) -- cycle;
+\fill[ts00CC00] (82,48) -- (79,44) -- (85,44) -- cycle;
+\fill[ts00CC00] (162,48) -- (159,44) -- (165,44) -- cycle;
+\fill[ts00CC00] (84.6667,80) -- (81.6667,76) -- (87.6667,76) -- cycle;
+\fill[ts00CC00] (148.6667,80) -- (145.6667,76) -- (151.6667,76) -- cycle;
+\node[anchor=west,text=ts000000] at (0,80) {tl:6};
+\node[anchor=west,text=ts000000] at (0,48) {tl:5};
+\node[anchor=west,text=ts000000] at (0,16) {tl:4};
+\node[anchor=north,text=ts000000] at (80,12) {0 ticks};
+\node[anchor=north,text=ts000000] at (400,12) {480 ticks};
+\node[anchor=north,text=ts000000] at (82,44) {0 ticks};
+\node[anchor=north,text=ts000000] at (162,44) {120 ticks};
+\node[anchor=north,text=ts000000] at (84.6667,76) {0 ticks};
+\node[anchor=north,text=ts000000] at (148.6667,76) {96 ticks};
+\end{tikzpicture}
+\end{document}

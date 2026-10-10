@@ -1,0 +1,57 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVu Sans}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,line width=0.8pt,inner sep=2pt,font=\sffamily\fontsize{7}{8.4}\selectfont]
+\definecolor{ts000080}{HTML}{000080}
+\definecolor{ts0050EF}{HTML}{0050EF}
+\definecolor{ts006600}{HTML}{006600}
+\definecolor{ts008080}{HTML}{008080}
+\definecolor{ts404040}{HTML}{404040}
+\definecolor{ts7F00FF}{HTML}{7F00FF}
+\definecolor{tsBAC8D3}{HTML}{BAC8D3}
+\definecolor{tsFF8000}{HTML}{FF8000}
+\fill[tsBAC8D3] (0,176) rectangle (400,240);
+\draw[ts0050EF,{Circle[length=4pt]}-{Stealth[length=6pt,width=4pt,inset=2pt]},shorten <=-2pt] (80,192) -- (400,192);
+\draw[ts0050EF,{Circle[length=4pt]}-{Diamond[open,length=6pt,width=4pt]},shorten <=-2pt,shorten >=-3pt] (112,224) -- (240,224);
+\fill[ts7F00FF] (80,192) -- (77,188) -- (83,188) -- cycle;
+\fill[ts7F00FF] (400,192) -- (397,188) -- (403,188) -- cycle;
+\fill[ts7F00FF] (112,224) -- (109,220) -- (115,220) -- cycle;
+\fill[ts7F00FF] (240,224) -- (237,220) -- (243,220) -- cycle;
+\node[anchor=west,text=ts404040] at (0,224) {p1};
+\node[anchor=west,text=ts404040] at (0,192) {Performance};
+\node[anchor=south,text=ts404040] at (240,192) {10.0 s};
+\node[anchor=south,text=ts404040] at (176,224) {4.0 s};
+\node[anchor=north,text=ts404040] at (80,188) {0.0 s};
+\node[anchor=north,text=ts404040] at (400,188) {10.0 s};
+\node[anchor=north,text=ts404040] at (112,220) {0.0 s};
+\node[anchor=north,text=ts404040] at (240,220) {4.0 s};
+\fill[tsBAC8D3] (0,0) rectangle (400,160);
+\draw[ts000080] (80,78) rectangle (400,82);
+\draw[ts008080] (80,56) .. controls (80,54.6667) and (80.6667,54) .. (82,54) -- (118,54) .. controls (119.3333,54) and (120,53.3333) .. (120,52) .. controls (120,53.3333) and (120.6667,54) .. (122,54) -- (158,54) .. controls (159.3333,54) and (160,54.6667) .. (160,56);
+\draw[ts000080,densely dotted,-{Stealth[length=6pt,width=4pt,inset=2pt]}] (400,32) .. controls (400,16) and (80,16) .. (80,32);
+\draw[ts000080,{Circle[length=4pt]}-{Stealth[length=6pt,width=4pt,inset=2pt]},shorten <=-2pt] (80,112) -- (400,112);
+\draw[tsFF8000,{Circle[length=4pt]}-{Diamond[open,length=6pt,width=4pt]},shorten <=-2pt,shorten >=-3pt] (240,144) -- (400,144);
+\fill[ts006600] (80,112) -- (77,116) -- (83,116) -- cycle;
+\fill[ts006600] (400,112) -- (397,116) -- (403,116) -- cycle;
+\fill[tsFF8000] (240,144) -- (237,148) -- (243,148) -- cycle;
+\fill[tsFF8000] (400,144) -- (397,148) -- (403,148) -- cycle;
+\fill[tsFF8000] (240,112) -- (237,116) -- (243,116) -- cycle;
+\fill[tsFF8000] (400,112) -- (397,116) -- (403,116) -- cycle;
+\node[anchor=west,text=tsFF8000] at (0,144) {b};
+\node[anchor=west,text=ts000080] at (0,112) {Score};
+\node[anchor=west,text=ts000080] at (0,80) {Ticks};
+\node[anchor=south,text=ts000080] at (240,112) {8 ♩};
+\node[anchor=south,text=tsFF8000] at (320,144) {4 ♩};
+\node[anchor=south,text=ts000080] at (80,116) {0 ♩};
+\node[anchor=south,text=ts000080] at (400,116) {8 ♩};
+\node[anchor=south,text=tsFF8000] at (240,148) {0 ♩};
+\node[anchor=south,text=tsFF8000] at (400,148) {4 ♩};
+\node[anchor=south,text=tsFF8000] at (240,116) {4 ♩};
+\node[anchor=south,text=tsFF8000] at (400,116) {8 ♩};
+\node[anchor=north,text=ts000080] at (120,52) {intro};
+\node[anchor=north,text=ts000080] at (240,20) {D.C.};
+\end{tikzpicture}
+\end{document}

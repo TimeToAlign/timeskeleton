@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="272" viewBox="-16 -16 432 272" font-family="DejaVu Sans, sans-serif" font-size="7">
+<rect x="0" y="0" width="400" height="64" fill="#BAC8D3"/>
+<line x1="80" y1="48" x2="396" y2="48" stroke="#0050EF" stroke-width="0.8"/>
+<circle cx="80" cy="48" r="2" fill="#0050EF"/>
+<path d="M400 48L394 46L396 48L394 50Z" fill="#0050EF"/>
+<line x1="112" y1="16" x2="237" y2="16" stroke="#0050EF" stroke-width="0.8"/>
+<circle cx="112" cy="16" r="2" fill="#0050EF"/>
+<path d="M237 16L240 14L243 16L240 18Z" fill="none" stroke="#0050EF" stroke-width="0.8"/>
+<path d="M80 48L77 52L83 52Z" fill="#7F00FF"/>
+<path d="M400 48L397 52L403 52Z" fill="#7F00FF"/>
+<path d="M112 16L109 20L115 20Z" fill="#7F00FF"/>
+<path d="M240 16L237 20L243 20Z" fill="#7F00FF"/>
+<text x="2" y="17.75" text-anchor="start" fill="#404040">p1</text>
+<text x="2" y="49.75" text-anchor="start" fill="#404040">Performance</text>
+<text x="240" y="44.25" text-anchor="middle" fill="#404040">10.0 s</text>
+<text x="176" y="12.25" text-anchor="middle" fill="#404040">4.0 s</text>
+<text x="80" y="59.25" text-anchor="middle" fill="#404040">0.0 s</text>
+<text x="400" y="59.25" text-anchor="middle" fill="#404040">10.0 s</text>
+<text x="112" y="27.25" text-anchor="middle" fill="#404040">0.0 s</text>
+<text x="240" y="27.25" text-anchor="middle" fill="#404040">4.0 s</text>
+<rect x="0" y="80" width="400" height="160" fill="#BAC8D3"/>
+<rect x="80" y="158" width="320" height="4" fill="none" stroke="#000080" stroke-width="0.8"/>
+<path d="M80 184Q80 186 82 186L118 186Q120 186 120 188Q120 186 122 186L158 186Q160 186 160 184" fill="none" stroke="#008080" stroke-width="0.8"/>
+<path d="M400 208C400 224 80 224 80 208" fill="none" stroke="#000080" stroke-width="0.8" stroke-dasharray="0.8 1"/>
+<path d="M80 208L78 214L80 212L82 214Z" fill="#000080"/>
+<line x1="80" y1="128" x2="396" y2="128" stroke="#000080" stroke-width="0.8"/>
+<circle cx="80" cy="128" r="2" fill="#000080"/>
+<path d="M400 128L394 126L396 128L394 130Z" fill="#000080"/>
+<line x1="240" y1="96" x2="397" y2="96" stroke="#FF8000" stroke-width="0.8"/>
+<circle cx="240" cy="96" r="2" fill="#FF8000"/>
+<path d="M397 96L400 94L403 96L400 98Z" fill="none" stroke="#FF8000" stroke-width="0.8"/>
+<path d="M80 128L77 124L83 124Z" fill="#006600"/>
+<path d="M400 128L397 124L403 124Z" fill="#006600"/>
+<path d="M240 96L237 92L243 92Z" fill="#FF8000"/>
+<path d="M400 96L397 92L403 92Z" fill="#FF8000"/>
+<path d="M240 128L237 124L243 124Z" fill="#FF8000"/>
+<path d="M400 128L397 124L403 124Z" fill="#FF8000"/>
+<text x="2" y="97.75" text-anchor="start" fill="#FF8000">b</text>
+<text x="2" y="129.75" text-anchor="start" fill="#000080">Score</text>
+<text x="2" y="161.75" text-anchor="start" fill="#000080">Ticks</text>
+<text x="240" y="124.25" text-anchor="middle" fill="#000080">8 ♩</text>
+<text x="320" y="92.25" text-anchor="middle" fill="#FF8000">4 ♩</text>
+<text x="80" y="120.25" text-anchor="middle" fill="#000080">0 ♩</text>
+<text x="400" y="120.25" text-anchor="middle" fill="#000080">8 ♩</text>
+<text x="240" y="88.25" text-anchor="middle" fill="#FF8000">0 ♩</text>
+<text x="400" y="88.25" text-anchor="middle" fill="#FF8000">4 ♩</text>
+<text x="240" y="120.25" text-anchor="middle" fill="#FF8000">4 ♩</text>
+<text x="400" y="120.25" text-anchor="middle" fill="#FF8000">8 ♩</text>
+<text x="120" y="195.25" text-anchor="middle" fill="#000080">intro</text>
+<text x="240" y="227.25" text-anchor="middle" fill="#000080">D.C.</text>
+</svg>

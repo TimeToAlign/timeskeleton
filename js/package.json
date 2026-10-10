@@ -1,6 +1,6 @@
 {
   "name": "@timetoalign/timeskeleton",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "The TimeSkeleton document schema, its golden fixtures, generated TypeScript types and a validator",
   "license": "MIT",
   "repository": {

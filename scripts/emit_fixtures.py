@@ -4,7 +4,9 @@
 Every document is built with public constructors or a public loader, serialized
 with ``Timeline.to_dict()``, written with ``timeskeleton.dumps`` and
 round-tripped through ``Timeline.from_dict``; a manifest whose order differs
-from the library's fails the round trip.
+from the library's fails the round trip. A styled document is such a document
+plus a ``graphical`` block written in this script (``GRAPHICAL``); the manifests
+are never written by hand.
 The current schema version is ``timeskeleton.SCHEMA_VERSION``. The fixtures of
 a released version are frozen: the script refuses to write into
 ``fixtures/<version>/`` once the tag ``v<version>`` exists. Map identifiers
@@ -230,6 +232,108 @@ def flow_control_timeline() -> Timeline:
     return timeline
 
 
+def drawing_documents() -> dict[str, list[Timeline]]:
+    """Build the small documents that show one drawn component each.
+
+    Every timeline and map carries an explicit id, so the documents do not
+    depend on the order in which the script constructs them.
+    """
+    bare = ContinuousLogicalTimeline(length=8, unit="quarters", uid="bare", name="Bare")
+
+    piece = ContinuousLogicalTimeline(
+        length=8, unit="quarters", uid="piece", name="Piece"
+    )
+    piece.add_child(ContinuousLogicalTimeline(length=3, unit="quarters", uid="a"), 0)
+    piece.add_child(ContinuousLogicalTimeline(length=5, unit="quarters", uid="b"), 3)
+    piece.add_child(ContinuousLogicalTimeline(length=2, unit="quarters", uid="c"), 1)
+
+    melody = ContinuousLogicalTimeline(
+        length=8, unit="quarters", uid="melody", name="Melody"
+    )
+    phrase = ContinuousLogicalTimeline(
+        length=4, unit="quarters", uid="phrase", name="Phrase"
+    )
+    melody.add_child(phrase, 2)
+    melody.add_conversion_map(
+        ScalarMap(
+            Fraction(1, 2),
+            source_unit="quarters",
+            target_unit="seconds",
+            uid="tempo",
+            name="Tempo",
+        )
+    )
+    phrase.add_conversion_map(QuartersToTicks(ppq=480, uid="ticks", name="Ticks"))
+    return {"bare": [bare], "contiguous": [piece], "map": [melody]}
+
+
+def styled_timelines() -> list[Timeline]:
+    """Build the two timelines of the styled document, one per domain."""
+    score = ContinuousLogicalTimeline(
+        length=8, unit="quarters", uid="score", name="Score"
+    )
+    score.add_child(ContinuousLogicalTimeline(length=4, unit="quarters", uid="a"), 0)
+    score.add_child(ContinuousLogicalTimeline(length=4, unit="quarters", uid="b"), 4)
+    score.add_conversion_map(QuartersToTicks(ppq=480, uid="ticks", name="Ticks"))
+    score.create_region("intro", 0, 2)
+    score.flow_control.add_jump(
+        Jump(
+            from_coordinate=score.make_coordinate(8),
+            to_coordinate=score.make_coordinate(0),
+            control_type=FlowControlElement.da_capo,
+            condition=ActivationCondition.always,
+            repeat_count=1,
+            target_name=None,
+            label="D.C.",
+            meta={},
+        )
+    )
+    performance = ContinuousPhysicalTimeline(
+        length=10.0, unit="seconds", uid="perf", name="Performance"
+    )
+    performance.add_child(
+        ContinuousPhysicalTimeline(length=4.0, unit="seconds", uid="p1"), 1.0
+    )
+    return [score, performance]
+
+
+GRAPHICAL: dict[str, dict[str, Any]] = {
+    "styled": {
+        "styles": [
+            {"select": {}, "set": {"show_length": True}},
+            {"select": {"element": "label"}, "set": {"colour": "#404040"}},
+            {"select": {"element": "map"}, "set": {"side": "below"}},
+            {"select": {"ids": ["a"]}, "set": {"visible": False}},
+        ],
+        "timelines": {
+            "score": [
+                {
+                    "select": {"element": "wedge"},
+                    "set": {"side": "above", "colour": "#006600"},
+                },
+                {"select": {"domain": "logical"}, "set": {"colour": "#000080"}},
+                {"select": {"element": "region"}, "set": {"colour": "#800000"}},
+                {"select": {"element": "region"}, "set": {"colour": "#008080"}},
+                {"select": {"element": "child"}, "set": {"visible": True}},
+            ],
+            "b": [
+                {
+                    "select": {},
+                    "set": {"colour": "#FF8000", "show_projected_coordinates": True},
+                }
+            ],
+            "perf": [
+                {
+                    "select": {"element": "wedge", "domain": "physical"},
+                    "set": {"colour": "#7F00FF"},
+                }
+            ],
+        },
+    },
+}
+"""The ``graphical`` block of each styled document, by fixture name."""
+
+
 def corpus_documents() -> dict[str, list[Timeline]]:
     """Load the smallest selected corpus specimens through public loaders."""
     score = ensure_data("score")
@@ -332,15 +436,24 @@ def build_documents() -> dict[str, list[Timeline]]:
     documents["conversion_maps"] = conversion_map_timelines()
     documents["flow_control"] = [flow_control_timeline()]
     documents.update(corpus_documents())
+    documents.update(drawing_documents())
+    documents["styled"] = styled_timelines()
     return documents
 
 
-def document(timelines: list[Timeline], generator: str) -> dict[str, Any]:
-    """Wrap top-level timelines in the document envelope."""
-    return {
+def document(
+    timelines: list[Timeline],
+    generator: str,
+    graphical: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Wrap top-level timelines, and a graphical block if any, in the document envelope."""
+    result: dict[str, Any] = {
         "meta": {"schema_version": SCHEMA_VERSION, "generator": generator},
         "manifest": {"timelines": {timeline.id: timeline.to_dict() for timeline in timelines}},
     }
+    if graphical is not None:
+        result["graphical"] = graphical
+    return result
 
 
 def write(path: Path, data: dict[str, Any]) -> None:
@@ -400,7 +513,7 @@ def main(argv: list[str] | None = None) -> int:
     written: list[Path] = []
     for name, timelines in build_documents().items():
         path = args.output / f"{name}.json"
-        write(path, document(timelines, generator))
+        write(path, document(timelines, generator, GRAPHICAL.get(name)))
         written.append(path)
 
     for path in written:

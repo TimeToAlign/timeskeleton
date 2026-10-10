@@ -1,0 +1,97 @@
+{
+  "meta": {
+    "schema_version": "0.3.0",
+    "generator": "timetoalign 1.2.0 (2549cbe4)"
+  },
+  "manifest": {
+    "timelines": {
+      "tl:7": {
+        "id": "tl:7",
+        "name": null,
+        "class": "ContinuousPhysicalTimeline",
+        "unit": "seconds",
+        "number_type": "float",
+        "length": {
+          "unit": "seconds",
+          "number_type": "float",
+          "value": 12.5
+        },
+        "locked": false,
+        "meta": {},
+        "children": {
+          "tl:8": {
+            "offset": {
+              "unit": "seconds",
+              "number_type": "float",
+              "value": 0.5
+            },
+            "timeline": {
+              "id": "tl:8",
+              "name": null,
+              "class": "ContinuousPhysicalTimeline",
+              "unit": "seconds",
+              "number_type": "float",
+              "length": {
+                "unit": "seconds",
+                "number_type": "float",
+                "value": 4.25
+              },
+              "locked": true,
+              "meta": {},
+              "children": {},
+              "conversion_maps": [],
+              "regions": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": {}
+              },
+              "measure_map": null,
+              "metric_hierarchy": null
+            }
+          },
+          "tl:9": {
+            "offset": {
+              "unit": "seconds",
+              "number_type": "float",
+              "value": 6.0
+            },
+            "timeline": {
+              "id": "tl:9",
+              "name": null,
+              "class": "ContinuousPhysicalTimeline",
+              "unit": "seconds",
+              "number_type": "float",
+              "length": {
+                "unit": "seconds",
+                "number_type": "float",
+                "value": 3.0
+              },
+              "locked": true,
+              "meta": {},
+              "children": {},
+              "conversion_maps": [],
+              "regions": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": {}
+              },
+              "measure_map": null,
+              "metric_hierarchy": null
+            }
+          }
+        },
+        "conversion_maps": [],
+        "regions": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": {}
+        },
+        "measure_map": null,
+        "metric_hierarchy": null
+      }
+    }
+  }
+}

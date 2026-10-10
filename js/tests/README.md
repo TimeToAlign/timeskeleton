@@ -1,7 +1,7 @@
 # Test strategy for the `@timetoalign/timeskeleton` npm package
 
-This suite proves the public contract of schema 0.2.1 while retaining coverage
-for every supported published version.
+This suite proves the public contract of schema 0.3.0 and of its geometry
+schema, while retaining coverage for every supported published version.
 
 ## What the package promises
 
@@ -10,7 +10,9 @@ for every supported published version.
 2. Conversion-map, compressed measure-map row, flow-control, and region definitions reject every
    shared case in `fixtures/rejections/<version>/` at the exact stored path
    (the 0.2.1 cases are the 0.2.0 cases, each change applied to the 0.2.1
-   fixture it was made on).
+   fixture it was made on; the 0.3.0 cases are the 0.2.1 cases declaring
+   0.3.0 plus eleven cases of the graphical block, listed in the Python suite's
+   README).
 3. Each migration step reproduces the shared `after.json` of its pair byte for
    byte and yields a valid document at its target version; the 0.1.0 to 0.2.0
    step refuses every member whose shape it does not know at that member's
@@ -22,6 +24,22 @@ for every supported published version.
    Schema files are ordered by their parsed version, so `0.10.0` follows
    `0.2.0` and the latest version is the numerically highest one; a list
    mixing `0.10.0`, `0.2.0`, `1.0.0` and a non-schema file pins that order.
+   The bundle also holds every geometry schema (`geometrySchemas`, keyed by
+   version, `geometrySchema` the latest), and the generated types include the
+   geometry's (`Geometry`, `Block`, `Primitive` as the union of the eight
+   primitive types, ...), generated with the document's in one file.
+6. `validateGeometry` accepts every golden geometry
+   (`fixtures/<version>/geometry/<name>/geometry.json`, read with
+   `parseJson`), whose text `dumps` reproduces byte for byte; it rejects every
+   shared case of `fixtures/<version>/geometry-rejections/` at the stored
+   path, the same path the Python validator reports, including a case whose
+   violation lies inside a definition of the document schema the geometry
+   schema refers to (a frame extent's offset, a `Number`); and it accepts a
+   primitive of an unknown kind, since the union of primitives is open.
+7. The 0.2.1 to 0.3.0 migration declares 0.3.0 and changes nothing else: its
+   `after.json` is `before.json` with the one version line substituted, and a
+   0.2.1 document with an unknown break `control_type` is refused at that
+   member's path with `no 0.3.0 shape: `.
 
 ## One path rule for both validators
 

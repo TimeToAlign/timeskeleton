@@ -1,0 +1,122 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="432" height="784" viewBox="-16 -16 432 784" font-family="DejaVu Sans, sans-serif" font-size="7">
+<rect x="0" y="0" width="400" height="32" fill="#BAC8D3"/>
+<line x1="80" y1="16" x2="396" y2="16" stroke="#0050EF" stroke-width="0.8"/>
+<circle cx="80" cy="16" r="2" fill="#0050EF"/>
+<path d="M400 16L394 14L396 16L394 18Z" fill="#0050EF"/>
+<path d="M80 16L77 20L83 20Z" fill="#0050EF"/>
+<path d="M400 16L397 20L403 20Z" fill="#0050EF"/>
+<text x="2" y="17.75" text-anchor="start" fill="#000000">1966_Szegedi</text>
+<text x="80" y="27.25" text-anchor="middle" fill="#000000">0.0 s</text>
+<text x="400" y="27.25" text-anchor="middle" fill="#000000">73.06201814058957 s</text>
+<rect x="0" y="48" width="400" height="64" fill="#BAC8D3"/>
+<rect x="80" y="62" width="320" height="4" fill="none" stroke="#0050EF" stroke-width="0.8"/>
+<line x1="80" y1="96" x2="396" y2="96" stroke="#0050EF" stroke-width="0.8" stroke-dasharray="0.8 1"/>
+<circle cx="80" cy="96" r="2" fill="#0050EF"/>
+<path d="M400 96L394 94L396 96L394 98Z" fill="#0050EF"/>
+<path d="M80 96L77 100L83 100Z" fill="#0050EF"/>
+<path d="M400 96L397 100L403 100Z" fill="#0050EF"/>
+<text x="2" y="65.75" text-anchor="start" fill="#000000">samples_to_seconds</text>
+<text x="2" y="97.75" text-anchor="start" fill="#000000">1966_Szegedi</text>
+<text x="80" y="107.25" text-anchor="middle" fill="#000000">0 smp</text>
+<text x="400" y="107.25" text-anchor="middle" fill="#000000">3222035 smp</text>
+<rect x="0" y="128" width="400" height="32" fill="#BAC8D3"/>
+<line x1="80" y1="144" x2="396" y2="144" stroke="#0050EF" stroke-width="0.8"/>
+<circle cx="80" cy="144" r="2" fill="#0050EF"/>
+<path d="M400 144L394 142L396 144L394 146Z" fill="#0050EF"/>
+<path d="M80 144L77 148L83 148Z" fill="#0050EF"/>
+<path d="M400 144L397 148L403 148Z" fill="#0050EF"/>
+<text x="2" y="145.75" text-anchor="start" fill="#000000">1970_Gould</text>
+<text x="80" y="155.25" text-anchor="middle" fill="#000000">0.0 s</text>
+<text x="400" y="155.25" text-anchor="middle" fill="#000000">122.89201814058957 s</text>
+<rect x="0" y="176" width="400" height="64" fill="#BAC8D3"/>
+<rect x="80" y="190" width="320" height="4" fill="none" stroke="#0050EF" stroke-width="0.8"/>
+<line x1="80" y1="224" x2="396" y2="224" stroke="#0050EF" stroke-width="0.8" stroke-dasharray="0.8 1"/>
+<circle cx="80" cy="224" r="2" fill="#0050EF"/>
+<path d="M400 224L394 222L396 224L394 226Z" fill="#0050EF"/>
+<path d="M80 224L77 228L83 228Z" fill="#0050EF"/>
+<path d="M400 224L397 228L403 228Z" fill="#0050EF"/>
+<text x="2" y="193.75" text-anchor="start" fill="#000000">samples_to_seconds</text>
+<text x="2" y="225.75" text-anchor="start" fill="#000000">1970_Gould</text>
+<text x="80" y="235.25" text-anchor="middle" fill="#000000">0 smp</text>
+<text x="400" y="235.25" text-anchor="middle" fill="#000000">5419538 smp</text>
+<rect x="0" y="256" width="400" height="32" fill="#BAC8D3"/>
+<line x1="80" y1="272" x2="396" y2="272" stroke="#0050EF" stroke-width="0.8"/>
+<circle cx="80" cy="272" r="2" fill="#0050EF"/>
+<path d="M400 272L394 270L396 272L394 274Z" fill="#0050EF"/>
+<path d="M80 272L77 276L83 276Z" fill="#0050EF"/>
+<path d="M400 272L397 276L403 276Z" fill="#0050EF"/>
+<text x="2" y="273.75" text-anchor="start" fill="#000000">1971_Curzon</text>
+<text x="80" y="283.25" text-anchor="middle" fill="#000000">0.0 s</text>
+<text x="400" y="283.25" text-anchor="middle" fill="#000000">77.78290249433107 s</text>
+<rect x="0" y="304" width="400" height="64" fill="#BAC8D3"/>
+<rect x="80" y="318" width="320" height="4" fill="none" stroke="#0050EF" stroke-width="0.8"/>
+<line x1="80" y1="352" x2="396" y2="352" stroke="#0050EF" stroke-width="0.8" stroke-dasharray="0.8 1"/>
+<circle cx="80" cy="352" r="2" fill="#0050EF"/>
+<path d="M400 352L394 350L396 352L394 354Z" fill="#0050EF"/>
+<path d="M80 352L77 356L83 356Z" fill="#0050EF"/>
+<path d="M400 352L397 356L403 356Z" fill="#0050EF"/>
+<text x="2" y="321.75" text-anchor="start" fill="#000000">samples_to_seconds</text>
+<text x="2" y="353.75" text-anchor="start" fill="#000000">1971_Curzon</text>
+<text x="80" y="363.25" text-anchor="middle" fill="#000000">0 smp</text>
+<text x="400" y="363.25" text-anchor="middle" fill="#000000">3430226 smp</text>
+<rect x="0" y="384" width="400" height="32" fill="#BAC8D3"/>
+<line x1="80" y1="400" x2="396" y2="400" stroke="#0050EF" stroke-width="0.8"/>
+<circle cx="80" cy="400" r="2" fill="#0050EF"/>
+<path d="M400 400L394 398L396 400L394 402Z" fill="#0050EF"/>
+<path d="M80 400L77 404L83 404Z" fill="#0050EF"/>
+<path d="M400 400L397 404L403 404Z" fill="#0050EF"/>
+<text x="2" y="401.75" text-anchor="start" fill="#000000">1985_Brendel</text>
+<text x="80" y="411.25" text-anchor="middle" fill="#000000">0.0 s</text>
+<text x="400" y="411.25" text-anchor="middle" fill="#000000">74.88201814058957 s</text>
+<rect x="0" y="432" width="400" height="64" fill="#BAC8D3"/>
+<rect x="80" y="446" width="320" height="4" fill="none" stroke="#0050EF" stroke-width="0.8"/>
+<line x1="80" y1="480" x2="396" y2="480" stroke="#0050EF" stroke-width="0.8" stroke-dasharray="0.8 1"/>
+<circle cx="80" cy="480" r="2" fill="#0050EF"/>
+<path d="M400 480L394 478L396 480L394 482Z" fill="#0050EF"/>
+<path d="M80 480L77 484L83 484Z" fill="#0050EF"/>
+<path d="M400 480L397 484L403 484Z" fill="#0050EF"/>
+<text x="2" y="449.75" text-anchor="start" fill="#000000">samples_to_seconds</text>
+<text x="2" y="481.75" text-anchor="start" fill="#000000">1985_Brendel</text>
+<text x="80" y="491.25" text-anchor="middle" fill="#000000">0 smp</text>
+<text x="400" y="491.25" text-anchor="middle" fill="#000000">3302297 smp</text>
+<rect x="0" y="512" width="400" height="32" fill="#BAC8D3"/>
+<line x1="80" y1="528" x2="396" y2="528" stroke="#0050EF" stroke-width="0.8"/>
+<circle cx="80" cy="528" r="2" fill="#0050EF"/>
+<path d="M400 528L394 526L396 528L394 530Z" fill="#0050EF"/>
+<path d="M80 528L77 532L83 532Z" fill="#0050EF"/>
+<path d="M400 528L397 532L403 532Z" fill="#0050EF"/>
+<text x="2" y="529.75" text-anchor="start" fill="#000000">2023_Hewitt</text>
+<text x="80" y="539.25" text-anchor="middle" fill="#000000">0.0 s</text>
+<text x="400" y="539.25" text-anchor="middle" fill="#000000">89.94301587301587 s</text>
+<rect x="0" y="560" width="400" height="64" fill="#BAC8D3"/>
+<rect x="80" y="574" width="320" height="4" fill="none" stroke="#0050EF" stroke-width="0.8"/>
+<line x1="80" y1="608" x2="396" y2="608" stroke="#0050EF" stroke-width="0.8" stroke-dasharray="0.8 1"/>
+<circle cx="80" cy="608" r="2" fill="#0050EF"/>
+<path d="M400 608L394 606L396 608L394 610Z" fill="#0050EF"/>
+<path d="M80 608L77 612L83 612Z" fill="#0050EF"/>
+<path d="M400 608L397 612L403 612Z" fill="#0050EF"/>
+<text x="2" y="577.75" text-anchor="start" fill="#000000">samples_to_seconds</text>
+<text x="2" y="609.75" text-anchor="start" fill="#000000">2023_Hewitt</text>
+<text x="80" y="619.25" text-anchor="middle" fill="#000000">0 smp</text>
+<text x="400" y="619.25" text-anchor="middle" fill="#000000">3966486 smp</text>
+<rect x="0" y="640" width="400" height="32" fill="#BAC8D3"/>
+<line x1="80" y1="656" x2="396" y2="656" stroke="#00CC00" stroke-width="0.8"/>
+<circle cx="80" cy="656" r="2" fill="#00CC00"/>
+<path d="M400 656L394 654L396 656L394 658Z" fill="#00CC00"/>
+<path d="M80 656L77 660L83 660Z" fill="#00CC00"/>
+<path d="M400 656L397 660L403 660Z" fill="#00CC00"/>
+<text x="2" y="657.75" text-anchor="start" fill="#000000">Beethoven_Eroica_…</text>
+<text x="80" y="667.25" text-anchor="middle" fill="#000000">0 ♩</text>
+<text x="400" y="667.25" text-anchor="middle" fill="#000000">64 ♩</text>
+<rect x="0" y="688" width="400" height="64" fill="#BAC8D3"/>
+<rect x="80" y="702" width="320" height="4" fill="none" stroke="#00CC00" stroke-width="0.8"/>
+<line x1="80" y1="736" x2="396" y2="736" stroke="#00CC00" stroke-width="0.8" stroke-dasharray="0.8 1"/>
+<circle cx="80" cy="736" r="2" fill="#00CC00"/>
+<path d="M400 736L394 734L396 736L394 738Z" fill="#00CC00"/>
+<path d="M80 736L77 740L83 740Z" fill="#00CC00"/>
+<path d="M400 736L397 740L403 740Z" fill="#00CC00"/>
+<text x="2" y="705.75" text-anchor="start" fill="#000000">ticks_to_quarters</text>
+<text x="2" y="737.75" text-anchor="start" fill="#000000">Beethoven_Eroica_…</text>
+<text x="80" y="747.25" text-anchor="middle" fill="#000000">0 ticks</text>
+<text x="400" y="747.25" text-anchor="middle" fill="#000000">2064 ticks</text>
+</svg>

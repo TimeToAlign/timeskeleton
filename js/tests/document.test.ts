@@ -67,12 +67,21 @@ function standardFiles(): [string, string][] {
       rejectionText(file, "0.2.1"),
     ]),
     ["0.2.0-to-0.2.1/after.json", migrationText("0.2.0-to-0.2.1", "after")],
+    ...fixtureFileNames("0.3.0").map((file): [string, string] => [
+      `0.3.0/${file}`,
+      fixtureText(file.slice(0, -5), "0.3.0"),
+    ]),
+    ...rejectionFileNames("0.3.0").map((file): [string, string] => [
+      `rejections/0.3.0/${file}`,
+      rejectionText(file, "0.3.0"),
+    ]),
+    ["0.2.1-to-0.3.0/after.json", migrationText("0.2.1-to-0.3.0", "after")],
   ];
 }
 
 describe("the standard writer", () => {
-  it("round-trips all 51 standard files", () => {
-    expect(standardFiles().length).toBe(16 + 34 + 1);
+  it("round-trips all 117 standard files", () => {
+    expect(standardFiles().length).toBe(16 + 34 + 1 + (20 + 45 + 1));
   });
 
   it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {
@@ -299,16 +308,16 @@ describe("compactJson", () => {
 });
 
 describe("parse, migrate, dumps", () => {
-  it("gives the Python migration's after.json for the pair", () => {
+  it("gives the Python migrations' after.json through both pairs", () => {
     const before = parse(migrationText("0.2.0-to-0.2.1", "before"));
-    expect(dumps(migrate(before))).toBe(migrationText("0.2.0-to-0.2.1", "after"));
+    expect(dumps(migrate(before))).toBe(migrationText("0.2.1-to-0.3.0", "after"));
   });
 
-  it.each(fixtureFileNames("0.2.0"))("gives the 0.2.1 text of %s", (file) => {
+  it.each(fixtureFileNames("0.2.0"))("gives the 0.3.0 text of %s", (file) => {
     const name = file.slice(0, -5);
-    const expected = parseJson(fixtureText(name, "0.2.1")) as JsonObject;
+    const expected = parseJson(fixtureText(name, "0.3.0")) as JsonObject;
     const result = migrate(parse(fixtureText(name, "0.2.0"))) as unknown as JsonObject;
     (result.meta as JsonObject).generator = (expected.meta as JsonObject).generator;
-    expect(dumps(result)).toBe(fixtureText(name, "0.2.1"));
+    expect(dumps(result)).toBe(fixtureText(name, "0.3.0"));
   });
 });

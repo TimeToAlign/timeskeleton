@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
 import { fixtureFileNames, loadSchemaFile } from "./fixtures.js";
 
-const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.2.1/timeskeleton.schema.json";
+const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.3.0/timeskeleton.schema.json";
 
 const TIMELINE_CLASSES = [
   "ContinuousLogicalTimeline",
@@ -69,8 +69,8 @@ const MANIFEST_KEYS = [
 
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
-    expect(SCHEMA_VERSION).toBe("0.2.1");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0", "0.2.1"]);
+    expect(SCHEMA_VERSION).toBe("0.3.0");
+    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0", "0.2.1", "0.3.0"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
@@ -80,6 +80,7 @@ describe("schema identity", () => {
       "0.1.0": loadSchemaFile("0.1.0"),
       "0.2.0": loadSchemaFile("0.2.0"),
       "0.2.1": loadSchemaFile("0.2.1"),
+      "0.3.0": loadSchemaFile("0.3.0"),
     });
   });
 
@@ -92,10 +93,40 @@ describe("schema identity", () => {
     };
     const current = loadSchemaFile("0.2.1") as { description: string };
     expect(current.description.startsWith(previous.description.slice(0, 40))).toBe(true);
-    expected.$id = SCHEMA_ID;
+    expected.$id = SCHEMA_ID.replace("0.3.0", "0.2.1");
     expected.description = current.description;
     expected.properties.meta.properties.schema_version.const = "0.2.1";
     expect(loadSchemaFile("0.2.1")).toEqual(expected);
+  });
+
+  it("is 0.2.1 plus the graphical block", () => {
+    const current = structuredClone(loadSchemaFile("0.3.0")) as {
+      $id: string;
+      description: string;
+      properties: Record<string, unknown> & {
+        meta: { properties: { schema_version: { const: string } } };
+      };
+      $defs: Record<string, unknown>;
+    };
+    const previous = loadSchemaFile("0.2.1") as { $id: string; description: string };
+    const added = [
+      "Graphical",
+      "StyleRules",
+      "StyleRule",
+      "StyleSelector",
+      "ElementType",
+      "StyleProperties",
+    ];
+    expect(Object.keys(current.properties)).toEqual(["meta", "manifest", "graphical"]);
+    expect(current.properties.graphical).toEqual({ $ref: "#/$defs/Graphical" });
+    delete current.properties.graphical;
+    expect(Object.keys(current.$defs).slice(-added.length)).toEqual(added);
+    for (const name of added) delete current.$defs[name];
+    expect(current.description.startsWith(`${previous.description} Version 0.3.0`)).toBe(true);
+    current.description = previous.description;
+    current.$id = previous.$id;
+    current.properties.meta.properties.schema_version.const = "0.2.1";
+    expect(current).toEqual(previous);
   });
 
   it("carries the pinned $id, $schema and version constant", () => {
@@ -165,8 +196,11 @@ describe("schema vocabulary", () => {
 });
 
 describe("fixture set", () => {
-  it("contains the synthetic, map, flow-control, and corpus documents", () => {
-    expect(fixtureFileNames()).toHaveLength(16);
+  it("contains the synthetic, map, flow-control, corpus and drawing documents", () => {
+    expect(fixtureFileNames()).toHaveLength(20);
+    for (const name of ["bare.json", "contiguous.json", "map.json", "styled.json"]) {
+      expect(fixtureFileNames()).toContain(name);
+    }
     expect(fixtureFileNames()).toContain("conversion_maps.json");
     expect(fixtureFileNames()).toContain("flow_control.json");
   });

@@ -26,6 +26,7 @@ def test_registered_migrations() -> None:
     assert {source: target for source, (target, _step) in MIGRATIONS.items()} == {
         "0.1.0": "0.2.0",
         "0.2.0": "0.2.1",
+        "0.2.1": "0.3.0",
     }
 
 
@@ -383,3 +384,37 @@ def test_the_step_refuses_an_invalid_document_at_the_input_path(load_fixture) ->
         "control_type",
     )
     assert caught.value.message.startswith("no 0.2.1 shape: ")
+
+
+# -- 0.2.1 to 0.3.0: the version only -------------------------------------------
+
+
+def test_the_0_3_0_step_declares_its_version_and_changes_nothing_else() -> None:
+    (before, after) = [
+        pair for pair in migration_paths() if pair[0].parent.name == "0.2.1-to-0.3.0"
+    ][0]
+    before_text = before.read_text(encoding="utf-8")
+    assert before_text.count('"schema_version": "0.2.1"') == 1
+    expected = before_text.replace(
+        '"schema_version": "0.2.1"', '"schema_version": "0.3.0"'
+    )
+    assert after.read_text(encoding="utf-8") == expected
+    assert dumps(_step(json.loads(before_text))) == expected
+
+
+def test_the_0_3_0_step_refuses_an_invalid_document_at_its_path(load_fixture) -> None:
+    document = load_fixture("flow_control", "0.2.1")
+    flow = document["manifest"]["timelines"]["flow:quarters"]["flow_control"]
+    flow["breaks"][0]["control_type"] = "pause"
+    with pytest.raises(MigrationError) as caught:
+        _step(document)
+    assert caught.value.path == (
+        "manifest",
+        "timelines",
+        "flow:quarters",
+        "flow_control",
+        "breaks",
+        0,
+        "control_type",
+    )
+    assert caught.value.message.startswith("no 0.3.0 shape: ")

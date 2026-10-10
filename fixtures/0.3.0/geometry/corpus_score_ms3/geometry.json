@@ -1,0 +1,646 @@
+{
+  "meta": {
+    "schema_version": "0.3.0"
+  },
+  "blocks": [
+    {
+      "id": "clt1",
+      "frame": {
+        "length": [
+          185,
+          4
+        ],
+        "names": {
+          "offset": [
+            0,
+            1
+          ],
+          "length": [
+            37,
+            4
+          ]
+        },
+        "plot": {
+          "offset": [
+            37,
+            4
+          ],
+          "length": [
+            37,
+            1
+          ]
+        }
+      },
+      "placement": {
+        "type": "LinearMap",
+        "id": "placement",
+        "name": null,
+        "source_unit": "quarters",
+        "target_unit": "number",
+        "scalar": [
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          1
+        ]
+      },
+      "rows": {
+        "min": -2,
+        "max": 3
+      },
+      "background": "#BAC8D3",
+      "primitives": [
+        {
+          "kind": "break",
+          "id": "clt1/break/0",
+          "timeline": "clt1",
+          "at": [
+            12,
+            1
+          ],
+          "bottom": [
+            -5,
+            2
+          ],
+          "top": [
+            7,
+            2
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "map",
+          "id": "clt1/map/map:ScalarMap_4",
+          "timeline": "clt1",
+          "row": 3,
+          "start": [
+            0,
+            1
+          ],
+          "end": [
+            37,
+            1
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "jump",
+          "id": "clt1/jump/1",
+          "timeline": "clt1",
+          "row": -1,
+          "side": "below",
+          "from": [
+            9,
+            1
+          ],
+          "to": [
+            6,
+            1
+          ],
+          "base": [
+            -1,
+            2
+          ],
+          "apex": [
+            -7,
+            8
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "jump",
+          "id": "clt1/jump/0",
+          "timeline": "clt1",
+          "row": -1,
+          "side": "below",
+          "from": [
+            6,
+            1
+          ],
+          "to": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            2
+          ],
+          "apex": [
+            -7,
+            8
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "jump",
+          "id": "clt1/jump/2",
+          "timeline": "clt1",
+          "row": -1,
+          "side": "below",
+          "from": [
+            28,
+            1
+          ],
+          "to": [
+            16,
+            1
+          ],
+          "base": [
+            -1,
+            2
+          ],
+          "apex": [
+            -7,
+            8
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "jump",
+          "id": "clt1/jump/3",
+          "timeline": "clt1",
+          "row": -2,
+          "side": "below",
+          "from": [
+            37,
+            1
+          ],
+          "to": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            2
+          ],
+          "apex": [
+            -15,
+            8
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "timeline",
+          "id": "clt1",
+          "timeline": "clt1",
+          "row": 0,
+          "start": [
+            0,
+            1
+          ],
+          "end": [
+            37,
+            1
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "child",
+          "id": "controls",
+          "timeline": "controls",
+          "row": 1,
+          "start": [
+            0,
+            1
+          ],
+          "end": [
+            37,
+            1
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "child",
+          "id": "notes",
+          "timeline": "notes",
+          "row": 2,
+          "start": [
+            0,
+            1
+          ],
+          "end": [
+            37,
+            1
+          ],
+          "colour": "#00CC00",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "wedge",
+          "id": "clt1/start",
+          "timeline": "clt1",
+          "row": 0,
+          "side": "below",
+          "at": [
+            0,
+            1
+          ],
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            8
+          ],
+          "colour": "#00CC00"
+        },
+        {
+          "kind": "wedge",
+          "id": "clt1/end",
+          "timeline": "clt1",
+          "row": 0,
+          "side": "below",
+          "at": [
+            37,
+            1
+          ],
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            8
+          ],
+          "colour": "#00CC00"
+        },
+        {
+          "kind": "wedge",
+          "id": "controls/start",
+          "timeline": "controls",
+          "row": 1,
+          "side": "below",
+          "at": [
+            0,
+            1
+          ],
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#00CC00"
+        },
+        {
+          "kind": "wedge",
+          "id": "controls/end",
+          "timeline": "controls",
+          "row": 1,
+          "side": "below",
+          "at": [
+            37,
+            1
+          ],
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#00CC00"
+        },
+        {
+          "kind": "wedge",
+          "id": "notes/start",
+          "timeline": "notes",
+          "row": 2,
+          "side": "below",
+          "at": [
+            0,
+            1
+          ],
+          "tip": [
+            2,
+            1
+          ],
+          "base": [
+            15,
+            8
+          ],
+          "colour": "#00CC00"
+        },
+        {
+          "kind": "wedge",
+          "id": "notes/end",
+          "timeline": "notes",
+          "row": 2,
+          "side": "below",
+          "at": [
+            37,
+            1
+          ],
+          "tip": [
+            2,
+            1
+          ],
+          "base": [
+            15,
+            8
+          ],
+          "colour": "#00CC00"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/map/map:ScalarMap_4/name",
+          "timeline": "clt1",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              3,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "quarters_to_ticks",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "notes/name",
+          "timeline": "notes",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              2,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "notes",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "controls/name",
+          "timeline": "controls",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              1,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "controls",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/name",
+          "timeline": "clt1",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              0,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "clt1",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/start/label",
+          "timeline": "clt1",
+          "at": {
+            "space": "root",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              -1,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0 ♩",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/end/label",
+          "timeline": "clt1",
+          "at": {
+            "space": "root",
+            "x": [
+              37,
+              1
+            ],
+            "y": [
+              -1,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "37 ♩",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "controls/start/label",
+          "timeline": "controls",
+          "at": {
+            "space": "root",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0 ♩",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "controls/end/label",
+          "timeline": "controls",
+          "at": {
+            "space": "root",
+            "x": [
+              37,
+              1
+            ],
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "37 ♩",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "notes/start/label",
+          "timeline": "notes",
+          "at": {
+            "space": "root",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              15,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0 ♩",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "notes/end/label",
+          "timeline": "notes",
+          "at": {
+            "space": "root",
+            "x": [
+              37,
+              1
+            ],
+            "y": [
+              15,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "37 ♩",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/jump/1/label",
+          "timeline": "clt1",
+          "at": {
+            "space": "root",
+            "x": [
+              15,
+              2
+            ],
+            "y": [
+              -7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "MC 5 → MC 4",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/jump/0/label",
+          "timeline": "clt1",
+          "at": {
+            "space": "root",
+            "x": [
+              3,
+              1
+            ],
+            "y": [
+              -7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "MC 3 → MC 1",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/jump/2/label",
+          "timeline": "clt1",
+          "at": {
+            "space": "root",
+            "x": [
+              22,
+              1
+            ],
+            "y": [
+              -7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "MC 11 → MC 9",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/jump/3/label",
+          "timeline": "clt1",
+          "at": {
+            "space": "root",
+            "x": [
+              37,
+              2
+            ],
+            "y": [
+              -15,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "MC 15 → start (MC 1)",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "clt1/break/0/label",
+          "timeline": "clt1",
+          "at": {
+            "space": "root",
+            "x": [
+              12,
+              1
+            ],
+            "y": [
+              -5,
+              2
+            ]
+          },
+          "anchor": "north",
+          "text": "fine at MC 7",
+          "colour": "#000000"
+        }
+      ]
+    }
+  ]
+}

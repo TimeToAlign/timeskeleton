@@ -1,0 +1,33 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVu Sans}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,line width=0.8pt,inner sep=2pt,font=\sffamily\fontsize{7}{8.4}\selectfont]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsBAC8D3}{HTML}{BAC8D3}
+\fill[tsBAC8D3] (0,0) rectangle (400,128);
+\draw[ts00CC00] (133.3333,24) .. controls (133.3333,22.6667) and (134,22) .. (135.3333,22) -- (184.6667,22) .. controls (186,22) and (186.6667,21.3333) .. (186.6667,20) .. controls (186.6667,21.3333) and (187.3333,22) .. (188.6667,22) -- (238,22) .. controls (239.3333,22) and (240,22.6667) .. (240,24);
+\draw[ts00CC00,{Circle[length=4pt]}-{Stealth[length=6pt,width=4pt,inset=2pt]},shorten <=-2pt] (80,48) -- (400,48);
+\draw[ts00CC00,{Circle[length=4pt]}-{Diamond[open,length=6pt,width=4pt]},shorten <=-2pt,shorten >=-3pt] (88.8889,80) -- (195.5556,80);
+\draw[ts00CC00,{Circle[length=4pt]}-{Diamond[open,length=6pt,width=4pt]},shorten <=-2pt,shorten >=-3pt] (133.3333,112) -- (213.3333,112);
+\fill[ts00CC00] (80,48) -- (77,44) -- (83,44) -- cycle;
+\fill[ts00CC00] (400,48) -- (397,44) -- (403,44) -- cycle;
+\fill[ts00CC00] (88.8889,80) -- (85.8889,76) -- (91.8889,76) -- cycle;
+\fill[ts00CC00] (195.5556,80) -- (192.5556,76) -- (198.5556,76) -- cycle;
+\fill[ts00CC00] (133.3333,112) -- (130.3333,108) -- (136.3333,108) -- cycle;
+\fill[ts00CC00] (213.3333,112) -- (210.3333,108) -- (216.3333,108) -- cycle;
+\node[anchor=west,text=ts000000] at (0,112) {tl:21};
+\node[anchor=west,text=ts000000] at (0,80) {tl:20};
+\node[anchor=west,text=ts000000] at (0,48) {tl:19};
+\node[anchor=north,text=ts000000] at (80,44) {0 ♩};
+\node[anchor=north,text=ts000000] at (400,44) {12 ♩};
+\node[anchor=north,text=ts000000] at (88.8889,76) {0 ♩};
+\node[anchor=north,text=ts000000] at (195.5556,76) {4 ♩};
+\node[anchor=north,text=ts000000] at (133.3333,108) {0 ♩};
+\node[anchor=north,text=ts000000] at (213.3333,108) {3 ♩};
+\node[anchor=north,text=ts000000] at (186.6667,20) {theme};
+\end{tikzpicture}
+\end{document}

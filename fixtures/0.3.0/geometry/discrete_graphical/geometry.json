@@ -1,0 +1,324 @@
+{
+  "meta": {
+    "schema_version": "0.3.0"
+  },
+  "blocks": [
+    {
+      "id": "tl:16",
+      "frame": {
+        "length": [
+          2400,
+          1
+        ],
+        "names": {
+          "offset": [
+            0,
+            1
+          ],
+          "length": [
+            480,
+            1
+          ]
+        },
+        "plot": {
+          "offset": [
+            480,
+            1
+          ],
+          "length": [
+            1920,
+            1
+          ]
+        }
+      },
+      "placement": {
+        "type": "LinearMap",
+        "id": "placement",
+        "name": null,
+        "source_unit": "pixels",
+        "target_unit": "number",
+        "scalar": [
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          1
+        ]
+      },
+      "rows": {
+        "min": 0,
+        "max": 1
+      },
+      "background": "#BAC8D3",
+      "primitives": [
+        {
+          "kind": "timeline",
+          "id": "tl:16",
+          "timeline": "tl:16",
+          "row": 0,
+          "start": 0,
+          "end": 1920,
+          "colour": "#FF0000",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "child",
+          "id": "tl:17",
+          "timeline": "tl:17",
+          "row": 1,
+          "start": 16,
+          "end": 656,
+          "colour": "#FF0000",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "child",
+          "id": "tl:18",
+          "timeline": "tl:18",
+          "row": 1,
+          "start": 1000,
+          "end": 1480,
+          "colour": "#FF0000",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "wedge",
+          "id": "tl:16/start",
+          "timeline": "tl:16",
+          "row": 0,
+          "side": "below",
+          "at": 0,
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            8
+          ],
+          "colour": "#FF0000"
+        },
+        {
+          "kind": "wedge",
+          "id": "tl:16/end",
+          "timeline": "tl:16",
+          "row": 0,
+          "side": "below",
+          "at": 1920,
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            8
+          ],
+          "colour": "#FF0000"
+        },
+        {
+          "kind": "wedge",
+          "id": "tl:17/start",
+          "timeline": "tl:17",
+          "row": 1,
+          "side": "below",
+          "at": 16,
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#FF0000"
+        },
+        {
+          "kind": "wedge",
+          "id": "tl:17/end",
+          "timeline": "tl:17",
+          "row": 1,
+          "side": "below",
+          "at": 656,
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#FF0000"
+        },
+        {
+          "kind": "wedge",
+          "id": "tl:18/start",
+          "timeline": "tl:18",
+          "row": 1,
+          "side": "below",
+          "at": 1000,
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#FF0000"
+        },
+        {
+          "kind": "wedge",
+          "id": "tl:18/end",
+          "timeline": "tl:18",
+          "row": 1,
+          "side": "below",
+          "at": 1480,
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#FF0000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:17/name",
+          "timeline": "tl:17",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              1,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "tl:17, tl:18",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:16/name",
+          "timeline": "tl:16",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              0,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "tl:16",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:16/start/label",
+          "timeline": "tl:16",
+          "at": {
+            "space": "root",
+            "x": 0,
+            "y": [
+              -1,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0 px",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:16/end/label",
+          "timeline": "tl:16",
+          "at": {
+            "space": "root",
+            "x": 1920,
+            "y": [
+              -1,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "1920 px",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:17/start/label",
+          "timeline": "tl:17",
+          "at": {
+            "space": "root",
+            "x": 16,
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0 px",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:17/end/label",
+          "timeline": "tl:17",
+          "at": {
+            "space": "root",
+            "x": 656,
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "640 px",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:18/start/label",
+          "timeline": "tl:18",
+          "at": {
+            "space": "root",
+            "x": 1000,
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0 px",
+          "colour": "#000000"
+        },
+        {
+          "kind": "label",
+          "id": "tl:18/end/label",
+          "timeline": "tl:18",
+          "at": {
+            "space": "root",
+            "x": 1480,
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "480 px",
+          "colour": "#000000"
+        }
+      ]
+    }
+  ]
+}

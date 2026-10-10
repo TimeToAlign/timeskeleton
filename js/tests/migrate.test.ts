@@ -70,10 +70,10 @@ function write(document: JsonObject): string {
 }
 
 describe("migrate", () => {
-  it("registers the 0.1.0 to 0.2.0 and 0.2.0 to 0.2.1 migrations", () => {
+  it("registers the 0.1.0 to 0.2.0, 0.2.0 to 0.2.1 and 0.2.1 to 0.3.0 migrations", () => {
     expect(
       Object.fromEntries(Object.entries(MIGRATIONS).map(([source, [target]]) => [source, target])),
-    ).toEqual({ "0.1.0": "0.2.0", "0.2.0": "0.2.1" });
+    ).toEqual({ "0.1.0": "0.2.0", "0.2.0": "0.2.1", "0.2.1": "0.3.0" });
   });
 
   it.each(migrationPairs())("reproduces the %s pair byte for byte", (pair) => {
@@ -413,5 +413,40 @@ describe("canonical JSON text", () => {
     }
     expect(texts.length).toBe(7);
     expect(texts).toEqual(expected);
+  });
+});
+
+describe("the 0.2.1 to 0.3.0 step", () => {
+  it("declares 0.3.0 and changes nothing else", () => {
+    const before = migrationText("0.2.1-to-0.3.0", "before");
+    expect(before.split('"schema_version": "0.2.1"').length).toBe(2);
+    const expected = before.replace('"schema_version": "0.2.1"', '"schema_version": "0.3.0"');
+    expect(migrationText("0.2.1-to-0.3.0", "after")).toBe(expected);
+    expect(dumps(step(parseJson(before) as JsonObject))).toBe(expected);
+  });
+
+  it("refuses an invalid document at its path", () => {
+    const document = loadFixture("flow_control", "0.2.1");
+    const timelines = (document.manifest as JsonObject).timelines as JsonObject;
+    const flow = (timelines["flow:quarters"] as JsonObject).flow_control as JsonObject;
+    ((flow.breaks as JsonObject[])[0] as JsonObject).control_type = "pause";
+    let caught: unknown;
+    try {
+      step(document);
+    } catch (error) {
+      caught = error;
+    }
+    expect(caught).toBeInstanceOf(MigrationError);
+    const error = caught as MigrationError;
+    expect(error.path).toEqual([
+      "manifest",
+      "timelines",
+      "flow:quarters",
+      "flow_control",
+      "breaks",
+      0,
+      "control_type",
+    ]);
+    expect(error.detail.startsWith("no 0.3.0 shape: ")).toBe(true);
   });
 });

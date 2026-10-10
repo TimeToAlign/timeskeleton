@@ -1,10 +1,12 @@
-"""The TimeSkeleton schema and its validator.
+"""The TimeSkeleton schemas and their validators.
 
-The schema files and the golden fixtures live at the repository root and are
-bundled into the wheel under ``timeskeleton/schema`` and
-``timeskeleton/fixtures``. The resource helpers below find them in either
-place, so the package works from an installed wheel and from a source
-checkout alike.
+A document is checked against ``timeskeleton-<version>.schema.json``; the
+geometry of its drawing (``docs/geometry.md``), from 0.3.0 on, against
+``geometry-<version>.schema.json``. The schema files and the golden
+fixtures live at the repository root and are bundled into the wheel under
+``timeskeleton/schema`` and ``timeskeleton/fixtures``. The resource helpers
+below find them in either place, so the package works from an installed
+wheel and from a source checkout alike.
 """
 
 from __future__ import annotations
@@ -19,11 +21,14 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-SCHEMA_VERSION = "0.2.1"
+SCHEMA_VERSION = "0.3.0"
 """The schema version this release publishes: the latest one."""
 
-SUPPORTED_VERSIONS: tuple[str, ...] = ("0.1.0", "0.2.0", "0.2.1")
+SUPPORTED_VERSIONS: tuple[str, ...] = ("0.1.0", "0.2.0", "0.2.1", "0.3.0")
 """Every schema version this release validates and migrates, oldest first."""
+
+GEOMETRY_VERSIONS: tuple[str, ...] = ("0.3.0",)
+"""Every schema version with a geometry schema, oldest first."""
 
 
 class UnsupportedVersionError(ValueError):
@@ -99,6 +104,30 @@ def load_schema(version: str = SCHEMA_VERSION) -> dict[str, Any]:
         return json.load(handle)
 
 
+def geometry_schema_path(version: str = SCHEMA_VERSION) -> Path:
+    """Return the path of the geometry schema file for ``version``.
+
+    Raises:
+        UnsupportedVersionError: If no geometry schema of that version is bundled.
+    """
+    if version not in GEOMETRY_VERSIONS:
+        raise UnsupportedVersionError(version)
+    return _data_root() / "schema" / f"geometry-{version}.schema.json"
+
+
+@cache
+def load_geometry_schema(version: str = SCHEMA_VERSION) -> dict[str, Any]:
+    """Return the parsed geometry schema for ``version``.
+
+    The result is cached and shared; treat it as read-only.
+
+    Raises:
+        UnsupportedVersionError: If no geometry schema of that version is bundled.
+    """
+    with geometry_schema_path(version).open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def fixture_paths(version: str = SCHEMA_VERSION) -> list[Path]:
     """Return the bundled fixture documents for ``version``, sorted by name.
 
@@ -113,6 +142,30 @@ def rejection_paths(version: str = SCHEMA_VERSION) -> list[Path]:
     """Return the shared rejection cases for ``version``, sorted by name."""
     _require_supported(version)
     return sorted((_data_root() / "fixtures" / "rejections" / version).glob("*.json"))
+
+
+def geometry_paths(version: str = SCHEMA_VERSION) -> list[Path]:
+    """Return the golden geometry specimen directories for ``version``, sorted by name.
+
+    Each directory is named after the document fixture it draws and holds
+    ``geometry.json``, ``figure.svg`` and ``figure.tex``.
+    """
+    if version not in GEOMETRY_VERSIONS:
+        raise UnsupportedVersionError(version)
+    root = _data_root() / "fixtures" / version / "geometry"
+    return sorted(path for path in root.iterdir() if path.is_dir())
+
+
+def geometry_rejection_paths(version: str = SCHEMA_VERSION) -> list[Path]:
+    """Return the shared geometry rejection cases for ``version``, sorted by name.
+
+    Each case is ``{"geometry", "path", "reason"}``: a geometry the geometry
+    schema rejects, and the path both validators report.
+    """
+    if version not in GEOMETRY_VERSIONS:
+        raise UnsupportedVersionError(version)
+    root = _data_root() / "fixtures" / version / "geometry-rejections"
+    return sorted(root.glob("*.json"))
 
 
 def migration_paths() -> list[tuple[Path, Path]]:
@@ -132,6 +185,33 @@ def _validator(version: str) -> Draft202012Validator:
     schema = load_schema(version)
     Draft202012Validator.check_schema(schema)
     return Draft202012Validator(schema)
+
+
+@cache
+def _geometry_validator(version: str) -> Draft202012Validator:
+    schema = load_geometry_schema(version)
+    Draft202012Validator.check_schema(schema)
+    # The geometry schema refers to the document schema of its version by
+    # that schema's $id. Embedded under $defs, the document schema is a
+    # resource of its own that those references resolve to.
+    combined = {
+        **schema,
+        "$defs": {**schema["$defs"], "document": load_schema(version)},
+    }
+    return Draft202012Validator(combined)
+
+
+@cache
+def _geometry_definitions(version: str) -> dict[str, Any]:
+    """Both schemas' definitions, for resolving discriminated candidates.
+
+    A candidate reference ``#/$defs/<name>`` is local to the schema holding
+    it, the document schema or the geometry schema; their definition names
+    are disjoint, so one table resolves both.
+    """
+    definitions = {**load_schema(version)["$defs"]}
+    definitions.update(load_geometry_schema(version)["$defs"])
+    return {"$defs": definitions}
 
 
 def declared_version(document: object) -> str | None:
@@ -230,5 +310,26 @@ def validate(document: Mapping[str, Any]) -> None:
     version = declared_version(document)
     target = version if version in SUPPORTED_VERSIONS else SCHEMA_VERSION
     error = _select(_validator(target).iter_errors(document), load_schema(target))
+    if error is not None:
+        raise SchemaValidationError(tuple(error.absolute_path), error.message)
+
+
+def validate_geometry(geometry: Mapping[str, Any]) -> None:
+    """Check ``geometry`` against the geometry schema of the version it declares.
+
+    A geometry whose ``meta.schema_version`` is one of ``GEOMETRY_VERSIONS`` is
+    checked against that version's geometry schema; any other is checked
+    against the latest one, which rejects it at ``meta.schema_version``.
+
+    Raises:
+        SchemaValidationError: On the first violation found under the shared
+            path rule, with the path to the offending value.
+    """
+    version = declared_version(geometry)
+    target = version if version in GEOMETRY_VERSIONS else GEOMETRY_VERSIONS[-1]
+    error = _select(
+        _geometry_validator(target).iter_errors(geometry),
+        _geometry_definitions(target),
+    )
     if error is not None:
         raise SchemaValidationError(tuple(error.absolute_path), error.message)

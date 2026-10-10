@@ -1,16 +1,19 @@
 # Test strategy for the `timeskeleton` Python package
 
-This suite proves the public contract of schema 0.2.1 while retaining coverage
-for every supported published version.
+This suite proves the public contract of schema 0.3.0, and of the geometry
+schema of 0.3.0, while retaining coverage for every supported published
+version.
 
 ## What the package promises
 
 1. Every bundled fixture for every version in `SUPPORTED_VERSIONS` validates
    against the schema declared by that fixture.
-2. Conversion-map, compressed measure-map row, flow-control, and region definitions reject every
-   shared case in `fixtures/rejections/<version>/` at the exact stored path
-   (the 0.2.1 cases are the 0.2.0 cases, each change applied to the 0.2.1
-   fixture it was made on).
+2. Conversion-map, compressed measure-map row, flow-control, region and
+   graphical-block definitions reject every shared case in
+   `fixtures/rejections/<version>/` at the exact stored path (the 0.2.1 cases
+   are the 0.2.0 cases, each change applied to the 0.2.1 fixture it was made
+   on; the 0.3.0 cases are the 0.2.1 cases declaring 0.3.0, plus the cases of
+   the graphical block).
 3. Each migration step reproduces the shared `after.json` of its pair byte for
    byte and yields a valid document at its target version; the 0.1.0 to 0.2.0
    step refuses every member whose shape it does not know at that member's
@@ -18,7 +21,11 @@ for every supported published version.
    all latest-version documents unchanged.
 4. Schema and fixture accessors resolve package data independently of the
    current working directory, including migration and rejection paths.
-5. Generated validation errors expose paths as tuples of object keys and array
+5. Every golden geometry validates against the geometry schema of its
+   version, is written by the standard writer, and its frames are
+   consistent; the geometry schema rejects every shared
+   case in `fixtures/<version>/geometry-rejections/` at the stored path.
+6. Generated validation errors expose paths as tuples of object keys and array
    indices and render them as JSON pointers.
 
 ## One path rule for both validators
@@ -157,6 +164,74 @@ does not affect validity: a 0.2.0 document with an unknown break
 input. A migration step returns the document declaring its target version;
 each pair is asserted against the one step it pins, and the whole chain from
 every supported version must give a valid latest document.
+
+## Schema 0.3.0: the graphical block and the geometry
+
+0.3.0 keeps every definition of 0.2.1 and adds the optional `graphical`
+member, the style rules of containers: `{"styles": [rule, ...],
+"timelines": {"<timeline id>": [rule, ...]}}`, both optional; a rule
+`{"select", "set"}`; the selector closed over `element` (eight element
+types), `domain`, `modality` and a non-empty `ids` list (no `kind`, no
+`timeline`: a timeline is selected by its container); the properties closed
+over `colour` (`#RRGGBB`, upper case), `line_pattern`, `visible`, `side`,
+`show_length` and `show_projected_coordinates`, with at least one property
+per rule. What proves it:
+
+- **The schema is 0.2.1 plus the block.** Deleting the `graphical` member and
+  the six definitions it introduces (`Graphical`, `StyleRules`, `StyleRule`,
+  `StyleSelector`, `ElementType`, `StyleProperties`, and nothing else) and
+  restoring the 0.2.1 identifier, version constant and description gives the
+  0.2.1 schema exactly. The members and enumerations of the block are stated
+  literally.
+- **The fixtures are the library's.** `fixtures/0.3.0/` holds the sixteen
+  documents of 0.2.1, each byte-equal to its 0.2.1 counterpart but for the
+  declared version and `meta.generator` (proven by comparing the texts with
+  those two lines substituted), plus `bare`, `contiguous`, `map` and `styled`:
+  twenty documents. `styled` is the only one carrying a `graphical` block, and
+  its rules (four of the document, five of the `score` container, one of
+  `b`, one of `perf`) are stated literally.
+- **Rejections.** The 45 cases of `fixtures/rejections/0.3.0/` are the 34 of
+  0.2.1 declaring 0.3.0 and eleven cases of the block, each one change to
+  `styled.json`: an unknown member of the block (`#/graphical`), a timeline
+  container that is no list (that container), a rule without `set` (the
+  rule), an unknown property `color` (the `set` object), an empty `set` (the
+  `set` object), the element type `segment` (the `element`), a selector with
+  the removed member `kind` (the selector), a selector with the removed member
+  `timeline` (the selector), an empty `ids` list (the list), a lower-case
+  colour in a timeline container (the `colour`) and the side `left` (the
+  `side`). Both validators report each stored path.
+- **The migration declares 0.3.0 and nothing else.**
+  `fixtures/migrations/0.2.1-to-0.3.0/before.json` is the 0.2.1 document of the
+  0.2.0 to 0.2.1 pair (`after.json` there); `after.json` differs from it in
+  the one line `"schema_version": "0.3.0"`, which the test states by building
+  the expected text from `before.json` with that substitution. The step
+  validates against 0.3.0, so a 0.2.1 document carrying a member 0.3.0 does
+  not know (an unknown break `control_type`) is refused at that member's path
+  with `no 0.3.0 shape: `.
+
+The geometry schema (`schema/geometry-0.3.0.schema.json`, specified in
+`docs/geometry.md`) refers to the document schema of its version for
+`LinearMap`, `Number` and `Fraction`. What proves it:
+
+- **Every golden geometry validates**, and its text is the standard writer's
+  (`dumps(json.loads(text)) == text`).
+- **The frames are consistent.** Each block's `frame` holds the name
+  column at offset 0 and the plot area at the offset equal to the name
+  column's length, and its length is the sum of the two lengths (exactly; for
+  a float frame, as the float sum); the placement maps into `number`.
+- **Rejections.** `fixtures/0.3.0/geometry-rejections/` holds cases written by
+  hand, each one change to a golden geometry, with the path both validators
+  report: a frame carrying a timeline member (`unit`), a frame extent whose
+  offset is a string, a known primitive with an unknown member, a label
+  anchor TikZ does not have, a vertical position written as a float, and a
+  block whose `rows.max` is negative. A primitive of an unknown kind is not rejected: the union of
+  primitives is open.
+- **The figures are well formed.** Every golden `figure.svg` parses with the
+  standard library's `xml.etree.ElementTree` and its root is the SVG element
+  (the figures' bytes are pinned by the TimeLineEditor writers, which emit
+  them, and their TikZ compiles there under LuaLaTeX).
+- **The specimens are the documents.** The golden geometry directories are
+  named exactly as the twenty document fixtures of 0.3.0.
 
 ## Versions
 

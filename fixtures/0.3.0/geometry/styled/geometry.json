@@ -1,0 +1,769 @@
+{
+  "meta": {
+    "schema_version": "0.3.0"
+  },
+  "blocks": [
+    {
+      "id": "perf",
+      "frame": {
+        "length": 12.5,
+        "names": {
+          "offset": 0.0,
+          "length": 2.5
+        },
+        "plot": {
+          "offset": 2.5,
+          "length": 10.0
+        }
+      },
+      "placement": {
+        "type": "LinearMap",
+        "id": "placement",
+        "name": null,
+        "source_unit": "seconds",
+        "target_unit": "number",
+        "scalar": 1.0,
+        "offset": 0.0
+      },
+      "rows": {
+        "min": 0,
+        "max": 1
+      },
+      "background": "#BAC8D3",
+      "primitives": [
+        {
+          "kind": "timeline",
+          "id": "perf",
+          "timeline": "perf",
+          "row": 0,
+          "start": 0.0,
+          "end": 10.0,
+          "colour": "#0050EF",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "child",
+          "id": "p1",
+          "timeline": "p1",
+          "row": 1,
+          "start": 1.0,
+          "end": 5.0,
+          "colour": "#0050EF",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "wedge",
+          "id": "perf/start",
+          "timeline": "perf",
+          "row": 0,
+          "side": "below",
+          "at": 0.0,
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            8
+          ],
+          "colour": "#7F00FF"
+        },
+        {
+          "kind": "wedge",
+          "id": "perf/end",
+          "timeline": "perf",
+          "row": 0,
+          "side": "below",
+          "at": 10.0,
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            -1,
+            8
+          ],
+          "colour": "#7F00FF"
+        },
+        {
+          "kind": "wedge",
+          "id": "p1/start",
+          "timeline": "p1",
+          "row": 1,
+          "side": "below",
+          "at": 1.0,
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#7F00FF"
+        },
+        {
+          "kind": "wedge",
+          "id": "p1/end",
+          "timeline": "p1",
+          "row": 1,
+          "side": "below",
+          "at": 5.0,
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            7,
+            8
+          ],
+          "colour": "#7F00FF"
+        },
+        {
+          "kind": "label",
+          "id": "p1/name",
+          "timeline": "p1",
+          "at": {
+            "space": "frame",
+            "x": 0.0,
+            "y": [
+              1,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "p1",
+          "colour": "#404040"
+        },
+        {
+          "kind": "label",
+          "id": "perf/name",
+          "timeline": "perf",
+          "at": {
+            "space": "frame",
+            "x": 0.0,
+            "y": [
+              0,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "Performance",
+          "colour": "#404040"
+        },
+        {
+          "kind": "label",
+          "id": "perf/length",
+          "timeline": "perf",
+          "at": {
+            "space": "root",
+            "x": 5.0,
+            "y": [
+              0,
+              1
+            ]
+          },
+          "anchor": "south",
+          "text": "10.0 s",
+          "colour": "#404040"
+        },
+        {
+          "kind": "label",
+          "id": "p1/length",
+          "timeline": "p1",
+          "at": {
+            "space": "root",
+            "x": 3.0,
+            "y": [
+              1,
+              1
+            ]
+          },
+          "anchor": "south",
+          "text": "4.0 s",
+          "colour": "#404040"
+        },
+        {
+          "kind": "label",
+          "id": "perf/start/label",
+          "timeline": "perf",
+          "at": {
+            "space": "root",
+            "x": 0.0,
+            "y": [
+              -1,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0.0 s",
+          "colour": "#404040"
+        },
+        {
+          "kind": "label",
+          "id": "perf/end/label",
+          "timeline": "perf",
+          "at": {
+            "space": "root",
+            "x": 10.0,
+            "y": [
+              -1,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "10.0 s",
+          "colour": "#404040"
+        },
+        {
+          "kind": "label",
+          "id": "p1/start/label",
+          "timeline": "p1",
+          "at": {
+            "space": "root",
+            "x": 1.0,
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "0.0 s",
+          "colour": "#404040"
+        },
+        {
+          "kind": "label",
+          "id": "p1/end/label",
+          "timeline": "p1",
+          "at": {
+            "space": "root",
+            "x": 5.0,
+            "y": [
+              7,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "4.0 s",
+          "colour": "#404040"
+        }
+      ]
+    },
+    {
+      "id": "score",
+      "frame": {
+        "length": [
+          10,
+          1
+        ],
+        "names": {
+          "offset": [
+            0,
+            1
+          ],
+          "length": [
+            2,
+            1
+          ]
+        },
+        "plot": {
+          "offset": [
+            2,
+            1
+          ],
+          "length": [
+            8,
+            1
+          ]
+        }
+      },
+      "placement": {
+        "type": "LinearMap",
+        "id": "placement",
+        "name": null,
+        "source_unit": "quarters",
+        "target_unit": "number",
+        "scalar": [
+          1,
+          1
+        ],
+        "offset": [
+          0,
+          1
+        ]
+      },
+      "rows": {
+        "min": -3,
+        "max": 1
+      },
+      "background": "#BAC8D3",
+      "primitives": [
+        {
+          "kind": "map",
+          "id": "score/map/ticks",
+          "timeline": "score",
+          "row": -1,
+          "start": [
+            0,
+            1
+          ],
+          "end": [
+            8,
+            1
+          ],
+          "colour": "#000080",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "region",
+          "id": "score/region/0",
+          "timeline": "score",
+          "row": -2,
+          "side": "below",
+          "start": [
+            0,
+            1
+          ],
+          "end": [
+            2,
+            1
+          ],
+          "base": [
+            -7,
+            4
+          ],
+          "apex": [
+            -15,
+            8
+          ],
+          "colour": "#008080",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "jump",
+          "id": "score/jump/0",
+          "timeline": "score",
+          "row": -3,
+          "side": "below",
+          "from": [
+            8,
+            1
+          ],
+          "to": [
+            0,
+            1
+          ],
+          "base": [
+            -5,
+            2
+          ],
+          "apex": [
+            -23,
+            8
+          ],
+          "colour": "#000080",
+          "line_pattern": "dotted"
+        },
+        {
+          "kind": "timeline",
+          "id": "score",
+          "timeline": "score",
+          "row": 0,
+          "start": [
+            0,
+            1
+          ],
+          "end": [
+            8,
+            1
+          ],
+          "colour": "#000080",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "child",
+          "id": "b",
+          "timeline": "b",
+          "row": 1,
+          "start": [
+            4,
+            1
+          ],
+          "end": [
+            8,
+            1
+          ],
+          "colour": "#FF8000",
+          "line_pattern": "solid"
+        },
+        {
+          "kind": "wedge",
+          "id": "score/start",
+          "timeline": "score",
+          "row": 0,
+          "side": "above",
+          "at": [
+            0,
+            1
+          ],
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            1,
+            8
+          ],
+          "colour": "#006600"
+        },
+        {
+          "kind": "wedge",
+          "id": "score/end",
+          "timeline": "score",
+          "row": 0,
+          "side": "above",
+          "at": [
+            8,
+            1
+          ],
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            1,
+            8
+          ],
+          "colour": "#006600"
+        },
+        {
+          "kind": "wedge",
+          "id": "b/start",
+          "timeline": "b",
+          "row": 1,
+          "side": "above",
+          "at": [
+            4,
+            1
+          ],
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            9,
+            8
+          ],
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "wedge",
+          "id": "b/end",
+          "timeline": "b",
+          "row": 1,
+          "side": "above",
+          "at": [
+            8,
+            1
+          ],
+          "tip": [
+            1,
+            1
+          ],
+          "base": [
+            9,
+            8
+          ],
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "wedge",
+          "id": "b/projection/start",
+          "timeline": "b",
+          "row": 0,
+          "side": "above",
+          "at": [
+            4,
+            1
+          ],
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            1,
+            8
+          ],
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "wedge",
+          "id": "b/projection/end",
+          "timeline": "b",
+          "row": 0,
+          "side": "above",
+          "at": [
+            8,
+            1
+          ],
+          "tip": [
+            0,
+            1
+          ],
+          "base": [
+            1,
+            8
+          ],
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "label",
+          "id": "b/name",
+          "timeline": "b",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              1,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "b",
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "label",
+          "id": "score/name",
+          "timeline": "score",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              0,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "Score",
+          "colour": "#000080"
+        },
+        {
+          "kind": "label",
+          "id": "score/map/ticks/name",
+          "timeline": "score",
+          "at": {
+            "space": "frame",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              -1,
+              1
+            ]
+          },
+          "anchor": "west",
+          "text": "Ticks",
+          "colour": "#000080"
+        },
+        {
+          "kind": "label",
+          "id": "score/length",
+          "timeline": "score",
+          "at": {
+            "space": "root",
+            "x": [
+              4,
+              1
+            ],
+            "y": [
+              0,
+              1
+            ]
+          },
+          "anchor": "south",
+          "text": "8 ♩",
+          "colour": "#000080"
+        },
+        {
+          "kind": "label",
+          "id": "b/length",
+          "timeline": "b",
+          "at": {
+            "space": "root",
+            "x": [
+              6,
+              1
+            ],
+            "y": [
+              1,
+              1
+            ]
+          },
+          "anchor": "south",
+          "text": "4 ♩",
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "label",
+          "id": "score/start/label",
+          "timeline": "score",
+          "at": {
+            "space": "root",
+            "x": [
+              0,
+              1
+            ],
+            "y": [
+              1,
+              8
+            ]
+          },
+          "anchor": "south",
+          "text": "0 ♩",
+          "colour": "#000080"
+        },
+        {
+          "kind": "label",
+          "id": "score/end/label",
+          "timeline": "score",
+          "at": {
+            "space": "root",
+            "x": [
+              8,
+              1
+            ],
+            "y": [
+              1,
+              8
+            ]
+          },
+          "anchor": "south",
+          "text": "8 ♩",
+          "colour": "#000080"
+        },
+        {
+          "kind": "label",
+          "id": "b/start/label",
+          "timeline": "b",
+          "at": {
+            "space": "root",
+            "x": [
+              4,
+              1
+            ],
+            "y": [
+              9,
+              8
+            ]
+          },
+          "anchor": "south",
+          "text": "0 ♩",
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "label",
+          "id": "b/end/label",
+          "timeline": "b",
+          "at": {
+            "space": "root",
+            "x": [
+              8,
+              1
+            ],
+            "y": [
+              9,
+              8
+            ]
+          },
+          "anchor": "south",
+          "text": "4 ♩",
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "label",
+          "id": "b/projection/start/label",
+          "timeline": "b",
+          "at": {
+            "space": "root",
+            "x": [
+              4,
+              1
+            ],
+            "y": [
+              1,
+              8
+            ]
+          },
+          "anchor": "south",
+          "text": "4 ♩",
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "label",
+          "id": "b/projection/end/label",
+          "timeline": "b",
+          "at": {
+            "space": "root",
+            "x": [
+              8,
+              1
+            ],
+            "y": [
+              1,
+              8
+            ]
+          },
+          "anchor": "south",
+          "text": "8 ♩",
+          "colour": "#FF8000"
+        },
+        {
+          "kind": "label",
+          "id": "score/region/0/label",
+          "timeline": "score",
+          "at": {
+            "space": "root",
+            "x": [
+              1,
+              1
+            ],
+            "y": [
+              -15,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "intro",
+          "colour": "#000080"
+        },
+        {
+          "kind": "label",
+          "id": "score/jump/0/label",
+          "timeline": "score",
+          "at": {
+            "space": "root",
+            "x": [
+              4,
+              1
+            ],
+            "y": [
+              -23,
+              8
+            ]
+          },
+          "anchor": "north",
+          "text": "D.C.",
+          "colour": "#000080"
+        }
+      ]
+    }
+  ]
+}
