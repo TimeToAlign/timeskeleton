@@ -4,7 +4,7 @@ TimeSkeleton is schema-first. The versioned schema is the contract; the Python a
 
 ## Schema changes
 
-For a format change, add a new versioned file under `schema/`; do not alter a published schema. Update the supported-version and latest-version declarations in both packages, then implement an ordered, pure migration in each package from the prior version. Add before-and-after fixture pairs for each migration, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the golden fixtures through timetoalign. Keep every earlier schema version and its fixtures validatable.
+For a format change, add a new versioned file under `schema/`; do not alter a published schema. Update the supported-version and latest-version declarations in both packages, then implement an ordered, pure migration in each package from the prior version. Add before-and-after fixture pairs for each migration and shared rejection fixtures, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the golden fixtures through timetoalign. Keep every earlier schema version and its fixtures validatable.
 
 Fixtures under `fixtures/` are generated artifacts. Use an environment containing the timetoalign revision represented by the schema:
 
@@ -58,7 +58,7 @@ python3 scripts/check_versions.py
 
 ## Release
 
-Update the version in `python/pyproject.toml`, `js/package.json`, `python/src/timeskeleton/validate.py`, and `js/src/validate.ts`; add the matching `schema/timeskeleton-X.Y.Z.schema.json`; and add a non-empty `fixtures/X.Y.Z/` directory. Then run:
+Update the version in `python/pyproject.toml`, `js/package.json`, `python/src/timeskeleton/validate.py`, and `js/src/validate.ts`; add the matching `schema/timeskeleton-X.Y.Z.schema.json`, a non-empty `fixtures/X.Y.Z/` directory, its migration pair, and rejection fixtures. Then run:
 
 ```bash
 python3 scripts/check_versions.py --tag vX.Y.Z

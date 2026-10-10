@@ -13,10 +13,10 @@ version on PyPI. Each document records the exact revision it was produced
 with in `meta.generator`:
 
 ```
-timetoalign 1.2.0 (cc7c4e55)
+timetoalign 1.2.0 (95b983b6)
 ```
 
-that is, installed version 1.2.0 of timetoalign at commit `cc7c4e55`
+that is, installed version 1.2.0 of timetoalign at commit `95b983b6`
 (https://github.com/timetoalign/timetoalign). To regenerate, run the script
 with an interpreter that has that revision (or a later one) installed:
 
@@ -52,3 +52,34 @@ Observed properties of the library's output that the fixtures pin: `name` is
 `null` when no name was given; a child added to a parent is emitted with
 `locked: true`; `flow_control` is emitted as `{"breaks": [], "jumps": [],
 "markers": {}}`; `measure_map` and `metric_hierarchy` are `null` when absent.
+
+## Schema 0.2.0
+
+The nine synthetic documents are rebuilt at 0.2.0 from the same constructor
+calls described above. The additional documents exercise the members that 0.2.0
+specifies. No library loader produces a `ContinuousGraphicalTimeline`, so the
+synthetic `continuous_graphical.json` remains its coverage.
+
+| File | Built from | Proves |
+|---|---|---|
+| `continuous_graphical.json` | synthetic timeline constructor | continuous graphical timeline |
+| `continuous_logical.json` | synthetic timeline constructor | continuous logical timeline |
+| `continuous_physical.json` | synthetic timeline constructor | continuous physical timeline |
+| `discrete_graphical.json` | synthetic timeline constructor | discrete graphical timeline |
+| `discrete_logical.json` | synthetic timeline constructor | discrete logical timeline |
+| `discrete_physical.json` | synthetic timeline constructor | discrete physical timeline |
+| `empty.json` | synthetic empty document | minimum document |
+| `nested.json` | synthetic nested timelines | recursive children |
+| `with_region.json` | synthetic timeline and `create_region` | region serialization |
+| `conversion_maps.json` | public map constructors and `add_conversion_map` | all registered conversion-map classes |
+| `flow_control.json` | public flow-control methods | breaks, jumps, and markers |
+| `corpus_audio_audio.json` | `AudioLoader` on `audio/` | continuous physical timeline |
+| `corpus_midi_score_midi.json` | MIDI loader on `midi/` | discrete logical timeline |
+| `corpus_parangonar_parangonada.json` | Parangonada loader on `parangonar/` | discrete physical timeline |
+| `corpus_score_ms3.json` | `Ms3Loader` on `score/` | flow control and 14 compressed Measure Map rows representing 15 measures; the acceptance check expands the rows through the library to verify the count |
+| `corpus_supra_iiif.json` | IIIF manifest loader on `supra/` | discrete graphical timeline |
+
+`fixtures/rejections/0.2.0/` contains complete one-mutation invalid documents,
+their expected deepest validation paths, and a reason. Both packages consume
+them. `fixtures/migrations/0.1.0-to-0.2.0/` contains the corresponding
+`before.json` and `after.json` migration pair.

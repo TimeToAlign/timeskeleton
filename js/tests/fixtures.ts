@@ -47,3 +47,25 @@ export function loadSchemaFile(version: string = SCHEMA_VERSION): Record<string,
   const path = resolve(repositoryRoot, "schema", `timeskeleton-${version}.schema.json`);
   return JSON.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
 }
+
+export function rejectionFileNames(version: string = SCHEMA_VERSION): string[] {
+  return readdirSync(resolve(repositoryRoot, "fixtures", "rejections", version)).sort();
+}
+
+export function loadRejection(
+  name: string,
+  version: string = SCHEMA_VERSION,
+): Record<string, unknown> {
+  return JSON.parse(
+    readFileSync(resolve(repositoryRoot, "fixtures", "rejections", version, name), "utf8"),
+  ) as Record<string, unknown>;
+}
+
+export function migrationFixture(name: "before" | "after"): Record<string, unknown> {
+  return JSON.parse(
+    readFileSync(
+      resolve(repositoryRoot, "fixtures", "migrations", "0.1.0-to-0.2.0", `${name}.json`),
+      "utf8",
+    ),
+  ) as Record<string, unknown>;
+}

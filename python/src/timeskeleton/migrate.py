@@ -21,10 +21,18 @@ from .validate import (
 
 Migration = Callable[[dict[str, Any]], dict[str, Any]]
 
-MIGRATIONS: dict[str, tuple[str, Migration]] = {}
+
+def _migrate_0_1_0_to_0_2_0(document: dict[str, Any]) -> dict[str, Any]:
+    """Name the members that were already emitted in their 0.2.0 shapes."""
+    return document
+
+
+MIGRATIONS: dict[str, tuple[str, Migration]] = {
+    "0.1.0": ("0.2.0", _migrate_0_1_0_to_0_2_0),
+}
 """Source version to ``(target version, migration)``.
 
-Empty while 0.1.0 is the only published version.
+The 0.1.0 to 0.2.0 migration only updates the version stamp.
 """
 
 

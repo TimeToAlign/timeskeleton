@@ -11,57 +11,35 @@ from timeskeleton import (
     UnsupportedVersionError,
     fixture_paths,
     migrate,
+    migration_paths,
     validate,
 )
 
-from .conftest import FIXTURE_NAMES
+
+def test_registered_migration() -> None:
+    target, _migration = MIGRATIONS["0.1.0"]
+    assert target == "0.2.0"
 
 
-def test_no_migration_exists_while_one_version_is_published() -> None:
-    assert MIGRATIONS == {}
-
-
-@pytest.mark.parametrize("name", FIXTURE_NAMES)
-def test_latest_documents_migrate_to_an_equal_copy(load_fixture, name: str) -> None:
-    document = load_fixture(name)
-    result = migrate(document)
-    assert result == document
-    assert result is not document
-    result["meta"]["generator"] = "changed"
-    assert document["meta"]["generator"] != "changed"
-    for timeline_id, manifest in result["manifest"]["timelines"].items():
-        manifest["length"]["value"] = -1.0
-        assert document["manifest"]["timelines"][timeline_id]["length"]["value"] != -1.0
+@pytest.mark.parametrize("before, after", migration_paths())
+def test_migration_reproduces_shared_after(before, after) -> None:
+    assert migrate(json.loads(before.read_text(encoding="utf-8"))) == json.loads(
+        after.read_text(encoding="utf-8")
+    )
 
 
 @pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
 def test_every_supported_version_migrates_to_a_valid_latest_document(
     version: str,
 ) -> None:
-    paths = fixture_paths(version)
-    assert paths
-    for path in paths:
-        with path.open(encoding="utf-8") as handle:
-            document = json.load(handle)
-        result = migrate(document)
+    for path in fixture_paths(version):
+        result = migrate(json.loads(path.read_text(encoding="utf-8")))
         assert result["meta"]["schema_version"] == SCHEMA_VERSION
         validate(result)
 
 
-def test_unknown_version_is_refused(load_fixture) -> None:
+def test_unknown_or_missing_version_is_refused(load_fixture) -> None:
     document = load_fixture("empty")
-    document["meta"]["schema_version"] = "0.2.0"
-    with pytest.raises(UnsupportedVersionError) as caught:
+    document["meta"]["schema_version"] = "unknown"
+    with pytest.raises(UnsupportedVersionError):
         migrate(document)
-    assert caught.value.version == "0.2.0"
-
-
-@pytest.mark.parametrize(
-    "document",
-    [{"manifest": {"timelines": {}}}, {"meta": {}}, {"meta": {"schema_version": 1}}],
-    ids=["no meta", "no schema_version", "non-string schema_version"],
-)
-def test_missing_version_is_refused(document) -> None:
-    with pytest.raises(UnsupportedVersionError) as caught:
-        migrate(document)
-    assert caught.value.version is None

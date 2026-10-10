@@ -17,8 +17,10 @@ import {
 
 export type Migration = (document: Record<string, unknown>) => Record<string, unknown>;
 
-/** Source version to `[target version, migration]`; empty while 0.1.0 is the only version. */
-export const MIGRATIONS: Readonly<Record<string, readonly [string, Migration]>> = {};
+/** Source version to `[target version, migration]`. */
+export const MIGRATIONS: Readonly<Record<string, readonly [string, Migration]>> = {
+  "0.1.0": ["0.2.0", (document) => document],
+};
 
 /**
  * Return a deep copy of `document` brought to `SCHEMA_VERSION`.

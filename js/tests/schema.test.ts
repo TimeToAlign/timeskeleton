@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema } from "../src/index.js";
-import { FIXTURE_NAMES, fixtureFileNames, loadSchemaFile } from "./fixtures.js";
+import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
+import { fixtureFileNames, loadSchemaFile } from "./fixtures.js";
 
-const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.1.0/timeskeleton.schema.json";
+const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json";
 
 const TIMELINE_CLASSES = [
   "ContinuousLogicalTimeline",
@@ -34,6 +34,21 @@ const TIME_UNITS = [
 
 const NUMBER_TYPES = ["int", "float", "fraction"];
 
+const MEASURE_MAP_ROW_KEYS = [
+  "ID",
+  "count",
+  "qstamp",
+  "number",
+  "name",
+  "time_signature",
+  "nominal_length",
+  "actual_length",
+  "start_repeat",
+  "end_repeat",
+  "next",
+  "volta",
+];
+
 const MANIFEST_KEYS = [
   "id",
   "name",
@@ -53,13 +68,14 @@ const MANIFEST_KEYS = [
 
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
-    expect(SCHEMA_VERSION).toBe("0.1.0");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0"]);
+    expect(SCHEMA_VERSION).toBe("0.2.0");
+    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
   it("bundles the schema file at the repository root", () => {
     expect(schema).toEqual(loadSchemaFile());
+    expect(schemas).toEqual({ "0.1.0": loadSchemaFile("0.1.0"), "0.2.0": loadSchemaFile("0.2.0") });
   });
 
   it("carries the pinned $id, $schema and version constant", () => {
@@ -85,10 +101,23 @@ describe("schema vocabulary", () => {
     expect(Object.keys(manifest.properties)).toEqual(MANIFEST_KEYS);
     expect(manifest.additionalProperties).toBe(false);
   });
+
+  it("defines a nonempty compressed measure-map row list", () => {
+    const measureMap = schema.$defs.MeasureMap;
+    const row = schema.$defs.MeasureMapRow;
+    expect(measureMap.type).toBe("array");
+    expect(measureMap.items).toEqual({ $ref: "#/$defs/MeasureMapRow" });
+    expect(measureMap.minItems).toBe(1);
+    expect(Object.keys(row.properties)).toEqual(MEASURE_MAP_ROW_KEYS);
+    expect(row.anyOf).toEqual([{ required: ["ID"] }, { required: ["count"] }]);
+    expect(row.additionalProperties).toBe(false);
+  });
 });
 
 describe("fixture set", () => {
-  it("is exactly the nine documents", () => {
-    expect(fixtureFileNames()).toEqual(FIXTURE_NAMES.map((name) => `${name}.json`));
+  it("contains the synthetic, map, flow-control, and corpus documents", () => {
+    expect(fixtureFileNames()).toHaveLength(16);
+    expect(fixtureFileNames()).toContain("conversion_maps.json");
+    expect(fixtureFileNames()).toContain("flow_control.json");
   });
 });

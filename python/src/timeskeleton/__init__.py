@@ -19,6 +19,8 @@ from .validate import (
     fixture_paths,
     json_pointer,
     load_schema,
+    migration_paths,
+    rejection_paths,
     schema_path,
     validate,
 )
@@ -33,7 +35,9 @@ __all__ = [
     "fixture_paths",
     "json_pointer",
     "load_schema",
+    "migration_paths",
     "migrate",
+    "rejection_paths",
     "schema_path",
     "validate",
 ]

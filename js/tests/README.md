@@ -1,45 +1,30 @@
 # Test strategy for the `@timetoalign/timeskeleton` npm package
 
-This file states the validation logic the tests prove. The Python suite uses
-the same fixture set, rejection cases, and paths. This suite also verifies
-that generated sources equal a fresh run of `scripts/generate.ts`.
+This suite proves the public contract of schema 0.2.0 while retaining coverage
+for every supported published version.
 
 ## What the package promises
 
-1. It bundles the schema named by `SCHEMA_VERSION`, including its identifier,
-   version constant, enumerations, and closed fourteen-key timeline manifest.
-2. `validate` accepts all nine timetoalign fixtures and rejects malformed
-   documents at a deterministic JSON-pointer path while narrowing valid input.
-3. `migrate` returns a separate equal copy for every supported fixture and
-   refuses unsupported versions with `UnsupportedVersionError`.
+1. Every bundled fixture for every version in `SUPPORTED_VERSIONS` validates
+   against the schema declared by that fixture.
+2. Conversion-map, compressed measure-map row, flow-control, and region definitions reject every
+   shared case in `fixtures/rejections/0.2.0/` at the exact stored path.
+3. The 0.1.0 to 0.2.0 migration is pure, reproduces the shared `after.json`,
+   and all latest-version documents migrate to independent equal copies.
 4. Generated errors expose paths as object keys and numeric array indices.
+5. The checked-in generated schema and type sources equal a fresh generator
+   run, and the generated schema bundle contains every supported version.
 
-## Validation logic
+## Integer boundaries
 
-Every rejection begins with `continuous_logical.json`; the tests apply one
-mutation and require the listed complete `SchemaValidationError.path`. The
-timeline id is read from that fixture.
-
-| Case | Mutation | Expected path |
-|---|---|---|
-| unknown root key | add `extra` at the root | `[]` |
-| missing required key | delete `locked` from the timeline | `[manifest, timelines, id]` |
-| `class` outside the enum | set `class` to `Timeline` | `[…, class]` |
-| `unit` outside the enum | set `unit` to `beats` | `[…, unit]` |
-| fraction coordinate with a bare integer | set `length.value` to `12` | `[…, length, value]` |
-| zero denominator | set `length.value` to `[12, 0]` | `[…, length, value, 1]` |
-| negative length | set `length.value` to `[-12, 1]` | `[…, length, value, 0]` |
-| three-element fraction | set `length.value` to `[1, 2, 3]` | `[…, length, value]` |
-| string fraction | set `length.value` to `"12/1"` | `[…, length, value]` |
-| coordinate without `unit` | delete `length.unit` | `[…, length]` |
-| `int` number type with a fraction value | set `length.number_type` to `int` | `[…, length, value]` |
-| `schema_version` `0.2.0` | set `meta.schema_version` | `[meta, schema_version]` |
-
-The discriminated `oneOf` reports the closest bad member or array index; those
-stable paths are shared with the Python validator. Schema tests also pin the
-bundled fixture names and vocabulary.
+The library bounds integers to signed int64, but the JSON Schema does not
+repeat that bound because it cannot express it portably. There is no
+decimal-string representation. JavaScript consumers have a known limitation:
+`JSON.parse("9007199254740993")` produces `9007199254740992`, so consumers that
+need exact integers above 2^53 must parse documents with a BigInt-aware parser.
+The suite pins that native `JSON.parse` behavior explicitly.
 
 ## Hermeticity
 
-Tests derive fixture and schema paths from `import.meta.url`, not the working
-directory. They use no network, temporary files, or shared mutable input.
+Tests read the repository fixtures and schemas through shared helpers. They use
+no network or shared mutable input.

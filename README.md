@@ -8,7 +8,9 @@ A TimeSkeleton document is a JSON object with `meta` and `manifest`. `meta.schem
 
 Every coordinate-valued member is an object with `unit`, `number_type`, and `value`. Its number type selects the value representation: an integer is a JSON integer, a float is a JSON number, and a fraction is a `[numerator, denominator]` pair of JSON integers with a strictly positive denominator, mirroring BOPP.
 
-Version 0.1.0 constrains the document envelope, the fourteen keys of each timeline manifest, and typed coordinates. Conversion maps, regions, flow control, measure maps, and metric hierarchies are opaque objects in this version. A graphical display-style layer with defaults for absent values is planned but is not yet part of the format. The 0.1.0 schema identifier is [`https://timetoalign.github.io/timeskeleton/0.1.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.1.0/timeskeleton.schema.json).
+Version 0.2.0 specifies conversion maps, regions, flow control, and measure maps in addition to the envelope, timeline manifests, and typed coordinates. `metric_hierarchy` remains opaque. Version 0.1.0 retains its original opaque members. The 0.2.0 schema identifier is [`https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json).
+
+In 0.2.0, a measure map is the [Measure Map standard](https://github.com/measure-map/specification)'s compressed row array: entries equal to the preceding entry's default successor are omitted. TimeSkeleton adds the integer `volta` extension and permits exact Fraction pairs for numeric values where the standard uses JSON numbers.
 
 The schema is the source of truth for timetoalign, the TimeLineEditor browser application, and its server. timetoalign's hand-written serialization is tested for schema conformance and fixture round trips. TypeScript types are generated in this repository, never by downstream consumers.
 
@@ -69,6 +71,8 @@ function load(document: unknown): TimeSkeletonDocument {
 ## Versioning and migrations
 
 `meta.schema_version` identifies a document's contract. Every published schema version remains validatable. Both packages provide `migrate()` as an ordered sequence of pure migration functions from earlier versions to the latest, with each migration pinned by a before-and-after fixture pair.
+
+The first migration, 0.1.0 to 0.2.0, stamps documents with 0.2.0; the newly specified members already used the library's emitted shapes.
 
 A timeskeleton release is a schema-version event: one `vX.Y.Z` tag publishes both packages through trusted publishing without stored registry tokens. `scripts/check_versions.py` verifies that all version declarations agree before release.
 

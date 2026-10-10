@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "schema_version": "0.2.0",
+    "generator": "timetoalign 1.2.0 (95b983b6)"
+  },
+  "manifest": {
+    "timelines": {
+      "Bass Kick": {
+        "id": "Bass Kick",
+        "name": "Bass Kick.mp3",
+        "class": "ContinuousPhysicalTimeline",
+        "unit": "seconds",
+        "number_type": "float",
+        "length": {
+          "unit": "seconds",
+          "number_type": "float",
+          "value": 231.0791836734694
+        },
+        "locked": false,
+        "meta": {},
+        "children": {},
+        "conversion_maps": [],
+        "regions": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": {}
+        },
+        "measure_map": null,
+        "metric_hierarchy": null
+      }
+    }
+  }
+}

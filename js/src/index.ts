@@ -6,7 +6,7 @@
  * set of musical timelines as timetoalign serializes them.
  */
 
-export { schema } from "./generated/schema.js";
+export { schema, schemas } from "./generated/schema.js";
 export type {
   Coordinate,
   CoordinateNonnegative,

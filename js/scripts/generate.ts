@@ -1,5 +1,5 @@
 /**
- * Regenerate `src/generated/` from the latest schema at the repository root.
+ * Regenerate `src/generated/` from every schema at the repository root.
  *
  * Two files are produced: `types.ts`, the TypeScript types derived with
  * json-schema-to-typescript, and `schema.ts`, the schema object itself as a
@@ -89,10 +89,18 @@ function schemaForTypes(schemaText: string): object {
   return schema as object;
 }
 
-/** Render the schema object as a TypeScript constant. */
-export function renderSchema(schemaText: string, schemaFile: string): string {
-  const json = JSON.stringify(JSON.parse(schemaText), null, 2);
-  return `${banner(schemaFile)}\nexport const schema = ${json} as const;\n`;
+/** Render all schema objects, keyed by declared schema version. */
+export function renderSchema(schemas: readonly { text: string; file: string }[]): string {
+  const entries = schemas.map(({ text }) => {
+    const parsed = JSON.parse(text) as {
+      properties: { meta: { properties: { schema_version: { const: string } } } };
+    };
+    return [parsed.properties.meta.properties.schema_version.const, parsed] as const;
+  });
+  const latest = entries.at(-1);
+  if (latest === undefined) throw new Error("no schema files");
+  const json = JSON.stringify(Object.fromEntries(entries), null, 2);
+  return `${banner(schemas.at(-1)?.file ?? "")}\nexport const schemas = ${json} as const;\nexport const schema = schemas[${JSON.stringify(latest[0])}];\n`;
 }
 
 /** Produce both generated files for the latest schema, keyed by file name. */
@@ -100,9 +108,13 @@ export async function generate(): Promise<Record<string, string>> {
   const schemaPath = latestSchemaPath();
   const schemaFile = schemaPath.slice(schemaDirectory.length + 1);
   const schemaText = readFileSync(schemaPath, "utf8");
+  const schemas = readdirSync(schemaDirectory)
+    .filter((name) => SCHEMA_FILE.test(name))
+    .sort()
+    .map((file) => ({ file, text: readFileSync(resolve(schemaDirectory, file), "utf8") }));
   return {
     "types.ts": await renderTypes(schemaText, schemaFile),
-    "schema.ts": renderSchema(schemaText, schemaFile),
+    "schema.ts": renderSchema(schemas),
   };
 }
 

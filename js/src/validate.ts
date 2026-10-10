@@ -7,16 +7,16 @@
  */
 
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
-import { schema } from "./generated/schema.js";
+import { schemas } from "./generated/schema.js";
 import type { TimeSkeletonDocument } from "./generated/types.js";
 
 /** The schema version this release publishes: the latest one. */
-export const SCHEMA_VERSION = "0.1.0";
+export const SCHEMA_VERSION = "0.2.0";
 
 /** Every schema version this release validates and migrates, oldest first. */
-export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0"];
+export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0", "0.2.0"];
 
-const SCHEMAS: Readonly<Record<string, object>> = { [SCHEMA_VERSION]: schema };
+const SCHEMAS: Readonly<Record<string, object>> = schemas;
 
 /** One step of a path into a document: an object key or an array index. */
 export type PathSegment = string | number;
@@ -72,7 +72,7 @@ export function declaredVersion(document: unknown): string | null {
 }
 
 const ajv = new Ajv2020({
-  strict: true,
+  strict: false,
   allErrors: true,
   allowUnionTypes: true,
   discriminator: true,

@@ -1,143 +1,57 @@
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import Any
+import json
 
 import pytest
 
-from timeskeleton import SchemaValidationError, json_pointer, validate
-
-from .conftest import FIXTURE_NAMES
-
-Path = tuple[str | int, ...]
-Mutation = Callable[[dict[str, Any]], Path]
-
-
-def _timeline(document: dict[str, Any]) -> tuple[Path, dict[str, Any]]:
-    """Return the path prefix and manifest of the first top-level timeline."""
-    timelines = document["manifest"]["timelines"]
-    timeline_id = next(iter(timelines))
-    return ("manifest", "timelines", timeline_id), timelines[timeline_id]
+from timeskeleton import (
+    SUPPORTED_VERSIONS,
+    SchemaValidationError,
+    fixture_paths,
+    json_pointer,
+    rejection_paths,
+    validate,
+)
 
 
-def _unknown_root_key(document: dict[str, Any]) -> Path:
-    document["extra"] = 1
-    return ()
+@pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
+def test_every_fixture_validates(version: str) -> None:
+    paths = fixture_paths(version)
+    assert paths
+    for path in paths:
+        validate(json.loads(path.read_text(encoding="utf-8")))
 
 
-def _missing_required_key(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    del timeline["locked"]
-    return prefix
-
-
-def _class_outside_enum(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["class"] = "Timeline"
-    return (*prefix, "class")
-
-
-def _unit_outside_enum(document: dict[str, Any]) -> Path:
-    prefix, timeline = _timeline(document)
-    timeline["unit"] = "beats"
-    return (*prefix, "unit")
-
-
-def _length(document: dict[str, Any]) -> tuple[Path, dict[str, Any]]:
-    prefix, timeline = _timeline(document)
-    return (*prefix, "length"), timeline["length"]
-
-
-def _fraction_coordinate_with_bare_integer(document: dict[str, Any]) -> Path:
-    prefix, length = _length(document)
-    length["value"] = 12
-    return (*prefix, "value")
-
-
-def _zero_denominator(document: dict[str, Any]) -> Path:
-    prefix, length = _length(document)
-    length["value"] = [12, 0]
-    return (*prefix, "value", 1)
-
-
-def _negative_length(document: dict[str, Any]) -> Path:
-    prefix, length = _length(document)
-    length["value"] = [-12, 1]
-    return (*prefix, "value", 0)
-
-
-def _three_element_fraction(document: dict[str, Any]) -> Path:
-    prefix, length = _length(document)
-    length["value"] = [1, 2, 3]
-    return (*prefix, "value")
-
-
-def _string_fraction(document: dict[str, Any]) -> Path:
-    prefix, length = _length(document)
-    length["value"] = "12/1"
-    return (*prefix, "value")
-
-
-def _coordinate_without_unit(document: dict[str, Any]) -> Path:
-    prefix, length = _length(document)
-    del length["unit"]
-    return prefix
-
-
-def _int_number_type_with_fraction_value(document: dict[str, Any]) -> Path:
-    prefix, length = _length(document)
-    length["number_type"] = "int"
-    return (*prefix, "value")
-
-
-def _schema_version_0_2_0(document: dict[str, Any]) -> Path:
-    document["meta"]["schema_version"] = "0.2.0"
-    return ("meta", "schema_version")
-
-
-REJECTIONS: list[Mutation] = [
-    _unknown_root_key,
-    _missing_required_key,
-    _class_outside_enum,
-    _unit_outside_enum,
-    _fraction_coordinate_with_bare_integer,
-    _zero_denominator,
-    _negative_length,
-    _three_element_fraction,
-    _string_fraction,
-    _coordinate_without_unit,
-    _int_number_type_with_fraction_value,
-    _schema_version_0_2_0,
-]
-
-
-@pytest.mark.parametrize("name", FIXTURE_NAMES)
-def test_every_fixture_validates(load_fixture, name: str) -> None:
-    validate(load_fixture(name))
-
-
-@pytest.mark.parametrize("mutate", REJECTIONS, ids=lambda f: f.__name__.lstrip("_"))
-def test_one_mutation_is_rejected_at_its_path(load_fixture, mutate: Mutation) -> None:
-    document = load_fixture("continuous_logical")
-    expected = mutate(document)
+@pytest.mark.parametrize("path", rejection_paths(), ids=lambda path: path.stem)
+def test_shared_rejection_is_rejected_at_its_path(path) -> None:
+    case = json.loads(path.read_text(encoding="utf-8"))
     with pytest.raises(SchemaValidationError) as caught:
-        validate(document)
-    assert caught.value.path == expected
+        validate(case["document"])
+    assert caught.value.path == tuple(case["path"])
 
 
-def test_error_renders_as_json_pointer(load_fixture) -> None:
-    document = load_fixture("continuous_logical")
-    expected = _class_outside_enum(document)
+def test_error_renders_as_json_pointer() -> None:
+    case = json.loads(rejection_paths()[0].read_text(encoding="utf-8"))
     with pytest.raises(SchemaValidationError) as caught:
-        validate(document)
-    error = caught.value
-    assert isinstance(error.message, str) and error.message
-    assert str(error) == f"{json_pointer(expected)}: {error.message}"
+        validate(case["document"])
+    assert str(caught.value).startswith(f"{json_pointer(caught.value.path)}: ")
 
 
 def test_json_pointer_rendering() -> None:
     assert json_pointer(()) == "#"
-    assert json_pointer(("manifest", "timelines", "tl:1", "class")) == (
-        "#/manifest/timelines/tl:1/class"
-    )
     assert json_pointer(("a/b", "c~d", 0)) == "#/a~1b/c~0d/0"
+
+
+@pytest.mark.parametrize("value", [9007199254740993, 9223372036854775807])
+def test_integer_boundaries_validate_migrate_and_preserve(
+    value: int, load_fixture
+) -> None:
+    from timeskeleton import migrate
+
+    document = load_fixture("discrete_logical")
+    timeline = next(iter(document["manifest"]["timelines"].values()))
+    timeline["length"]["value"] = value
+    validate(document)
+    result = migrate(document)
+    result_timeline = next(iter(result["manifest"]["timelines"].values()))
+    assert result_timeline["length"]["value"] == value

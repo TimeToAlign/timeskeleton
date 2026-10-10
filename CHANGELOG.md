@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Schema 0.2.0 specifies conversion maps, regions, flow control, and Measure Map standard compressed rows with the `volta` extension while retaining an opaque metric hierarchy.
+- Golden map, flow-control, and corpus fixtures, shared rejection cases, and the 0.1.0 to 0.2.0 migration fixture pair.
+- Version-aware validators and migration support in both packages.
 - The 0.1.0 TimeSkeleton JSON Schema for eventless structural musical timelines.
 - Nine golden fixtures emitted by timetoalign, including all six timeline classes, nested timelines, regions, and an empty document.
 - The `timeskeleton` Python package with schema resources, validation, migrations, and fixture helpers.

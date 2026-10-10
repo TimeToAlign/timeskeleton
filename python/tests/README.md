@@ -1,44 +1,37 @@
 # Test strategy for the `timeskeleton` Python package
 
-This file states the validation logic the tests prove. The npm suite follows
-the same fixture set, rejection cases, and paths.
+This suite proves the public contract of schema 0.2.0 while retaining coverage
+for every supported published version.
 
 ## What the package promises
 
-1. It bundles the schema named by `SCHEMA_VERSION`, including its identifier,
-   version constant, enumerations, and closed fourteen-key timeline manifest.
-2. `validate` accepts all nine timetoalign fixtures and rejects malformed
-   documents at a deterministic JSON-pointer path.
-3. `migrate` returns a separate equal copy for every supported fixture and
-   refuses unsupported versions with `UnsupportedVersionError`.
-4. Generated errors expose paths as tuples of object keys and array indices.
+1. Every bundled fixture for every version in `SUPPORTED_VERSIONS` validates
+   against the schema declared by that fixture.
+2. Conversion-map, compressed measure-map row, flow-control, and region definitions reject every
+   shared case in `fixtures/rejections/0.2.0/` at the exact stored path.
+3. The 0.1.0 to 0.2.0 migration is pure, reproduces the shared `after.json`,
+   and all latest-version documents migrate to independent equal copies.
+4. Schema and fixture accessors resolve package data independently of the
+   current working directory, including migration and rejection paths.
+5. Generated validation errors expose paths as tuples of object keys and array
+   indices and render them as JSON pointers.
 
-## Validation logic
+## Integer boundaries
 
-Every rejection begins with `continuous_logical.json`; the tests apply one
-mutation and require the listed complete `SchemaValidationError.path`. The
-timeline id is read from that fixture.
+The library bounds integers to signed int64, but the JSON Schema does not
+repeat that bound because it cannot express it portably. There is no
+decimal-string representation. Python preserves integers exactly: documents
+whose integer length is `9007199254740993` (2^53 + 1) or
+`9223372036854775807` (2^63 - 1) validate, migrate, and serialize back to the
+same integer.
 
-| Case | Mutation | Expected path |
-|---|---|---|
-| unknown root key | add `extra` at the root | `()` |
-| missing required key | delete `locked` from the timeline | `(manifest, timelines, id)` |
-| `class` outside the enum | set `class` to `Timeline` | `(…, class)` |
-| `unit` outside the enum | set `unit` to `beats` | `(…, unit)` |
-| fraction coordinate with a bare integer | set `length.value` to `12` | `(…, length, value)` |
-| zero denominator | set `length.value` to `[12, 0]` | `(…, length, value, 1)` |
-| negative length | set `length.value` to `[-12, 1]` | `(…, length, value, 0)` |
-| three-element fraction | set `length.value` to `[1, 2, 3]` | `(…, length, value)` |
-| string fraction | set `length.value` to `"12/1"` | `(…, length, value)` |
-| coordinate without `unit` | delete `length.unit` | `(…, length)` |
-| `int` number type with a fraction value | set `length.number_type` to `int` | `(…, length, value)` |
-| `schema_version` `0.2.0` | set `meta.schema_version` | `(meta, schema_version)` |
+## Generated artifacts
 
-The discriminated `oneOf` reports the closest bad member or array index; those
-stable paths are shared with the npm validator. Schema tests also pin the
-bundled fixture names and vocabulary.
+The package tests load the checked-in schemas and fixtures that the build
+bundles. JavaScript separately proves its generated TypeScript files do not
+drift from a fresh generator run.
 
 ## Hermeticity
 
-Tests obtain fixtures through `fixture_paths()`, never a relative path. They
-use no network, temporary files, or shared mutable input.
+Tests obtain fixtures through package accessors, never relative paths. They use
+no network, temporary files, or shared mutable input.

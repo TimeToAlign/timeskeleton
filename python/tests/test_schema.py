@@ -13,7 +13,7 @@ from timeskeleton import (
 
 from .conftest import FIXTURE_NAMES
 
-SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.1.0/timeskeleton.schema.json"
+SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json"
 
 TIMELINE_CLASSES = [
     "ContinuousLogicalTimeline",
@@ -45,6 +45,21 @@ TIME_UNITS = [
 
 NUMBER_TYPES = ["int", "float", "fraction"]
 
+MEASURE_MAP_ROW_KEYS = [
+    "ID",
+    "count",
+    "qstamp",
+    "number",
+    "name",
+    "time_signature",
+    "nominal_length",
+    "actual_length",
+    "start_repeat",
+    "end_repeat",
+    "next",
+    "volta",
+]
+
 MANIFEST_KEYS = [
     "id",
     "name",
@@ -64,16 +79,16 @@ MANIFEST_KEYS = [
 
 
 def test_schema_version_is_the_latest_supported_version() -> None:
-    assert SCHEMA_VERSION == "0.1.0"
-    assert SUPPORTED_VERSIONS == ("0.1.0",)
+    assert SCHEMA_VERSION == "0.2.0"
+    assert SUPPORTED_VERSIONS == ("0.1.0", "0.2.0")
     assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
 
 
 def test_schema_path_names_the_bundled_file() -> None:
     path = schema_path()
     assert path.is_file()
-    assert path.name == "timeskeleton-0.1.0.schema.json"
-    assert schema_path("0.1.0") == path
+    assert path.name == "timeskeleton-0.2.0.schema.json"
+    assert schema_path("0.2.0") == path
 
 
 def test_schema_identity() -> None:
@@ -101,10 +116,23 @@ def test_timeline_manifest_is_closed_over_fourteen_keys() -> None:
     assert manifest["additionalProperties"] is False
 
 
-def test_fixture_set_is_exactly_the_nine_documents() -> None:
-    assert [path.name for path in fixture_paths()] == [
-        f"{name}.json" for name in FIXTURE_NAMES
-    ]
+def test_measure_map_is_a_nonempty_compressed_row_list() -> None:
+    measure_map = load_schema()["$defs"]["MeasureMap"]
+    row = load_schema()["$defs"]["MeasureMapRow"]
+    assert measure_map["type"] == "array"
+    assert measure_map["items"] == {"$ref": "#/$defs/MeasureMapRow"}
+    assert measure_map["minItems"] == 1
+    assert list(row["properties"]) == MEASURE_MAP_ROW_KEYS
+    assert row["anyOf"] == [{"required": ["ID"]}, {"required": ["count"]}]
+    assert row["additionalProperties"] is False
+
+
+def test_fixture_set_contains_the_synthetic_and_extended_documents() -> None:
+    names = [path.name for path in fixture_paths()]
+    assert len(names) == 16
+    assert {f"{name}.json" for name in FIXTURE_NAMES}.issubset(names)
+    assert "conversion_maps.json" in names
+    assert "flow_control.json" in names
 
 
 @pytest.mark.parametrize("accessor", [schema_path, load_schema, fixture_paths])

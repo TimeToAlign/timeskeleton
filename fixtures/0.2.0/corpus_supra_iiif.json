@@ -1,0 +1,34 @@
+{
+  "meta": {
+    "schema_version": "0.2.0",
+    "generator": "timetoalign 1.2.0 (95b983b6)"
+  },
+  "manifest": {
+    "timelines": {
+      "tl:25": {
+        "id": "tl:25",
+        "name": "Meistersinger von N\u00fcrnberg : Vorspiel",
+        "class": "DiscreteGraphicalTimeline",
+        "unit": "pixels",
+        "number_type": "int",
+        "length": {
+          "unit": "pixels",
+          "number_type": "int",
+          "value": 299400
+        },
+        "locked": false,
+        "meta": {},
+        "children": {},
+        "conversion_maps": [],
+        "regions": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": {}
+        },
+        "measure_map": null,
+        "metric_hierarchy": null
+      }
+    }
+  }
+}

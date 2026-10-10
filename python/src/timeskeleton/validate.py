@@ -19,10 +19,10 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-SCHEMA_VERSION = "0.1.0"
+SCHEMA_VERSION = "0.2.0"
 """The schema version this release publishes: the latest one."""
 
-SUPPORTED_VERSIONS: tuple[str, ...] = ("0.1.0",)
+SUPPORTED_VERSIONS: tuple[str, ...] = ("0.1.0", "0.2.0")
 """Every schema version this release validates and migrates, oldest first."""
 
 
@@ -109,6 +109,24 @@ def fixture_paths(version: str = SCHEMA_VERSION) -> list[Path]:
     return sorted((_data_root() / "fixtures" / version).glob("*.json"))
 
 
+def rejection_paths(version: str = SCHEMA_VERSION) -> list[Path]:
+    """Return the shared rejection cases for ``version``, sorted by name."""
+    _require_supported(version)
+    return sorted((_data_root() / "fixtures" / "rejections" / version).glob("*.json"))
+
+
+def migration_paths() -> list[tuple[Path, Path]]:
+    """Return sorted ``(before, after)`` migration fixture pairs."""
+    root = _data_root() / "fixtures" / "migrations"
+    return sorted(
+        (directory / "before.json", directory / "after.json")
+        for directory in root.iterdir()
+        if directory.is_dir()
+        and (directory / "before.json").is_file()
+        and (directory / "after.json").is_file()
+    )
+
+
 @cache
 def _validator(version: str) -> Draft202012Validator:
     schema = load_schema(version)
@@ -141,10 +159,35 @@ def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
     if error.validator != "oneOf" or not isinstance(error.instance, Mapping):
         yield from _leaf_errors(error)
         return
-    branch_for_type = {"int": 0, "float": 1, "fraction": 2}
-    branch = branch_for_type.get(error.instance.get("number_type"))
-    if branch is None:
+    discriminator = error.schema.get("discriminator", {}).get("propertyName")
+    if discriminator is None:
+        branch_for_type = {"int": 0, "float": 1, "fraction": 2}
+        branch = branch_for_type.get(error.instance.get("number_type"))
+        if branch is not None:
+            selected = [
+                child
+                for child in error.context
+                if child.schema_path and child.schema_path[0] == branch
+            ]
+            if selected:
+                for child in selected:
+                    yield from _leaf_errors(child)
+                return
         yield from _leaf_errors(error)
+        return
+    value = error.instance.get(discriminator)
+    branch = next(
+        (
+            index
+            for index, candidate in enumerate(error.schema.get("oneOf", []))
+            if candidate.get("$ref", "").rsplit("/", 1)[-1] == value
+            or candidate.get("properties", {}).get(discriminator, {}).get("const")
+            == value
+        ),
+        None,
+    )
+    if branch is None:
+        yield error
         return
     selected = [
         child
@@ -188,4 +231,7 @@ def validate(document: Mapping[str, Any]) -> None:
     target = version if version in SUPPORTED_VERSIONS else SCHEMA_VERSION
     error = _select(_validator(target).iter_errors(document))
     if error is not None:
-        raise SchemaValidationError(tuple(error.absolute_path), error.message)
+        path = tuple(error.absolute_path)
+        if error.validator == "const" and path[-1:] == ("class",):
+            path = path[:-1]
+        raise SchemaValidationError(path, error.message)
