@@ -2,6 +2,13 @@
 
 Release entries are written by release-please from the Conventional Commits since the previous release.
 
+## [0.3.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.2.1...v0.3.0) (2026-10-10)
+
+
+### Features
+
+* add schema 0.3.0 with the graphical block and the geometry specification ([c92e874](https://github.com/TimeToAlign/timeskeleton/commit/c92e87499a14d73118d1c19107412ba395d21426))
+
 ## [0.2.1](https://github.com/TimeToAlign/timeskeleton/compare/v0.2.0...v0.2.1) (2026-10-10)
 
 
