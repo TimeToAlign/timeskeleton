@@ -30,12 +30,15 @@ jobs:
         with:
           fetch-depth: 2
       # Refuses to tag a merged release pull request whose version is not the
-      # version every declaration in the repository carries.
+      # version every declaration in the repository carries. A merged release pull
+      # request is the push that changes the version in an existing manifest.
       - name: A merged release pull request names the declared version
         run: |
-          if git diff --name-only HEAD^ HEAD | grep -qx .release-please-manifest.json; then
-            version=$(python3 -c 'import json; print(json.load(open(".release-please-manifest.json"))["."])')
-            python3 scripts/check_versions.py --tag "v$version"
+          manifest_version() { python3 -c 'import json, sys; print(json.load(sys.stdin)["."])'; }
+          before=$(git show HEAD^:.release-please-manifest.json 2>/dev/null | manifest_version || true)
+          after=$(manifest_version < .release-please-manifest.json)
+          if [ -n "$before" ] && [ "$before" != "$after" ]; then
+            python3 scripts/check_versions.py --tag "v$after"
           fi
       - id: release
         uses: googleapis/release-please-action@v5
