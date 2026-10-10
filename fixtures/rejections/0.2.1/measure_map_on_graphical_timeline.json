@@ -1,0 +1,448 @@
+{
+  "document": {
+    "meta": {
+      "schema_version": "0.2.1",
+      "generator": "timetoalign 1.2.0 (5fca756d)"
+    },
+    "manifest": {
+      "timelines": {
+        "tl:16": {
+          "id": "tl:16",
+          "name": null,
+          "class": "DiscreteGraphicalTimeline",
+          "unit": "pixels",
+          "number_type": "int",
+          "length": {
+            "unit": "pixels",
+            "number_type": "int",
+            "value": 1920
+          },
+          "locked": false,
+          "meta": {},
+          "children": {
+            "tl:17": {
+              "offset": {
+                "unit": "pixels",
+                "number_type": "int",
+                "value": 16
+              },
+              "timeline": {
+                "id": "tl:17",
+                "name": null,
+                "class": "DiscreteGraphicalTimeline",
+                "unit": "pixels",
+                "number_type": "int",
+                "length": {
+                  "unit": "pixels",
+                  "number_type": "int",
+                  "value": 640
+                },
+                "locked": true,
+                "meta": {},
+                "children": {},
+                "conversion_maps": [],
+                "regions": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": {}
+                },
+                "measure_map": null,
+                "metric_hierarchy": null
+              }
+            },
+            "tl:18": {
+              "offset": {
+                "unit": "pixels",
+                "number_type": "int",
+                "value": 1000
+              },
+              "timeline": {
+                "id": "tl:18",
+                "name": null,
+                "class": "DiscreteGraphicalTimeline",
+                "unit": "pixels",
+                "number_type": "int",
+                "length": {
+                  "unit": "pixels",
+                  "number_type": "int",
+                  "value": 480
+                },
+                "locked": true,
+                "meta": {},
+                "children": {},
+                "conversion_maps": [],
+                "regions": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": {}
+                },
+                "measure_map": null,
+                "metric_hierarchy": null
+              }
+            }
+          },
+          "conversion_maps": [],
+          "regions": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": {}
+          },
+          "measure_map": [
+            {
+              "count": 1,
+              "qstamp": [
+                0,
+                1
+              ],
+              "number": 0,
+              "name": "0",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "2"
+              ],
+              "offset_within_measure": [
+                3,
+                1
+              ]
+            },
+            {
+              "count": 3,
+              "qstamp": [
+                5,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "1",
+                "4"
+              ]
+            },
+            {
+              "count": 4,
+              "qstamp": [
+                6,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": true,
+              "end_repeat": false,
+              "next": [
+                "5",
+                "6",
+                "7"
+              ]
+            },
+            {
+              "count": 5,
+              "qstamp": [
+                7,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "4"
+              ],
+              "volta": 1
+            },
+            {
+              "count": 6,
+              "qstamp": [
+                9,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "8"
+              ],
+              "volta": 2
+            },
+            {
+              "count": 7,
+              "qstamp": [
+                10,
+                1
+              ],
+              "number": 3,
+              "name": "3",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [],
+              "volta": 3
+            },
+            {
+              "count": 8,
+              "qstamp": [
+                12,
+                1
+              ],
+              "number": 4,
+              "name": "4",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "9"
+              ]
+            },
+            {
+              "count": 9,
+              "qstamp": [
+                16,
+                1
+              ],
+              "number": 5,
+              "name": "5",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": true,
+              "end_repeat": false,
+              "next": [
+                "9",
+                "10",
+                "13"
+              ]
+            },
+            {
+              "count": 10,
+              "qstamp": [
+                20,
+                1
+              ],
+              "number": 6,
+              "name": "6",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "10",
+                "11"
+              ]
+            },
+            {
+              "count": 11,
+              "qstamp": [
+                24,
+                1
+              ],
+              "number": 7,
+              "name": "7",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "11",
+                "12"
+              ]
+            },
+            {
+              "count": 12,
+              "qstamp": [
+                28,
+                1
+              ],
+              "number": 8,
+              "name": "8",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "9"
+              ]
+            },
+            {
+              "count": 13,
+              "qstamp": [
+                30,
+                1
+              ],
+              "number": 9,
+              "name": "9",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "14",
+                "15"
+              ]
+            },
+            {
+              "count": 14,
+              "qstamp": [
+                32,
+                1
+              ],
+              "number": 9,
+              "name": "9",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "12"
+              ],
+              "volta": 1,
+              "offset_within_measure": [
+                2,
+                1
+              ]
+            },
+            {
+              "count": 15,
+              "qstamp": [
+                34,
+                1
+              ],
+              "number": 10,
+              "name": "10",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                3,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "1"
+              ],
+              "volta": 2
+            }
+          ],
+          "metric_hierarchy": null
+        }
+      }
+    }
+  },
+  "path": [
+    "manifest",
+    "timelines",
+    "tl:16",
+    "measure_map"
+  ],
+  "reason": "A measure map is anchored in quarter notes; only a quarters timeline may carry one."
+}

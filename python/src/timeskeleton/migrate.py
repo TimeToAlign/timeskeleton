@@ -1,8 +1,8 @@
 """Migrations between schema versions.
 
 A migration is a pure function from a document at one version to the same
-document at the next version. ``migrate`` chains them from the declared
-version up to ``SCHEMA_VERSION`` and stamps the result. Each migration is
+document at the next version, declaring that version. ``migrate`` chains them
+from the declared version up to ``SCHEMA_VERSION``. Each migration is
 pinned by a fixture pair (the document before and after) in the test suite.
 """
 
@@ -13,6 +13,7 @@ from collections.abc import Callable, Mapping
 from fractions import Fraction
 from typing import Any
 
+from .document import canonical_order
 from .validate import (
     SCHEMA_VERSION,
     SUPPORTED_VERSIONS,
@@ -354,21 +355,50 @@ def _migrate_0_1_0_to_0_2_0(document: dict[str, Any]) -> dict[str, Any]:
         for key, manifest in timelines.items():
             if isinstance(manifest, dict):
                 _timeline(manifest, ("manifest", "timelines", key))
+    return _stamped(document, "0.2.0")
+
+
+# -- 0.2.0 to 0.2.1 ----------------------------------------------------------
+
+
+def _migrate_0_2_0_to_0_2_1(document: dict[str, Any]) -> dict[str, Any]:
+    """Write the document in the canonical order of 0.2.1.
+
+    0.2.1 specifies the same shapes as 0.2.0 and fixes the order of every
+    collection whose order carries no meaning (see
+    :func:`~timeskeleton.canonical_order`). The document is validated against
+    0.2.1 before it is reordered, since the order does not affect validity, so
+    a refusal names the path of the input.
+
+    Raises:
+        MigrationError: At the path of the first member with no 0.2.1 shape.
+    """
+    return canonical_order(_stamped(document, "0.2.1"))
+
+
+def _stamped(document: dict[str, Any], version: str) -> dict[str, Any]:
+    """Return ``document`` declaring ``version``, refused unless valid at it."""
     stamped = {
         **document,
-        "meta": {**document.get("meta", {}), "schema_version": "0.2.0"},
+        "meta": {**document.get("meta", {}), "schema_version": version},
     }
     try:
         validate(stamped)
     except SchemaValidationError as error:
-        raise MigrationError(error.path, f"no 0.2.0 shape: {error.message}") from error
-    return document
+        raise MigrationError(
+            error.path, f"no {version} shape: {error.message}"
+        ) from error
+    return stamped
 
 
 MIGRATIONS: dict[str, tuple[str, Migration]] = {
     "0.1.0": ("0.2.0", _migrate_0_1_0_to_0_2_0),
+    "0.2.0": ("0.2.1", _migrate_0_2_0_to_0_2_1),
 }
-"""Source version to ``(target version, migration)``."""
+"""Source version to ``(target version, migration)``.
+
+Each migration returns the document declaring its target version.
+"""
 
 
 def migrate(document: Mapping[str, Any]) -> dict[str, Any]:
@@ -390,5 +420,4 @@ def migrate(document: Mapping[str, Any]) -> dict[str, Any]:
     while version != SCHEMA_VERSION:
         version, step = MIGRATIONS[version]
         result = step(result)
-        result["meta"]["schema_version"] = version
     return result

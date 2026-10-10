@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { SCHEMA_VERSION } from "../src/index.js";
+import { parseJson, SCHEMA_VERSION } from "../src/index.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 
@@ -33,13 +33,17 @@ export function fixtureFileNames(version: string = SCHEMA_VERSION): string[] {
     .sort();
 }
 
-/** Parse one fixture afresh; every call returns a new object. */
+/** The text of one fixture. */
+export function fixtureText(name: string, version: string = SCHEMA_VERSION): string {
+  return readFileSync(resolve(fixtureDirectory(version), `${name}.json`), "utf8");
+}
+
+/** Read one fixture afresh with the lossless `parseJson`; every call returns a new object. */
 export function loadFixture(
   name: string,
   version: string = SCHEMA_VERSION,
 ): Record<string, unknown> {
-  const text = readFileSync(resolve(fixtureDirectory(version), `${name}.json`), "utf8");
-  return JSON.parse(text) as Record<string, unknown>;
+  return parseJson(fixtureText(name, version)) as Record<string, unknown>;
 }
 
 /** Parse the schema file of a version from the repository root. */
@@ -52,20 +56,35 @@ export function rejectionFileNames(version: string = SCHEMA_VERSION): string[] {
   return readdirSync(resolve(repositoryRoot, "fixtures", "rejections", version)).sort();
 }
 
+/** The text of one rejection case. */
+export function rejectionText(name: string, version: string = SCHEMA_VERSION): string {
+  return readFileSync(resolve(repositoryRoot, "fixtures", "rejections", version, name), "utf8");
+}
+
 export function loadRejection(
   name: string,
   version: string = SCHEMA_VERSION,
 ): Record<string, unknown> {
-  return JSON.parse(
-    readFileSync(resolve(repositoryRoot, "fixtures", "rejections", version, name), "utf8"),
-  ) as Record<string, unknown>;
+  return parseJson(rejectionText(name, version)) as Record<string, unknown>;
 }
 
-export function migrationFixture(name: "before" | "after"): Record<string, unknown> {
-  return JSON.parse(
-    readFileSync(
-      resolve(repositoryRoot, "fixtures", "migrations", "0.1.0-to-0.2.0", `${name}.json`),
-      "utf8",
-    ),
-  ) as Record<string, unknown>;
+/** Directory names of the migration pairs, `<source>-to-<target>`, sorted. */
+export function migrationPairs(): string[] {
+  return readdirSync(resolve(repositoryRoot, "fixtures", "migrations")).sort();
+}
+
+/** The text of one side of a migration pair. */
+export function migrationText(pair: string, name: "before" | "after"): string {
+  return readFileSync(
+    resolve(repositoryRoot, "fixtures", "migrations", pair, `${name}.json`),
+    "utf8",
+  );
+}
+
+/** Parse one side of a migration pair afresh; the pair defaults to 0.1.0 to 0.2.0. */
+export function migrationFixture(
+  name: "before" | "after",
+  pair = "0.1.0-to-0.2.0",
+): Record<string, unknown> {
+  return parseJson(migrationText(pair, name)) as Record<string, unknown>;
 }

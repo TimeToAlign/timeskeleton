@@ -1,0 +1,614 @@
+{
+  "document": {
+    "meta": {
+      "schema_version": "0.2.1",
+      "generator": "timetoalign 1.2.0 (5fca756d)"
+    },
+    "manifest": {
+      "timelines": {
+        "clt1": {
+          "id": "clt1",
+          "name": null,
+          "class": "ContinuousLogicalTimeline",
+          "unit": "quarters",
+          "number_type": "fraction",
+          "length": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              37,
+              1
+            ]
+          },
+          "locked": false,
+          "meta": {},
+          "children": {
+            "controls": {
+              "offset": {
+                "unit": "quarters",
+                "number_type": "fraction",
+                "value": [
+                  0,
+                  1
+                ]
+              },
+              "timeline": {
+                "id": "controls",
+                "name": null,
+                "class": "ContinuousLogicalTimeline",
+                "unit": "quarters",
+                "number_type": "fraction",
+                "length": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    37,
+                    1
+                  ]
+                },
+                "locked": true,
+                "meta": {},
+                "children": {},
+                "conversion_maps": [],
+                "regions": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": {}
+                },
+                "measure_map": null,
+                "metric_hierarchy": null
+              }
+            },
+            "notes": {
+              "offset": {
+                "unit": "quarters",
+                "number_type": "fraction",
+                "value": [
+                  0,
+                  1
+                ]
+              },
+              "timeline": {
+                "id": "notes",
+                "name": null,
+                "class": "ContinuousLogicalTimeline",
+                "unit": "quarters",
+                "number_type": "fraction",
+                "length": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    37,
+                    1
+                  ]
+                },
+                "locked": true,
+                "meta": {},
+                "children": {},
+                "conversion_maps": [],
+                "regions": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": {}
+                },
+                "measure_map": null,
+                "metric_hierarchy": null
+              }
+            }
+          },
+          "conversion_maps": [
+            {
+              "type": "ScalarMap",
+              "id": "map:ScalarMap_4",
+              "name": "quarters_to_ticks",
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "scalar": 480
+            }
+          ],
+          "regions": [],
+          "flow_control": {
+            "breaks": [
+              {
+                "coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    12,
+                    1
+                  ]
+                },
+                "control_type": "fine",
+                "condition": "after_dc_ds",
+                "repeat_count": 1,
+                "label": "fine at MC 7",
+                "name": "fine",
+                "meta": {}
+              }
+            ],
+            "jumps": [
+              {
+                "from_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    6,
+                    1
+                  ]
+                },
+                "to_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    0,
+                    1
+                  ]
+                },
+                "control_type": "repeat_end",
+                "condition": "first_n",
+                "repeat_count": 1,
+                "target_name": null,
+                "label": "MC 3 → MC 1",
+                "meta": {}
+              },
+              {
+                "from_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    9,
+                    1
+                  ]
+                },
+                "to_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    6,
+                    1
+                  ]
+                },
+                "control_type": "repeat_end",
+                "condition": "first_n",
+                "repeat_count": 1,
+                "target_name": null,
+                "label": "MC 5 → MC 4",
+                "meta": {}
+              },
+              {
+                "from_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    28,
+                    1
+                  ]
+                },
+                "to_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    16,
+                    1
+                  ]
+                },
+                "control_type": "repeat_end",
+                "condition": "first_n",
+                "repeat_count": 1,
+                "target_name": null,
+                "label": "MC 11 → MC 9",
+                "meta": {}
+              },
+              {
+                "from_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    37,
+                    1
+                  ]
+                },
+                "to_coordinate": {
+                  "unit": "quarters",
+                  "number_type": "fraction",
+                  "value": [
+                    0,
+                    1
+                  ]
+                },
+                "control_type": "da_capo_al_fine",
+                "condition": "after_first",
+                "repeat_count": 1,
+                "target_name": "start",
+                "label": "MC 15 → start (MC 1)",
+                "meta": {}
+              }
+            ],
+            "markers": {
+              "codab": {
+                "unit": "quarters",
+                "number_type": "fraction",
+                "value": [
+                  30,
+                  1
+                ]
+              },
+              "fine": {
+                "unit": "quarters",
+                "number_type": "fraction",
+                "value": [
+                  10,
+                  1
+                ]
+              },
+              "segno & coda": {
+                "unit": "quarters",
+                "number_type": "fraction",
+                "value": [
+                  16,
+                  1
+                ]
+              }
+            }
+          },
+          "measure_map": [
+            {
+              "count": 1,
+              "qstamp": [
+                0,
+                1
+              ],
+              "number": 0,
+              "name": "0",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "2"
+              ],
+              "offset_within_measure": [
+                3,
+                1
+              ]
+            },
+            {
+              "count": 3,
+              "qstamp": [
+                5,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "1",
+                "4"
+              ],
+              "offset_within_measure": 0
+            },
+            {
+              "count": 4,
+              "qstamp": [
+                6,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": true,
+              "end_repeat": false,
+              "next": [
+                "5",
+                "6",
+                "7"
+              ]
+            },
+            {
+              "count": 5,
+              "qstamp": [
+                7,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "4"
+              ],
+              "volta": 1
+            },
+            {
+              "count": 6,
+              "qstamp": [
+                9,
+                1
+              ],
+              "number": 2,
+              "name": "2",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                1,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "8"
+              ],
+              "volta": 2
+            },
+            {
+              "count": 7,
+              "qstamp": [
+                10,
+                1
+              ],
+              "number": 3,
+              "name": "3",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [],
+              "volta": 3
+            },
+            {
+              "count": 8,
+              "qstamp": [
+                12,
+                1
+              ],
+              "number": 4,
+              "name": "4",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "9"
+              ]
+            },
+            {
+              "count": 9,
+              "qstamp": [
+                16,
+                1
+              ],
+              "number": 5,
+              "name": "5",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": true,
+              "end_repeat": false,
+              "next": [
+                "9",
+                "10",
+                "13"
+              ]
+            },
+            {
+              "count": 10,
+              "qstamp": [
+                20,
+                1
+              ],
+              "number": 6,
+              "name": "6",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "10",
+                "11"
+              ]
+            },
+            {
+              "count": 11,
+              "qstamp": [
+                24,
+                1
+              ],
+              "number": 7,
+              "name": "7",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                4,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "11",
+                "12"
+              ]
+            },
+            {
+              "count": 12,
+              "qstamp": [
+                28,
+                1
+              ],
+              "number": 8,
+              "name": "8",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "9"
+              ]
+            },
+            {
+              "count": 13,
+              "qstamp": [
+                30,
+                1
+              ],
+              "number": 9,
+              "name": "9",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "14",
+                "15"
+              ]
+            },
+            {
+              "count": 14,
+              "qstamp": [
+                32,
+                1
+              ],
+              "number": 9,
+              "name": "9",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                2,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": true,
+              "next": [
+                "12"
+              ],
+              "volta": 1,
+              "offset_within_measure": [
+                2,
+                1
+              ]
+            },
+            {
+              "count": 15,
+              "qstamp": [
+                34,
+                1
+              ],
+              "number": 10,
+              "name": "10",
+              "time_signature": "4/4",
+              "nominal_length": [
+                4,
+                1
+              ],
+              "actual_length": [
+                3,
+                1
+              ],
+              "start_repeat": false,
+              "end_repeat": false,
+              "next": [
+                "1"
+              ],
+              "volta": 2
+            }
+          ],
+          "metric_hierarchy": null
+        }
+      }
+    }
+  },
+  "path": [
+    "manifest",
+    "timelines",
+    "clt1",
+    "measure_map",
+    1,
+    "offset_within_measure"
+  ],
+  "reason": "A row at offset 0 omits offset_within_measure; a stated offset is strictly positive."
+}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
 import { fixtureFileNames, loadSchemaFile } from "./fixtures.js";
 
-const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json";
+const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.2.1/timeskeleton.schema.json";
 
 const TIMELINE_CLASSES = [
   "ContinuousLogicalTimeline",
@@ -69,14 +69,33 @@ const MANIFEST_KEYS = [
 
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
-    expect(SCHEMA_VERSION).toBe("0.2.0");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0"]);
+    expect(SCHEMA_VERSION).toBe("0.2.1");
+    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0", "0.2.1"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
   it("bundles the schema file at the repository root", () => {
     expect(schema).toEqual(loadSchemaFile());
-    expect(schemas).toEqual({ "0.1.0": loadSchemaFile("0.1.0"), "0.2.0": loadSchemaFile("0.2.0") });
+    expect(schemas).toEqual({
+      "0.1.0": loadSchemaFile("0.1.0"),
+      "0.2.0": loadSchemaFile("0.2.0"),
+      "0.2.1": loadSchemaFile("0.2.1"),
+    });
+  });
+
+  it("differs from 0.2.0 in its $id, version constant and description only", () => {
+    const previous = loadSchemaFile("0.2.0") as { description: string };
+    const expected = structuredClone(previous) as {
+      $id: string;
+      description: string;
+      properties: { meta: { properties: { schema_version: { const: string } } } };
+    };
+    const current = loadSchemaFile("0.2.1") as { description: string };
+    expect(current.description.startsWith(previous.description.slice(0, 40))).toBe(true);
+    expected.$id = SCHEMA_ID;
+    expected.description = current.description;
+    expected.properties.meta.properties.schema_version.const = "0.2.1";
+    expect(loadSchemaFile("0.2.1")).toEqual(expected);
   });
 
   it("carries the pinned $id, $schema and version constant", () => {

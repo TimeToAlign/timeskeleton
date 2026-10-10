@@ -2,11 +2,20 @@
  * Migrations between schema versions.
  *
  * A migration is a pure function from a document at one version to the same
- * document at the next version. `migrate` chains them from the declared
- * version up to `SCHEMA_VERSION` and stamps the result. Each migration is
+ * document at the next version, declaring that version. `migrate` chains them
+ * from the declared version up to `SCHEMA_VERSION`. Each migration is
  * pinned by a fixture pair (the document before and after) in the test suite.
  */
 
+import {
+  canonicalOrder,
+  clone,
+  exactNumber,
+  isJsonObject,
+  jsonInteger,
+  type Rational,
+  rational,
+} from "./document.js";
 import type { TimeSkeletonDocument } from "./generated/types.js";
 import {
   declaredVersion,
@@ -43,10 +52,9 @@ export class MigrationError extends Error {
   }
 }
 
-function isObject(value: unknown): value is JsonObject {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+const isObject = isJsonObject;
 
+/** Whether two JSON values are equal, numbers by value as in Python (`1 == 1.0`). */
 function sameJson(left: unknown, right: unknown): boolean {
   if (Array.isArray(left) || Array.isArray(right)) {
     return (
@@ -64,27 +72,13 @@ function sameJson(left: unknown, right: unknown): boolean {
       keys.every((key) => key in right && sameJson(left[key], right[key]))
     );
   }
+  const a = exactNumber(left);
+  const b = exactNumber(right);
+  if (a !== null && b !== null) return equal(a, b);
   return left === right;
 }
 
 // -- exact rationals ------------------------------------------------------------
-
-interface Rational {
-  readonly numerator: bigint;
-  readonly denominator: bigint;
-}
-
-function gcd(left: bigint, right: bigint): bigint {
-  let a = left < 0n ? -left : left;
-  let b = right < 0n ? -right : right;
-  while (b !== 0n) [a, b] = [b, a % b];
-  return a;
-}
-
-function rational(numerator: bigint, denominator: bigint): Rational {
-  const divisor = gcd(numerator, denominator) || 1n;
-  return { numerator: numerator / divisor, denominator: denominator / divisor };
-}
 
 function add(left: Rational, right: Rational): Rational {
   return rational(
@@ -98,8 +92,14 @@ function equal(left: Rational | null, right: Rational | null): boolean {
   return left.numerator === right.numerator && left.denominator === right.denominator;
 }
 
-function pair(value: Rational): [number, number] {
-  return [Number(value.numerator), Number(value.denominator)];
+/** A JSON integer: a number where it is safe, else a bigint. */
+function integerValue(value: bigint): number | bigint {
+  const safe = BigInt(Number.MAX_SAFE_INTEGER);
+  return value >= -safe && value <= safe ? Number(value) : value;
+}
+
+function pair(value: Rational): [number | bigint, number | bigint] {
+  return [integerValue(value.numerator), integerValue(value.denominator)];
 }
 
 // -- 0.1.0 to 0.2.0 ---------------------------------------------------------------
@@ -162,13 +162,11 @@ interface MeasureValues {
 /** Read a 0.1.0 measure quarter value: a Fraction pair, or null. */
 function quarters(value: unknown, path: Path): Rational | null {
   if (value === null || value === undefined) return null;
-  if (
-    Array.isArray(value) &&
-    value.length === 2 &&
-    value.every((item) => Number.isInteger(item)) &&
-    (value[1] as number) > 0
-  ) {
-    return rational(BigInt(value[0] as number), BigInt(value[1] as number));
+  if (Array.isArray(value) && value.length === 2) {
+    const [numerator, denominator] = value.map(jsonInteger);
+    if (numerator !== null && numerator !== undefined && denominator && denominator > 0n) {
+      return rational(numerator, denominator);
+    }
   }
   throw new MigrationError(path, `expected a Fraction pair or null, got ${JSON.stringify(value)}`);
 }
@@ -221,7 +219,7 @@ function readMeasures(value: unknown, path: Path): MeasureValues[] {
         "not a 0.1.0 measure member",
       );
     }
-    if (item.count !== position) {
+    if (jsonInteger(item.count) !== BigInt(position)) {
       throw new MigrationError([...itemPath, "count"], `expected count ${position}`);
     }
     const identifier = item.id;
@@ -455,21 +453,47 @@ function migrate010To020(document: JsonObject): JsonObject {
       if (isObject(timeline)) migrateTimeline(timeline, ["manifest", "timelines", key]);
     }
   }
+  return stamped(document, "0.2.0");
+}
+
+// -- 0.2.0 to 0.2.1 ---------------------------------------------------------------
+
+/**
+ * Write the document in the canonical order of 0.2.1.
+ *
+ * 0.2.1 specifies the same shapes as 0.2.0 and fixes the order of every
+ * collection whose order carries no meaning (see `canonicalOrder`). The
+ * document is validated against 0.2.1 before it is reordered, since the order
+ * does not affect validity, so a refusal names the path of the input.
+ *
+ * @throws {MigrationError} at the path of the first member with no 0.2.1 shape.
+ */
+function migrate020To021(document: JsonObject): JsonObject {
+  return canonicalOrder(stamped(document, "0.2.1"));
+}
+
+/** Return `document` declaring `version`, refused unless valid at it. */
+function stamped(document: JsonObject, version: string): JsonObject {
   const meta = isObject(document.meta) ? document.meta : {};
+  const result: JsonObject = { ...document, meta: { ...meta, schema_version: version } };
   try {
-    validate({ ...document, meta: { ...meta, schema_version: "0.2.0" } });
+    validate(result);
   } catch (error) {
     if (error instanceof SchemaValidationError) {
-      throw new MigrationError(error.path, `no 0.2.0 shape: ${error.detail}`);
+      throw new MigrationError(error.path, `no ${version} shape: ${error.detail}`);
     }
     throw error;
   }
-  return document;
+  return result;
 }
 
-/** Source version to `[target version, migration]`. */
+/**
+ * Source version to `[target version, migration]`. Each migration returns the
+ * document declaring its target version.
+ */
 export const MIGRATIONS: Readonly<Record<string, readonly [string, Migration]>> = {
   "0.1.0": ["0.2.0", migrate010To020],
+  "0.2.0": ["0.2.1", migrate020To021],
 };
 
 /**
@@ -487,7 +511,7 @@ export function migrate(document: unknown): TimeSkeletonDocument {
   if (version === null || !SUPPORTED_VERSIONS.includes(version)) {
     throw new UnsupportedVersionError(version);
   }
-  let result = structuredClone(document) as Record<string, unknown>;
+  let result = clone(document) as Record<string, unknown>;
   let current = version;
   while (current !== SCHEMA_VERSION) {
     const step = MIGRATIONS[current];
@@ -496,7 +520,6 @@ export function migrate(document: unknown): TimeSkeletonDocument {
     }
     const [next, apply] = step;
     result = apply(result);
-    (result.meta as Record<string, unknown>).schema_version = next;
     current = next;
   }
   return result as unknown as TimeSkeletonDocument;

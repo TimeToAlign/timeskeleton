@@ -3,12 +3,14 @@
 A TimeSkeleton document is a JSON object ``{"meta": ..., "manifest": ...}``
 describing a set of musical timelines as timetoalign serializes them. This
 package bundles every published schema version, the golden fixtures emitted
-by timetoalign, a validator reporting the path of the first violation, and
-the migrations that bring an older document to the latest version.
+by timetoalign, a validator reporting the path of the first violation, the
+migrations that bring an older document to the latest version, and the
+canonical order and standard writer of a document.
 """
 
 from __future__ import annotations
 
+from .document import canonical_json, canonical_order, dumps
 from .migrate import MIGRATIONS, MigrationError, migrate
 from .validate import (
     SCHEMA_VERSION,
@@ -32,7 +34,10 @@ __all__ = [
     "SUPPORTED_VERSIONS",
     "SchemaValidationError",
     "UnsupportedVersionError",
+    "canonical_json",
+    "canonical_order",
     "declared_version",
+    "dumps",
     "fixture_paths",
     "json_pointer",
     "load_schema",

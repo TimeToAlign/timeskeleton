@@ -19,10 +19,10 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-SCHEMA_VERSION = "0.2.0"
+SCHEMA_VERSION = "0.2.1"
 """The schema version this release publishes: the latest one."""
 
-SUPPORTED_VERSIONS: tuple[str, ...] = ("0.1.0", "0.2.0")
+SUPPORTED_VERSIONS: tuple[str, ...] = ("0.1.0", "0.2.0", "0.2.1")
 """Every schema version this release validates and migrates, oldest first."""
 
 

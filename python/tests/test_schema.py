@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import copy
+
 import pytest
 
 from timeskeleton import (
@@ -13,7 +15,7 @@ from timeskeleton import (
 
 from .conftest import FIXTURE_NAMES
 
-SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.2.0/timeskeleton.schema.json"
+SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.2.1/timeskeleton.schema.json"
 
 TIMELINE_CLASSES = [
     "ContinuousLogicalTimeline",
@@ -80,16 +82,16 @@ MANIFEST_KEYS = [
 
 
 def test_schema_version_is_the_latest_supported_version() -> None:
-    assert SCHEMA_VERSION == "0.2.0"
-    assert SUPPORTED_VERSIONS == ("0.1.0", "0.2.0")
+    assert SCHEMA_VERSION == "0.2.1"
+    assert SUPPORTED_VERSIONS == ("0.1.0", "0.2.0", "0.2.1")
     assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
 
 
 def test_schema_path_names_the_bundled_file() -> None:
     path = schema_path()
     assert path.is_file()
-    assert path.name == "timeskeleton-0.2.0.schema.json"
-    assert schema_path("0.2.0") == path
+    assert path.name == "timeskeleton-0.2.1.schema.json"
+    assert schema_path("0.2.1") == path
 
 
 def test_schema_identity() -> None:
@@ -101,6 +103,15 @@ def test_schema_identity() -> None:
         "const": SCHEMA_VERSION,
         "description": "The timeskeleton release this document conforms to.",
     }
+
+
+def test_0_2_1_differs_from_0_2_0_in_its_id_version_and_description_only() -> None:
+    expected = copy.deepcopy(load_schema("0.2.0"))
+    expected["$id"] = SCHEMA_ID
+    expected["description"] = load_schema("0.2.1")["description"]
+    assert expected["description"].startswith(load_schema("0.2.0")["description"][:40])
+    expected["properties"]["meta"]["properties"]["schema_version"]["const"] = "0.2.1"
+    assert load_schema("0.2.1") == expected
 
 
 def test_enumerations_are_the_library_vocabulary() -> None:

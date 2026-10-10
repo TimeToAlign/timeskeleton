@@ -7,14 +7,15 @@
  */
 
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
+import { type Lossless, parseJson, plain } from "./document.js";
 import { schemas } from "./generated/schema.js";
 import type { TimeSkeletonDocument } from "./generated/types.js";
 
 /** The schema version this release publishes: the latest one. */
-export const SCHEMA_VERSION = "0.2.0";
+export const SCHEMA_VERSION = "0.2.1";
 
 /** Every schema version this release validates and migrates, oldest first. */
-export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0", "0.2.0"];
+export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.2.1"];
 
 const SCHEMAS: Readonly<Record<string, object>> = schemas;
 
@@ -147,7 +148,8 @@ function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
  *
  * A document whose `meta.schema_version` is one of `SUPPORTED_VERSIONS` is
  * checked against that version's schema. Any other document is checked
- * against the latest schema, which rejects it at `meta.schema_version`.
+ * against the latest schema, which rejects it at `meta.schema_version`. A
+ * document read by `parse` is checked by the values of its numbers.
  *
  * @throws {SchemaValidationError} on the first violation found, with the path to the offending value.
  */
@@ -156,7 +158,8 @@ export function validate(document: unknown): asserts document is TimeSkeletonDoc
   const target =
     version !== null && SUPPORTED_VERSIONS.includes(version) ? version : SCHEMA_VERSION;
   const validator = validatorFor(target);
-  if (validator(document)) {
+  const instance = plain(document);
+  if (validator(instance)) {
     return;
   }
   const error = select(validator.errors ?? []);
@@ -164,7 +167,20 @@ export function validate(document: unknown): asserts document is TimeSkeletonDoc
     throw new SchemaValidationError([], "document is invalid");
   }
   throw new SchemaValidationError(
-    toPath(error.instancePath, document),
+    toPath(error.instancePath, instance),
     error.message ?? error.keyword,
   );
+}
+
+/**
+ * Read a TimeSkeleton document without losing a number or the order of a key
+ * (see `parseJson`), and check it against the schema version it declares.
+ *
+ * @throws {SyntaxError} if the text is not one JSON value.
+ * @throws {SchemaValidationError} on the first violation found.
+ */
+export function parse(text: string): Lossless<TimeSkeletonDocument> {
+  const document = parseJson(text);
+  validate(document);
+  return document as unknown as Lossless<TimeSkeletonDocument>;
 }

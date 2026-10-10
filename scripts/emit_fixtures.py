@@ -2,7 +2,9 @@
 """Emit the golden fixtures of the current schema through timetoalign.
 
 Every document is built with public constructors or a public loader, serialized
-with ``Timeline.to_dict()`` and round-tripped through ``Timeline.from_dict``.
+with ``Timeline.to_dict()``, written with ``timeskeleton.dumps`` and
+round-tripped through ``Timeline.from_dict``; a manifest whose order differs
+from the library's fails the round trip.
 The current schema version is ``timeskeleton.SCHEMA_VERSION``. The fixtures of
 a released version are frozen: the script refuses to write into
 ``fixtures/<version>/`` once the tag ``v<version>`` exists. Map identifiers
@@ -63,7 +65,7 @@ from timetoalign.maps import (
 from timetoalign.testdata import ensure_data
 from timetoalign.timelines.flowcontrol import Break, Jump
 
-from timeskeleton import SCHEMA_VERSION
+from timeskeleton import SCHEMA_VERSION, dumps
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = REPOSITORY_ROOT / "fixtures" / SCHEMA_VERSION
@@ -342,10 +344,8 @@ def document(timelines: list[Timeline], generator: str) -> dict[str, Any]:
 
 
 def write(path: Path, data: dict[str, Any]) -> None:
-    """Write one fixture with stable formatting."""
-    with path.open("w", encoding="utf-8") as handle:
-        json.dump(data, handle, indent=2, sort_keys=False)
-        handle.write("\n")
+    """Write one fixture with the standard writer, in canonical order."""
+    path.write_text(dumps(data), encoding="utf-8")
 
 
 def check_round_trip(path: Path) -> int:
@@ -355,7 +355,7 @@ def check_round_trip(path: Path) -> int:
     count = 0
     for timeline_id, manifest in data["manifest"]["timelines"].items():
         rebuilt = Timeline.from_dict(manifest).to_dict()
-        if rebuilt != manifest:
+        if json.dumps(rebuilt) != json.dumps(manifest):
             raise SystemExit(
                 f"{path.name}: timeline {timeline_id!r} does not round-trip through "
                 f"timetoalign.\nexpected: {json.dumps(manifest, indent=2)}\n"

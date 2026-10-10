@@ -31,8 +31,10 @@ with an interpreter that has that revision (or a later one) installed:
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C <timetoalign checkout> rev-parse --short HEAD)"
 ```
 
-The script writes the documents, reads them back, and fails unless every
-timeline manifest is stable after `Timeline.from_dict(m).to_dict()`. Timeline ids are assigned by
+The script writes the documents with the standard writer, `dumps`, reads them
+back, and fails unless every timeline manifest is stable, as JSON text, after
+`Timeline.from_dict(m).to_dict()`; a library whose own order differs from the
+canonical order therefore fails it. Timeline ids are assigned by
 the library in construction order and therefore depend on the order of the
 script, which is part of the fixture contract.
 
@@ -101,3 +103,30 @@ successors are row IDs (`["2", "4"]`) and whose first row carries
 `offset_within_measure: [3, 1]`, and the position map as `meter_map` plus
 `beat_map_id`, every other member unchanged. Both packages must reproduce it
 byte for byte.
+
+## Schema 0.2.1
+
+0.2.1 keeps the definitions of 0.2.0 and fixes the canonical order in which
+writers emit every collection whose order carries no meaning (see the
+[README](../README.md#canonical-order)). `fixtures/0.2.1/` holds the same
+sixteen documents as `fixtures/0.2.0/`, built by the same constructors and
+loaders, written by `dumps` in canonical order. Three of the sixteen 0.2.0
+documents were not in canonical order (`conversion_maps.json`: timelines and
+maps; `corpus_parangonar_parangonada.json`: timelines; `corpus_score_ms3.json`:
+children and markers); migrated to 0.2.1 and written by `dumps`, every 0.2.0
+document is byte-equal to its 0.2.1 counterpart, `meta.generator` aside.
+
+`fixtures/rejections/0.2.1/` holds the 34 rejection cases of 0.2.0, each
+change applied to the corresponding 0.2.1 document. A path into
+`conversion_maps` follows the map to its canonical index, so three cases pin
+another index than at 0.2.0.
+
+`fixtures/migrations/0.2.0-to-0.2.1/` holds a pair. `before.json` is a 0.2.0
+document written by timetoalign in insertion order, from a construction that
+leaves every collection out of canonical order: two timelines (`score`,
+`perf`), children tied on offset and nested children, conversion maps,
+regions tied on start and on start and end, breaks tied on coordinate, jumps
+tied on both coordinates, markers, and offsets and region bounds whose numeric
+order and JSON-text order disagree (`[5, 8]` before `[2, 3]`). `after.json` is
+the migrated document written by `dumps`; both packages reproduce it byte for
+byte.

@@ -6,7 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
-The first release will publish schema 0.2.0 and both packages at 0.2.0.
+Schema 0.2.1 and both packages at 0.2.1.
+
+### Added
+
+- Schema 0.2.1 keeps every definition of 0.2.0 and fixes the canonical order in which writers emit a document: `manifest.timelines` by id; at every depth `children` by offset, then id; `conversion_maps` by id; `regions` by start, end, name; `breaks` by coordinate and `jumps` by from and to coordinate, each then by canonical JSON text; `markers` by name. Coordinates compare by exact value, strings by Unicode code point. Readers accept any order.
+- One standard writer per package, `dumps`: canonical order, two-space indentation, a final newline, UTF-8 with characters unescaped except `"`, `\` and control characters, every float spelled as Python's `repr` and every integer without a decimal point or exponent. Both packages write the same document as the same bytes. Python adds `canonical_order` and `canonical_json`; the npm package adds `canonicalOrder`, `canonicalJson` and `compactJson`.
+- A lossless JSON reader in the npm package: `parseJson` keeps integers beyond 2^53 as `bigint`, integral floats as `JsonFloat`, and the written order of array-index keys; `parse` reads and validates a document. Types `Json`, `JsonNumber`, `Lossless` and guards `isJsonFloat`, `isJsonObject`.
+- The 0.2.0 to 0.2.1 migration in both packages, which validates the document at 0.2.1 and puts it in canonical order, pinned by a fixture pair.
+- Golden fixtures for 0.2.1 written in canonical order by the standard writer, and the 34 rejection cases at 0.2.1.
+
+### Changed
+
+- Each migration returns the document declaring its own target version; `migrate` no longer stamps the version after each step.
+- The npm `validate` and `migrate` accept values read by `parseJson`.
+
+## [0.2.0] - 2026-10-10
 
 ### Added
 
