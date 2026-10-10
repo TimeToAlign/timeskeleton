@@ -1,12 +1,17 @@
 # Golden fixtures
 
-Every file under `fixtures/<schema version>/` is a complete TimeSkeleton
-document emitted by timetoalign through `scripts/emit_fixtures.py`. The
-script is the only writer of those directories: golden fixtures are never
-edited by hand, and a change to the library's serialization is landed by
-regenerating them and reviewing the diff. Once the tag `v<version>` exists,
-the script refuses to write into `fixtures/<version>/`: a released version's
-fixtures are frozen.
+Every JSON file directly under `fixtures/<schema version>/` is a complete
+TimeSkeleton document emitted by timetoalign through
+`scripts/emit_fixtures.py`. The script is the only writer of those documents:
+they are never edited by hand, and a change to the library's serialization is
+landed by regenerating them and reviewing the diff. Once the tag
+`v<version>` exists, the script refuses to write into `fixtures/<version>/`:
+a released version's fixtures are frozen, its golden geometry included.
+
+From 0.3.0 on, `fixtures/<version>/geometry/` holds the golden drawing of
+every document, and `fixtures/<version>/geometry-rejections/` the geometries
+the geometry schema rejects; [`geometry/README.md`](0.3.0/geometry/README.md)
+states their provenance.
 
 The rejection cases under `fixtures/rejections/` and the migration pairs
 under `fixtures/migrations/` are different: they are authored by hand, each
@@ -130,3 +135,48 @@ tied on both coordinates, markers, and offsets and region bounds whose numeric
 order and JSON-text order disagree (`[5, 8]` before `[2, 3]`). `after.json` is
 the migrated document written by `dumps`; both packages reproduce it byte for
 byte.
+
+## Schema 0.3.0
+
+0.3.0 keeps every definition of 0.2.1 and adds the optional `graphical`
+block of style rules (see the [README](../README.md#drawing-a-document)).
+`fixtures/0.3.0/` holds the sixteen documents of 0.2.1, each byte-equal to
+its 0.2.1 counterpart but for the declared version and `meta.generator`,
+and four documents built to draw one element each, written by the same
+script from public constructors:
+
+| File | Built from | Proves |
+|---|---|---|
+| `bare.json` | `ContinuousLogicalTimeline(length=8, unit="quarters")` named `Bare` | the smallest drawing: one line, its wedges and labels, the frame |
+| `contiguous.json` | a root of 8 quarters with children of lengths 3, 5 and 2 at offsets 0, 3 and 1 | first-fit packing: a child starting where another ends shares its row, an overlapping one moves out |
+| `map.json` | a root of 8 quarters carrying a `ScalarMap`, with a child of 4 at offset 2 carrying a `QuartersToTicks` map | the map band beyond the children, two maps in conflict |
+| `styled.json` | a score (8 quarters, two children, a map, a region, a jump) and a performance (10.0 seconds, one child), plus a `graphical` block written in the script (`GRAPHICAL`): rules of the document and of the `score`, `b` and `perf` containers | every rank of the cascade, per-property fall-through to an outer container, a tie, the filter, projected coordinates, length labels, a float frame |
+
+`styled.json` is the only document carrying a `graphical` block; its
+manifests are the library's, the block is the script's.
+
+`fixtures/rejections/0.3.0/` holds 45 cases: the 34 of 0.2.1 declaring
+0.3.0, and eleven one-change cases of the `graphical` block, each made on
+`styled.json` (an unknown member of the block, a timeline container that is
+no list, a rule without `set`, an empty `set`, an unknown property, an
+unknown element type, a selector with `kind` or with `timeline`, which are
+no selector members, an empty `ids` list, a lower-case colour, an unknown
+side).
+
+`fixtures/migrations/0.2.1-to-0.3.0/` holds a pair. `before.json` is the
+`after.json` of the 0.2.0 to 0.2.1 pair; `after.json` is the same text with
+the declared version changed to 0.3.0, since the block is additive.
+
+`fixtures/0.3.0/geometry/<name>/` holds, for each of the twenty documents,
+its geometry (`geometry.json`, written by `dumps`), its SVG (`figure.svg`)
+and its TikZ figure (`figure.tex`, a standalone LuaLaTeX document), written
+with the writers' default options. The geometry of `bare`, `contiguous`,
+`nested`, `map`, `with_region`, `flow_control` and `styled` is derived by
+hand from the [geometry specification](../docs/geometry.md), with the
+arithmetic written out in [`geometry/README.md`](0.3.0/geometry/README.md);
+the other geometries and every figure are written by the TimeLineEditor's
+`app/packages/writers/scripts/emit-geometry.ts`, which refuses to run unless
+its layout reproduces the seven hand-derived files byte for byte, and, like
+`emit_fixtures.py`, once the tag `v<version>` exists.
+`fixtures/0.3.0/geometry-rejections/` holds six hand-authored cases, each one
+change to `bare/geometry.json` with the path both validators report.

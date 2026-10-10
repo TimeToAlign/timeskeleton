@@ -2,19 +2,38 @@
 
 TimeSkeleton is the versioned JSON Schema for the structural serialization of musical timelines, with golden fixtures emitted by [timetoalign](https://github.com/timetoalign/timetoalign) and validation and migration packages for Python and TypeScript. It carries timeline structure, not event data.
 
-**Status: alpha.** Version 0.2.1 offers the schema (0.2.1, with 0.2.0 and 0.1.0 kept validatable), validators in Python and TypeScript that locate a violation under one shared path rule, the canonical order of a document and one standard writer per language that writes the same document as the same bytes, a lossless JSON reader for TypeScript, the migrations from 0.1.0 to 0.2.0 and from 0.2.0 to 0.2.1 in both packages, and the golden, rejection, and migration fixtures. The format may still change incompatibly in a later 0.x version; every such change ships with a migration.
+**Status: alpha.** Version 0.3.0 offers the schema (0.3.0, with 0.2.1, 0.2.0 and 0.1.0 kept validatable), validators in Python and TypeScript that locate a violation under one shared path rule, the canonical order of a document and one standard writer per language that writes the same document as the same bytes, a lossless JSON reader for TypeScript, the migrations from 0.1.0 up to 0.3.0 in both packages, and the golden, rejection, and migration fixtures. From 0.3.0 on it also specifies how a document is drawn: the optional `graphical` block of style rules, the [geometry specification](docs/geometry.md) with its geometry schema and validators, and golden geometry, SVG and TikZ figures that every implementation must reproduce byte for byte. The format may still change incompatibly in a later 0.x version; every such change ships with a migration.
 
 ## The document
 
-A TimeSkeleton document is a JSON object with `meta` and `manifest`. `meta.schema_version` selects the schema and `meta.generator` is optional. `manifest.timelines` maps timeline ids to manifests matching `timetoalign`'s `Timeline.to_dict(events=False)` output: axis (`class`, `unit`, `number_type`, `length`), child timelines at exact offsets, conversion maps, regions, flow control, measure map, and metric hierarchy. Event tables travel separately, typically as Arrow or Parquet data, and are referenced rather than embedded.
+A TimeSkeleton document is a JSON object with `meta`, `manifest` and, from 0.3.0 on, an optional `graphical` block. `meta.schema_version` selects the schema and `meta.generator` is optional. `manifest.timelines` maps timeline ids to manifests matching `timetoalign`'s `Timeline.to_dict(events=False)` output: axis (`class`, `unit`, `number_type`, `length`), child timelines at exact offsets, conversion maps, regions, flow control, measure map, and metric hierarchy. Event tables travel separately, typically as Arrow or Parquet data, and are referenced rather than embedded.
 
 Every coordinate-valued member is an object with `unit`, `number_type`, and `value`. Its number type selects the value representation: an integer is a JSON integer, a float is a JSON number, and a fraction is a `[numerator, denominator]` pair of JSON integers with a strictly positive denominator, mirroring BOPP.
 
-Version 0.2.0 specifies conversion maps, regions, flow control, and measure maps in addition to the envelope, timeline manifests, and typed coordinates. `metric_hierarchy` remains opaque. Version 0.2.1 keeps every definition of 0.2.0 and fixes the order in which writers emit a document (see [Canonical order](#canonical-order)). Version 0.1.0 retains its original opaque members. The 0.2.1 schema identifier is [`https://timetoalign.github.io/timeskeleton/0.2.1/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.2.1/timeskeleton.schema.json).
+Version 0.2.0 specifies conversion maps, regions, flow control, and measure maps in addition to the envelope, timeline manifests, and typed coordinates. `metric_hierarchy` remains opaque. Version 0.2.1 keeps every definition of 0.2.0 and fixes the order in which writers emit a document (see [Canonical order](#canonical-order)). Version 0.3.0 keeps every definition of 0.2.1 and adds the `graphical` block (see [Drawing a document](#drawing-a-document)). Version 0.1.0 retains its original opaque members. The 0.3.0 schema identifier is [`https://timetoalign.github.io/timeskeleton/0.3.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.3.0/timeskeleton.schema.json).
 
 Since 0.2.0, a measure map is the [Measure Map standard](https://github.com/measure-map/specification)'s compressed row array: entries equal to the preceding entry's default successor are omitted. A row is the standard's Measure plus two extensions: the integer `volta`, and `offset_within_measure`, where the row begins inside its nominal measure in quarter notes (an anacrusis, or one constituent of a split measure; absent means 0). Lengths are strictly positive and `qstamp` is non-negative; exact Fraction pairs are permitted wherever the standard uses JSON numbers. A measure map is anchored in quarter notes, so only a timeline whose unit is `quarters` may carry one.
 
 The schema is the source of truth for timetoalign, the TimeLineEditor browser application, and its server. timetoalign's hand-written serialization is tested for schema conformance and fixture round trips. TypeScript types are generated in this repository, never by downstream consumers.
+
+## Drawing a document
+
+The optional `graphical` block holds what a user authored about the drawing of a document, and nothing derived: ordered lists of style rules held by containers, the document itself (`styles`) and any timeline with its subtree (`timelines`, by timeline id).
+
+```json
+"graphical": {
+  "styles": [
+    {"select": {"element": "child", "domain": "logical"}, "set": {"side": "below"}}
+  ],
+  "timelines": {
+    "perf": [{"select": {}, "set": {"visible": false}}]
+  }
+}
+```
+
+A rule selects elements of its container (timelines, child timelines, conversion maps, regions, breaks, jumps, wedges and labels) by element type, domain, modality or a list of element ids, and sets properties from a closed set: `colour`, `line_pattern`, `visible` (`false` filters an element out), `side`, `show_length` and `show_projected_coordinates`. Each property is resolved on its own, as in CSS: a rule naming the element's id decides, then the rule of the nearest container, then a rule naming the element type over one naming only the domain or modality, then the rule naming more members, then the later rule. Every property has a written default, so a document without the block, or with no rules, is fully drawable.
+
+The [geometry specification](docs/geometry.md) defines the drawing completely: the layout that turns a document into **geometry** (one block per top-level timeline, integer rows, horizontal positions as exact values on the root timeline's axis in the document's own number forms), and the SVG and TikZ writers that turn geometry into text under one page transform and one number formatting rule. Geometry validates against `schema/geometry-<version>.schema.json`, whose identifier for 0.3.0 is [`https://timetoalign.github.io/timeskeleton/0.3.0/geometry.schema.json`](https://timetoalign.github.io/timeskeleton/0.3.0/geometry.schema.json); its list of primitives is an open union, so a reader skips a primitive kind it does not know. Two implementations that follow the specification produce the same geometry and the same figures, byte for byte; the golden figures under `fixtures/<version>/geometry/` pin it.
 
 ## Canonical order
 
@@ -69,6 +88,7 @@ else:
 - `dumps(value)` returns the standard text of a document, or of any JSON value. It raises `ValueError` for a NaN, an infinity, a lone surrogate, or a collection whose entries lack the members it is ordered by. It is `json.dumps(canonical_order(value), indent=2, ensure_ascii=False)` plus a final newline.
 - `canonical_order(value)` returns a deep copy with the document in canonical order. Only the collections a document holds where a document holds them are reordered, so any other JSON value is copied unchanged.
 - `canonical_json(value)` returns the canonical JSON text of a value: keys sorted by code point, no whitespace.
+- `validate_geometry(geometry)` checks a geometry against the geometry schema of the version it declares and raises `SchemaValidationError` with the path of the first violation. `geometry_schema_path(version)` and `load_geometry_schema(version)` return the bundled geometry schema, `GEOMETRY_VERSIONS` lists the versions that have one, and `geometry_paths(version)` and `geometry_rejection_paths(version)` return the golden geometry directories and the shared geometry rejection cases.
 
 ### TypeScript
 
@@ -101,6 +121,7 @@ function load(text: string): string {
 - `dumps(value)` is the standard writer. It throws `RangeError` for a non-finite number or a lone surrogate, and `TypeError` for a value that is not JSON or a collection it cannot order.
 - `compactJson(value)` writes a value with no whitespace and every object's keys in their own order (the written order for a value read by `parseJson`), numbers and strings spelled as Python spells them; `parseJson` reads it back to an equal value. `canonicalJson(value)` writes the same text with keys sorted by code point, as Python's `canonical_json` does.
 - `canonicalOrder(value)` returns a deep copy with the document in canonical order, as Python's `canonical_order` does.
+- `validateGeometry(value)` narrows an unknown value to `Geometry`, checked against the geometry schema of the version it declares, and throws `SchemaValidationError` at the path the Python validator reports. `geometrySchema` is the latest geometry schema, `geometrySchemas` every one by version, and `GEOMETRY_VERSIONS` their versions; the generated types include `Geometry`, `Block`, `Primitive` and the `graphical` block's `Graphical`, `StyleRule`, `StyleSelector` and `StyleProperties`.
 
 A number read by `parseJson` is a `JsonNumber`:
 
@@ -121,13 +142,13 @@ JavaScript code outside this package that writes these documents must not use `J
 
 The first migration, 0.1.0 to 0.2.0, rewrites the shapes timetoalign wrote at 0.1.0 that 0.2.0 specifies differently: a tagged-measure measure map becomes compressed rows, and a `MetricalPositionMap` keeps its meter map once and names its derived beat map by `beat_map_id`. A member whose shape the migration does not know raises `MigrationError` with the member's path; a migrated document satisfies 0.2.0.
 
-The second migration, 0.2.0 to 0.2.1, declares version 0.2.1, validates the document against it, and then puts it in canonical order; the shapes are unchanged. A document that does not satisfy 0.2.1 raises `MigrationError` at the path of the offending member in the input. Each migration returns the document declaring its own target version.
+The second migration, 0.2.0 to 0.2.1, declares version 0.2.1, validates the document against it, and then puts it in canonical order; the shapes are unchanged. A document that does not satisfy 0.2.1 raises `MigrationError` at the path of the offending member in the input. The third, 0.2.1 to 0.3.0, does the same for 0.3.0: the `graphical` block is optional and additive, so a 0.2.1 document changes only in its declared version. Each migration returns the document declaring its own target version.
 
 A timeskeleton release is a schema-version event: one `vX.Y.Z` tag publishes both packages through trusted publishing without stored registry tokens. `scripts/check_versions.py` verifies that all version declarations agree before release.
 
 ## Fixtures
 
-The [golden fixtures](fixtures/README.md) are emitted only by `scripts/emit_fixtures.py` using timetoalign and ship in both packages. Each records the timetoalign version and commit in `meta.generator`; do not edit golden fixture JSON by hand. The rejection cases and migration pairs beside them are authored by hand.
+The [golden fixtures](fixtures/README.md) ship in both packages. The documents are emitted only by `scripts/emit_fixtures.py` using timetoalign, and each records the timetoalign version and commit in `meta.generator`. From 0.3.0 on, each document has a golden geometry, SVG and TikZ figure under `fixtures/<version>/geometry/`: seven geometries are derived by hand from the specification (the arithmetic is in that directory's README), and the other geometries and every figure are written by the TimeLineEditor's layout and writers (`app/packages/writers/scripts/emit-geometry.ts` in [TimeLineEditor](https://github.com/TimeToAlign/TimeLineEditor)), which must reproduce the seven hand-derived files first. Never edit an emitted golden fixture by hand; a hand-derived geometry changes only together with the specification and the arithmetic in that README. The rejection cases and migration pairs beside them are authored by hand.
 
 ## Development
 
@@ -152,6 +173,12 @@ To re-emit fixtures, use an interpreter whose environment contains the timetoali
 
 ```bash
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"
+```
+
+The golden geometry and figures are re-emitted from a TimeLineEditor checkout whose workspace uses this checkout's JavaScript package; from its `app/packages/writers/` directory:
+
+```bash
+node scripts/emit-geometry.ts /path/to/timeskeleton
 ```
 
 From the repository root, check that all version declarations agree:

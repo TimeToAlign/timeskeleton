@@ -14,6 +14,16 @@ python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoal
 
 Do not edit golden fixture JSON by hand. The script refuses to write into the fixtures of a version whose `v<version>` tag exists. Rejection cases under `fixtures/rejections/` and migration pairs under `fixtures/migrations/` are authored by hand.
 
+## The geometry specification and its goldens
+
+`docs/geometry.md` specifies how a document is drawn, and `schema/geometry-<version>.schema.json` the geometry it produces; both change with a schema version, as the document schema does. Every document fixture has a golden geometry, SVG and TikZ figure under `fixtures/<version>/geometry/<name>/`. The geometries marked hand-derived in `fixtures/<version>/geometry/README.md` are written by hand from the specification, with every step of their arithmetic in that README. The others, and every figure, are written by the TimeLineEditor's layout and writers; from `app/packages/writers/` of a TimeLineEditor checkout whose workspace uses this checkout's JavaScript package (`pnpm build` in `js/` first):
+
+```bash
+node scripts/emit-geometry.ts /path/to/timeskeleton
+```
+
+The script refuses to run when its layout disagrees with a hand-derived geometry, and once the tag `v<version>` exists. Review the diff of every re-emitted file, and keep the geometry rejection cases under `fixtures/<version>/geometry-rejections/` (one change to a golden geometry each, with the path both validators report) authored by hand.
+
 ## Dependencies and decisions
 
 Add a dependency only with a numbered MADR in `decisions/`. The record must assess writing it ourselves and its long-term maintenance cost, name the audited version, and set a review date. Do not add speculative dependencies or options.
@@ -60,7 +70,7 @@ python3 scripts/check_versions.py
 
 Releases are made by [release-please](https://github.com/googleapis/release-please) and `.github/workflows/release.yml`. Write commit messages in the [Conventional Commits](https://www.conventionalcommits.org/) form; release-please builds `CHANGELOG.md` from them.
 
-A timeskeleton version is a schema version, so release-please never computes it from the commits. The commit that adds a schema version updates every declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION` in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, the self entry in `python/uv.lock`), adds `schema/timeskeleton-X.Y.Z.schema.json`, a non-empty `fixtures/X.Y.Z/`, its migration pair and rejection fixtures, passes `python3 scripts/check_versions.py`, and carries the footer
+A timeskeleton version is a schema version, so release-please never computes it from the commits. The commit that adds a schema version updates every declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION` in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, the self entry in `python/uv.lock`), adds `schema/timeskeleton-X.Y.Z.schema.json` and `schema/geometry-X.Y.Z.schema.json`, a non-empty `fixtures/X.Y.Z/` with its golden geometry, its migration pair and rejection fixtures, passes `python3 scripts/check_versions.py`, and carries the footer
 
 ```text
 Release-As: X.Y.Z
