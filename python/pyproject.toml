@@ -23,8 +23,8 @@ classifiers = [
 dependencies = ["jsonschema>=4.26.0,<5"]
 
 [project.urls]
-Repository = "https://github.com/timetoalign/timeskeleton"
-Issues = "https://github.com/timetoalign/timeskeleton/issues"
+Repository = "https://github.com/TimeToAlign/timeskeleton"
+Issues = "https://github.com/TimeToAlign/timeskeleton/issues"
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "ruff==0.16.9"]

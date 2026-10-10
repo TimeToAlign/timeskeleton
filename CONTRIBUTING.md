@@ -72,5 +72,5 @@ Configure each trusted publisher once before the first release:
 
 | Registry | Project or package | GitHub owner | Repository | Workflow file | Environment |
 | --- | --- | --- | --- | --- | --- |
-| PyPI | `timeskeleton` | `TimeToAlign` | `timeskeleton` | `.github/workflows/release.yml` | `release` |
-| npm | `@timetoalign/timeskeleton` | `TimeToAlign` | `timeskeleton` | `.github/workflows/release.yml` | `release` |
+| PyPI | `timeskeleton` | `TimeToAlign` | `timeskeleton` | `release.yml` | `release` |
+| npm | `@timetoalign/timeskeleton` | `TimeToAlign` | `timeskeleton` | `release.yml` | `release` |

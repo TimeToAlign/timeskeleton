@@ -58,6 +58,8 @@ jobs:
         with:
           packages-dir: python/dist/
 
+      - name: Trusted publishing needs npm 11.5.1 or later
+        run: npm install -g npm@latest
       - name: Publish to npm
         run: npm publish --provenance --access public
         working-directory: js

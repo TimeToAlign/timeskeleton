@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/timetoalign/timeskeleton.git",
+    "url": "git+https://github.com/TimeToAlign/timeskeleton.git",
     "directory": "js"
   },
-  "homepage": "https://github.com/timetoalign/timeskeleton#readme",
-  "bugs": "https://github.com/timetoalign/timeskeleton/issues",
+  "homepage": "https://github.com/TimeToAlign/timeskeleton#readme",
+  "bugs": "https://github.com/TimeToAlign/timeskeleton/issues",
   "keywords": [
     "music",
     "timeline",
