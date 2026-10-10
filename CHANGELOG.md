@@ -2,6 +2,18 @@
 
 Release entries are written by release-please from the Conventional Commits since the previous release.
 
+## [0.2.1](https://github.com/TimeToAlign/timeskeleton/compare/v0.2.0...v0.2.1) (2026-10-10)
+
+
+### Features
+
+* add schema 0.2.1 with a canonical order and a standard writer ([e0dbd3a](https://github.com/TimeToAlign/timeskeleton/commit/e0dbd3aae8a41fe2e302b90af3f4c81df4f6acba))
+
+
+### Continuous Integration
+
+* release through release-please and publish from the release workflow ([579e004](https://github.com/TimeToAlign/timeskeleton/commit/579e00449efb105e21e91e99892287ddabf277f2))
+
 ## [0.2.0] - 2026-10-10
 
 ### Added
