@@ -4,12 +4,13 @@ These rules apply to every contributor, human or automated.
 
 ## Repository layout
 
-- `schema/`: the 0.4.0 JSON Schema for one manifest
+- `schema/`: the 0.5.0 JSON Schema for one manifest
   `{meta, timeline, graphical?}`; it is the format contract and source of
   truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
-  and SVG and TikZ writers; it is part of the contract.
-- `fixtures/`: generated 0.4.0 manifests, hand-authored rejection cases, and
+  and SVG and TikZ writers; it is part of the contract, and both packages
+  ship it.
+- `fixtures/`: generated 0.5.0 manifests under `fixtures/0.5.0/`, hand-authored rejection cases, and
   the drawings (`inputs.json`, `figure.svg` and `figure.tex` per drawing;
   seven `figure.svg` derived by hand, everything else emitted); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37, its licence, and the advance-width metrics used
@@ -48,8 +49,11 @@ These rules apply to every contributor, human or automated.
   figures are produced by TimeLineEditor's writers (its `emit-drawings`
   script, writing into a timeskeleton checkout).
 - Write every manifest fixture and rejection case with the standard writer
-  `dumps` of either package: canonical order, two-space indentation, final
-  newline, and floats spelled as Python's `repr`. In JavaScript, read
+  `dumps` of either package: object keys sorted by code point at every depth,
+  arrays in canonical order, two-space indentation, final newline, and floats
+  spelled as Python's `repr`. Never keep a fixed list of key orders; key order
+  is sorted order, and `canonical_order` covers only the order of array
+  elements. In JavaScript, read
   manifests with `parse` or `parseJson`, never `JSON.parse`, and write
   them with `dumps` or `compactJson`, never `JSON.stringify`; the native
   methods lose the distinction between `2.0` and `2`, integers beyond 2^53,
@@ -61,7 +65,7 @@ These rules apply to every contributor, human or automated.
 - Regenerate `fonts/dejavu-sans-2.37.metrics.json` with
   `scripts/extract_font_metrics.py`; do not calculate or edit its advances by
   hand.
-- Keep every schema version from 0.4.0 onward validatable. Each later version
+- Keep every schema version from 0.5.0 onward validatable. Each later version
   adds pure, ordered migrations in both packages, with every step pinned by a
   before-and-after fixture pair.
 

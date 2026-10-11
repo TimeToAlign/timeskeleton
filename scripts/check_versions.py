@@ -14,7 +14,7 @@ A timeskeleton release is one version carried by:
 Usage::
 
     python scripts/check_versions.py            # the declarations agree with each other
-    python scripts/check_versions.py --tag v0.4.0   # ... and with the release tag
+    python scripts/check_versions.py --tag v0.5.0   # ... and with the release tag
 
 Exit status 0 prints the agreed version; 1 lists every disagreement.
 Standard library only, so the release workflow can run it before any
@@ -75,7 +75,7 @@ def schema_declarations(version: str) -> dict[str, str | None]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--tag", help="release tag that must carry the version, e.g. v0.4.0")
+    parser.add_argument("--tag", help="release tag that must carry the version, e.g. v0.5.0")
     args = parser.parse_args(argv)
 
     found = declarations()

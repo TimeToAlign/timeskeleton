@@ -23,6 +23,7 @@ import {
   loadFixture,
   rejectionFileNames,
   rejectionText,
+  repositoryRoot,
 } from "./fixtures.js";
 
 type JsonObject = Record<string, unknown>;
@@ -69,12 +70,38 @@ function standardFiles(): [string, string][] {
 }
 
 describe("the standard writer", () => {
-  it("round-trips all 73 standard files", () => {
-    expect(standardFiles().length).toBe(23 + 50);
+  it("round-trips all 78 standard files", () => {
+    expect(standardFiles().length).toBe(23 + 55);
   });
 
   it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {
     expect(dumps(parseJson(text))).toBe(text);
+  });
+
+  it("writes every standard file, keys and unordered arrays reversed, as Python does", () => {
+    // A rejection case holds its manifest under `manifest`, which the canonical
+    // order does not reach, so only its keys are reversed.
+    const reversed = standardFiles().map(([name, text]) =>
+      compactJson(reverse(parseJson(text), false, !name.startsWith("rejections/"))),
+    );
+    const script = [
+      "import importlib.util, json, sys",
+      "spec = importlib.util.spec_from_file_location('manifest', sys.argv[1])",
+      "manifest = importlib.util.module_from_spec(spec)",
+      "spec.loader.exec_module(manifest)",
+      "texts = json.loads(sys.stdin.buffer.read().decode('utf-8'))",
+      "out = [manifest.dumps(json.loads(text)) for text in texts]",
+      "sys.stdout.buffer.write(json.dumps(out, ensure_ascii=False).encode('utf-8'))",
+    ].join("\n");
+    const python = spawnSync(
+      "python3",
+      ["-I", "-c", script, resolve(repositoryRoot, "python/src/timeskeleton/manifest.py")],
+      { input: JSON.stringify(reversed), encoding: "utf8" },
+    );
+    expect(python.status, python.stderr).toBe(0);
+    const written = reversed.map((text) => dumps(parseJson(text)));
+    expect(written).toEqual(JSON.parse(python.stdout) as string[]);
+    expect(written).toEqual(standardFiles().map(([, text]) => text));
   });
 
   it("writes the number and string corpus exactly as Python does", () => {
@@ -137,7 +164,7 @@ describe("parseJson", () => {
     const text = '{\n  "b": 1,\n  "10": 2,\n  "2": 3\n}\n';
     const value = parseJson(text) as JsonObject;
     expect(Object.keys(value)).toEqual(["2", "10", "b"]);
-    expect(dumps(value)).toBe(text);
+    expect(compactJson(value as Lossless<Json>)).toBe('{"b":1,"10":2,"2":3}');
   });
 
   it("refuses text that is not one JSON value", () => {
@@ -162,27 +189,36 @@ describe("integer boundaries", () => {
 });
 
 describe("canonical order", () => {
-  it("orders array-index marker names by code point and writes them so", () => {
-    const manifest = {
-      timeline: { flow_control: { breaks: [], jumps: [], markers: { a: 1, "2": 2, "10": 3 } } },
-    };
-    const text = dumps(manifest);
-    expect(text.indexOf('"10"')).toBeLessThan(text.indexOf('"2"'));
-    expect(text.indexOf('"2"')).toBeLessThan(text.indexOf('"a"'));
-    expect(dumps(parseJson(text))).toBe(text);
+  it("sorts every object by key, array-index keys included", () => {
+    const value = parseJson(
+      '{"b": 1, "\\ud83d\\ude00": 2, "\\ufb00": 3, "A": {"z": 0, "10": 1, "2": 2}}',
+    );
+    expect(dumps(value)).toBe(
+      [
+        "{",
+        '  "A": {',
+        '    "10": 1,',
+        '    "2": 2,',
+        '    "z": 0',
+        "  },",
+        '  "b": 1,',
+        '  "\u{FB00}": 3,',
+        '  "\u{1F600}": 2',
+        "}",
+        "",
+      ].join("\n"),
+    );
   });
 
   it("copies, and leaves a value that is no manifest unchanged", () => {
     const value = parseJson('{"b": [3, 1], "a": {"timeline": 1}}');
     const ordered = canonicalOrder(value);
     expect(ordered).not.toBe(value);
-    expect(dumps(ordered)).toBe(
-      '{\n  "b": [\n    3,\n    1\n  ],\n  "a": {\n    "timeline": 1\n  }\n}\n',
-    );
+    expect(compactJson(ordered)).toBe('{"b":[3,1],"a":{"timeline":1}}');
   });
 
   it("refuses a collection it cannot order", () => {
-    const manifest = { timeline: { regions: [{ name: "r" }, { name: "s" }] } };
+    const manifest = { timeline: { regions: [{ id: "r" }, { id: "s" }] } };
     expect(() => dumps(manifest)).toThrow(TypeError);
   });
 
@@ -190,42 +226,18 @@ describe("canonical order", () => {
     const result = canonicalOrder(tiedManifest());
     validate(result);
     const timeline = result.timeline as unknown as JsonObject;
-    const children = timeline.children as Record<string, { timeline: JsonObject }>;
-    expect(Object.keys(children)).toEqual(["b", "a", "m", "z"]);
-    const nested = children.z as { timeline: JsonObject };
-    expect(Object.keys(nested.timeline.children as JsonObject)).toEqual(["x", "y"]);
-    expect((timeline.conversion_maps as JsonObject[]).map((entry) => entry.id)).toEqual([
-      "B",
-      "a",
-      "b",
-      "\u{FB00}",
-      "\u{1F600}",
-    ]);
-    expect((timeline.regions as JsonObject[]).map((entry) => entry.name)).toEqual([
-      "d",
-      "c",
-      "a",
-      "b",
-    ]);
+    const ids = (entries: unknown) => (entries as JsonObject[]).map((entry) => entry.id);
+    expect(Object.keys(timeline.children as JsonObject)).toEqual(["z", "m", "b", "a"]);
+    expect(ids(timeline.conversion_maps)).toEqual(["B", "B2", "a2", "\u{FB00}", "\u{1F600}"]);
+    expect(ids(timeline.regions)).toEqual(["rd", "rc", "ra", "rb"]);
     const flow = timeline.flow_control as JsonObject;
-    expect((flow.breaks as JsonObject[]).map((entry) => entry.label)).toEqual([
-      "early",
-      "Fine",
-      "always",
-    ]);
-    expect((flow.jumps as JsonObject[]).map((entry) => entry.label)).toEqual([
-      "early",
-      "short",
-      "DaCapo",
-      "Repeat",
-    ]);
-    expect(Object.keys(flow.markers as JsonObject)).toEqual([
-      "Coda",
-      "repeat-start",
-      "\u{E9}",
-      "\u{FB00}",
-      "\u{1F600}",
-    ]);
+    expect(ids(flow.breaks)).toEqual(["kz", "ka", "kb"]);
+    expect(ids(flow.jumps)).toEqual(["je", "js", "jd", "jj"]);
+    expect(ids(flow.markers)).toEqual(["start", "Coda", "\u{E9}", "\u{FB00}!", "\u{1F600}!"]);
+    const written = (parseJson(dumps(result)) as JsonObject).timeline as JsonObject;
+    const children = written.children as Record<string, { timeline: JsonObject }>;
+    expect(Object.keys(children)).toEqual(["a", "b", "m", "z"]);
+    expect(Object.keys(children.z?.timeline.children as JsonObject)).toEqual(["x", "y"]);
   });
 });
 
@@ -233,12 +245,12 @@ function at(numerator: number, denominator = 1): JsonObject {
   return { unit: "quarters", number_type: "fraction", value: [numerator, denominator] };
 }
 
-/** The flow-control fixture, extended with ties at every key level. */
+/** The bare fixture, extended with ties at every key level. */
 function tiedManifest(): JsonObject {
-  const manifest = loadFixture("flow_control");
+  const manifest = loadFixture("bare");
   const timeline = manifest.timeline as JsonObject;
   const copyOf = (id: string): JsonObject => ({
-    ...(loadFixture("flow_control").timeline as JsonObject),
+    ...(loadFixture("bare").timeline as JsonObject),
     id,
   });
 
@@ -253,7 +265,7 @@ function tiedManifest(): JsonObject {
     b: { offset: at(5, 8), timeline: copyOf("b") },
     a: { offset: at(2, 3), timeline: copyOf("a") },
   };
-  timeline.conversion_maps = ["\u{1F600}", "\u{FB00}", "b", "a", "B"].map((id) => ({
+  timeline.conversion_maps = ["\u{1F600}", "\u{FB00}", "B2", "a2", "B"].map((id) => ({
     type: "ShiftMap",
     id,
     name: id,
@@ -263,30 +275,80 @@ function tiedManifest(): JsonObject {
   }));
   timeline.regions = (
     [
-      ["b", at(2), at(6)],
-      ["a", at(2), at(6)],
-      ["c", at(2), at(4)],
-      ["d", at(5, 8), at(2, 3)],
+      ["rb", at(2), at(6)],
+      ["ra", at(2), at(6)],
+      ["rc", at(2), at(4)],
+      ["rd", at(5, 8), at(2, 3)],
     ] as const
-  ).map(([name, start, end]) => ({ name, start, end, meta: {} }));
+  ).map(([id, start, end]) => ({ id, name: id, start, end, meta: {} }));
   const flow = timeline.flow_control as JsonObject;
-  const [fine] = flow.breaks as JsonObject[];
-  flow.breaks = [
-    { ...fine, condition: "always", label: "always" },
-    { ...fine, coordinate: at(5, 8), label: "early" },
-    fine,
-  ];
-  const [repeat] = flow.jumps as JsonObject[];
-  flow.jumps = [
-    repeat,
-    { ...repeat, control_type: "da_capo", label: "DaCapo" },
-    { ...repeat, to_coordinate: at(2, 3), label: "short" },
-    { ...repeat, from_coordinate: at(5, 8), label: "early" },
-  ];
-  for (const name of ["\u{1F600}", "\u{FB00}", "\u{E9}", "Coda"]) {
-    (flow.markers as JsonObject)[name] = at(2);
-  }
+  flow.breaks = (
+    [
+      ["kb", at(12)],
+      ["ka", at(12)],
+      ["kz", at(5, 8)],
+    ] as const
+  ).map(([id, coordinate]) => ({
+    id,
+    coordinate,
+    control_type: "fine",
+    condition: "always",
+    repeat_count: 1,
+    label: null,
+    name: null,
+    meta: {},
+  }));
+  flow.jumps = (
+    [
+      ["jj", at(8), at(2), "Coda"],
+      ["jd", at(8), at(2), null],
+      ["js", at(8), at(2, 3), null],
+      ["je", at(5, 8), at(2), null],
+    ] as const
+  ).map(([id, from, to, target]) => ({
+    id,
+    from_coordinate: from,
+    to_coordinate: to,
+    control_type: "repeat_end",
+    condition: "always",
+    repeat_count: 1,
+    target,
+    label: null,
+    meta: {},
+  }));
+  flow.markers = (
+    [
+      ["\u{1F600}!", at(2)],
+      ["\u{FB00}!", at(2)],
+      ["\u{E9}", at(2)],
+      ["Coda", at(2)],
+      ["start", at(5, 8)],
+    ] as const
+  ).map(([id, coordinate]) => ({ id, name: null, coordinate }));
   return manifest;
+}
+
+/**
+ * The value with every object's keys reversed, and the items of every array
+ * whose order carries no meaning: a timeline's `conversion_maps` and
+ * `regions`, and the `breaks`, `jumps` and `markers` of its `flow_control`.
+ */
+function reverse(value: unknown, unordered = false, arrays = true): Lossless<Json> {
+  if (Array.isArray(value)) {
+    const items = value.map((item) => reverse(item, false, arrays));
+    return unordered ? items.reverse() : items;
+  }
+  if (isJsonObject(value)) {
+    const timeline = arrays && "flow_control" in value && "regions" in value;
+    const flow = arrays && "breaks" in value && "jumps" in value && "markers" in value;
+    const members = timeline ? ["conversion_maps", "regions"] : flow ? Object.keys(value) : [];
+    return Object.fromEntries(
+      Object.keys(value)
+        .reverse()
+        .map((member) => [member, reverse(value[member], members.includes(member), arrays)]),
+    ) as Lossless<Json>;
+  }
+  return value as Lossless<Json>;
 }
 
 describe("canonical JSON text", () => {
@@ -359,7 +421,7 @@ describe("values the writer refuses", () => {
 describe("parse", () => {
   it("reads and validates a manifest", () => {
     const manifest = parse(fixtureText("continuous_physical")) as unknown as JsonObject;
-    expect((manifest.meta as JsonObject).schema_version).toBe("0.4.0");
+    expect((manifest.meta as JsonObject).schema_version).toBe("0.5.0");
     const timeline = manifest.timeline as JsonObject;
     const offsets = Object.values(timeline.children as JsonObject).map(
       (child) => ((child as JsonObject).offset as JsonObject).value,

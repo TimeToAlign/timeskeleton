@@ -6,22 +6,23 @@ timelines, with manifest fixtures emitted by
 packages for Python and TypeScript. It carries timeline structure, not event
 data.
 
-**Status: alpha.** The repository contains schema version 0.4.0. It provides
-validators that locate a violation under one shared path rule, a canonical
-manifest order, standard writers that produce the same bytes in Python and
-TypeScript, a lossless JSON reader for TypeScript, generated TypeScript types,
-and shared fixtures. It also specifies how a manifest is drawn.
+**Status: alpha.** The repository contains schema version 0.5.0, its first
+version. It provides validators that locate a violation under one shared path
+rule, a canonical manifest order, standard writers that produce the same bytes
+in Python and TypeScript, a lossless JSON reader for TypeScript, generated
+TypeScript types, and shared fixtures. It also specifies how a manifest is
+drawn, and both packages ship that specification.
 
 ## The manifest
 
 A TimeSkeleton file is one manifest: a JSON object with `meta`, `timeline`,
-and an optional `graphical` block. `meta.schema_version` is `"0.4.0"`, and
+and an optional `graphical` block. `meta.schema_version` is `"0.5.0"`, and
 `meta.generator` is optional. `timeline` is one timeline manifest matching
 timetoalign's `Timeline.to_dict(events=False)` output: its axis (`class`,
 `unit`, `number_type`, and `length`), child timelines at exact offsets,
 conversion maps, regions, flow control, measure map, and metric hierarchy.
 The schema identifier is
-[`https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json).
+[`https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json).
 
 A manifest describes exactly one top-level timeline and all its descendants.
 It says nothing about where or how often an application places that timeline.
@@ -33,6 +34,17 @@ Every coordinate-valued member is an object with `unit`, `number_type`, and
 integer, a float is a JSON number, and a fraction is a `[numerator,
 denominator]` pair of JSON integers with a strictly positive denominator,
 mirroring BOPP.
+
+Every timeline, conversion map, region, flow-control break, jump and marker
+carries an `id`, which identifies it; a `name`, where an element has one, is
+what is displayed, and it may repeat. An id is unique within the manifest across all of
+these kinds; it is a non-empty string without `/` and without control
+characters, and it may contain spaces. Flow-control `markers` is a
+list of `{id, name, coordinate}` objects, and a jump's `target` is the id of a
+marker of the same timeline, or `null`. The JSON Schema cannot express either
+rule, so both validators check them after the schema: one problem per
+duplicate id, located at its second occurrence, then one per jump whose
+`target` names no marker of its timeline, located at that `target`.
 
 A measure map is the
 [Measure Map standard](https://github.com/measure-map/specification)'s
@@ -79,7 +91,9 @@ the sorted missing names. Python issues one `MissingStyleWarning` and npm one
 valid, and a statement that names one of those empty declarations sets nothing.
 
 A drawing is derived and is not exchanged as JSON. The drawing specification
-pins the drawing.
+pins the drawing, and both packages contain it: the wheel as
+`timeskeleton/docs/drawing.md`, the npm package as
+`@timetoalign/timeskeleton/docs/drawing.md`.
 
 Every text is measured and drawn with the bundled DejaVu Sans 2.37 release
 file, `fonts/DejaVuSans.ttf`. `fonts/LICENSE` contains its licence, and
@@ -92,26 +106,30 @@ package exports `fontMetrics` and exposes the files through the
 ## Canonical order
 
 Readers accept a manifest's collections in any order. Writers emit one
-canonical order, so equal manifests have equal text:
+canonical order, so equal manifests have equal text. The keys of every object,
+at every depth, are sorted by Unicode code point. The arrays whose order keys
+cannot express are put in this order:
 
-- at every depth, `children` by offset, then id;
 - `conversion_maps` by id;
-- `regions` by start, then end, then name;
-- flow-control `breaks` by coordinate, then canonical JSON text;
-- flow-control `jumps` by from coordinate, then to coordinate, then canonical
-  JSON text;
-- flow-control `markers` by name.
+- `regions` by start, then end, then id;
+- flow-control `breaks` and `markers` by coordinate, then id;
+- flow-control `jumps` by from coordinate, then to coordinate, then id.
 
-Coordinates compare by exact numeric value, never by JSON spelling. Strings
-compare by Unicode code point. The canonical JSON text of an entry has its
-object keys sorted by code point and no whitespace. Nothing else is reordered:
-the members of a timeline manifest, `meta`, `graphical`, conversion-map
-payloads, and measure-map rows keep their order.
+Ids are unique within a manifest, so no two entries tie.
+
+`children` is an object keyed by id, so its text is sorted by id; its
+canonical order, the one a reader that traverses the tree follows, is by
+offset, then id. Coordinates compare by exact numeric value, never by JSON
+spelling. Strings compare by Unicode code point. No other
+array is reordered: `graphical` statements, conversion-map payloads, and
+measure-map rows keep their order.
 
 ## The standard writer
 
-Each package has one writer, `dumps`. It puts a manifest in canonical order
-and writes UTF-8 text with two-space indentation and a final newline. Every
+Each package has one writer, `dumps`. It puts a manifest in canonical order,
+sorts the keys of every object by code point, and writes UTF-8 text with
+two-space indentation and a final newline. It writes any other JSON value, such
+as an application's file embedding manifests, under the same rules. Every
 character is unescaped except `"`, `\`, and control characters U+0000 to
 U+001F. A float remains a float and is spelled as Python's `repr` spells it
 (`2.0`, `0.0001`, `1e-05`, `1e+16`, `-0.0`); an integer never has a decimal
@@ -153,15 +171,18 @@ else:
 ```
 
 - `validate(value)` checks a manifest against the version it declares. A value
-  that does not declare the supported version is checked against 0.4.0 and is
+  that does not declare the supported version is checked against 0.5.0 and is
   rejected at `meta.schema_version`.
 - `dumps(value)` returns the standard text of a manifest or any JSON value.
-- `canonical_order(value)` returns a deep copy with the manifest collections
-  in canonical order. `canonical_json(value)` returns compact JSON with object
+- `canonical_order(value)` returns a deep copy with the manifest's arrays in
+  canonical order. `canonical_json(value)` returns compact JSON with object
   keys sorted by code point.
+- `identity_problems(value)` returns every violation of the identity rules in
+  a schema-valid manifest, in the order described above; `validate` raises the
+  first.
 - `complete_styles(graphical)` returns `(completed, missing)` and warns with
   `MissingStyleWarning` when `missing` is non-empty.
-- `SCHEMA_VERSION` is `"0.4.0"`, and `SUPPORTED_VERSIONS` is `("0.4.0",)`.
+- `SCHEMA_VERSION` is `"0.5.0"`, and `SUPPORTED_VERSIONS` is `("0.5.0",)`.
   `declared_version(value)` returns `meta.schema_version` when it is a string.
 - `schema_path()` and `load_schema()` return the bundled schema;
   `fixture_paths()` and `rejection_paths()` return the bundled manifest and
@@ -199,12 +220,14 @@ function load(text: string): string {
 - `validate(value)` narrows an unknown value to `TimeSkeletonManifest`.
 - `dumps(value)` is the standard writer. `compactJson(value)` writes without
   whitespace, and `canonicalJson(value)` also sorts object keys by code point.
-- `canonicalOrder(value)` returns a deep copy with the manifest collections in
+- `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
   canonical order.
+- `identityProblems(value)` returns the same identity problems as Python's
+  `identity_problems`.
 - `completeStyles(graphical)` returns `{graphical: completed, missing}`.
 - `fontMetrics` contains the bundled font's advance-width metrics.
 - `schema`, `schemas`, `SCHEMA_VERSION`, and `SUPPORTED_VERSIONS` expose the
-  bundled 0.4.0 contract. The generated types include
+  bundled 0.5.0 contract. The generated types include
   `TimeSkeletonManifest`, `TimelineManifest`, `Graphical`, `Statement`,
   `Selector`, and `Declaration`.
 
@@ -224,8 +247,8 @@ to be written as a float. JavaScript code that writes manifests must use
 
 ## Versioning
 
-Schema 0.4.0 is the earliest version this repository validates. Every schema
-version from 0.4.0 onward remains validatable. A later schema version adds
+Schema 0.5.0 is the earliest version this repository validates. Every schema
+version from 0.5.0 onward remains validatable. A later schema version adds
 pure, ordered migrations in both packages, with each step pinned by a
 before-and-after fixture pair.
 
@@ -235,7 +258,7 @@ that all version declarations agree.
 
 ## Fixtures
 
-The [fixture guide](fixtures/README.md) describes the generated 0.4.0
+The [fixture guide](fixtures/README.md) describes the generated 0.5.0
 manifests and the hand-authored rejection cases. Manifest fixtures are emitted
 only by `scripts/emit_fixtures.py` using timetoalign and record its version and
 commit in `meta.generator`. Do not edit them by hand.

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   declaredVersion,
+  identityProblems,
   jsonPointer,
   parse,
   parseJson,
@@ -47,19 +48,19 @@ describe("validate", () => {
     expect(rejection(plainCase.manifest).path).toEqual(testCase.path);
   });
 
-  it("has every 0.4.0 rejection declare 0.4.0 except the two without a declaration", () => {
+  it("has every 0.5.0 rejection declare 0.5.0 except the two without a declaration", () => {
     const exempt = ["meta_schema_version_unknown.json", "root_missing_meta.json"];
     const declaring: string[] = [];
-    for (const name of rejectionFileNames("0.4.0")) {
-      const version = declaredVersion(loadRejection(name, "0.4.0").manifest);
-      if (exempt.includes(name)) expect(version).not.toBe("0.4.0");
+    for (const name of rejectionFileNames("0.5.0")) {
+      const version = declaredVersion(loadRejection(name, "0.5.0").manifest);
+      if (exempt.includes(name)) expect(version).not.toBe("0.5.0");
       else {
-        expect(version, name).toBe("0.4.0");
+        expect(version, name).toBe("0.5.0");
         declaring.push(name);
       }
     }
-    expect(declaring).toHaveLength(48);
-    expect(declaredVersion(loadRejection(exempt[0] as string, "0.4.0").manifest)).toBe("9.9.9");
+    expect(declaring).toHaveLength(53);
+    expect(declaredVersion(loadRejection(exempt[0] as string, "0.5.0").manifest)).toBe("9.9.9");
   });
 
   it("renders a rejection path as a JSON pointer", () => {
@@ -118,5 +119,116 @@ describe("validate", () => {
     const manifest = loadFixture("bare");
     (manifest.timeline as Record<string, unknown>).name = "name\0with\tcontrols";
     validate(manifest);
+  });
+});
+
+type JsonObject = Record<string, unknown>;
+
+function coordinate(value: number): JsonObject {
+  return { unit: "quarters", number_type: "fraction", value: [value, 1] };
+}
+
+function marker(id: string): JsonObject {
+  return { id, name: null, coordinate: coordinate(1) };
+}
+
+function jump(id: string, target: string | null): JsonObject {
+  return {
+    id,
+    from_coordinate: coordinate(4),
+    to_coordinate: coordinate(0),
+    control_type: "repeat_end",
+    condition: "always",
+    repeat_count: 1,
+    target,
+    label: null,
+    meta: {},
+  };
+}
+
+/** Add a copy of the root, without its children, as child `id` at offset 0. */
+function withChild(manifest: JsonObject, id: string): JsonObject {
+  const root = manifest.timeline as JsonObject;
+  const child = { ...(parseJson(JSON.stringify(root)) as JsonObject), id, children: {} };
+  (root.children as JsonObject)[id] = { offset: coordinate(0), timeline: child };
+  return child;
+}
+
+function flowOf(timeline: unknown): JsonObject {
+  return (timeline as JsonObject).flow_control as JsonObject;
+}
+
+function problemsOf(manifest: JsonObject): [unknown, string][] {
+  return identityProblems(manifest as never).map((problem) => [problem.path, problem.detail]);
+}
+
+describe("identityProblems", () => {
+  it("finds none in any fixture", () => {
+    for (const file of fixtureFileNames()) {
+      expect(identityProblems(loadFixture(file.slice(0, -5)) as never), file).toEqual([]);
+    }
+  });
+
+  it("reports each repeated id once, at its later occurrence", () => {
+    const manifest = loadFixture("bare");
+    const child = withChild(manifest, "c");
+    flowOf(manifest.timeline).markers = [marker("m"), marker("m"), marker("bare")];
+    flowOf(child).markers = [marker("m")];
+    expect(problemsOf(manifest)).toEqual([
+      [
+        ["timeline", "flow_control", "markers", 1, "id"],
+        'duplicate id "m", first at #/timeline/flow_control/markers/0/id',
+      ],
+      [
+        ["timeline", "flow_control", "markers", 2, "id"],
+        'duplicate id "bare", first at #/timeline/id',
+      ],
+      [
+        ["timeline", "children", "c", "timeline", "flow_control", "markers", 0, "id"],
+        'duplicate id "m", first at #/timeline/flow_control/markers/0/id',
+      ],
+    ]);
+    expect(rejection(manifest).path).toEqual(["timeline", "flow_control", "markers", 1, "id"]);
+  });
+
+  it("visits children in code-point order of their keys", () => {
+    const manifest = loadFixture("bare");
+    for (const key of ["\u{1F600}", "\u{FB00}"]) {
+      flowOf(withChild(manifest, key)).markers = [marker("shared")];
+    }
+    expect(problemsOf(manifest).map(([path]) => path)).toEqual([
+      ["timeline", "children", "\u{1F600}", "timeline", "flow_control", "markers", 0, "id"],
+    ]);
+  });
+
+  it("requires a jump's target to name a marker of its own timeline", () => {
+    const manifest = loadFixture("bare");
+    const child = withChild(manifest, "c");
+    const flow = flowOf(manifest.timeline);
+    flow.markers = [marker("here")];
+    flow.jumps = [jump("j1", "here"), jump("j2", null), jump("j3", "there")];
+    flowOf(child).markers = [marker("there")];
+    flowOf(child).jumps = [jump("j4", "here")];
+    expect(problemsOf(manifest)).toEqual([
+      [
+        ["timeline", "flow_control", "jumps", 2, "target"],
+        '"there" names no marker of this timeline',
+      ],
+      [
+        ["timeline", "children", "c", "timeline", "flow_control", "jumps", 0, "target"],
+        '"here" names no marker of this timeline',
+      ],
+    ]);
+  });
+
+  it("lists duplicates before dangling targets", () => {
+    const manifest = loadFixture("bare");
+    const flow = flowOf(manifest.timeline);
+    flow.jumps = [jump("j", "nowhere")];
+    flow.markers = [marker("j")];
+    expect(problemsOf(manifest).map(([path]) => path)).toEqual([
+      ["timeline", "flow_control", "markers", 0, "id"],
+      ["timeline", "flow_control", "jumps", 0, "target"],
+    ]);
   });
 });

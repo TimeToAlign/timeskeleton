@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "timeskeleton"
-version = "0.4.0"
+version = "0.5.0"
 description = "The TimeSkeleton manifest schema, its fixtures and a validator"
 dynamic = ["readme"]
 requires-python = ">=3.11"
@@ -36,8 +36,8 @@ dev = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/timeskeleton"]
 
-# The schema, fixture and font directories and the README live at the
-# repository root. The hooks bundle them into the sdist and the wheel without copying
+# The schema, fixture, font and documentation directories and the README live
+# at the repository root. The hooks bundle them into the sdist and the wheel without copying
 # them into the source tree; see hatch_build.py.
 [tool.hatch.build.hooks.custom]
 path = "hatch_build.py"

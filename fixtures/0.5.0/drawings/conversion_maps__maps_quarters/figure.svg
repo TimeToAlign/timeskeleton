@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="570.1926" height="166.4766" viewBox="0 0 570.1926 166.4766" font-family="DejaVu Sans" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="538.1926" height="134.4766" rx="10" fill="#F3F4F6"/>
+<polygon data-address="cmap_1" points="120.9136,93 520.9136,93 520.9136,95 120.9136,95" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_10" points="120.9136,88 520.9136,88 520.9136,90 120.9136,90" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_11" points="120.9136,83 520.9136,83 520.9136,85 120.9136,85" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="cmap_12" points="120.9136,78 520.9136,78 520.9136,80 120.9136,80" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_13" points="120.9136,73 520.9136,73 520.9136,75 120.9136,75" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="cmap_14" points="120.9136,68 520.9136,68 520.9136,70 120.9136,70" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_2" points="120.9136,63 520.9136,63 520.9136,65 120.9136,65" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_3" points="120.9136,58 520.9136,58 520.9136,60 120.9136,60" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="cmap_4" points="120.9136,53 520.9136,53 520.9136,55 120.9136,55" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_5" points="120.9136,48 520.9136,48 520.9136,50 120.9136,50" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_6" points="120.9136,43 520.9136,43 520.9136,45 120.9136,45" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_7" points="120.9136,38 520.9136,38 520.9136,40 120.9136,40" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="cmap_8" points="120.9136,33 520.9136,33 520.9136,35 120.9136,35" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="cmap_9" points="120.9136,28 520.9136,28 520.9136,30 120.9136,30" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="lmap_1" points="120.9136,23 520.9136,23 520.9136,25 120.9136,25" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="pmap_1" points="120.9136,18 520.9136,18 520.9136,20 120.9136,20" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="tmap_1" points="120.9136,13 520.9136,13 520.9136,15 120.9136,15" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="tmap_2" points="120.9136,8 520.9136,8 520.9136,10 120.9136,10" fill="none" stroke="#0050EF" stroke-width="1"/>
+<line data-address="maps:quarters" x1="120.9136" y1="99.5" x2="520.9136" y2="99.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="maps:quarters" cx="120.9136" cy="99.5" r="3" fill="#00CC00"/>
+<polygon data-address="maps:quarters" points="529.9136,99.5 520.9136,95 520.9136,104" fill="#00CC00"/>
+<polygon data-address="maps:quarters/start" points="120.9136,101 117.9136,114 123.9136,114" fill="#000000"/>
+<polygon data-address="maps:quarters/end" points="520.9136,101 517.9136,114 523.9136,114" fill="#000000"/>
+<text data-address="maps:quarters/name" x="8" y="103.3081" text-anchor="start" font-size="11" fill="#000000">Quarter-note maps</text>
+<text data-address="maps:quarters/start/label" x="120.9136" y="124.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="maps:quarters/end/label" x="520.9136" y="124.354" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+</g>
+</svg>

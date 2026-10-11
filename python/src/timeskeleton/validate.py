@@ -1,11 +1,12 @@
 """The TimeSkeleton schemas and their validators.
 
-A manifest is checked against ``timeskeleton-<version>.schema.json``. The
-schema files, the manifest fixtures and the font live at the repository root
-and are bundled into the wheel under ``timeskeleton/schema``,
-``timeskeleton/fixtures`` and ``timeskeleton/fonts``. The resource helpers
-below find them in either place, so the package works from an installed wheel
-and from a source checkout alike.
+A manifest is checked against ``timeskeleton-<version>.schema.json``, then
+for the identity rules the schema cannot express. The schema files, the
+manifest fixtures, the font and the drawing specification live at the
+repository root and are bundled into the wheel under ``timeskeleton/schema``,
+``timeskeleton/fixtures``, ``timeskeleton/fonts`` and ``timeskeleton/docs``.
+The resource helpers below find them in either place, so the package works
+from an installed wheel and from a source checkout alike.
 """
 
 from __future__ import annotations
@@ -20,10 +21,10 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-SCHEMA_VERSION = "0.4.0"
+SCHEMA_VERSION = "0.5.0"
 """The latest schema version bundled by this package."""
 
-SUPPORTED_VERSIONS: tuple[str, ...] = ("0.4.0",)
+SUPPORTED_VERSIONS: tuple[str, ...] = ("0.5.0",)
 """Every bundled schema version, oldest first."""
 
 
@@ -212,6 +213,9 @@ def validate(value: Mapping[str, Any]) -> None:
     is checked against that version's schema. Any other value is checked
     against the latest schema, which rejects it at ``meta.schema_version``.
 
+    A value the schema accepts is then checked for the identity rules the
+    schema cannot express (:func:`identity_problems`).
+
     Raises:
         SchemaValidationError: On the first violation found, with the path to
             the offending value.
@@ -221,3 +225,74 @@ def validate(value: Mapping[str, Any]) -> None:
     error = _select(_validator(target).iter_errors(value), load_schema(target))
     if error is not None:
         raise SchemaValidationError(tuple(error.absolute_path), error.message)
+    problems = identity_problems(value)
+    if problems:
+        raise problems[0]
+
+
+def _element_ids(
+    timeline: Mapping[str, Any], path: tuple[str | int, ...]
+) -> Iterable[tuple[str, tuple[str | int, ...]]]:
+    """Yield every id of a timeline tree with its path, in identity order.
+
+    A timeline contributes its own id, then the ids of its conversion maps,
+    regions, breaks, jumps and markers in array order, then its children's
+    trees in code-point order of their keys.
+    """
+    yield timeline["id"], (*path, "id")
+    for member in ("conversion_maps", "regions"):
+        for index, entry in enumerate(timeline[member]):
+            yield entry["id"], (*path, member, index, "id")
+    flow = timeline["flow_control"]
+    for member in ("breaks", "jumps", "markers"):
+        for index, entry in enumerate(flow[member]):
+            yield entry["id"], (*path, "flow_control", member, index, "id")
+    for key in sorted(timeline["children"]):
+        yield from _element_ids(
+            timeline["children"][key]["timeline"], (*path, "children", key, "timeline")
+        )
+
+
+def _dangling_targets(
+    timeline: Mapping[str, Any], path: tuple[str | int, ...]
+) -> Iterable[SchemaValidationError]:
+    """Yield a problem for each jump whose target names no marker of its timeline."""
+    flow = timeline["flow_control"]
+    markers = {marker["id"] for marker in flow["markers"]}
+    for index, jump in enumerate(flow["jumps"]):
+        if jump["target"] is not None and jump["target"] not in markers:
+            yield SchemaValidationError(
+                (*path, "flow_control", "jumps", index, "target"),
+                f"{jump['target']!r} names no marker of this timeline",
+            )
+    for key in sorted(timeline["children"]):
+        yield from _dangling_targets(
+            timeline["children"][key]["timeline"], (*path, "children", key, "timeline")
+        )
+
+
+def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
+    """Return the violations of the identity rules in a schema-valid manifest.
+
+    Every id of a manifest (timelines, conversion maps, regions, breaks, jumps
+    and markers) is unique within it across all kinds: each repeated id is one
+    problem, located at its second occurrence in identity order (a timeline,
+    then its maps, regions, breaks, jumps and markers, then its children by
+    key). A jump's non-null ``target`` names a marker of the same timeline;
+    each one that does not is one problem, located at the ``target``. The
+    duplicate problems come first.
+    """
+    problems: list[SchemaValidationError] = []
+    first: dict[str, tuple[str | int, ...]] = {}
+    for identifier, path in _element_ids(value["timeline"], ("timeline",)):
+        if identifier in first:
+            earlier = json_pointer(first[identifier])
+            problems.append(
+                SchemaValidationError(
+                    path, f"duplicate id {identifier!r}, first at {earlier}"
+                )
+            )
+        else:
+            first[identifier] = path
+    problems.extend(_dangling_targets(value["timeline"], ("timeline",)))
+    return problems

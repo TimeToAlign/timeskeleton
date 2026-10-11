@@ -2,13 +2,14 @@
  * Lossless reading, the canonical order and the standard writer of a
  * TimeSkeleton manifest.
  *
- * Every collection of a manifest whose order carries no meaning has one
- * canonical order, so equal values are equal text: at every depth, `children`
- * by offset, then id; `conversion_maps` by id; `regions` by start, then end, then name; flow-control `breaks` by
- * coordinate, then canonical JSON text; `jumps` by from coordinate, then to
- * coordinate, then canonical JSON text; `markers` by name. Coordinates compare
- * by exact numeric value, strings by Unicode code point. Readers accept any
- * order; writers emit the canonical one.
+ * The standard writer sorts the keys of every object by Unicode code point, so
+ * equal objects are equal text whatever order their keys were given in. Every
+ * array of a manifest whose order carries no meaning has one canonical order:
+ * `conversion_maps` by id; `regions` by start, then end, then id; flow-control
+ * `breaks` and `markers` by coordinate, then id; `jumps` by from coordinate,
+ * then to coordinate, then id. Coordinates compare by exact numeric value,
+ * strings by Unicode code point; ids are unique within a manifest, so no two
+ * entries tie. Readers accept any order; writers emit the canonical one.
  *
  * The standard writer emits text with every character unescaped except `"`,
  * `\` and the control characters, two-space indentation and a final newline.
@@ -59,8 +60,8 @@ type JsonObject = Record<string, unknown>;
  * The order of an object's keys, where it differs from `Object.keys`.
  *
  * JavaScript lists array-index keys (`"2"`, `"10"`) first and in numeric order,
- * whatever order they were written in. `parseJson` and `canonicalOrder` record the
- * intended order of an object holding such keys here, and `dumps` honours it.
+ * whatever order they were written in. `parseJson` records the written order of
+ * an object holding such keys here, and `compactJson` honours it.
  */
 const KEY_ORDER = Symbol("timeskeleton.keyOrder");
 
@@ -359,8 +360,8 @@ export function compactJson(value: Lossless<Json>): string {
 /**
  * Return the standard text of any JSON value.
  *
- * The value is put in `canonicalOrder`, then written with two-space
- * indentation and a final newline, characters unescaped, every float spelled as
+ * The value is put in `canonicalOrder`, then written with the keys of every
+ * object sorted by code point, two-space indentation and a final newline, characters unescaped, every float spelled as
  * Python's `repr` spells it (a plain number with a fractional part, a
  * `JsonFloat`) and every integer without a decimal point (a plain integral
  * number, a `bigint`). Python's `timeskeleton.dumps` writes the same bytes.
@@ -369,7 +370,7 @@ export function compactJson(value: Lossless<Json>): string {
  * @throws {TypeError} for a value that is not JSON, or a collection that cannot be put in canonical order.
  */
 export function dumps(value: unknown): string {
-  return `${emit(canonicalOrder(value), "  ", false, "")}\n`;
+  return `${emit(canonicalOrder(value), "  ", true, "")}\n`;
 }
 
 // -- the canonical order ------------------------------------------------------------
@@ -480,15 +481,8 @@ function by<T>(...comparisons: ((left: T, right: T) => number)[]) {
   };
 }
 
-type Entry = [string, unknown];
-
 function member(entry: unknown, key: string): unknown {
   return isJsonObject(entry) ? entry[key] : undefined;
-}
-
-function sortedObject(value: JsonObject, compare: (a: Entry, b: Entry) => number): JsonObject {
-  const entries: Entry[] = keysOf(value).map((key) => [key, value[key]]);
-  return objectFrom(entries.sort(compare));
 }
 
 function orderTimeline(manifest: JsonObject): void {
@@ -497,56 +491,30 @@ function orderTimeline(manifest: JsonObject): void {
       const timeline = member(child, "timeline");
       if (isJsonObject(timeline)) orderTimeline(timeline);
     }
-    manifest.children = sortedObject(
-      manifest.children,
-      by<Entry>(
-        (a, b) => compareExact(member(a[1], "offset"), member(b[1], "offset")),
-        (a, b) => compareCodePoints(a[0], b[0]),
-      ),
-    );
   }
-  if (Array.isArray(manifest.conversion_maps)) {
-    manifest.conversion_maps.sort((a, b) =>
-      compareCodePoints(text(member(a, "id")), text(member(b, "id"))),
-    );
-  }
-  if (Array.isArray(manifest.regions)) {
-    manifest.regions.sort(
-      by<unknown>(
-        (a, b) => compareExact(member(a, "start"), member(b, "start")),
-        (a, b) => compareExact(member(a, "end"), member(b, "end")),
-        (a, b) => compareCodePoints(text(member(a, "name")), text(member(b, "name"))),
-      ),
-    );
-  }
+  const id = (a: unknown, b: unknown) =>
+    compareCodePoints(text(member(a, "id")), text(member(b, "id")));
+  const at =
+    (key: string) =>
+    (a: unknown, b: unknown): number =>
+      compareExact(member(a, key), member(b, key));
+  if (Array.isArray(manifest.conversion_maps)) manifest.conversion_maps.sort(id);
+  if (Array.isArray(manifest.regions)) manifest.regions.sort(by(at("start"), at("end"), id));
   const flow = manifest.flow_control;
   if (!isJsonObject(flow)) return;
-  const json = (a: unknown, b: unknown) =>
-    compareCodePoints(canonicalJson(a as Lossless<Json>), canonicalJson(b as Lossless<Json>));
-  if (Array.isArray(flow.breaks)) {
-    flow.breaks.sort(
-      by<unknown>((a, b) => compareExact(member(a, "coordinate"), member(b, "coordinate")), json),
-    );
-  }
+  if (Array.isArray(flow.breaks)) flow.breaks.sort(by(at("coordinate"), id));
   if (Array.isArray(flow.jumps)) {
-    flow.jumps.sort(
-      by<unknown>(
-        (a, b) => compareExact(member(a, "from_coordinate"), member(b, "from_coordinate")),
-        (a, b) => compareExact(member(a, "to_coordinate"), member(b, "to_coordinate")),
-        json,
-      ),
-    );
+    flow.jumps.sort(by(at("from_coordinate"), at("to_coordinate"), id));
   }
-  if (isJsonObject(flow.markers)) {
-    flow.markers = sortedObject(flow.markers, (a, b) => compareCodePoints(a[0], b[0]));
-  }
+  if (Array.isArray(flow.markers)) flow.markers.sort(by(at("coordinate"), id));
 }
 
 /**
- * Return a deep copy of `value` with its manifest ordered.
+ * Return a deep copy of `value` with the arrays of its manifest ordered.
  *
- * A top-level `timeline` orders that timeline manifest. Any other JSON value
- * is copied unchanged. Python's
+ * A top-level `timeline` orders the arrays of that timeline manifest and of
+ * its children at every depth. Object keys are left as they are (`dumps` sorts
+ * them), and any other JSON value is copied unchanged. Python's
  * `timeskeleton.canonical_order` gives the same order.
  *
  * @throws {TypeError} if a collection holds an entry whose ordering members are missing or of the wrong type.

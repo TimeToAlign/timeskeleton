@@ -10,6 +10,7 @@ from timeskeleton import (
     declared_version,
     dumps,
     fixture_paths,
+    identity_problems,
     json_pointer,
     rejection_paths,
     validate,
@@ -32,23 +33,23 @@ def test_shared_rejection_is_rejected_at_its_path(path) -> None:
     assert caught.value.path == tuple(case["path"])
 
 
-def test_every_0_4_0_rejection_declares_0_4_0_except_two() -> None:
+def test_every_0_5_0_rejection_declares_0_5_0_except_two() -> None:
     exempt = {"meta_schema_version_unknown", "root_missing_meta"}
     declaring = set()
-    for path in rejection_paths("0.4.0"):
+    for path in rejection_paths("0.5.0"):
         manifest = json.loads(path.read_text(encoding="utf-8"))["manifest"]
         if path.stem in exempt:
-            assert declared_version(manifest) != "0.4.0"
+            assert declared_version(manifest) != "0.5.0"
         else:
-            assert declared_version(manifest) == "0.4.0", path.stem
+            assert declared_version(manifest) == "0.5.0", path.stem
             declaring.add(path.stem)
-    assert len(declaring) == 48
+    assert len(declaring) == 53
     assert (
         declared_version(
             json.loads(
                 next(
                     path
-                    for path in rejection_paths("0.4.0")
+                    for path in rejection_paths("0.5.0")
                     if path.stem == "meta_schema_version_unknown"
                 ).read_text(encoding="utf-8")
             )["manifest"]
@@ -142,3 +143,123 @@ def test_any_other_declared_version_is_rejected_at_its_declaration(
     with pytest.raises(SchemaValidationError) as caught:
         validate(manifest)
     assert caught.value.path == ("meta", "schema_version")
+
+
+def _coordinate(value: int) -> dict:
+    return {"unit": "quarters", "number_type": "fraction", "value": [value, 1]}
+
+
+def _marker(marker_id: str) -> dict:
+    return {"id": marker_id, "name": None, "coordinate": _coordinate(1)}
+
+
+def _jump(jump_id: str, target: str | None) -> dict:
+    return {
+        "id": jump_id,
+        "from_coordinate": _coordinate(4),
+        "to_coordinate": _coordinate(0),
+        "control_type": "repeat_end",
+        "condition": "always",
+        "repeat_count": 1,
+        "target": target,
+        "label": None,
+        "meta": {},
+    }
+
+
+def _with_child(manifest: dict, child_id: str) -> dict:
+    """Add a copy of the root, without its children, as child ``child_id``."""
+    child = json.loads(json.dumps(manifest["timeline"]))
+    child["id"] = child_id
+    child["children"] = {}
+    manifest["timeline"]["children"][child_id] = {
+        "offset": _coordinate(0),
+        "timeline": child,
+    }
+    return child
+
+
+def test_every_fixture_has_no_identity_problem() -> None:
+    for path in fixture_paths():
+        assert identity_problems(json.loads(path.read_text(encoding="utf-8"))) == []
+
+
+def test_each_repeated_id_is_one_problem_at_its_later_occurrence(load_fixture) -> None:
+    manifest = load_fixture("bare")
+    child = _with_child(manifest, "c")
+    flow = manifest["timeline"]["flow_control"]
+    flow["markers"] = [_marker("m"), _marker("m"), _marker("bare")]
+    child["flow_control"]["markers"] = [_marker("m")]
+    problems = identity_problems(manifest)
+    assert [problem.path for problem in problems] == [
+        ("timeline", "flow_control", "markers", 1, "id"),
+        ("timeline", "flow_control", "markers", 2, "id"),
+        ("timeline", "children", "c", "timeline", "flow_control", "markers", 0, "id"),
+    ]
+    assert [problem.message for problem in problems] == [
+        "duplicate id 'm', first at #/timeline/flow_control/markers/0/id",
+        "duplicate id 'bare', first at #/timeline/id",
+        "duplicate id 'm', first at #/timeline/flow_control/markers/0/id",
+    ]
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(manifest)
+    assert caught.value.path == ("timeline", "flow_control", "markers", 1, "id")
+
+
+def test_children_are_visited_in_code_point_order_of_their_keys(load_fixture) -> None:
+    manifest = load_fixture("bare")
+    for key in ["\U0001f600", "\ufb00"]:
+        child = _with_child(manifest, key)
+        child["flow_control"]["markers"] = [_marker("shared")]
+    (problem,) = identity_problems(manifest)
+    assert problem.path == (
+        "timeline",
+        "children",
+        "\U0001f600",
+        "timeline",
+        "flow_control",
+        "markers",
+        0,
+        "id",
+    )
+
+
+def test_a_jump_targets_a_marker_of_its_own_timeline(load_fixture) -> None:
+    manifest = load_fixture("bare")
+    child = _with_child(manifest, "c")
+    flow = manifest["timeline"]["flow_control"]
+    flow["markers"] = [_marker("here")]
+    flow["jumps"] = [_jump("j1", "here"), _jump("j2", None), _jump("j3", "there")]
+    child["flow_control"]["markers"] = [_marker("there")]
+    child["flow_control"]["jumps"] = [_jump("j4", "here")]
+    problems = identity_problems(manifest)
+    assert [(problem.path, problem.message) for problem in problems] == [
+        (
+            ("timeline", "flow_control", "jumps", 2, "target"),
+            "'there' names no marker of this timeline",
+        ),
+        (
+            (
+                "timeline",
+                "children",
+                "c",
+                "timeline",
+                "flow_control",
+                "jumps",
+                0,
+                "target",
+            ),
+            "'here' names no marker of this timeline",
+        ),
+    ]
+
+
+def test_duplicates_come_before_dangling_targets(load_fixture) -> None:
+    manifest = load_fixture("bare")
+    flow = manifest["timeline"]["flow_control"]
+    flow["jumps"] = [_jump("j", "nowhere")]
+    flow["markers"] = [_marker("j")]
+    assert [problem.path for problem in identity_problems(manifest)] == [
+        ("timeline", "flow_control", "markers", 0, "id"),
+        ("timeline", "flow_control", "jumps", 0, "target"),
+    ]

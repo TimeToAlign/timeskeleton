@@ -60,8 +60,8 @@ def test_standard_files_round_trip_byte_for_byte(path) -> None:
     assert dumps(json.loads(text)) == text
 
 
-def test_the_standard_files_number_seventy_three() -> None:
-    assert len(_standard_files()) == 23 + 50
+def test_the_standard_files_number_seventy_eight() -> None:
+    assert len(_standard_files()) == 23 + 55
 
 
 def test_non_ascii_text_is_written_unescaped() -> None:
@@ -84,6 +84,22 @@ def test_canonical_order_copies_and_reorders_manifests_only(load_fixture) -> Non
     assert json.dumps(canonical_order(value)) == json.dumps(value)
 
 
+def test_the_writer_sorts_every_object_by_key() -> None:
+    value = {"b": 1, "\U0001f600": 2, "\ufb00": 3, "A": {"z": 0, "10": 1, "2": 2}}
+    assert dumps(value) == (
+        "{\n"
+        '  "A": {\n'
+        '    "10": 1,\n'
+        '    "2": 2,\n'
+        '    "z": 0\n'
+        "  },\n"
+        '  "b": 1,\n'
+        '  "\ufb00": 3,\n'
+        '  "\U0001f600": 2\n'
+        "}\n"
+    )
+
+
 def _at(numerator: int, denominator: int = 1) -> dict[str, Any]:
     return {
         "unit": "quarters",
@@ -93,8 +109,8 @@ def _at(numerator: int, denominator: int = 1) -> dict[str, Any]:
 
 
 def _tied_manifest(load_fixture) -> dict[str, Any]:
-    """The flow-control fixture, extended with ties at every key level."""
-    manifest = load_fixture("flow_control")
+    """The bare fixture, extended with ties at every key level."""
+    manifest = load_fixture("bare")
     timeline = manifest["timeline"]
     pristine = copy.deepcopy(timeline)
 
@@ -121,33 +137,64 @@ def _tied_manifest(load_fixture) -> dict[str, Any]:
             "target_unit": None,
             "offset": [1, 2],
         }
-        for map_id in ["\U0001f600", "\ufb00", "b", "a", "B"]
+        for map_id in ["\U0001f600", "\ufb00", "B2", "a2", "B"]
     ]
     timeline["regions"] = [
-        {"name": name, "start": start, "end": end, "meta": {}}
-        for name, start, end in [
-            ("b", _at(2), _at(6)),
-            ("a", _at(2), _at(6)),
-            ("c", _at(2), _at(4)),
-            ("d", _at(5, 8), _at(2, 3)),
+        {"id": region_id, "name": region_id, "start": start, "end": end, "meta": {}}
+        for region_id, start, end in [
+            ("rb", _at(2), _at(6)),
+            ("ra", _at(2), _at(6)),
+            ("rc", _at(2), _at(4)),
+            ("rd", _at(5, 8), _at(2, 3)),
         ]
     ]
     flow = timeline["flow_control"]
-    (fine,) = flow["breaks"]
     flow["breaks"] = [
-        {**fine, "condition": "always", "label": "always"},
-        {**fine, "coordinate": _at(5, 8), "label": "early"},
-        fine,
+        {
+            "id": break_id,
+            "coordinate": coordinate,
+            "control_type": "fine",
+            "condition": "always",
+            "repeat_count": 1,
+            "label": None,
+            "name": None,
+            "meta": {},
+        }
+        for break_id, coordinate in [
+            ("kb", _at(12)),
+            ("ka", _at(12)),
+            ("kz", _at(5, 8)),
+        ]
     ]
-    (repeat,) = flow["jumps"]
     flow["jumps"] = [
-        repeat,
-        {**repeat, "control_type": "da_capo", "label": "DaCapo"},
-        {**repeat, "to_coordinate": _at(2, 3), "label": "short"},
-        {**repeat, "from_coordinate": _at(5, 8), "label": "early"},
+        {
+            "id": jump_id,
+            "from_coordinate": start,
+            "to_coordinate": end,
+            "control_type": "repeat_end",
+            "condition": "always",
+            "repeat_count": 1,
+            "target": target,
+            "label": None,
+            "meta": {},
+        }
+        for jump_id, start, end, target in [
+            ("jj", _at(8), _at(2), "Coda"),
+            ("jd", _at(8), _at(2), None),
+            ("js", _at(8), _at(2, 3), None),
+            ("je", _at(5, 8), _at(2), None),
+        ]
     ]
-    for name in ["\U0001f600", "\ufb00", "\u00e9", "Coda"]:
-        flow["markers"][name] = _at(2)
+    flow["markers"] = [
+        {"id": marker_id, "name": None, "coordinate": coordinate}
+        for marker_id, coordinate in [
+            ("\U0001f600!", _at(2)),
+            ("\ufb00!", _at(2)),
+            ("\u00e9", _at(2)),
+            ("Coda", _at(2)),
+            ("start", _at(5, 8)),
+        ]
+    ]
     return manifest
 
 
@@ -155,31 +202,28 @@ def test_every_tie_resolves_to_the_canonical_order(load_fixture) -> None:
     result = canonical_order(_tied_manifest(load_fixture))
     validate(result)
     timeline = result["timeline"]
-    assert list(timeline["children"]) == ["b", "a", "m", "z"]
-    assert list(timeline["children"]["z"]["timeline"]["children"]) == ["x", "y"]
+    assert list(timeline["children"]) == ["z", "m", "b", "a"]
     assert [entry["id"] for entry in timeline["conversion_maps"]] == [
         "B",
-        "a",
-        "b",
+        "B2",
+        "a2",
         "\ufb00",
         "\U0001f600",
     ]
-    assert [entry["name"] for entry in timeline["regions"]] == ["d", "c", "a", "b"]
+    assert [entry["id"] for entry in timeline["regions"]] == ["rd", "rc", "ra", "rb"]
     flow = timeline["flow_control"]
-    assert [entry["label"] for entry in flow["breaks"]] == ["early", "Fine", "always"]
-    assert [entry["label"] for entry in flow["jumps"]] == [
-        "early",
-        "short",
-        "DaCapo",
-        "Repeat",
-    ]
-    assert list(flow["markers"]) == [
+    assert [entry["id"] for entry in flow["breaks"]] == ["kz", "ka", "kb"]
+    assert [entry["id"] for entry in flow["jumps"]] == ["je", "js", "jd", "jj"]
+    assert [entry["id"] for entry in flow["markers"]] == [
+        "start",
         "Coda",
-        "repeat-start",
         "\u00e9",
-        "\ufb00",
-        "\U0001f600",
+        "\ufb00!",
+        "\U0001f600!",
     ]
+    written = json.loads(dumps(result))["timeline"]
+    assert list(written["children"]) == ["a", "b", "m", "z"]
+    assert list(written["children"]["z"]["timeline"]["children"]) == ["x", "y"]
 
 
 def test_canonical_json_text() -> None:
@@ -207,6 +251,6 @@ def test_values_the_writer_refuses(value) -> None:
 
 
 def test_an_unorderable_collection_is_refused() -> None:
-    manifest = {"timeline": {"regions": [{"name": "r"}] * 2}}
+    manifest = {"timeline": {"regions": [{"id": "r"}] * 2}}
     with pytest.raises(ValueError, match="cannot put regions in canonical order"):
         dumps(manifest)

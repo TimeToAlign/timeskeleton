@@ -25,11 +25,11 @@ describe("the bundled font", () => {
 describe("fontMetrics", () => {
   it("holds the stated values", () => {
     expect(Object.keys(fontMetrics)).toEqual([
-      "units_per_em",
+      "advances",
       "ascender",
       "descender",
       "fallback",
-      "advances",
+      "units_per_em",
     ]);
     expect(fontMetrics.units_per_em).toBe(2048);
     expect(fontMetrics.ascender).toBe(1901);

@@ -19,6 +19,7 @@ export type {
   FractionNonnegative,
   Graphical,
   LinearMap,
+  Marker,
   NumberType,
   Paint,
   Selector,
@@ -44,6 +45,7 @@ export {
 export { completeStyles } from "./styles.js";
 export {
   declaredVersion,
+  identityProblems,
   jsonPointer,
   type PathSegment,
   parse,

@@ -38,9 +38,10 @@ specified yet. Terms in `code` are JSON members.
     a group: each timeline's maps lie against its own line (section 6.4).
 - `layers`: the statement lists that style the drawing, from the lowest to
   the highest precedence: the defaults of section 4, then any lists an
-  application supplies (such as an editor's settings), then the manifest's
-  own `graphical` block, then the overrides of whoever places the drawing.
-  Section 2 defines them.
+  application supplies below the manifest (such as an editor's settings),
+  then the manifest's own `graphical` block. No layer lies above the
+  manifest: a drawing's own styling is its manifest's. Section 2 defines
+  them.
 - `metrics`: the advance widths of the font of section 5.
 
 The drawing is a **box** of width `W` and height `H` and a list of drawn
@@ -70,7 +71,7 @@ change one input each:
   "statements": [
     {"select": {"element": "label"}, "set": {"fill": "#404040"}},
     {"select": {"element": "wedge", "within": "performance"}, "set": "highlight"},
-    {"select": {"ids": ["performance/region/0"]}, "set": {"display": "none"}}
+    {"select": {"ids": ["region_1"]}, "set": {"display": "none"}}
   ]
 }
 ```
@@ -132,22 +133,25 @@ own `name` and `label` where it has one (section 5.3; a map has neither).
 
 ### 2.2 Addresses
 
-Timeline ids are unique within a manifest. Every other address is derived
-from a timeline id `T` and is compared as a whole string. Indices count
-from 0, in canonical order.
+Every timeline, conversion map, region, break, jump and marker of a manifest
+carries an `id`, unique within the manifest across all of these kinds; an id
+is a non-empty string without `/` and without control characters. An element is addressed by its own id,
+and a part of an element by that element's address followed by `/` and the part's word (so a wedge's label is `T/end/label`).
+An address is compared as a whole string.
 
 | Element | Address | Belongs to |
 |---|---|---|
-| the root, or a child timeline `T` | `T` | `T` |
-| conversion map with id `M` on `T` | `T/map/M` | `T` |
-| the region at index `i` of `T`'s `regions` | `T/region/i` | `T` |
-| the break at index `i` of `T`'s `flow_control.breaks` | `T/break/i` | `T` |
-| the jump at index `i` of `T`'s `flow_control.jumps` | `T/jump/i` | `T` |
-| the root's wedges at its start and end | `T/start`, `T/end` | `T` |
+| the root, or a child timeline with id `T` | `T` | `T` |
+| a conversion map with id `M` on `T` | `M` | `T` |
+| a region with id `R` of `T`'s `regions` | `R` | `T` |
+| a break with id `B` of `T`'s `flow_control.breaks` | `B` | `T` |
+| a jump with id `J` of `T`'s `flow_control.jumps` | `J` | `T` |
+| the root's wedges at its start and end, the root's id being `T` | `T/start`, `T/end` | `T` |
 | the name of an element with address `C` | `C/name` | that element's timeline |
 | the label of an element with address `C` | `C/label` | that element's timeline |
 
-The block has no address.
+A marker is addressed by its id but is not drawn. The block has no
+address.
 
 ### 2.3 Selectors
 
@@ -256,8 +260,8 @@ ordinate plus `a(9)` or minus `d(9)`. `max` and `min` compare exactly.
 
 ## 4. Defaults
 
-The defaults are the lowest layer; an application may supply layers above
-them (section 1).
+The defaults are the lowest layer; an application may supply layers
+between them and the manifest's own `graphical` block (section 1).
 
 ```json
 {
@@ -348,7 +352,7 @@ is 1; a float as the standard writer spells it, which is Python's `repr`
 ### 5.3 Names and labels
 
 The name of a timeline is its `name`, or its `id` when `name` is null. A
-conversion map has no name or label in the drawing. A region's label is its `name`; a jump's label is its
+conversion map has no name or label in the drawing. A region's label is its `name`, and a region whose `name` is null has none; a jump's label is its
 `label`, or its `control_type` when `label` is null; a break's label is its
 `label`, and a break whose `label` is null has none.
 
@@ -357,7 +361,8 @@ conversion map has no name or label in the drawing. A region's label is its `nam
 ### 6.1 Traversal
 
 The **traversal** lists the timelines in pre-order: the root, then each
-child in canonical order, each followed by its own descendants.
+child in canonical order (by offset, compared by exact value, then by id,
+compared by Unicode code point, whatever the order of the `children` keys), each followed by its own descendants.
 
 ### 6.2 Constants
 

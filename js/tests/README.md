@@ -1,17 +1,17 @@
 # Test strategy for the `@timetoalign/timeskeleton` npm package
 
-This suite proves the draft public contract of schema 0.4.0.
+This suite proves the draft public contract of schema 0.5.0.
 
 ## What the package promises
 
 1. Every bundled fixture validates against the schema, read and validated by
    `parse` and as `JSON.parse` reads it.
-2. The schema rejects every shared case in `fixtures/rejections/0.4.0/` at the
-   exact stored path, in both readings and through `parse`; all 50 cases
+2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/` at
+   the exact stored path, in both readings and through `parse`; all 55 cases
    fail, including a manifest without its one required `timeline`. Every case
-   declares `"0.4.0"` except two: `meta_schema_version_unknown` declares the
+   declares `"0.5.0"` except two: `meta_schema_version_unknown` declares the
    unknown version `"9.9.9"`, and `root_missing_meta` has no `meta` to
-   declare one (the test "has every 0.4.0 rejection declare 0.4.0 except the
+   declare one (the test "has every 0.5.0 rejection declare 0.5.0 except the
    two without a declaration").
 3. A manifest declaring any other version (`"0.3.0"`, `"0.1.0"`, `"1.0.0"`,
    each made from `bare.json`) is rejected through the same error, a
@@ -26,16 +26,34 @@ This suite proves the draft public contract of schema 0.4.0.
    `ElementType`, `Paint`, `Declaration`) state the vocabulary listed in the
    Python suite's README, literally, as in Python; the manifest's members are
    `meta`, `timeline` and `graphical`, the first two required, no other
-   admitted. The styled blocks are stated literally, as in Python (twenty-one
+   admitted, and a styled fixture's members are written `graphical`, `meta`,
+   `timeline` (keys sorted). The styled blocks are stated literally, as in Python (twenty-one
    and five statements); the Python suite alone resolves their colours,
    since both suites read the same files. Exact validation
    cases accept every boundary stated there and reject values outside them at
-   the property path. Every `id` member and `children` key carries the literal
-   control-character exclusion, while timeline names with control characters
-   still validate.
+   the property path. Timeline names with control characters still validate.
 7. The fixture set is the exact list of 23 file names the Python suite
    states; the Python suite alone proves that no two of them share a
    structural signature, since both suites read the same files.
+8. The npm package ships `docs/drawing.md`: after `scripts/copy-assets.ts`,
+   `npm pack --dry-run --json` lists `docs/drawing.md`, the copy equals the
+   repository's file byte for byte, and `package.json` exports `./docs/*`.
+
+## Identity
+
+The rules and their proofs are stated in the Python suite's README
+("Identity"). `identityProblems` returns the same problems, with the same
+paths, in the same order, as Python's `identity_problems`, and this suite
+asserts the same cases: the schema's literal `Region`, `Break`, `Jump`,
+`Marker` and `markers` definitions and the id pattern `^[^/\u0000-\u001f]+$`
+on all twenty-six `id` members and on `children` keys; no problem in any
+fixture; three repeated ids reported at their later occurrences, the first
+one by `validate`; children visited in code-point order of their keys
+(`😀` before `ﬀ` would be UTF-16 order, `ﬀ` before `😀` is code-point order,
+so the `😀` child repeats); targets resolved within their own timeline; and
+duplicates listed before dangling targets. A JavaScript message quotes the id
+as JSON (`duplicate id "m", first at …`, `"there" names no marker of this
+timeline`), where Python's quotes it as `repr` does; the paths are equal.
 
 ## The font
 
@@ -46,10 +64,10 @@ licence as the subpath `@timetoalign/timeskeleton/fonts/*`. What proves it:
 the repository's `fonts/DejaVuSans.ttf` has the SHA-256 of the upstream
 release file (`7da195a7…48954`) and its licence lies beside it (8816 bytes);
 `package.json` exports `./fonts/*` and lists `fonts` in `files`;
-`fontMetrics` has exactly the members `units_per_em`, `ascender`,
-`descender`, `fallback`, `advances` with the values 2048, 1901, 483, 1229 and
-5918 advances, among them `"9833"` 966, `"48"` 1303 and `"32"` 651 (the same
-values the Python suite states); the metrics file is the standard writer's
+`fontMetrics` has exactly the members `advances`, `ascender`, `descender`,
+`fallback` and `units_per_em` (keys sorted), with 5918 advances, among them
+`"9833"` 966, `"48"` 1303 and `"32"` 651, and the values 1901, 483, 1229 and
+2048 (the same values the Python suite states); the metrics file is the standard writer's
 text, and `dumps(fontMetrics)` reproduces it, so the bundled constant is that
 file. The generated module is covered by the drift test of item 5.
 
@@ -74,30 +92,35 @@ row member or row.
 
 The order and its proofs are stated in the Python suite's README ("The
 canonical order"); this suite asserts the same expected values: the extended
-`flow_control` fixture with a tie at every key level is put in the literally
-stated order by `canonicalOrder` and still validates; a literal value has one
+`bare` fixture with a tie at every key level is put in the literally stated
+order by `canonicalOrder` and still validates, and `dumps` writes its
+children by key; a literal value is written with its keys sorted, array-index
+keys (`"10"`, `"2"`) included, in one literal text; a literal value has one
 canonical JSON text; and the text of every break and jump entry of every
-fixture (eight) equals Python's `json.dumps(entry, sort_keys=True,
-separators=(",", ":"), ensure_ascii=False)` for the same file (the suite runs
-`python3` on the fixture files). Marker names that are array-index keys
-(`"10"`, `"2"`) are written in code-point order and read back so.
-`canonicalOrder` returns a copy, and copies a value without a top-level
-`timeline` as it is; a collection it cannot order is refused with a
+fixture equals Python's `json.dumps(entry, sort_keys=True, separators=(",",
+":"), ensure_ascii=False)` for the same file (the suite runs `python3` on the
+fixture files). `canonicalOrder` returns a copy, and copies a value without a
+top-level `timeline` as it is; a collection it cannot order is refused with a
 `TypeError`.
 
 ## The standard writer and lossless reading
 
-Both packages export `dumps` (canonical order, then two-space indentation, a
-final newline, characters unescaped except `"`, `\` and control characters,
+Both packages export `dumps` (canonical order, then keys sorted by code
+point, two-space indentation, a final newline, characters unescaped except `"`, `\` and control characters,
 every float spelled as Python's `repr`, every integer without a decimal point)
 and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
-- **Every standard file round-trips.** Each of the 23 fixtures and 50
-  rejection cases (73 files) is reproduced byte for byte by
+- **Every standard file round-trips.** Each of the 23 fixtures and 55
+  rejection cases (78 files) is reproduced byte for byte by
   `dumps(parseJson(text))`. `corpus_score_ms3` carries `→` and float-axis
   fixtures carry `6.0`, so neither the escaping nor the float spelling can be
   wrong without a failure.
+- **Both writers, from any order.** Every standard file with the keys of
+  every object reversed, and in the fixtures the items of every array the
+  canonical order sorts, is written by this `dumps` and by Python's `dumps`
+  (`python/src/timeskeleton/manifest.py`, loaded by `python3` from its path)
+  to the same bytes, equal to the file.
 - **A shared corpus.** One literal JSON text, identical in both suites, holds
   `0.1`, `2.0`, `1e-07`, `1e+16`, `123456789012345678`, `-0.0`, `5e-324`,
   `1.7976931348623157e+308`, `1E5`, `1.50`, `-0`, `100`, the fixed and
@@ -133,8 +156,8 @@ only what a number cannot hold is marked: an integer beyond
 `Number.MAX_SAFE_INTEGER` is a `bigint`, and an integral float (`2.0`, `1e+16`,
 `-0.0`) is a frozen `JsonFloat` holding its value. The text `-0` is the integer
 0, as in Python. Objects keep the written order of their keys, which
-`JSON.parse` cannot for array-index keys (`"10"`, `"2"`), and `dumps` honours
-it. The generated types are untouched: `Lossless<T>` maps them, and
+`JSON.parse` cannot for array-index keys (`"10"`, `"2"`), and `compactJson`
+honours it (`dumps` sorts every object's keys). The generated types are untouched: `Lossless<T>` maps them, and
 `validate` accepts either form. The tests pin each case (`0.5`, `2.0`,
 `123456789012345678`, `-0`, `-0.0`, `1E5`), key order surviving a round trip,
 malformed text refused as a `SyntaxError`, and `1e400` (beyond a double)
@@ -167,4 +190,6 @@ existing declarations.
 ## Hermeticity
 
 Tests read the repository fixtures and schemas through shared helpers. They use
-no network or shared mutable input.
+no network or shared mutable input. The packaging test refreshes the
+package directory's ignored copies of the repository assets, as `pnpm build`
+does, and runs `npm pack` without writing a tarball.

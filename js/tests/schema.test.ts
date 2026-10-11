@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
 import { fixtureFileNames, loadFixture, loadSchemaFile } from "./fixtures.js";
 
-const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json";
+const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json";
 
 const TIMELINE_CLASSES = [
   "ContinuousLogicalTimeline",
@@ -33,7 +33,7 @@ const TIME_UNITS = [
 ];
 
 const NUMBER_TYPES = ["int", "float", "fraction"];
-const ID_PATTERN = "^[^\\u0000-\\u001f]*$";
+const ID_PATTERN = "^[^/\\u0000-\\u001f]+$";
 
 const MEASURE_MAP_ROW_KEYS = [
   "ID",
@@ -70,14 +70,14 @@ const MANIFEST_KEYS = [
 
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
-    expect(SCHEMA_VERSION).toBe("0.4.0");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.4.0"]);
+    expect(SCHEMA_VERSION).toBe("0.5.0");
+    expect(SUPPORTED_VERSIONS).toEqual(["0.5.0"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
   it("bundles the schema file at the repository root", () => {
     expect(schema).toEqual(loadSchemaFile());
-    expect(schemas).toEqual({ "0.4.0": loadSchemaFile("0.4.0") });
+    expect(schemas).toEqual({ "0.5.0": loadSchemaFile("0.5.0") });
   });
 
   it("carries the pinned $id, $schema and version constant", () => {
@@ -232,18 +232,57 @@ describe("schema vocabulary", () => {
     );
   });
 
-  it("excludes control characters from ids and child keys", () => {
+  it("excludes empty ids, slashes and control characters from ids and child keys", () => {
     const definitions = Object.values(schema.$defs) as Array<{
       properties?: Record<string, Record<string, unknown>>;
     }>;
     const definitionsWithId = definitions.filter((definition) => definition.properties?.id);
-    expect(definitionsWithId).toHaveLength(22);
+    expect(definitionsWithId).toHaveLength(26);
     for (const definition of definitionsWithId) {
       expect(definition.properties?.id?.pattern).toBe(ID_PATTERN);
     }
     expect(schema.$defs.TimelineManifest.properties.children.propertyNames).toEqual({
       pattern: ID_PATTERN,
     });
+  });
+
+  it("gives regions, breaks, jumps and markers an id", () => {
+    const defs = schema.$defs;
+    expect(defs.Region.required).toEqual(["id", "name", "start", "end", "meta"]);
+    expect(defs.Region.properties.name.type).toEqual(["string", "null"]);
+    expect(defs.Break.required).toEqual([
+      "id",
+      "coordinate",
+      "control_type",
+      "condition",
+      "repeat_count",
+      "label",
+      "name",
+      "meta",
+    ]);
+    expect(defs.Jump.required).toEqual([
+      "id",
+      "from_coordinate",
+      "to_coordinate",
+      "control_type",
+      "condition",
+      "repeat_count",
+      "target",
+      "label",
+      "meta",
+    ]);
+    expect(defs.Jump.properties.target.type).toEqual(["string", "null"]);
+    expect(defs.Marker.required).toEqual(["id", "name", "coordinate"]);
+    expect(Object.keys(defs.Marker.properties)).toEqual(["id", "name", "coordinate"]);
+    expect(defs.Marker.properties.name.type).toEqual(["string", "null"]);
+    expect(defs.Marker.properties.coordinate).toEqual({ $ref: "#/$defs/Coordinate" });
+    expect(defs.FlowControl.properties.markers).toEqual({
+      type: "array",
+      items: { $ref: "#/$defs/Marker" },
+    });
+    for (const name of ["Region", "Break", "Jump", "Marker"] as const) {
+      expect(defs[name].additionalProperties).toBe(false);
+    }
   });
 
   it("defines a nonempty compressed measure-map row list", () => {
@@ -302,7 +341,7 @@ describe("fixture set", () => {
       "conversion_maps__maps_ticks.json",
       "corpus_audio_audio.json",
       "corpus_midi_score_midi.json",
-      "corpus_parangonar_parangonada__score_dlt1.json",
+      "corpus_parangonar_parangonada__score_dlt_1.json",
       "corpus_score_ms3.json",
       "corpus_supra_iiif.json",
       "discrete_graphical.json",
@@ -311,7 +350,7 @@ describe("fixture set", () => {
       "flow_control.json",
       "map.json",
       "nested.json",
-      "styled__perf.json",
+      "styled__performance.json",
       "styled__score.json",
       "with_region.json",
     ]);
@@ -319,7 +358,7 @@ describe("fixture set", () => {
 
   it("pins the styled blocks", () => {
     const score = loadFixture("styled__score").graphical;
-    const performance = loadFixture("styled__perf").graphical;
+    const performance = loadFixture("styled__performance").graphical;
     expect(score).toEqual({
       styles: {
         accent: { stroke: "#1D4ED8", fill: "#1D4ED8", "stroke-width": 4, opacity: 0.8 },
@@ -354,8 +393,8 @@ describe("fixture set", () => {
           set: { fill: "#4D7C0F", "font-size": 10 },
         },
         { select: { ids: ["score/end/label"] }, set: { fill: "#A16207" } },
-        { select: { ids: ["score/region/0/label"] }, set: { fill: "#0E7490" } },
-        { select: { ids: ["score/jump/0/label"] }, set: { fill: "#9D174D" } },
+        { select: { ids: ["intro/label"] }, set: { fill: "#0E7490" } },
+        { select: { ids: ["da-capo/label"] }, set: { fill: "#9D174D" } },
         {
           select: { ids: ["score/name"] },
           set: { fill: "#111827", "font-size": 12, content: "Styled score", "max-width": 120 },
@@ -370,7 +409,7 @@ describe("fixture set", () => {
         { select: { element: "map" }, set: { side: "below" } },
         { select: { ids: ["a"] }, set: { display: "none" } },
         {
-          select: { element: "wedge", domain: "physical", within: "perf" },
+          select: { element: "wedge", domain: "physical", within: "performance" },
           set: { stroke: "#7F00FF", fill: "#7F00FF" },
         },
       ],

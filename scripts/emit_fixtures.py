@@ -68,9 +68,9 @@ from timetoalign.maps import (
     TicksToQuarters,
 )
 from timetoalign.testdata import ensure_data
-from timetoalign.timelines.flowcontrol import Break, Jump
+from timetoalign.timelines.flowcontrol import Break, Jump, Marker
 
-from timeskeleton import SCHEMA_VERSION, dumps
+from timeskeleton import SCHEMA_VERSION, dumps, validate
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = REPOSITORY_ROOT / "fixtures" / SCHEMA_VERSION
@@ -200,9 +200,12 @@ def conversion_map_timelines() -> list[Timeline]:
 
 
 def flow_control_timeline() -> Timeline:
-    """Build one timeline with a break, jump, and named marker."""
+    """Build one timeline with a break, and a jump to a named marker."""
     timeline = ContinuousLogicalTimeline(
         length=16, unit="quarters", uid="flow:quarters", name="Flow control"
+    )
+    marker = timeline.flow_control.add_marker(
+        Marker(timeline.make_coordinate(2), name="repeat-start")
     )
     timeline.flow_control.add_break(
         Break(
@@ -222,12 +225,11 @@ def flow_control_timeline() -> Timeline:
             control_type=FlowControlElement.repeat_end,
             condition=ActivationCondition.first_n,
             repeat_count=2,
-            target_name="repeat-start",
+            target=marker.id,
             label="Repeat",
             meta={"source": "synthetic"},
         )
     )
-    timeline.flow_control.add_marker("repeat-start", 2)
     return timeline
 
 
@@ -274,7 +276,7 @@ def styled_timelines() -> list[Timeline]:
     score.add_child(ContinuousLogicalTimeline(length=4, unit="quarters", uid="a"), 0)
     score.add_child(ContinuousLogicalTimeline(length=4, unit="quarters", uid="b"), 4)
     score.add_conversion_map(QuartersToTicks(ppq=480, uid="ticks", name="Ticks"))
-    score.create_region("intro", 0, 2)
+    score.create_region(0, 2, id="intro", name="intro")
     score.flow_control.add_jump(
         Jump(
             from_coordinate=score.make_coordinate(8),
@@ -282,16 +284,17 @@ def styled_timelines() -> list[Timeline]:
             control_type=FlowControlElement.da_capo,
             condition=ActivationCondition.always,
             repeat_count=1,
-            target_name=None,
+            target=None,
             label="D.C.",
+            id="da-capo",
             meta={},
         )
     )
     performance = ContinuousPhysicalTimeline(
-        length=10.0, unit="seconds", uid="perf", name="Performance"
+        length=10.0, unit="seconds", uid="performance", name="Performance"
     )
     performance.add_child(
-        ContinuousPhysicalTimeline(length=4.0, unit="seconds", uid="p1"), 1.0
+        ContinuousPhysicalTimeline(length=4.0, unit="seconds", uid="excerpt"), 1.0
     )
     return [score, performance]
 
@@ -356,10 +359,10 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
                 },
                 {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
                 {
-                    "select": {"ids": ["score/region/0/label"]},
+                    "select": {"ids": ["intro/label"]},
                     "set": {"fill": "#0E7490"},
                 },
-                {"select": {"ids": ["score/jump/0/label"]}, "set": {"fill": "#9D174D"}},
+                {"select": {"ids": ["da-capo/label"]}, "set": {"fill": "#9D174D"}},
                 {
                     "select": {"ids": ["score/name"]},
                     "set": {
@@ -375,14 +378,14 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
                 },
             ],
         },
-        "perf": {
+        "performance": {
             "statements": [
                 *_SHARED_STATEMENTS,
                 {
                     "select": {
                         "element": "wedge",
                         "domain": "physical",
-                        "within": "perf",
+                        "within": "performance",
                     },
                     "set": _VIOLET,
                 },
@@ -401,17 +404,17 @@ Item                      Colour     Set by
 ========================  =========  ==========================================
 root line ``score``       #1D4ED8    5, the style ``accent`` (class and element)
 child line ``b``          #EA580C    14 (element ``child`` within ``b``)
-map ``score/map/ticks``   #7C3AED    6 (class ``QuartersToTicks``)
-brace ``score/region/0``  #0F766E    9, which outranks 8 by its position
-jump ``score/jump/0``     #DB2777    10 (element ``jump``, domain ``logical``)
+map ``ticks``             #7C3AED    6 (class ``QuartersToTicks``)
+brace ``intro``           #0F766E    9, which outranks 8 by its position
+jump ``da-capo``          #DB2777    10 (element ``jump``, domain ``logical``)
 wedge ``score/start``     #65A30D    11 (element ``wedge`` within ``score``)
 wedge ``score/end``       #B45309    12 (``ids``)
 name ``score/name``       #111827    19 (``ids``; also ``content``)
 name ``b/name``           #0369A1    20 (element ``name`` within ``b``)
 label of ``score/start``  #4D7C0F    15 (element ``label`` within ``score``)
 label of ``score/end``    #A16207    16 (``ids``)
-label of the region       #0E7490    17 (``ids``)
-label of the jump         #9D174D    18 (``ids``)
+label of ``intro``        #0E7490    17 (``ids``)
+label of ``da-capo``      #9D174D    18 (``ids``)
 ========================  =========  ==========================================
 
 A stroke and the fill of one element share its colour. Statement 13 displays
@@ -508,7 +511,7 @@ def build_manifests() -> dict[str, list[Timeline]]:
     with_region = with_children(
         ContinuousLogicalTimeline, "quarters", 12, [(4, Fraction(1, 3)), (3, 2)]
     )
-    with_region.create_region("theme", 2, 6)
+    with_region.create_region(2, 6, name="theme")
     manifests["with_region"] = [with_region]
     grandchild = ContinuousLogicalTimeline(length=2, unit="quarters")
     child = ContinuousLogicalTimeline(length=8, unit="quarters")
@@ -545,12 +548,18 @@ def write(path: Path, data: dict[str, Any]) -> None:
 
 
 def check_round_trip(path: Path) -> int:
-    """Confirm that a manifest survives from_dict/to_dict."""
+    """Confirm that a manifest validates and survives from_dict/to_dict.
+
+    Object keys carry no order (the file has them sorted), so both sides are
+    compared with sorted keys; arrays are compared as they stand, so a library
+    whose order differs from the canonical order fails.
+    """
     with path.open(encoding="utf-8") as handle:
         data = json.load(handle)
+    validate(data)
     timeline = data["timeline"]
     rebuilt = Timeline.from_dict(timeline).to_dict()
-    if json.dumps(rebuilt) != json.dumps(timeline):
+    if json.dumps(rebuilt, sort_keys=True) != json.dumps(timeline, sort_keys=True):
         raise SystemExit(
             f"{path.name}: timeline {timeline['id']!r} does not round-trip through "
             f"timetoalign.\nexpected: {json.dumps(timeline, indent=2)}\n"

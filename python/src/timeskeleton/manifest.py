@@ -1,19 +1,18 @@
 """The canonical order of a TimeSkeleton manifest and its standard writer.
 
-Every collection of a manifest whose order carries no meaning has one
-canonical order, so equal values are equal text:
+The standard writer sorts the keys of every object by Unicode code point, so
+equal objects are equal text whatever order their keys were given in. Every
+array of a manifest whose order carries no meaning has one canonical order:
 
-* at every depth, ``children`` by offset, then id;
 * ``conversion_maps`` by id;
-* ``regions`` by start, then end, then name;
-* flow-control ``breaks`` by coordinate, then canonical JSON text;
-* ``jumps`` by from coordinate, then to coordinate, then canonical JSON text;
-* ``markers`` by name.
+* ``regions`` by start, then end, then id;
+* flow-control ``breaks`` and ``markers`` by coordinate, then id;
+* ``jumps`` by from coordinate, then to coordinate, then id.
 
 Coordinates compare by their exact numeric value, never by their JSON
-spelling; strings compare by Unicode code point. The canonical JSON text of an
-entry has its object keys sorted by code point and no whitespace. Nothing else
-is reordered. Readers accept any order; writers emit the canonical one.
+spelling; strings compare by Unicode code point. Ids are unique within a
+manifest, so no two entries tie. Nothing else is reordered. Readers accept
+any order; writers emit the canonical one.
 
 The standard writer emits UTF-8 text with every character unescaped except
 ``"``, ``\\`` and the control characters, two-space indentation and a final
@@ -90,19 +89,12 @@ def _sorted(entries: list[Any], key: Callable[[Any], Any], where: str) -> list[A
 
 
 def _order_timeline(manifest: dict[str, Any]) -> None:
-    """Put one timeline manifest and its children in canonical order, in place."""
+    """Put the arrays of one timeline manifest and its children in order, in place."""
     children = manifest.get("children")
     if isinstance(children, dict):
         for child in children.values():
             if isinstance(child, dict) and isinstance(child.get("timeline"), dict):
                 _order_timeline(child["timeline"])
-        manifest["children"] = dict(
-            _sorted(
-                list(children.items()),
-                lambda item: (_exact(item[1]["offset"]), item[0]),
-                "children",
-            )
-        )
     if isinstance(manifest.get("conversion_maps"), list):
         manifest["conversion_maps"] = _sorted(
             manifest["conversion_maps"], lambda entry: entry["id"], "conversion_maps"
@@ -110,7 +102,7 @@ def _order_timeline(manifest: dict[str, Any]) -> None:
     if isinstance(manifest.get("regions"), list):
         manifest["regions"] = _sorted(
             manifest["regions"],
-            lambda entry: (_exact(entry["start"]), _exact(entry["end"]), entry["name"]),
+            lambda entry: (_exact(entry["start"]), _exact(entry["end"]), entry["id"]),
             "regions",
         )
     flow = manifest.get("flow_control")
@@ -119,7 +111,7 @@ def _order_timeline(manifest: dict[str, Any]) -> None:
     if isinstance(flow.get("breaks"), list):
         flow["breaks"] = _sorted(
             flow["breaks"],
-            lambda entry: (_exact(entry["coordinate"]), canonical_json(entry)),
+            lambda entry: (_exact(entry["coordinate"]), entry["id"]),
             "breaks",
         )
     if isinstance(flow.get("jumps"), list):
@@ -128,22 +120,25 @@ def _order_timeline(manifest: dict[str, Any]) -> None:
             lambda entry: (
                 _exact(entry["from_coordinate"]),
                 _exact(entry["to_coordinate"]),
-                canonical_json(entry),
+                entry["id"],
             ),
             "jumps",
         )
-    if isinstance(flow.get("markers"), dict):
-        flow["markers"] = dict(
-            sorted(flow["markers"].items(), key=lambda item: item[0])
+    if isinstance(flow.get("markers"), list):
+        flow["markers"] = _sorted(
+            flow["markers"],
+            lambda entry: (_exact(entry["coordinate"]), entry["id"]),
+            "markers",
         )
 
 
 def canonical_order(value: Any) -> Any:
-    """Return a deep copy of ``value`` with its manifest ordered.
+    """Return a deep copy of ``value`` with the arrays of its manifest ordered.
 
-    A value with a top-level ``timeline`` member orders that timeline manifest.
-    Only the collections listed in the module docstring move; any other JSON
-    value is copied unchanged.
+    A value with a top-level ``timeline`` member orders the arrays of that
+    timeline manifest and of its children at every depth. Only the arrays
+    listed in the module docstring move; object keys are left as they are
+    (``dumps`` sorts them), and any other JSON value is copied unchanged.
 
     Raises:
         ValueError: If a collection holds an entry whose ordering members are
@@ -160,7 +155,8 @@ def dumps(value: Any) -> str:
     """Return the standard text of a manifest, or of any JSON value.
 
     The value is put in :func:`canonical_order`, then written as UTF-8 text
-    with two-space indentation and a final newline, characters unescaped
+    with the keys of every object sorted by code point, two-space indentation
+    and a final newline, characters unescaped
     (``ensure_ascii=False``) and every float spelled as ``repr`` spells it.
 
     Raises:
@@ -170,5 +166,8 @@ def dumps(value: Any) -> str:
     """
     ordered = canonical_order(value)
     return _utf8(
-        json.dumps(ordered, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
+        json.dumps(
+            ordered, indent=2, sort_keys=True, ensure_ascii=False, allow_nan=False
+        )
+        + "\n"
     )

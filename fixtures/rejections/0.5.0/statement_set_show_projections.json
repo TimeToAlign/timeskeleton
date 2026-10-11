@@ -1,0 +1,52 @@
+{
+  "manifest": {
+    "graphical": {
+      "statements": [
+        {
+          "select": {},
+          "set": {
+            "show-projections": true
+          }
+        }
+      ]
+    },
+    "meta": {
+      "generator": "timetoalign 1.2.0 (f0a58ce1)",
+      "schema_version": "0.5.0"
+    },
+    "timeline": {
+      "children": {},
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "bare",
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          8,
+          1
+        ]
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Bare",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  },
+  "path": [
+    "graphical",
+    "statements",
+    0,
+    "set"
+  ],
+  "reason": "show-projections is not a presentation property."
+}

@@ -26,11 +26,11 @@ def test_the_font_is_the_release_file_with_its_licence() -> None:
 def test_the_metrics_hold_the_stated_values() -> None:
     metrics = font_metrics()
     assert list(metrics) == [
-        "units_per_em",
+        "advances",
         "ascender",
         "descender",
         "fallback",
-        "advances",
+        "units_per_em",
     ]
     assert metrics["units_per_em"] == 2048
     assert metrics["ascender"] == 1901
@@ -38,7 +38,7 @@ def test_the_metrics_hold_the_stated_values() -> None:
     assert metrics["fallback"] == 1229
     advances = metrics["advances"]
     assert len(advances) == 5918
-    assert list(advances) == [str(key) for key in sorted(int(key) for key in advances)]
+    assert list(advances) == sorted(advances)
     assert advances["9833"] == 966
     assert advances["48"] == 1303
     assert advances["32"] == 651

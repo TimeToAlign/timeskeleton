@@ -1,0 +1,117 @@
+{
+  "manifest": {
+    "meta": {
+      "generator": "timetoalign 1.2.0 (f0a58ce1)",
+      "schema_version": "0.5.0"
+    },
+    "timeline": {
+      "children": {
+        "clt_2": {
+          "offset": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              1,
+              3
+            ]
+          },
+          "timeline": {
+            "children": {},
+            "class": "ContinuousLogicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "clt_2",
+            "length": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                4,
+                1
+              ]
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "regions": [],
+            "unit": "quarters"
+          }
+        },
+        "clt_3": {
+          "offset": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              2,
+              1
+            ]
+          },
+          "timeline": {
+            "children": {},
+            "class": "ContinuousLogicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "clt_3",
+            "length": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                3,
+                1
+              ]
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "regions": [],
+            "unit": "quarters"
+          }
+        }
+      },
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "clt_1",
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          1,
+          2,
+          3
+        ]
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  },
+  "path": [
+    "timeline",
+    "length",
+    "value"
+  ],
+  "reason": "A fraction must contain exactly two items."
+}

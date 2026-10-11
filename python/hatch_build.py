@@ -1,15 +1,16 @@
 """Bundle the repository-level files into the package.
 
-The schema, fixture and font directories and the README live at the
-repository root, beside ``python/``, so that one copy serves the Python package, the npm
-package and the fixture script. A static ``force-include`` cannot reach them
-when the wheel is built from the sdist (hatchling raises ``FileNotFoundError``
-for a missing source), so two hooks resolve them at build time:
+The schema, fixture, font and documentation directories and the README live
+at the repository root, beside ``python/``, so that one copy serves the Python
+package, the npm package and the fixture script. A static ``force-include``
+cannot reach them when the wheel is built from the sdist (hatchling raises
+``FileNotFoundError`` for a missing source), so two hooks resolve them at build
+time:
 
 * ``AssetsHook`` (build hook): in a repository checkout, the root
-  ``schema/``, ``fixtures/`` and ``fonts/`` directories go into the sdist under
-  ``src/timeskeleton/`` and into the wheel under ``timeskeleton/``, and the
-  root ``README.md`` goes into the sdist. In an unpacked sdist those copies
+  ``schema/``, ``fixtures/``, ``fonts/`` and ``docs/`` directories go into the
+  sdist under ``src/timeskeleton/`` and into the wheel under ``timeskeleton/``,
+  and the root ``README.md`` goes into the sdist. In an unpacked sdist those copies
   are ordinary package files and need no forcing.
 * ``ReadmeHook`` (metadata hook): fills the dynamic ``readme`` field from the
   root ``README.md`` in a checkout, or from the sdist's copy.
@@ -25,7 +26,7 @@ from typing import Any
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.metadata.plugin.interface import MetadataHookInterface
 
-ASSETS = ("schema", "fixtures", "fonts")
+ASSETS = ("schema", "fixtures", "fonts", "docs")
 README = "README.md"
 
 

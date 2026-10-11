@@ -1,13 +1,13 @@
 # Contributing
 
-TimeSkeleton is schema-first. The 0.4.0 schema is the contract; the Python and
+TimeSkeleton is schema-first. The 0.5.0 schema is the contract; the Python and
 TypeScript packages validate it, and timetoalign emits its manifest fixtures.
 
 ## Schema changes
 
 For a format change, add a new versioned file under `schema/`; do not alter a
 published schema. Update the supported-version and latest-version declarations
-in both packages. Every schema version from 0.4.0 onward remains validatable,
+in both packages. Every schema version from 0.5.0 onward remains validatable,
 and each later version has a pure, ordered migration in both packages, pinned
 by a before-and-after fixture pair. Add shared rejection fixtures, regenerate
 `js/src/generated/` with `pnpm generate`, and re-emit the manifest fixtures
@@ -114,7 +114,7 @@ in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, and the
 self entry in `python/uv.lock`), adds
 `schema/timeskeleton-X.Y.Z.schema.json`, a non-empty
 `fixtures/X.Y.Z/` with its `drawings/`, and rejection fixtures, and passes
-`python3 scripts/check_versions.py`. A version after 0.4.0 also adds its
+`python3 scripts/check_versions.py`. A version after 0.5.0 also adds its
 migration pair. The commit carries the footer:
 
 ```text

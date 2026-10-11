@@ -1,0 +1,282 @@
+{
+  "manifest": {
+    "meta": {
+      "generator": "timetoalign 1.2.0 (f0a58ce1)",
+      "schema_version": "0.5.0"
+    },
+    "timeline": {
+      "children": {
+        "controls": {
+          "offset": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "timeline": {
+            "children": {},
+            "class": "ContinuousLogicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "controls",
+            "length": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                37,
+                1
+              ]
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "regions": [],
+            "unit": "quarters"
+          }
+        },
+        "notes": {
+          "offset": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "timeline": {
+            "children": {},
+            "class": "ContinuousLogicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "notes",
+            "length": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                37,
+                1
+              ]
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "regions": [],
+            "unit": "quarters"
+          }
+        }
+      },
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "quarters_to_ticks",
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "ScalarMap"
+        }
+      ],
+      "flow_control": {
+        "breaks": [
+          {
+            "condition": "after_dc_ds",
+            "control_type": "fine",
+            "coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                12,
+                1
+              ]
+            },
+            "id": "break_1",
+            "label": "fine at MC 7",
+            "meta": {},
+            "name": "fine",
+            "repeat_count": 1
+          }
+        ],
+        "jumps": [
+          {
+            "condition": "first_n",
+            "control_type": "repeat_end",
+            "from_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                6,
+                1
+              ]
+            },
+            "id": "jump_1",
+            "label": "MC 3 → MC 1",
+            "meta": {},
+            "repeat_count": 1,
+            "target": null,
+            "to_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                0,
+                1
+              ]
+            }
+          },
+          {
+            "condition": "first_n",
+            "control_type": "repeat_end",
+            "from_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                9,
+                1
+              ]
+            },
+            "id": "jump_2",
+            "label": "MC 5 → MC 4",
+            "meta": {},
+            "repeat_count": 1,
+            "target": null,
+            "to_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                6,
+                1
+              ]
+            }
+          },
+          {
+            "condition": "first_n",
+            "control_type": "repeat_end",
+            "from_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                28,
+                1
+              ]
+            },
+            "id": "jump_3",
+            "label": "MC 11 → MC 9",
+            "meta": {},
+            "repeat_count": 1,
+            "target": null,
+            "to_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                16,
+                1
+              ]
+            }
+          },
+          {
+            "condition": "after_first",
+            "control_type": "da_capo_al_fine",
+            "from_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                37,
+                1
+              ]
+            },
+            "id": "jump_4",
+            "label": "MC 15 → start (MC 1)",
+            "meta": {},
+            "repeat_count": 1,
+            "target": null,
+            "to_coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                0,
+                1
+              ]
+            }
+          }
+        ],
+        "markers": [
+          {
+            "coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                10,
+                1
+              ]
+            },
+            "id": "marker_1",
+            "name": "fine"
+          },
+          {
+            "coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                16,
+                1
+              ]
+            },
+            "id": "marker_2",
+            "name": "segno & coda"
+          },
+          {
+            "coordinate": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                30,
+                1
+              ]
+            },
+            "id": "marker_3",
+            "name": "codab"
+          }
+        ]
+      },
+      "id": "clt_1",
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          37,
+          1
+        ]
+      },
+      "locked": false,
+      "measure_map": {
+        "measures": []
+      },
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  },
+  "path": [
+    "timeline",
+    "measure_map"
+  ],
+  "reason": "A measure map must be a row array."
+}

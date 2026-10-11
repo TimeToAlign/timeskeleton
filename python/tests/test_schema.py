@@ -13,7 +13,7 @@ from timeskeleton import (
     schema_path,
 )
 
-SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json"
+SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json"
 
 TIMELINE_CLASSES = [
     "ContinuousLogicalTimeline",
@@ -44,7 +44,7 @@ TIME_UNITS = [
 ]
 
 NUMBER_TYPES = ["int", "float", "fraction"]
-ID_PATTERN = r"^[^\u0000-\u001f]*$"
+ID_PATTERN = r"^[^/\u0000-\u001f]+$"
 
 MEASURE_MAP_ROW_KEYS = [
     "ID",
@@ -81,16 +81,16 @@ MANIFEST_KEYS = [
 
 
 def test_schema_version_is_the_latest_supported_version() -> None:
-    assert SCHEMA_VERSION == "0.4.0"
-    assert SUPPORTED_VERSIONS == ("0.4.0",)
+    assert SCHEMA_VERSION == "0.5.0"
+    assert SUPPORTED_VERSIONS == ("0.5.0",)
     assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
 
 
 def test_schema_path_names_the_bundled_file() -> None:
     path = schema_path()
     assert path.is_file()
-    assert path.name == "timeskeleton-0.4.0.schema.json"
-    assert schema_path("0.4.0") == path
+    assert path.name == "timeskeleton-0.5.0.schema.json"
+    assert schema_path("0.5.0") == path
 
 
 def test_schema_identity() -> None:
@@ -248,7 +248,7 @@ def test_timeline_manifest_is_closed_over_fourteen_keys() -> None:
     )
 
 
-def test_ids_exclude_control_characters() -> None:
+def test_ids_are_nonempty_without_slashes_or_control_characters() -> None:
     defs = load_schema()["$defs"]
     assert defs["TimelineManifest"]["properties"]["id"]["pattern"] == ID_PATTERN
     assert defs["TimelineManifest"]["properties"]["children"]["propertyNames"] == {
@@ -259,11 +259,50 @@ def test_ids_exclude_control_characters() -> None:
         for definition in defs.values()
         if "id" in definition.get("properties", {})
     ]
-    assert len(definitions_with_id) == 22
+    assert len(definitions_with_id) == 26
     assert all(
         definition["properties"]["id"]["pattern"] == ID_PATTERN
         for definition in definitions_with_id
     )
+
+
+def test_regions_and_flow_control_carry_ids() -> None:
+    defs = load_schema()["$defs"]
+    assert defs["Region"]["required"] == ["id", "name", "start", "end", "meta"]
+    assert defs["Region"]["properties"]["name"]["type"] == ["string", "null"]
+    assert defs["Break"]["required"] == [
+        "id",
+        "coordinate",
+        "control_type",
+        "condition",
+        "repeat_count",
+        "label",
+        "name",
+        "meta",
+    ]
+    assert defs["Jump"]["required"] == [
+        "id",
+        "from_coordinate",
+        "to_coordinate",
+        "control_type",
+        "condition",
+        "repeat_count",
+        "target",
+        "label",
+        "meta",
+    ]
+    assert defs["Jump"]["properties"]["target"]["type"] == ["string", "null"]
+    marker = defs["Marker"]
+    assert marker["required"] == ["id", "name", "coordinate"]
+    assert list(marker["properties"]) == ["id", "name", "coordinate"]
+    assert marker["properties"]["name"]["type"] == ["string", "null"]
+    assert marker["properties"]["coordinate"] == {"$ref": "#/$defs/Coordinate"}
+    assert defs["FlowControl"]["properties"]["markers"] == {
+        "type": "array",
+        "items": {"$ref": "#/$defs/Marker"},
+    }
+    for name in ["Region", "Break", "Jump", "Marker"]:
+        assert defs[name]["additionalProperties"] is False
 
 
 def test_measure_map_is_a_nonempty_compressed_row_list() -> None:
@@ -308,7 +347,7 @@ def test_metrical_position_map_states_its_meter_map_once() -> None:
     assert position_map["additionalProperties"] is False
 
 
-def test_fixture_set_contains_exactly_the_0_4_0_manifests() -> None:
+def test_fixture_set_contains_exactly_the_0_5_0_manifests() -> None:
     names = [path.name for path in fixture_paths()]
     assert names == [
         "bare.json",
@@ -322,7 +361,7 @@ def test_fixture_set_contains_exactly_the_0_4_0_manifests() -> None:
         "conversion_maps__maps_ticks.json",
         "corpus_audio_audio.json",
         "corpus_midi_score_midi.json",
-        "corpus_parangonar_parangonada__score_dlt1.json",
+        "corpus_parangonar_parangonada__score_dlt_1.json",
         "corpus_score_ms3.json",
         "corpus_supra_iiif.json",
         "discrete_graphical.json",
@@ -331,7 +370,7 @@ def test_fixture_set_contains_exactly_the_0_4_0_manifests() -> None:
         "flow_control.json",
         "map.json",
         "nested.json",
-        "styled__perf.json",
+        "styled__performance.json",
         "styled__score.json",
         "with_region.json",
     ]
@@ -371,7 +410,7 @@ def test_no_two_fixtures_share_a_structure() -> None:
 def test_the_remaining_parangonar_fixture_is_the_discrete_score() -> None:
     (path,) = [p for p in fixture_paths() if "parangonar" in p.name]
     timeline = json.loads(path.read_text(encoding="utf-8"))["timeline"]
-    assert path.name == "corpus_parangonar_parangonada__score_dlt1.json"
+    assert path.name == "corpus_parangonar_parangonada__score_dlt_1.json"
     assert timeline["class"] == "DiscreteLogicalTimeline"
     assert [entry["type"] for entry in timeline["conversion_maps"]] == ["LinearMap"]
 
@@ -434,8 +473,8 @@ _STYLED_SCORE = {
             "set": {"fill": "#4D7C0F", "font-size": 10},
         },
         {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
-        {"select": {"ids": ["score/region/0/label"]}, "set": {"fill": "#0E7490"}},
-        {"select": {"ids": ["score/jump/0/label"]}, "set": {"fill": "#9D174D"}},
+        {"select": {"ids": ["intro/label"]}, "set": {"fill": "#0E7490"}},
+        {"select": {"ids": ["da-capo/label"]}, "set": {"fill": "#9D174D"}},
         {
             "select": {"ids": ["score/name"]},
             "set": {
@@ -458,14 +497,14 @@ def _styled(name: str) -> dict:
 def test_the_styled_manifests_carry_their_statements() -> None:
     expected = {
         "styled__score.json": _STYLED_SCORE,
-        "styled__perf.json": {
+        "styled__performance.json": {
             "statements": [
                 *_SHARED,
                 {
                     "select": {
                         "element": "wedge",
                         "domain": "physical",
-                        "within": "perf",
+                        "within": "performance",
                     },
                     "set": {"stroke": "#7F00FF", "fill": "#7F00FF"},
                 },
@@ -476,7 +515,7 @@ def test_the_styled_manifests_carry_their_statements() -> None:
     for path in fixture_paths():
         manifest = json.loads(path.read_text(encoding="utf-8"))
         if "graphical" in manifest:
-            assert list(manifest) == ["meta", "timeline", "graphical"]
+            assert list(manifest) == ["graphical", "meta", "timeline"]
             styled[path.name] = manifest["graphical"]
     assert styled == expected
     assert [len(value["statements"]) for value in expected.values()] == [21, 5]
@@ -489,25 +528,17 @@ _LOGICAL = ("ContinuousLogicalTimeline", "logical", "continuous")
 _SCORE_ELEMENTS = [
     ("timeline", "score", "score", *_LOGICAL, None),
     ("child", "b", "b", *_LOGICAL, "score"),
-    (
-        "map",
-        "score/map/ticks",
-        "score",
-        "QuartersToTicks",
-        "logical",
-        "discrete",
-        "score",
-    ),
-    ("region", "score/region/0", "score", *_LOGICAL, "score"),
-    ("jump", "score/jump/0", "score", *_LOGICAL, "score"),
+    ("map", "ticks", "score", "QuartersToTicks", "logical", "discrete", "score"),
+    ("region", "intro", "score", *_LOGICAL, "score"),
+    ("jump", "da-capo", "score", *_LOGICAL, "score"),
     ("wedge", "score/start", "score", *_LOGICAL, "score"),
     ("wedge", "score/end", "score", *_LOGICAL, "score"),
     ("name", "score/name", "score", *_LOGICAL, "score"),
     ("name", "b/name", "b", *_LOGICAL, "b"),
     ("label", "score/start/label", "score", *_LOGICAL, "score/start"),
     ("label", "score/end/label", "score", *_LOGICAL, "score/end"),
-    ("label", "score/region/0/label", "score", *_LOGICAL, "score/region/0"),
-    ("label", "score/jump/0/label", "score", *_LOGICAL, "score/jump/0"),
+    ("label", "intro/label", "score", *_LOGICAL, "intro"),
+    ("label", "da-capo/label", "score", *_LOGICAL, "da-capo"),
 ]
 _ANCESTRY = {"score": ["score"], "b": ["b", "score"]}
 _DEPTH = {"score": 1, "b": 2}
@@ -565,17 +596,17 @@ def test_every_styled_score_item_has_its_own_colour() -> None:
     assert colours == {
         "score": "#1D4ED8",
         "b": "#EA580C",
-        "score/map/ticks": "#7C3AED",
-        "score/region/0": "#0F766E",
-        "score/jump/0": "#DB2777",
+        "ticks": "#7C3AED",
+        "intro": "#0F766E",
+        "da-capo": "#DB2777",
         "score/start": "#65A30D",
         "score/end": "#B45309",
         "score/name": "#111827",
         "b/name": "#0369A1",
         "score/start/label": "#4D7C0F",
         "score/end/label": "#A16207",
-        "score/region/0/label": "#0E7490",
-        "score/jump/0/label": "#9D174D",
+        "intro/label": "#0E7490",
+        "da-capo/label": "#9D174D",
     }
     assert len(set(colours.values())) == 13
     for element in _SCORE_ELEMENTS:

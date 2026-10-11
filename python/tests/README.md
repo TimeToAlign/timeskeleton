@@ -1,16 +1,16 @@
 # Test strategy for the `timeskeleton` Python package
 
-This suite proves the draft public contract of schema 0.4.0.
+This suite proves the draft public contract of schema 0.5.0.
 
 ## What the package promises
 
 1. Every bundled fixture validates against the schema.
-2. The schema rejects every shared case in `fixtures/rejections/0.4.0/` at the
-   exact stored path; all 50 cases fail, including a manifest without its
-   one required `timeline`. Every case declares `"0.4.0"` except two:
+2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/` at the
+   exact stored path; all 55 cases fail, including a manifest without its
+   one required `timeline`. Every case declares `"0.5.0"` except two:
    `meta_schema_version_unknown` declares the unknown version `"9.9.9"`, and
    `root_missing_meta` has no `meta` to declare one
-   (`test_every_0_4_0_rejection_declares_0_4_0_except_two`).
+   (`test_every_0_5_0_rejection_declares_0_5_0_except_two`).
 3. A manifest declaring any other version (`"0.3.0"`, `"0.1.0"`, `"1.0.0"`,
    each made from `bare.json`) is rejected through the same error, a
    `SchemaValidationError` at `meta.schema_version`.
@@ -20,6 +20,8 @@ This suite proves the draft public contract of schema 0.4.0.
    and render them as JSON pointers.
 6. Every fixture and every rejection case is reproduced byte for byte by the
    standard writer.
+7. The wheel and the sdist ship `docs/drawing.md`, byte for byte the
+   repository's copy.
 
 ## One path rule for both validators
 
@@ -38,57 +40,100 @@ redundant `maps` and `names` reports the map, and a row stating
 `offset_within_measure: 0` or the unknown key `offset` reports the offending
 row member or row.
 
+## Identity
+
+Every timeline, conversion map, region, break, jump and marker carries an
+`id`; every `id` member and every `children` key matches
+`^[^/\u0000-\u001f]+$` (non-empty, no `/`, no control character; spaces are
+allowed). The schema cannot say that ids are unique across a manifest, nor
+that a jump's `target` names a marker, so `identity_problems` checks both on
+a schema-valid manifest and `validate` raises its first problem. What proves
+it:
+
+- **Identity order is stated.** A timeline's own id, then the ids of its
+  conversion maps, regions, breaks, jumps and markers in array order, then its
+  children's trees in code-point order of their keys. Each repeated id is one
+  problem at its later occurrence, with the message
+  `duplicate id '<id>', first at <pointer>`: with markers `m`, `m`, `bare` on
+  the root `bare` and a child `c` holding a marker `m`, the three problems lie
+  at `markers/1/id`, `markers/2/id` (first at `#/timeline/id`) and the
+  child's `markers/0/id`, and `validate` reports the first. Two children
+  keyed `ﬀ` and `😀` holding the same marker id report the `😀` child (code
+  point order, which UTF-16 order would invert).
+- **Targets stay within their timeline.** A jump targeting the root's marker
+  `here` is accepted, a `null` target is accepted, `there` (a marker of the
+  child only) is one problem at the root jump's `target`, and the child's
+  jump targeting `here` is another (`'<target>' names no marker of this
+  timeline`). Duplicates come before dangling targets.
+- **Shared rejections**, one rule each: `id_duplicate_across_kinds` (a jump
+  repeating a break's id), `id_with_slash`, `id_empty`, `id_control_character_tab`,
+  `children_key_control_character_newline`, `jump_target_dangling` and
+  `markers_object` (markers as an object keyed by name).
+- **The schema states it literally.** `Region`, `Break`, `Jump` require `id`
+  first; a region's `name` is a string or null; `Jump` holds `target` (string or null) instead of `target_name`;
+  `Marker` is `{id, name, coordinate}` with a nullable `name`, closed; and
+  `flow_control.markers` is an array of `Marker`. Twenty-six definitions carry
+  an `id` member, every one with the pattern above. Every fixture has no
+  identity problem.
+
 ## The canonical order
 
-Every collection of a manifest whose order carries no meaning has one order,
-so that equal values are equal text: at every depth, `children` by offset,
-then id; `conversion_maps` by id; `regions` by start, then end, then name;
-flow-control `breaks` by coordinate, then canonical JSON text; `jumps` by from
-coordinate, then to coordinate, then canonical JSON text; `markers` by name.
-Coordinates compare by exact numeric value, never by their JSON spelling;
-strings by Unicode code point, never by UTF-16 code unit; the canonical JSON
-text of an entry has its object keys sorted by code point and no whitespace.
-Nothing else moves. What proves it, asserted in both packages with the same
-expected values:
+The standard writer sorts the keys of every object by Unicode code point
+(Python's `json.dumps(..., sort_keys=True)`), so object order needs no rule;
+`children` in particular are written by key. Every array whose order carries
+no meaning has one order: `conversion_maps` by id; `regions` by start, then
+end, then id; flow-control `breaks` and `markers` by coordinate, then id;
+`jumps` by from coordinate, then to coordinate, then id. Coordinates compare
+by exact numeric value, never by their JSON spelling; strings by Unicode code
+point, never by UTF-16 code unit; ids are unique, so no entries tie. Nothing
+else moves. What proves it, asserted in both packages with the same expected
+values:
 
 - **It is the library's order.** Every fixture is written by timetoalign
-  through the fixture script, which fails unless the library's own order is
-  that of the standard writer, and every fixture is reproduced byte for byte
+  through the fixture script, which fails unless the library's own output
+  equals the standard writer's, and every fixture is reproduced byte for byte
   by `dumps`.
-- **Every tie, spelled out.** The `flow_control` fixture is extended with
-  entries that tie at each level of every key, in an order that is not
-  canonical, and the expected sequence of ids, names and labels is stated
-  literally: offsets and region bounds where numeric order and text order
-  disagree (`[5, 8]` before `[2, 3]`), children tied on offset (id decides)
-  with nested children (the order applies at every depth: `b`, `a`, `m`, `z`
-  and inside `z` `x`, `y`), regions tied on start and on start and end (`d`,
-  `c`, `a`, `b`), breaks tied on coordinate and jumps tied on both coordinates
-  (canonical JSON text decides: `early`, `Fine`, `always`; `early`, `short`,
-  `DaCapo`, `Repeat`), and ids and names where code point order and UTF-16
-  order disagree (`"ﬀ"`, U+FB00, before `"😀"`, U+1F600, whose UTF-16 lead
-  unit is 0xD83D: maps `B`, `a`, `b`, `ﬀ`, `😀`; markers `Coda`,
-  `repeat-start`, `é`, `ﬀ`, `😀`). The ordered result validates.
+- **Every tie, spelled out.** The `bare` fixture is extended with entries
+  that tie at each level of every key, in an order that is not canonical, and
+  the expected sequence of ids is stated literally: region bounds and break,
+  jump and marker coordinates where numeric order and text order disagree
+  (`[5, 8]` before `[2, 1]` and `[12, 1]`), regions tied on start and on
+  start and end (`rd`, `rc`, `ra`, `rb`), breaks tied on coordinate (`kz`,
+  `ka`, `kb`), jumps tied on both coordinates (`je`, `js`, `jd`, `jj`), and
+  ids where code point order and UTF-16 order disagree (`"ﬀ"`, U+FB00, before
+  `"😀"`, U+1F600, whose UTF-16 lead unit is 0xD83D: maps `B`, `B2`, `a2`,
+  `ﬀ`, `😀`; markers `start`, `Coda`, `é`, `ﬀ!`, `😀!`). `canonical_order`
+  leaves the children `z`, `m`, `b`, `a` as given, and the text `dumps`
+  writes lists them `a`, `b`, `m`, `z` (inside `z`: `x`, `y`). The ordered
+  result validates.
+- **Keys sorted, literally.** A value with keys `b`, `😀`, `ﬀ`, `A` and a
+  nested `z`, `10`, `2` is written as one literal text (`A` before `b`, `10`
+  before `2` before `z`, `ﬀ` before `😀`) in both suites.
 - **One canonical JSON text in both languages.** A literal value with nested
   objects and non-ASCII keys has one expected text in both suites, and the
-  JavaScript text of every break and jump entry of every fixture (eight)
-  equals the text Python's `json.dumps(entry, sort_keys=True,
-  separators=(",", ":"), ensure_ascii=False)` writes for the same file.
-- **Only the manifest moves.** `canonical_order` returns a copy and leaves
-  its input unchanged; a value without a top-level `timeline` is copied as it
-  is.
+  JavaScript text of every break and jump entry of every fixture equals the
+  text Python's `json.dumps(entry, sort_keys=True, separators=(",", ":"),
+  ensure_ascii=False)` writes for the same file.
+- **Only the manifest's arrays move.** `canonical_order` returns a copy and
+  leaves its input unchanged; a value without a top-level `timeline` is
+  copied as it is.
 
 ## The standard writer and lossless reading
 
-Both packages export `dumps` (canonical order, then two-space indentation, a
-final newline, characters unescaped except `"`, `\` and control characters,
+Both packages export `dumps` (canonical order, then keys sorted by code
+point, two-space indentation, a final newline, characters unescaped except `"`, `\` and control characters,
 every float spelled as Python's `repr`, every integer without a decimal point)
 and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
-- **Every standard file round-trips.** Each of the 23 fixtures and 50
-  rejection cases (73 files) is reproduced byte for byte by
+- **Every standard file round-trips.** Each of the 23 fixtures and 55
+  rejection cases (78 files) is reproduced byte for byte by
   `dumps(json.loads(text))` in Python and by `dumps(parseJson(text))` in
-  JavaScript. `corpus_score_ms3` carries `→` and float-axis fixtures carry
+  JavaScript. The JavaScript suite also reverses the keys of every object of
+  every standard file, and the items of every array the canonical order sorts
+  (fixtures only: a rejection case holds its manifest under `manifest`, which
+  the order does not reach), and requires its `dumps` and Python's `dumps` to
+  write the same bytes, equal to the file. `corpus_score_ms3` carries `→` and float-axis fixtures carry
   `6.0`, so neither the escaping nor the float spelling can be wrong without
   a failure.
 - **A shared corpus.** One literal JSON text, identical in both suites, holds
@@ -106,7 +151,7 @@ the same bytes. What proves it:
 - **Refusals.** Both writers and both canonical JSON texts refuse a NaN or an
   infinity and a string or key with a lone surrogate (UTF-8 cannot encode
   one); a collection whose ordering members are missing is refused rather
-  than written in some order.
+  than written in some order (two regions without `start`).
 
 ## One fixture per structure
 
@@ -125,7 +170,7 @@ offsets take no part. What proves it:
   that repeats another's combination, as each corpus performance timeline
   repeated the audio or the sample-map fixture, fails it.
 - **The fixture set is stated literally.** The exact list of the 23 file
-  names; of the parangonar corpus only `corpus_parangonar_parangonada__score_dlt1`
+  names; of the parangonar corpus only `corpus_parangonar_parangonada__score_dlt_1`
   (a `DiscreteLogicalTimeline` with a `LinearMap`) remains.
 
 ## The graphical block
@@ -146,8 +191,9 @@ properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
   followed by every `type` constant of a conversion-map definition. The
   manifest's members are `meta`, `timeline` and `graphical`, the first two
   required, no other admitted.
-- **The styled fixtures.** `styled__score.json` and `styled__perf.json` are
-  the only manifests carrying a block, composed by the fixture script; their
+- **The styled fixtures.** `styled__score.json` and
+  `styled__performance.json` are the only manifests carrying a block,
+  composed by the fixture script; their
   styles and statements are stated literally in the test (twenty-one and five
   statements). They exercise a named style, a statement naming it, a `class`
   selector naming a timeline class and one naming a map type, `ids`,
@@ -167,7 +213,7 @@ properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
   by one statement, whose selector is `ids: ["score/name"]`; no statement
   sets `stroke-width` 0, `opacity` below 0.5, or `display: none` other than
   the one hiding child `a`.
-- **Rejections.** Fourteen cases of `fixtures/rejections/0.4.0/`, eight of them
+- **Rejections.** Fourteen cases of `fixtures/rejections/0.5.0/`, eight of them
   one change to `styled__score.json`, six one change to `bare.json`, with the path both validators report: an unknown
   selector member `kind` (the selector), the element type `segment` (the
   `element`), an empty `ids` list (the list), an unknown property `colour`
@@ -181,9 +227,8 @@ properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
   `content` text and both forms of `stroke-dasharray`; they reject a negative
   width and radius, opacity outside either endpoint, zero font size and maximum
   width, non-text content and malformed dash text at the exact property path.
-- **Identifiers.** Every schema member named `id` and every `children` key has
-  the control-character exclusion literally. Shared cases reject a tab in an
-  id and a newline in a child key, while names remain unrestricted.
+- **Names remain unrestricted.** A timeline name holding control characters
+  validates; ids are covered under "Identity".
 
 ## Completing missing styles
 
@@ -208,10 +253,11 @@ name, while the input's `styles` keeps exactly its existing declarations.
   `7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954`, and
   the licence file lies beside it.
 - **The metrics are that file's.** `font_metrics()` has exactly the members
-  `units_per_em`, `ascender`, `descender`, `fallback` and `advances`, with
-  the values 2048, 1901, 483 (the `hhea` descender as a positive depth) and
-  1229 (the advance of glyph 0); `advances` holds 5918 code points, keyed in
-  ascending numeric order, among them `"9833"` (♩) 966, `"48"` ("0") 1303
+  `advances`, `ascender`, `descender`, `fallback` and `units_per_em`, in that
+  (sorted) order, with `units_per_em`, `ascender`, `descender` and `fallback`
+  2048, 1901, 483 (the `hhea` descender as a positive depth) and 1229 (the
+  advance of glyph 0); `advances` holds 5918 code points, its keys sorted as
+  strings, among them `"9833"` (♩) 966, `"48"` ("0") 1303
   and `"32"` (space) 651. These values were read with fontTools from the
   release file; the metrics file is written by `dumps`, so `dumps` of the
   parsed file reproduces its text.
@@ -234,6 +280,14 @@ whose integer length is `9007199254740993` (2^53 + 1) or
 `9223372036854775807` (2^63 - 1) validate and serialize back to the same
 integer.
 
+## Packaging
+
+`docs/drawing.md` is part of the contract, so both distributions carry it.
+The test builds the sdist and the wheel with `uv build` into a temporary
+directory and requires `timeskeleton/docs/drawing.md` in the wheel and
+`src/timeskeleton/docs/drawing.md` in the sdist, each byte for byte the
+repository's `docs/drawing.md`.
+
 ## Generated artifacts
 
 The package tests load the checked-in schema and fixtures that the build
@@ -243,5 +297,7 @@ drift from a fresh generator run.
 ## Hermeticity
 
 Tests obtain fixtures through package accessors, never relative paths. They use
-no network and no shared mutable input; the one file a test writes lies in
-its own temporary directory.
+no shared mutable input; the files a test writes (the font check's copy and
+the built distributions) lie in its own temporary directory. Building the
+distributions needs `uv`, and the network unless uv's cache already holds the
+build backend.

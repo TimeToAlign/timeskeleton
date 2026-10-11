@@ -8,14 +8,14 @@
 
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
 import { schemas } from "./generated/schema.js";
-import type { TimeSkeletonManifest } from "./generated/types.js";
-import { type Lossless, parseJson, plain } from "./manifest.js";
+import type { TimelineManifest, TimeSkeletonManifest } from "./generated/types.js";
+import { compareCodePoints, type Lossless, parseJson, plain } from "./manifest.js";
 
 /** The latest schema version bundled by this package. */
-export const SCHEMA_VERSION = "0.4.0";
+export const SCHEMA_VERSION = "0.5.0";
 
 /** Every bundled schema version, oldest first. */
-export const SUPPORTED_VERSIONS: readonly string[] = ["0.4.0"];
+export const SUPPORTED_VERSIONS: readonly string[] = ["0.5.0"];
 
 const SCHEMAS: Readonly<Record<string, object>> = schemas;
 
@@ -149,7 +149,9 @@ function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
  * A value whose `meta.schema_version` is one of `SUPPORTED_VERSIONS` is
  * checked against that version's schema. Any other value is checked
  * against the latest schema, which rejects it at `meta.schema_version`. A
- * value read by `parse` is checked by the exact values of its numbers.
+ * value read by `parse` is checked by the exact values of its numbers. A value
+ * the schema accepts is then checked for the identity rules the schema cannot
+ * express (`identityProblems`).
  *
  * @throws {SchemaValidationError} on the first violation found, with the path to the offending value.
  */
@@ -160,6 +162,8 @@ export function validate(value: unknown): asserts value is TimeSkeletonManifest 
   const validator = validatorFor(target);
   const instance = plain(value);
   if (!validator(instance)) reject(validator.errors ?? [], instance);
+  const [problem] = identityProblems(value as TimeSkeletonManifest);
+  if (problem !== undefined) throw problem;
 }
 
 /** Throw the error the shared path rule selects among a failed validation's errors. */
@@ -185,4 +189,92 @@ export function parse(text: string): Lossless<TimeSkeletonManifest> {
   const value = parseJson(text);
   validate(value);
   return value as unknown as Lossless<TimeSkeletonManifest>;
+}
+
+/** The keys of a timeline's children in code-point order. */
+function childKeys(timeline: TimelineManifest): string[] {
+  return Object.keys(timeline.children).sort(compareCodePoints);
+}
+
+/**
+ * Every id of a timeline tree with its path, in identity order: a timeline's
+ * own id, then the ids of its conversion maps, regions, breaks, jumps and
+ * markers in array order, then its children's trees in code-point order of
+ * their keys.
+ */
+function* elementIds(
+  timeline: TimelineManifest,
+  path: readonly PathSegment[],
+): Generator<[string, PathSegment[]]> {
+  yield [timeline.id, [...path, "id"]];
+  for (const member of ["conversion_maps", "regions"] as const) {
+    for (const [index, entry] of timeline[member].entries()) {
+      yield [entry.id, [...path, member, index, "id"]];
+    }
+  }
+  const flow = timeline.flow_control;
+  for (const member of ["breaks", "jumps", "markers"] as const) {
+    for (const [index, entry] of flow[member].entries()) {
+      yield [entry.id, [...path, "flow_control", member, index, "id"]];
+    }
+  }
+  for (const key of childKeys(timeline)) {
+    const child = timeline.children[key] as { timeline: TimelineManifest };
+    yield* elementIds(child.timeline, [...path, "children", key, "timeline"]);
+  }
+}
+
+/** A problem for each jump whose target names no marker of its timeline. */
+function* danglingTargets(
+  timeline: TimelineManifest,
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  const flow = timeline.flow_control;
+  const markers = new Set(flow.markers.map((marker) => marker.id));
+  for (const [index, jump] of flow.jumps.entries()) {
+    if (jump.target !== null && !markers.has(jump.target)) {
+      yield new SchemaValidationError(
+        [...path, "flow_control", "jumps", index, "target"],
+        `${JSON.stringify(jump.target)} names no marker of this timeline`,
+      );
+    }
+  }
+  for (const key of childKeys(timeline)) {
+    const child = timeline.children[key] as { timeline: TimelineManifest };
+    yield* danglingTargets(child.timeline, [...path, "children", key, "timeline"]);
+  }
+}
+
+/**
+ * The violations of the identity rules in a schema-valid manifest.
+ *
+ * Every id of a manifest (timelines, conversion maps, regions, breaks, jumps
+ * and markers) is unique within it across all kinds: each repeated id is one
+ * problem, located at its second occurrence in identity order (a timeline,
+ * then its maps, regions, breaks, jumps and markers, then its children by
+ * key). A jump's non-null `target` names a marker of the same timeline; each
+ * one that does not is one problem, located at the `target`. The duplicate
+ * problems come first. Python's `timeskeleton.identity_problems` gives the
+ * same problems.
+ */
+export function identityProblems(
+  value: TimeSkeletonManifest | Lossless<TimeSkeletonManifest>,
+): SchemaValidationError[] {
+  const manifest = value as TimeSkeletonManifest;
+  const problems: SchemaValidationError[] = [];
+  const first = new Map<string, PathSegment[]>();
+  for (const [id, path] of elementIds(manifest.timeline, ["timeline"])) {
+    const earlier = first.get(id);
+    if (earlier === undefined) first.set(id, path);
+    else {
+      problems.push(
+        new SchemaValidationError(
+          path,
+          `duplicate id ${JSON.stringify(id)}, first at ${jsonPointer(earlier)}`,
+        ),
+      );
+    }
+  }
+  problems.push(...danglingTargets(manifest.timeline, ["timeline"]));
+  return problems;
 }

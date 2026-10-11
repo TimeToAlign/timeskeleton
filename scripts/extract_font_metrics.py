@@ -6,8 +6,9 @@ Reads ``fonts/DejaVuSans.ttf`` after verifying its SHA-256 and writes
 ``units_per_em`` (``head``), ``ascender`` and ``descender`` (``hhea``, the
 descender as a positive depth), ``fallback`` (the advance of glyph 0) and
 ``advances``, the advance of every code point of the font's best character
-map, keyed by the code point in decimal, in ascending numeric order. Run it
-from ``python/`` with ``uv run python ../scripts/extract_font_metrics.py``.
+map, keyed by the code point in decimal. ``dumps`` sorts every object's keys
+by code point. Run it from ``python/`` with
+``uv run python ../scripts/extract_font_metrics.py``.
 """
 
 from __future__ import annotations

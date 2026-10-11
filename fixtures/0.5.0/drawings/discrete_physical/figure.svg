@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="549.876" height="95.9766" viewBox="0 0 549.876 95.9766" font-family="DejaVu Sans" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="517.876" height="63.9766" rx="10" fill="#F3F4F6"/>
+<line data-address="dpt_1" x1="84.5459" y1="29" x2="484.5459" y2="29" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="dpt_1" cx="84.5459" cy="29" r="3" fill="#0050EF"/>
+<polygon data-address="dpt_1" points="493.5459,29 484.5459,24.5 484.5459,33.5" fill="#0050EF"/>
+<line data-address="dpt_2" x1="85.4529" y1="15" x2="180.9529" y2="15" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="dpt_2" cx="85.4529" cy="15" r="3" fill="#0050EF"/>
+<polygon data-address="dpt_2" points="180.9529,15 185.4529,11.4 189.9529,15 185.4529,18.6" fill="none" stroke="#0050EF" stroke-width="1.5"/>
+<line data-address="dpt_3" x1="265.9518" y1="15" x2="281.4518" y2="15" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="dpt_3" cx="265.9518" cy="15" r="3" fill="#0050EF"/>
+<polygon data-address="dpt_3" points="281.4518,15 285.9518,11.4 290.4518,15 285.9518,18.6" fill="none" stroke="#0050EF" stroke-width="1.5"/>
+<polygon data-address="dpt_1/start" points="84.5459,30.5 81.5459,43.5 87.5459,43.5" fill="#000000"/>
+<polygon data-address="dpt_1/end" points="484.5459,30.5 481.5459,43.5 487.5459,43.5" fill="#000000"/>
+<text data-address="dpt_2/name" x="8" y="18.8081" text-anchor="start" font-size="11" fill="#000000">dpt_2, dpt_3</text>
+<text data-address="dpt_1/name" x="8" y="32.8081" text-anchor="start" font-size="11" fill="#000000">dpt_1</text>
+<text data-address="dpt_1/start/label" x="84.5459" y="53.854" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
+<text data-address="dpt_1/end/label" x="484.5459" y="53.854" text-anchor="middle" font-size="9" fill="#000000">44100 smp</text>
+</g>
+</svg>
