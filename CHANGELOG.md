@@ -2,6 +2,17 @@
 
 Release entries are written by release-please from the Conventional Commits since the previous release.
 
+## [0.5.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.4.0...v0.5.0) (2026-10-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* manifests declare schema 0.5.0 and carry the ids above; 0.4.0 manifests are not accepted.
+
+### Features
+
+* identify every manifest element and write keys in sorted order ([da8669e](https://github.com/TimeToAlign/timeskeleton/commit/da8669e8bf38a99f5943d7774d6ef2fe5b9b7410))
+
 ## [0.4.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.3.0...v0.4.0) (2026-10-11)
 
 
