@@ -26,12 +26,16 @@ This suite proves the draft public contract of schema 0.4.0.
    `ElementType`, `Paint`, `Declaration`) state the vocabulary listed in the
    Python suite's README, literally, as in Python; the manifest's members are
    `meta`, `timeline` and `graphical`, the first two required, no other
-   admitted. The styled fixtures pin a style map, a style-name `set`, a
-   `class` selector and valid numeric and dash properties. Exact validation
+   admitted. The styled blocks are stated literally, as in Python (twenty-one
+   and five statements); the Python suite alone resolves their colours,
+   since both suites read the same files. Exact validation
    cases accept every boundary stated there and reject values outside them at
    the property path. Every `id` member and `children` key carries the literal
    control-character exclusion, while timeline names with control characters
    still validate.
+7. The fixture set is the exact list of 23 file names the Python suite
+   states; the Python suite alone proves that no two of them share a
+   structural signature, since both suites read the same files.
 
 ## The font
 
@@ -89,8 +93,8 @@ every float spelled as Python's `repr`, every integer without a decimal point)
 and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
-- **Every standard file round-trips.** Each of the 34 fixtures and 50
-  rejection cases (84 files) is reproduced byte for byte by
+- **Every standard file round-trips.** Each of the 23 fixtures and 50
+  rejection cases (73 files) is reproduced byte for byte by
   `dumps(parseJson(text))`. `corpus_score_ms3` carries `→` and float-axis
   fixtures carry `6.0`, so neither the escaping nor the float spelling can be
   wrong without a failure.

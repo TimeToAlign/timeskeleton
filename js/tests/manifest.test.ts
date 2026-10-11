@@ -69,8 +69,8 @@ function standardFiles(): [string, string][] {
 }
 
 describe("the standard writer", () => {
-  it("round-trips all 84 standard files", () => {
-    expect(standardFiles().length).toBe(34 + 50);
+  it("round-trips all 73 standard files", () => {
+    expect(standardFiles().length).toBe(23 + 50);
   });
 
   it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {

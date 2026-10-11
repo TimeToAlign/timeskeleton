@@ -85,8 +85,8 @@ every float spelled as Python's `repr`, every integer without a decimal point)
 and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
-- **Every standard file round-trips.** Each of the 34 fixtures and 50
-  rejection cases (84 files) is reproduced byte for byte by
+- **Every standard file round-trips.** Each of the 23 fixtures and 50
+  rejection cases (73 files) is reproduced byte for byte by
   `dumps(json.loads(text))` in Python and by `dumps(parseJson(text))` in
   JavaScript. `corpus_score_ms3` carries `→` and float-axis fixtures carry
   `6.0`, so neither the escaping nor the float spelling can be wrong without
@@ -108,6 +108,26 @@ the same bytes. What proves it:
   one); a collection whose ordering members are missing is refused rather
   than written in some order.
 
+## One fixture per structure
+
+A fixture earns its place by a combination of structure no other fixture
+has. The **structural signature** of a manifest is its timeline tree, where
+each timeline contributes its `class`, its `locked`, the `type` of each of
+its conversion maps in canonical order, the numbers of its `regions` and of
+its flow-control `breaks`, `jumps` and `markers`, and the signatures of its
+children in canonical order; plus the manifest's `graphical` block as
+canonical JSON, or its absence. Values, ids, names, units, lengths and
+offsets take no part. What proves it:
+
+- **No two fixtures share a signature.** The test computes every fixture's
+  signature from its JSON file, with its own code rather than the fixture
+  script's, and requires 23 distinct signatures for the 23 fixtures. A fixture
+  that repeats another's combination, as each corpus performance timeline
+  repeated the audio or the sample-map fixture, fails it.
+- **The fixture set is stated literally.** The exact list of the 23 file
+  names; of the parangonar corpus only `corpus_parangonar_parangonada__score_dlt1`
+  (a `DiscreteLogicalTimeline` with a `LinearMap`) remains.
+
 ## The graphical block
 
 The optional `graphical` block is the one of `docs/drawing.md` section 2:
@@ -128,10 +148,25 @@ properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
   required, no other admitted.
 - **The styled fixtures.** `styled__score.json` and `styled__perf.json` are
   the only manifests carrying a block, composed by the fixture script; their
-  styles and statements are stated literally in the test (eleven and five
+  styles and statements are stated literally in the test (twenty-one and five
   statements). They exercise a named style, a statement naming it, a `class`
-  selector and valid boundary or representative values for every numeric and
-  dash property.
+  selector naming a timeline class and one naming a map type, `ids`,
+  `within` at depth 1 and at depth 2, `element`, `domain` and `modality`,
+  two statements of one list setting the same property on the same element,
+  and every presentation property with a valid value. In `styled__score`
+  every drawn element (the root's line, the line of child `b`, the map, the
+  brace, the jump and both wedges) and every text (both row names, both
+  wedge labels, the region label and the jump label) is visible and
+  resolves, under the cascade of `docs/drawing.md` with its defaults, to a
+  colour no other of them has. The test resolves those thirteen colours with
+  its own small implementation of the cascade's ranking over the fixture's
+  statements and compares them with a literal table of distinct colours.
+  Each is set by a statement of the manifest, which outranks every default,
+  so the resolution needs no defaults; an item no statement of the manifest
+  colours fails the test. `content` is set
+  by one statement, whose selector is `ids: ["score/name"]`; no statement
+  sets `stroke-width` 0, `opacity` below 0.5, or `display: none` other than
+  the one hiding child `a`.
 - **Rejections.** Fourteen cases of `fixtures/rejections/0.4.0/`, eight of them
   one change to `styled__score.json`, six one change to `bare.json`, with the path both validators report: an unknown
   selector member `kind` (the selector), the element type `segment` (the

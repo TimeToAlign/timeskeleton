@@ -4,7 +4,9 @@
 Every manifest is built with public constructors or a public loader, serialized
 with ``Timeline.to_dict()``, written with ``timeskeleton.dumps`` and
 round-tripped through ``Timeline.from_dict``; a manifest whose order differs
-from the library's fails the round trip. A styled manifest also carries a
+from the library's fails the round trip. A manifest is emitted only when its
+structural signature differs from that of every manifest before it; the
+script names each manifest it skips on standard error. A styled manifest also carries a
 ``graphical`` block composed in this script from ``GRAPHICAL``.
 The current schema version is ``timeskeleton.SCHEMA_VERSION``. The fixtures of
 a released version are frozen: the script refuses to write into
@@ -301,21 +303,8 @@ _SHARED_STATEMENTS: list[dict[str, Any]] = [
     {"select": {"element": "map"}, "set": {"side": "below"}},
     {"select": {"ids": ["a"]}, "set": {"display": "none"}},
 ]
-_GREEN_ABOVE = {"side": "above", "stroke": "#006600", "fill": "#006600"}
 _VIOLET = {"stroke": "#7F00FF", "fill": "#7F00FF"}
-_ACCENT = {
-    "stroke": "#7F00FF",
-    "stroke-width": 0,
-    "stroke-dasharray": "3 3",
-    "fill": "#7F00FF",
-    "opacity": 0.5,
-    "font-size": 10,
-    "rx": 0,
-    "display": "inline",
-    "side": "above",
-    "content": "Styled score",
-    "max-width": 160,
-}
+_ACCENT = {"stroke": "#1D4ED8", "fill": "#1D4ED8", "stroke-width": 4, "opacity": 0.8}
 
 GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     "styled": {
@@ -323,30 +312,66 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             "styles": {"accent": _ACCENT},
             "statements": [
                 *_SHARED_STATEMENTS,
+                {"select": {"element": "block"}, "set": {"rx": 4}},
+                {
+                    "select": {
+                        "class": "ContinuousLogicalTimeline",
+                        "element": "timeline",
+                    },
+                    "set": "accent",
+                },
+                {
+                    "select": {"class": "QuartersToTicks"},
+                    "set": {"stroke": "#7C3AED", "stroke-width": 1.5},
+                },
+                {
+                    "select": {"element": "map", "modality": "discrete"},
+                    "set": {"stroke-dasharray": "4 2"},
+                },
+                {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
+                {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
+                {
+                    "select": {"element": "jump", "domain": "logical"},
+                    "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
+                },
                 {
                     "select": {"element": "wedge", "within": "score"},
-                    "set": _GREEN_ABOVE,
-                },
-                {"select": {"class": "ContinuousLogicalTimeline"}, "set": "accent"},
-                {
-                    "select": {"domain": "logical", "within": "score"},
-                    "set": {"stroke": "#000080", "fill": "#000080"},
+                    "set": {"side": "above", "stroke": "#65A30D", "fill": "#65A30D"},
                 },
                 {
-                    "select": {"element": "region", "within": "score"},
-                    "set": {"stroke": "#800000", "fill": "#800000"},
-                },
-                {
-                    "select": {"element": "region", "within": "score"},
-                    "set": {"stroke": "#008080", "fill": "#008080"},
+                    "select": {"ids": ["score/end"]},
+                    "set": {"stroke": "#B45309", "fill": "#B45309"},
                 },
                 {
                     "select": {"element": "child", "within": "score"},
                     "set": {"display": "inline"},
                 },
                 {
-                    "select": {"within": "b"},
-                    "set": {"stroke": "#FF8000", "fill": "#FF8000"},
+                    "select": {"element": "child", "within": "b"},
+                    "set": {"stroke": "#EA580C", "fill": "#EA580C"},
+                },
+                {
+                    "select": {"element": "label", "within": "score"},
+                    "set": {"fill": "#4D7C0F", "font-size": 10},
+                },
+                {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
+                {
+                    "select": {"ids": ["score/region/0/label"]},
+                    "set": {"fill": "#0E7490"},
+                },
+                {"select": {"ids": ["score/jump/0/label"]}, "set": {"fill": "#9D174D"}},
+                {
+                    "select": {"ids": ["score/name"]},
+                    "set": {
+                        "fill": "#111827",
+                        "font-size": 12,
+                        "content": "Styled score",
+                        "max-width": 120,
+                    },
+                },
+                {
+                    "select": {"element": "name", "within": "b"},
+                    "set": {"fill": "#0369A1"},
                 },
             ],
         },
@@ -365,7 +390,34 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
         },
     },
 }
-"""The ``graphical`` block of each styled manifest, by fixture name and root id."""
+"""The ``graphical`` block of each styled manifest, by fixture name and root id.
+
+In ``styled__score`` every drawn element and every text takes its own colour
+under the cascade of ``docs/drawing.md`` (statements numbered from 0 in the
+list, the four shared ones first):
+
+========================  =========  ==========================================
+Item                      Colour     Set by
+========================  =========  ==========================================
+root line ``score``       #1D4ED8    5, the style ``accent`` (class and element)
+child line ``b``          #EA580C    14 (element ``child`` within ``b``)
+map ``score/map/ticks``   #7C3AED    6 (class ``QuartersToTicks``)
+brace ``score/region/0``  #0F766E    9, which outranks 8 by its position
+jump ``score/jump/0``     #DB2777    10 (element ``jump``, domain ``logical``)
+wedge ``score/start``     #65A30D    11 (element ``wedge`` within ``score``)
+wedge ``score/end``       #B45309    12 (``ids``)
+name ``score/name``       #111827    19 (``ids``; also ``content``)
+name ``b/name``           #0369A1    20 (element ``name`` within ``b``)
+label of ``score/start``  #4D7C0F    15 (element ``label`` within ``score``)
+label of ``score/end``    #A16207    16 (``ids``)
+label of the region       #0E7490    17 (``ids``)
+label of the jump         #9D174D    18 (``ids``)
+========================  =========  ==========================================
+
+A stroke and the fill of one element share its colour. Statement 13 displays
+every child of ``score``; the shared ``ids`` statement 3 outranks it and hides
+the child ``a``.
+"""
 
 
 def corpus_manifests() -> dict[str, list[Timeline]]:
@@ -404,7 +456,12 @@ def corpus_manifests() -> dict[str, list[Timeline]]:
 
 
 def build_manifests() -> dict[str, list[Timeline]]:
-    """Return fixture names and top-level timelines in emission order."""
+    """Return fixture names and top-level timelines in emission order.
+
+    The synthetic manifests come first and the corpus manifests last, so that a
+    synthetic manifest wins over a corpus manifest of the same structural
+    signature (see ``signature``).
+    """
     manifests: dict[str, list[Timeline]] = {}
     manifests["continuous_logical"] = [
         with_children(
@@ -461,9 +518,9 @@ def build_manifests() -> dict[str, list[Timeline]]:
     manifests["nested"] = [nested]
     manifests["conversion_maps"] = conversion_map_timelines()
     manifests["flow_control"] = [flow_control_timeline()]
-    manifests.update(corpus_manifests())
     manifests.update(drawing_manifests())
     manifests["styled"] = styled_timelines()
+    manifests.update(corpus_manifests())
     return manifests
 
 
@@ -500,6 +557,44 @@ def check_round_trip(path: Path) -> int:
             f"got:      {json.dumps(rebuilt, indent=2)}"
         )
     return 1
+
+
+def timeline_signature(timeline: dict[str, Any]) -> tuple[Any, ...]:
+    """Return the structure of one timeline dict and of its descendants.
+
+    Values, ids, names, units, lengths and offsets are left out; the class, the
+    lock, the conversion-map types and the numbers of regions, breaks, jumps
+    and markers remain, with the children's signatures in canonical order.
+    """
+    flow_control = timeline["flow_control"]
+    return (
+        timeline["class"],
+        timeline["locked"],
+        tuple(conversion_map["type"] for conversion_map in timeline["conversion_maps"]),
+        len(timeline["regions"]),
+        len(flow_control["breaks"]),
+        len(flow_control["jumps"]),
+        len(flow_control["markers"]),
+        tuple(
+            timeline_signature(child["timeline"])
+            for child in timeline["children"].values()
+        ),
+    )
+
+
+def signature(data: dict[str, Any]) -> tuple[Any, ...]:
+    """Return the structural signature of a manifest.
+
+    Two manifests with one signature exercise the same combination of
+    timeline classes, conversion-map types and timeline components, so only
+    the first of them is emitted. A ``graphical`` block takes part as its
+    canonical JSON text.
+    """
+    graphical = data.get("graphical")
+    return (
+        timeline_signature(data["timeline"]),
+        None if graphical is None else json.dumps(graphical, sort_keys=True),
+    )
 
 
 def slug(identifier: str) -> str:
@@ -550,15 +645,26 @@ def main(argv: list[str] | None = None) -> int:
             claimed[path] = timeline.id
             planned.append((path, timeline, name))
 
+    emitted: list[tuple[Path, dict[str, Any]]] = []
+    first_of: dict[tuple[Any, ...], Path] = {}
+    for path, timeline, name in planned:
+        data = manifest(timeline, generator, GRAPHICAL.get(name, {}).get(timeline.id))
+        key = signature(data)
+        if key in first_of:
+            print(
+                f"skipped {path.stem}: same structure as {first_of[key].stem}",
+                file=sys.stderr,
+            )
+            continue
+        first_of[key] = path
+        emitted.append((path, data))
+
     args.output.mkdir(parents=True, exist_ok=True)
     for stale in args.output.glob("*.json"):
         stale.unlink()
     written: list[Path] = []
-    for path, timeline, name in planned:
-        write(
-            path,
-            manifest(timeline, generator, GRAPHICAL.get(name, {}).get(timeline.id)),
-        )
+    for path, data in emitted:
+        write(path, data)
         written.append(path)
 
     for path in written:

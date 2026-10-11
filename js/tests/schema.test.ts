@@ -289,12 +289,32 @@ describe("schema vocabulary", () => {
 });
 
 describe("fixture set", () => {
-  it("contains exactly 34 single manifests", () => {
-    expect(fixtureFileNames()).toHaveLength(34);
-    expect(fixtureFileNames()).toContain("conversion_maps__maps_quarters.json");
-    expect(fixtureFileNames()).toContain("styled__perf.json");
-    expect(fixtureFileNames()).toContain("styled__score.json");
-    expect(fixtureFileNames()).not.toContain("empty.json");
+  it("contains exactly the 23 single manifests", () => {
+    expect(fixtureFileNames()).toEqual([
+      "bare.json",
+      "contiguous.json",
+      "continuous_graphical.json",
+      "continuous_logical.json",
+      "continuous_physical.json",
+      "conversion_maps__maps_quarters.json",
+      "conversion_maps__maps_samples.json",
+      "conversion_maps__maps_seconds.json",
+      "conversion_maps__maps_ticks.json",
+      "corpus_audio_audio.json",
+      "corpus_midi_score_midi.json",
+      "corpus_parangonar_parangonada__score_dlt1.json",
+      "corpus_score_ms3.json",
+      "corpus_supra_iiif.json",
+      "discrete_graphical.json",
+      "discrete_logical.json",
+      "discrete_physical.json",
+      "flow_control.json",
+      "map.json",
+      "nested.json",
+      "styled__perf.json",
+      "styled__score.json",
+      "with_region.json",
+    ]);
   });
 
   it("pins the styled blocks", () => {
@@ -302,50 +322,45 @@ describe("fixture set", () => {
     const performance = loadFixture("styled__perf").graphical;
     expect(score).toEqual({
       styles: {
-        accent: {
-          stroke: "#7F00FF",
-          "stroke-width": 0,
-          "stroke-dasharray": "3 3",
-          fill: "#7F00FF",
-          opacity: 0.5,
-          "font-size": 10,
-          rx: 0,
-          display: "inline",
-          side: "above",
-          content: "Styled score",
-          "max-width": 160,
-        },
+        accent: { stroke: "#1D4ED8", fill: "#1D4ED8", "stroke-width": 4, opacity: 0.8 },
       },
       statements: [
         { select: { element: "label" }, set: { stroke: "#404040", fill: "#404040" } },
         { select: { element: "name" }, set: { stroke: "#404040", fill: "#404040" } },
         { select: { element: "map" }, set: { side: "below" } },
         { select: { ids: ["a"] }, set: { display: "none" } },
+        { select: { element: "block" }, set: { rx: 4 } },
+        { select: { class: "ContinuousLogicalTimeline", element: "timeline" }, set: "accent" },
+        { select: { class: "QuartersToTicks" }, set: { stroke: "#7C3AED", "stroke-width": 1.5 } },
+        { select: { element: "map", modality: "discrete" }, set: { "stroke-dasharray": "4 2" } },
+        { select: { element: "region" }, set: { stroke: "#800000" } },
+        { select: { element: "region" }, set: { stroke: "#0F766E" } },
+        {
+          select: { element: "jump", domain: "logical" },
+          set: { stroke: "#DB2777", fill: "#DB2777", "stroke-width": 2 },
+        },
         {
           select: { element: "wedge", within: "score" },
-          set: { side: "above", stroke: "#006600", fill: "#006600" },
+          set: { side: "above", stroke: "#65A30D", fill: "#65A30D" },
         },
-        { select: { class: "ContinuousLogicalTimeline" }, set: "accent" },
+        { select: { ids: ["score/end"] }, set: { stroke: "#B45309", fill: "#B45309" } },
+        { select: { element: "child", within: "score" }, set: { display: "inline" } },
         {
-          select: { domain: "logical", within: "score" },
-          set: { stroke: "#000080", fill: "#000080" },
-        },
-        {
-          select: { element: "region", within: "score" },
-          set: { stroke: "#800000", fill: "#800000" },
+          select: { element: "child", within: "b" },
+          set: { stroke: "#EA580C", fill: "#EA580C" },
         },
         {
-          select: { element: "region", within: "score" },
-          set: { stroke: "#008080", fill: "#008080" },
+          select: { element: "label", within: "score" },
+          set: { fill: "#4D7C0F", "font-size": 10 },
         },
+        { select: { ids: ["score/end/label"] }, set: { fill: "#A16207" } },
+        { select: { ids: ["score/region/0/label"] }, set: { fill: "#0E7490" } },
+        { select: { ids: ["score/jump/0/label"] }, set: { fill: "#9D174D" } },
         {
-          select: { element: "child", within: "score" },
-          set: { display: "inline" },
+          select: { ids: ["score/name"] },
+          set: { fill: "#111827", "font-size": 12, content: "Styled score", "max-width": 120 },
         },
-        {
-          select: { within: "b" },
-          set: { stroke: "#FF8000", fill: "#FF8000" },
-        },
+        { select: { element: "name", within: "b" }, set: { fill: "#0369A1" } },
       ],
     });
     expect(performance).toEqual({

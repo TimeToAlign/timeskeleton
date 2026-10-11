@@ -67,9 +67,13 @@ The structural fixtures add focused examples:
 | `bare.json` | one named timeline |
 | `contiguous.json` | children that touch and overlap |
 | `map.json` | conversion maps on a root and a child |
-| `styled__score.json`, `styled__perf.json` | `graphical.statements` selecting elements by type, id, domain, and `within` |
+| `styled__score.json`, `styled__perf.json` | `graphical.statements` selecting elements by type, id, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score |
 
-The corpus fixtures exercise public timetoalign loaders:
+The corpus fixtures exercise public timetoalign loaders. A fixture is emitted
+only when its structure (timeline classes, locks, conversion-map types,
+region and flow-control counts, children, `graphical` block) differs from
+every fixture emitted before it, and the synthetic fixtures are emitted
+first, so no two fixtures pin the same combination:
 
 | File or prefix | Loader input |
 | --- | --- |
@@ -77,7 +81,7 @@ The corpus fixtures exercise public timetoalign loaders:
 | `corpus_midi_score_midi.json` | a score MIDI file |
 | `corpus_score_ms3.json` | an ms3 score with measure-map and flow-control data |
 | `corpus_supra_iiif.json` | an IIIF manifest |
-| `corpus_parangonar_parangonada__*.json` | the timelines of one Parangonada alignment |
+| `corpus_parangonar_parangonada__score_dlt1.json` | the discrete score timeline of a Parangonada alignment |
 
 Every generated file carries the full timeline shape that timetoalign writes:
 `name` is `null` when absent, placed children are locked, empty flow control

@@ -60,8 +60,8 @@ def test_standard_files_round_trip_byte_for_byte(path) -> None:
     assert dumps(json.loads(text)) == text
 
 
-def test_the_standard_files_number_eighty_four() -> None:
-    assert len(_standard_files()) == 34 + 50
+def test_the_standard_files_number_seventy_three() -> None:
+    assert len(_standard_files()) == 23 + 50
 
 
 def test_non_ascii_text_is_written_unescaped() -> None:

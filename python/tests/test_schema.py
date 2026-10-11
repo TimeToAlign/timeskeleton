@@ -322,17 +322,6 @@ def test_fixture_set_contains_exactly_the_0_4_0_manifests() -> None:
         "conversion_maps__maps_ticks.json",
         "corpus_audio_audio.json",
         "corpus_midi_score_midi.json",
-        "corpus_parangonar_parangonada__perf_1966_Szegedi_cpt1.json",
-        "corpus_parangonar_parangonada__perf_1966_Szegedi_dpt1.json",
-        "corpus_parangonar_parangonada__perf_1970_Gould_cpt1.json",
-        "corpus_parangonar_parangonada__perf_1970_Gould_dpt1.json",
-        "corpus_parangonar_parangonada__perf_1971_Curzon_cpt1.json",
-        "corpus_parangonar_parangonada__perf_1971_Curzon_dpt1.json",
-        "corpus_parangonar_parangonada__perf_1985_Brendel_cpt1.json",
-        "corpus_parangonar_parangonada__perf_1985_Brendel_dpt1.json",
-        "corpus_parangonar_parangonada__perf_2023_Hewitt_cpt1.json",
-        "corpus_parangonar_parangonada__perf_2023_Hewitt_dpt1.json",
-        "corpus_parangonar_parangonada__score_clt1.json",
         "corpus_parangonar_parangonada__score_dlt1.json",
         "corpus_score_ms3.json",
         "corpus_supra_iiif.json",
@@ -348,71 +337,137 @@ def test_fixture_set_contains_exactly_the_0_4_0_manifests() -> None:
     ]
 
 
-def test_the_styled_manifests_carry_their_statements() -> None:
-    grey = {"stroke": "#404040", "fill": "#404040"}
-    shared = [
-        {"select": {"element": "label"}, "set": grey},
-        {"select": {"element": "name"}, "set": grey},
-        {"select": {"element": "map"}, "set": {"side": "below"}},
-        {"select": {"ids": ["a"]}, "set": {"display": "none"}},
-    ]
-    green = {"side": "above", "stroke": "#006600", "fill": "#006600"}
-    violet = {"stroke": "#7F00FF", "fill": "#7F00FF"}
-    accent = {
-        "stroke": "#7F00FF",
-        "stroke-width": 0,
-        "stroke-dasharray": "3 3",
-        "fill": "#7F00FF",
-        "opacity": 0.5,
-        "font-size": 10,
-        "rx": 0,
-        "display": "inline",
-        "side": "above",
-        "content": "Styled score",
-        "max-width": 160,
-    }
-    expected = {
-        "styled__score.json": {
-            "styles": {"accent": accent},
-            "statements": [
-                *shared,
-                {"select": {"element": "wedge", "within": "score"}, "set": green},
-                {
-                    "select": {"class": "ContinuousLogicalTimeline"},
-                    "set": "accent",
-                },
-                {
-                    "select": {"domain": "logical", "within": "score"},
-                    "set": {"stroke": "#000080", "fill": "#000080"},
-                },
-                {
-                    "select": {"element": "region", "within": "score"},
-                    "set": {"stroke": "#800000", "fill": "#800000"},
-                },
-                {
-                    "select": {"element": "region", "within": "score"},
-                    "set": {"stroke": "#008080", "fill": "#008080"},
-                },
-                {
-                    "select": {"element": "child", "within": "score"},
-                    "set": {"display": "inline"},
-                },
-                {
-                    "select": {"within": "b"},
-                    "set": {"stroke": "#FF8000", "fill": "#FF8000"},
-                },
-            ],
+def _timeline_structure(timeline: dict) -> tuple:
+    flow_control = timeline["flow_control"]
+    return (
+        timeline["class"],
+        timeline["locked"],
+        tuple(entry["type"] for entry in timeline["conversion_maps"]),
+        len(timeline["regions"]),
+        len(flow_control["breaks"]),
+        len(flow_control["jumps"]),
+        len(flow_control["markers"]),
+        tuple(
+            _timeline_structure(child["timeline"])
+            for child in timeline["children"].values()
+        ),
+    )
+
+
+def test_no_two_fixtures_share_a_structure() -> None:
+    first_of: dict[tuple, str] = {}
+    for path in fixture_paths():
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        graphical = manifest.get("graphical")
+        structure = (
+            _timeline_structure(manifest["timeline"]),
+            None if graphical is None else json.dumps(graphical, sort_keys=True),
+        )
+        assert structure not in first_of, (path.name, first_of.get(structure))
+        first_of[structure] = path.name
+    assert len(first_of) == 23
+
+
+def test_the_remaining_parangonar_fixture_is_the_discrete_score() -> None:
+    (path,) = [p for p in fixture_paths() if "parangonar" in p.name]
+    timeline = json.loads(path.read_text(encoding="utf-8"))["timeline"]
+    assert path.name == "corpus_parangonar_parangonada__score_dlt1.json"
+    assert timeline["class"] == "DiscreteLogicalTimeline"
+    assert [entry["type"] for entry in timeline["conversion_maps"]] == ["LinearMap"]
+
+
+_GREY = {"stroke": "#404040", "fill": "#404040"}
+_SHARED = [
+    {"select": {"element": "label"}, "set": _GREY},
+    {"select": {"element": "name"}, "set": _GREY},
+    {"select": {"element": "map"}, "set": {"side": "below"}},
+    {"select": {"ids": ["a"]}, "set": {"display": "none"}},
+]
+_STYLED_SCORE = {
+    "styles": {
+        "accent": {
+            "stroke": "#1D4ED8",
+            "fill": "#1D4ED8",
+            "stroke-width": 4,
+            "opacity": 0.8,
+        }
+    },
+    "statements": [
+        *_SHARED,
+        {"select": {"element": "block"}, "set": {"rx": 4}},
+        {
+            "select": {"class": "ContinuousLogicalTimeline", "element": "timeline"},
+            "set": "accent",
         },
+        {
+            "select": {"class": "QuartersToTicks"},
+            "set": {"stroke": "#7C3AED", "stroke-width": 1.5},
+        },
+        {
+            "select": {"element": "map", "modality": "discrete"},
+            "set": {"stroke-dasharray": "4 2"},
+        },
+        {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
+        {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
+        {
+            "select": {"element": "jump", "domain": "logical"},
+            "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
+        },
+        {
+            "select": {"element": "wedge", "within": "score"},
+            "set": {"side": "above", "stroke": "#65A30D", "fill": "#65A30D"},
+        },
+        {
+            "select": {"ids": ["score/end"]},
+            "set": {"stroke": "#B45309", "fill": "#B45309"},
+        },
+        {
+            "select": {"element": "child", "within": "score"},
+            "set": {"display": "inline"},
+        },
+        {
+            "select": {"element": "child", "within": "b"},
+            "set": {"stroke": "#EA580C", "fill": "#EA580C"},
+        },
+        {
+            "select": {"element": "label", "within": "score"},
+            "set": {"fill": "#4D7C0F", "font-size": 10},
+        },
+        {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
+        {"select": {"ids": ["score/region/0/label"]}, "set": {"fill": "#0E7490"}},
+        {"select": {"ids": ["score/jump/0/label"]}, "set": {"fill": "#9D174D"}},
+        {
+            "select": {"ids": ["score/name"]},
+            "set": {
+                "fill": "#111827",
+                "font-size": 12,
+                "content": "Styled score",
+                "max-width": 120,
+            },
+        },
+        {"select": {"element": "name", "within": "b"}, "set": {"fill": "#0369A1"}},
+    ],
+}
+
+
+def _styled(name: str) -> dict:
+    (path,) = [p for p in fixture_paths() if p.name == name]
+    return json.loads(path.read_text(encoding="utf-8"))["graphical"]
+
+
+def test_the_styled_manifests_carry_their_statements() -> None:
+    expected = {
+        "styled__score.json": _STYLED_SCORE,
         "styled__perf.json": {
             "statements": [
-                *shared,
+                *_SHARED,
                 {
                     "select": {
                         "element": "wedge",
                         "domain": "physical",
                         "within": "perf",
                     },
-                    "set": violet,
+                    "set": {"stroke": "#7F00FF", "fill": "#7F00FF"},
                 },
             ],
         },
@@ -424,7 +479,126 @@ def test_the_styled_manifests_carry_their_statements() -> None:
             assert list(manifest) == ["meta", "timeline", "graphical"]
             styled[path.name] = manifest["graphical"]
     assert styled == expected
-    assert [len(value["statements"]) for value in expected.values()] == [11, 5]
+    assert [len(value["statements"]) for value in expected.values()] == [21, 5]
+
+
+# The drawn elements and texts of styled__score: (type, address, timeline it
+# belongs to, class, domain, modality, parent address). The map's domain and
+# modality are those of its target unit, ticks.
+_LOGICAL = ("ContinuousLogicalTimeline", "logical", "continuous")
+_SCORE_ELEMENTS = [
+    ("timeline", "score", "score", *_LOGICAL, None),
+    ("child", "b", "b", *_LOGICAL, "score"),
+    (
+        "map",
+        "score/map/ticks",
+        "score",
+        "QuartersToTicks",
+        "logical",
+        "discrete",
+        "score",
+    ),
+    ("region", "score/region/0", "score", *_LOGICAL, "score"),
+    ("jump", "score/jump/0", "score", *_LOGICAL, "score"),
+    ("wedge", "score/start", "score", *_LOGICAL, "score"),
+    ("wedge", "score/end", "score", *_LOGICAL, "score"),
+    ("name", "score/name", "score", *_LOGICAL, "score"),
+    ("name", "b/name", "b", *_LOGICAL, "b"),
+    ("label", "score/start/label", "score", *_LOGICAL, "score/start"),
+    ("label", "score/end/label", "score", *_LOGICAL, "score/end"),
+    ("label", "score/region/0/label", "score", *_LOGICAL, "score/region/0"),
+    ("label", "score/jump/0/label", "score", *_LOGICAL, "score/jump/0"),
+]
+_ANCESTRY = {"score": ["score"], "b": ["b", "score"]}
+_DEPTH = {"score": 1, "b": 2}
+
+
+def _resolve(graphical: dict, element: tuple, prop: str) -> str:
+    """Return the value the manifest's own statements give ``prop``.
+
+    Ranks follow docs/drawing.md section 2.5 within one layer: ids, depth of
+    within, class, element, the count of domain and modality, position. An
+    inherited property no statement sets is taken from the parent.
+    """
+    kind, address, owner, cls, domain, modality, parent = element
+    ranked = []
+    for position, statement in enumerate(graphical["statements"]):
+        select = statement["select"]
+        declaration = statement["set"]
+        if isinstance(declaration, str):
+            declaration = graphical["styles"][declaration]
+        if prop not in declaration:
+            continue
+        if any(
+            (key == "element" and value != kind)
+            or (key == "ids" and address not in value)
+            or (key == "class" and value != cls)
+            or (key == "domain" and value != domain)
+            or (key == "modality" and value != modality)
+            or (key == "within" and value not in _ANCESTRY[owner])
+            for key, value in select.items()
+        ):
+            continue
+        rank = (
+            "ids" in select,
+            _DEPTH[select["within"]] if "within" in select else 0,
+            "class" in select,
+            "element" in select,
+            ("domain" in select) + ("modality" in select),
+            position,
+        )
+        ranked.append((rank, declaration[prop]))
+    if ranked:
+        return max(ranked)[1]
+    assert parent is not None, (address, prop)
+    (parent_element,) = [e for e in _SCORE_ELEMENTS if e[1] == parent]
+    return _resolve(graphical, parent_element, prop)
+
+
+def test_every_styled_score_item_has_its_own_colour() -> None:
+    graphical = _styled("styled__score.json")
+    painted = {"name": "fill", "label": "fill", "wedge": "fill"}
+    colours = {
+        element[1]: _resolve(graphical, element, painted.get(element[0], "stroke"))
+        for element in _SCORE_ELEMENTS
+    }
+    assert colours == {
+        "score": "#1D4ED8",
+        "b": "#EA580C",
+        "score/map/ticks": "#7C3AED",
+        "score/region/0": "#0F766E",
+        "score/jump/0": "#DB2777",
+        "score/start": "#65A30D",
+        "score/end": "#B45309",
+        "score/name": "#111827",
+        "b/name": "#0369A1",
+        "score/start/label": "#4D7C0F",
+        "score/end/label": "#A16207",
+        "score/region/0/label": "#0E7490",
+        "score/jump/0/label": "#9D174D",
+    }
+    assert len(set(colours.values())) == 13
+    for element in _SCORE_ELEMENTS:
+        if element[0] in {"timeline", "child", "jump", "wedge"}:
+            assert _resolve(graphical, element, "fill") == colours[element[1]]
+
+
+def test_every_styled_score_item_is_visible() -> None:
+    graphical = _styled("styled__score.json")
+    declarations = [
+        (statement["select"], statement["set"])
+        for statement in graphical["statements"]
+        if isinstance(statement["set"], dict)
+    ] + [(None, style) for style in graphical["styles"].values()]
+    for select, declaration in declarations:
+        assert declaration.get("stroke-width", 1) > 0
+        assert declaration.get("opacity", 1) >= 0.5
+        if declaration.get("display") == "none":
+            assert select == {"ids": ["a"]}
+    content = [
+        select for select, declaration in declarations if "content" in declaration
+    ]
+    assert content == [{"ids": ["score/name"]}]
 
 
 @pytest.mark.parametrize("accessor", [schema_path, load_schema, fixture_paths])

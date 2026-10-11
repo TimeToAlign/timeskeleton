@@ -2,7 +2,7 @@
   "manifest": {
     "meta": {
       "schema_version": "0.4.0",
-      "generator": "timetoalign 1.2.0 (82f7914a)"
+      "generator": "timetoalign 1.2.0 (0563d034)"
     },
     "timeline": {
       "id": "score",
@@ -165,17 +165,10 @@
     "graphical": {
       "styles": {
         "accent": {
-          "stroke": "#7F00FF",
-          "stroke-width": 0,
-          "stroke-dasharray": "3 3",
-          "fill": "#7F00FF",
-          "opacity": 0.5,
-          "font-size": 10,
-          "rx": 0,
-          "display": "inline",
-          "side": "above",
-          "content": "Styled score",
-          "max-width": 160
+          "stroke": "#1D4ED8",
+          "fill": "#1D4ED8",
+          "stroke-width": 4,
+          "opacity": 0.8
         }
       },
       "statements": [
@@ -215,49 +208,84 @@
         },
         {
           "select": {
-            "element": "wedge",
-            "within": "score"
+            "element": "block"
           },
           "set": {
-            "side": "above",
-            "stroke": "#006600",
-            "fill": "#006600"
+            "rx": 4
           }
         },
         {
           "select": {
-            "class": "ContinuousLogicalTimeline"
+            "class": "ContinuousLogicalTimeline",
+            "element": "timeline"
           },
           "set": "accent"
         },
         {
           "select": {
-            "domain": "logical",
-            "within": "score"
+            "class": "QuartersToTicks"
           },
           "set": {
-            "stroke": "#000080",
-            "fill": "#000080"
+            "stroke": "#7C3AED",
+            "stroke-width": 1.5
           }
         },
         {
           "select": {
-            "element": "region",
-            "within": "score"
+            "element": "map",
+            "modality": "discrete"
           },
           "set": {
-            "stroke": "#800000",
-            "fill": "#800000"
+            "stroke-dasharray": "4 2"
           }
         },
         {
           "select": {
-            "element": "region",
+            "element": "region"
+          },
+          "set": {
+            "stroke": "#800000"
+          }
+        },
+        {
+          "select": {
+            "element": "region"
+          },
+          "set": {
+            "stroke": "#0F766E"
+          }
+        },
+        {
+          "select": {
+            "element": "jump",
+            "domain": "logical"
+          },
+          "set": {
+            "stroke": "#DB2777",
+            "fill": "#DB2777",
+            "stroke-width": 2
+          }
+        },
+        {
+          "select": {
+            "element": "wedge",
             "within": "score"
           },
           "set": {
-            "stroke": "#008080",
-            "fill": "#008080"
+            "side": "above",
+            "stroke": "#65A30D",
+            "fill": "#65A30D"
+          }
+        },
+        {
+          "select": {
+            "ids": [
+              "score/end"
+            ]
+          },
+          "set": {
+            "stroke": "#B45309",
+            "fill": "#B45309"
           }
         },
         {
@@ -271,11 +299,74 @@
         },
         {
           "select": {
+            "element": "child",
             "within": "b"
           },
           "set": {
-            "stroke": "#FF8000",
-            "fill": "#FF8000"
+            "stroke": "#EA580C",
+            "fill": "#EA580C"
+          }
+        },
+        {
+          "select": {
+            "element": "label",
+            "within": "score"
+          },
+          "set": {
+            "fill": "#4D7C0F",
+            "font-size": 10
+          }
+        },
+        {
+          "select": {
+            "ids": [
+              "score/end/label"
+            ]
+          },
+          "set": {
+            "fill": "#A16207"
+          }
+        },
+        {
+          "select": {
+            "ids": [
+              "score/region/0/label"
+            ]
+          },
+          "set": {
+            "fill": "#0E7490"
+          }
+        },
+        {
+          "select": {
+            "ids": [
+              "score/jump/0/label"
+            ]
+          },
+          "set": {
+            "fill": "#9D174D"
+          }
+        },
+        {
+          "select": {
+            "ids": [
+              "score/name"
+            ]
+          },
+          "set": {
+            "fill": "#111827",
+            "font-size": 12,
+            "content": "Styled score",
+            "max-width": 120
+          }
+        },
+        {
+          "select": {
+            "element": "name",
+            "within": "b"
+          },
+          "set": {
+            "fill": "#0369A1"
           }
         }
       ]
