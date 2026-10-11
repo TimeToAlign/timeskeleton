@@ -9,15 +9,15 @@
  */
 
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
-import { type Lossless, parseJson, plain } from "./document.js";
 import { geometrySchemas, schemas } from "./generated/schema.js";
-import type { Geometry, TimeSkeletonDocument } from "./generated/types.js";
+import type { Geometry, TimeSkeletonManifest } from "./generated/types.js";
+import { type Lossless, parseJson, plain } from "./manifest.js";
 
-/** The schema version this release publishes: the latest one. */
-export const SCHEMA_VERSION = "0.3.0";
+/** The latest schema version bundled by this package. */
+export const SCHEMA_VERSION = "0.4.0";
 
-/** Every schema version this release validates and migrates, oldest first. */
-export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.2.1", "0.3.0"];
+/** Every bundled schema version, oldest first. */
+export const SUPPORTED_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.2.1", "0.3.0", "0.4.0"];
 
 /** Every schema version with a geometry schema, oldest first. */
 export const GEOMETRY_VERSIONS: readonly string[] = ["0.3.0"];
@@ -25,17 +25,17 @@ export const GEOMETRY_VERSIONS: readonly string[] = ["0.3.0"];
 const SCHEMAS: Readonly<Record<string, object>> = schemas;
 const GEOMETRY_SCHEMAS: Readonly<Record<string, object>> = geometrySchemas;
 
-/** One step of a path into a document: an object key or an array index. */
+/** One step of a path into a value: an object key or an array index. */
 export type PathSegment = string | number;
 
-/** Thrown when a document declares a schema version this release does not know. */
+/** Thrown when a value declares a schema version this release does not know. */
 export class UnsupportedVersionError extends Error {
-  /** The declared version, or `null` when the document carries no string `meta.schema_version`. */
+  /** The declared version, or `null` when the value carries no string `meta.schema_version`. */
   readonly version: string | null;
 
   constructor(version: string | null) {
     super(
-      `unsupported schema_version ${JSON.stringify(version)}; this release supports ${SUPPORTED_VERSIONS.join(", ")}`,
+      `unsupported schema_version ${JSON.stringify(version)}; this package supports ${SUPPORTED_VERSIONS.join(", ")}`,
     );
     this.name = "UnsupportedVersionError";
     this.version = version;
@@ -43,11 +43,11 @@ export class UnsupportedVersionError extends Error {
 }
 
 /**
- * Thrown when a document violates the schema.
+ * Thrown when a value violates the schema.
  *
  * `path` locates the offending value and `detail` is the validator's
  * description; `message` reads `<JSON pointer>: <detail>`, the pointer in URI
- * fragment form (`#` for the document root).
+ * fragment form (`#` for the value root).
  */
 export class SchemaValidationError extends Error {
   readonly path: readonly PathSegment[];
@@ -69,11 +69,11 @@ export function jsonPointer(path: readonly PathSegment[]): string {
 }
 
 /** Return `meta.schema_version` if present as a string, else `null`. */
-export function declaredVersion(document: unknown): string | null {
-  if (typeof document !== "object" || document === null) {
+export function declaredVersion(value: unknown): string | null {
+  if (typeof value !== "object" || value === null) {
     return null;
   }
-  const meta = (document as Record<string, unknown>).meta;
+  const meta = (value as Record<string, unknown>).meta;
   if (typeof meta !== "object" || meta === null) {
     return null;
   }
@@ -111,8 +111,8 @@ function geometryValidatorFor(version: string): ReturnType<typeof ajv.compile> {
     if (geometrySchema === undefined) {
       throw new UnsupportedVersionError(version);
     }
-    // The geometry schema refers to the document schema of its version by
-    // that schema's $id, which compiling the document schema registers.
+    // The geometry schema refers to the envelope schema of its version by
+    // that schema's $id, which compiling the envelope schema registers.
     validatorFor(version);
     validator = ajv.compile(geometrySchema);
     geometryValidators.set(version, validator);
@@ -121,12 +121,12 @@ function geometryValidatorFor(version: string): ReturnType<typeof ajv.compile> {
 }
 
 /** Convert an Ajv instance path to segments, typing array indices as numbers. */
-function toPath(instancePath: string, document: unknown): PathSegment[] {
+function toPath(instancePath: string, value: unknown): PathSegment[] {
   if (instancePath === "") {
     return [];
   }
   const path: PathSegment[] = [];
-  let cursor: unknown = document;
+  let cursor: unknown = value;
   for (const raw of instancePath.slice(1).split("/")) {
     const key = raw.replace(/~1/g, "/").replace(/~0/g, "~");
     if (Array.isArray(cursor)) {
@@ -168,21 +168,21 @@ function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
 }
 
 /**
- * Check `document` against the schema version it declares.
+ * Check `value` against the schema version it declares.
  *
- * A document whose `meta.schema_version` is one of `SUPPORTED_VERSIONS` is
- * checked against that version's schema. Any other document is checked
+ * A value whose `meta.schema_version` is one of `SUPPORTED_VERSIONS` is
+ * checked against that version's schema. Any other value is checked
  * against the latest schema, which rejects it at `meta.schema_version`. A
- * document read by `parse` is checked by the values of its numbers.
+ * value read by `parse` is checked by the exact values of its numbers.
  *
  * @throws {SchemaValidationError} on the first violation found, with the path to the offending value.
  */
-export function validate(document: unknown): asserts document is TimeSkeletonDocument {
-  const version = declaredVersion(document);
+export function validate(value: unknown): asserts value is TimeSkeletonManifest {
+  const version = declaredVersion(value);
   const target =
     version !== null && SUPPORTED_VERSIONS.includes(version) ? version : SCHEMA_VERSION;
   const validator = validatorFor(target);
-  const instance = plain(document);
+  const instance = plain(value);
   if (!validator(instance)) reject(validator.errors ?? [], instance);
 }
 
@@ -190,7 +190,7 @@ export function validate(document: unknown): asserts document is TimeSkeletonDoc
 function reject(errors: readonly ErrorObject[], instance: unknown): never {
   const error = select(errors);
   if (error === undefined) {
-    throw new SchemaValidationError([], "document is invalid");
+    throw new SchemaValidationError([], "value is invalid");
   }
   throw new SchemaValidationError(
     toPath(error.instancePath, instance),
@@ -204,7 +204,7 @@ function reject(errors: readonly ErrorObject[], instance: unknown): never {
  * A geometry whose `meta.schema_version` is one of `GEOMETRY_VERSIONS` is
  * checked against that version's geometry schema; any other is checked
  * against the latest one, which rejects it at `meta.schema_version`. A value
- * read by `parseJson` is checked by the values of its numbers.
+ * read by `parseJson` is checked by the exact values of its numbers.
  *
  * @throws {SchemaValidationError} on the first violation found under the shared path rule.
  */
@@ -218,14 +218,14 @@ export function validateGeometry(geometry: unknown): asserts geometry is Geometr
 }
 
 /**
- * Read a TimeSkeleton document without losing a number or the order of a key
+ * Read a TimeSkeleton value without losing a number or the order of a key
  * (see `parseJson`), and check it against the schema version it declares.
  *
  * @throws {SyntaxError} if the text is not one JSON value.
  * @throws {SchemaValidationError} on the first violation found.
  */
-export function parse(text: string): Lossless<TimeSkeletonDocument> {
-  const document = parseJson(text);
-  validate(document);
-  return document as unknown as Lossless<TimeSkeletonDocument>;
+export function parse(text: string): Lossless<TimeSkeletonManifest> {
+  const value = parseJson(text);
+  validate(value);
+  return value as unknown as Lossless<TimeSkeletonManifest>;
 }

@@ -1,9 +1,10 @@
-"""The canonical order of a TimeSkeleton document and its standard writer.
+"""The canonical order of a TimeSkeleton manifest and its standard writer.
 
-Every collection of a document whose order carries no meaning has one
-canonical order, so that equal documents are equal text:
+Every collection of a manifest, or an envelope of an earlier version, whose
+order carries no meaning has one canonical order, so equal values are equal
+text:
 
-* ``manifest.timelines`` by id;
+* an envelope's ``manifest.timelines`` by id;
 * at every depth, ``children`` by offset, then id;
 * ``conversion_maps`` by id;
 * ``regions`` by start, then end, then name;
@@ -140,19 +141,22 @@ def _order_timeline(manifest: dict[str, Any]) -> None:
 
 
 def canonical_order(value: Any) -> Any:
-    """Return a deep copy of ``value`` with its document in canonical order.
+    """Return a deep copy of ``value`` with its manifest or envelope ordered.
 
-    ``value`` is a TimeSkeleton document, or any JSON value: only the
-    collections found where a document holds them (``manifest.timelines`` and,
-    in each timeline manifest at every depth, the members listed in the module
-    docstring) are reordered, so a value that is no document is copied
-    unchanged. The order does not depend on the schema version.
+    A value with a top-level ``timeline`` member orders that timeline manifest.
+    A value with ``manifest.timelines`` orders the timelines of an envelope of
+    an earlier version by id, then orders each timeline manifest. Only the
+    collections listed in the module docstring move; any other JSON value is
+    copied unchanged. The order does not depend on the schema version.
 
     Raises:
         ValueError: If a collection holds an entry whose ordering members are
             missing or of the wrong type.
     """
     result = copy.deepcopy(value)
+    timeline = result.get("timeline") if isinstance(result, Mapping) else None
+    if isinstance(timeline, dict):
+        _order_timeline(timeline)
     manifest = result.get("manifest") if isinstance(result, Mapping) else None
     timelines = manifest.get("timelines") if isinstance(manifest, Mapping) else None
     if isinstance(timelines, dict):
@@ -166,7 +170,7 @@ def canonical_order(value: Any) -> Any:
 
 
 def dumps(value: Any) -> str:
-    """Return the standard text of a document, or of any JSON value.
+    """Return the standard text of a manifest, envelope, or any JSON value.
 
     The value is put in :func:`canonical_order`, then written as UTF-8 text
     with two-space indentation and a final newline, characters unescaped

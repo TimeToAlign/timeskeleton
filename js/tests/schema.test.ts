@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
 import { fixtureFileNames, loadSchemaFile } from "./fixtures.js";
 
-const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.3.0/timeskeleton.schema.json";
+const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json";
 
 const TIMELINE_CLASSES = [
   "ContinuousLogicalTimeline",
@@ -69,8 +69,8 @@ const MANIFEST_KEYS = [
 
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
-    expect(SCHEMA_VERSION).toBe("0.3.0");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0", "0.2.1", "0.3.0"]);
+    expect(SCHEMA_VERSION).toBe("0.4.0");
+    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0", "0.2.1", "0.3.0", "0.4.0"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
@@ -81,6 +81,7 @@ describe("schema identity", () => {
       "0.2.0": loadSchemaFile("0.2.0"),
       "0.2.1": loadSchemaFile("0.2.1"),
       "0.3.0": loadSchemaFile("0.3.0"),
+      "0.4.0": loadSchemaFile("0.4.0"),
     });
   });
 
@@ -93,7 +94,7 @@ describe("schema identity", () => {
     };
     const current = loadSchemaFile("0.2.1") as { description: string };
     expect(current.description.startsWith(previous.description.slice(0, 40))).toBe(true);
-    expected.$id = SCHEMA_ID.replace("0.3.0", "0.2.1");
+    expected.$id = SCHEMA_ID.replace("0.4.0", "0.2.1");
     expected.description = current.description;
     expected.properties.meta.properties.schema_version.const = "0.2.1";
     expect(loadSchemaFile("0.2.1")).toEqual(expected);
@@ -134,8 +135,32 @@ describe("schema identity", () => {
     expect(schema.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
     expect(schema.properties.meta.properties.schema_version).toEqual({
       const: SCHEMA_VERSION,
-      description: "The timeskeleton release this document conforms to.",
+      description: "The timeskeleton release this manifest conforms to.",
     });
+  });
+
+  it("holds one timeline and keeps every 0.3.0 definition", () => {
+    const current = loadSchemaFile("0.4.0") as {
+      properties: Record<string, unknown>;
+      required: string[];
+      additionalProperties: boolean;
+      $defs: Record<string, unknown>;
+    };
+    const previous = loadSchemaFile("0.3.0") as { $defs: Record<string, unknown> };
+    expect(Object.keys(current.properties)).toEqual(["meta", "timeline", "graphical"]);
+    expect(current.properties.timeline).toEqual({ $ref: "#/$defs/TimelineManifest" });
+    expect(current.required).toEqual(["meta", "timeline"]);
+    expect(current.additionalProperties).toBe(false);
+    const structure = (value: unknown): unknown => {
+      if (Array.isArray(value)) return value.map(structure);
+      if (typeof value !== "object" || value === null) return value;
+      return Object.fromEntries(
+        Object.entries(value)
+          .filter(([key]) => key !== "description" && key !== "title")
+          .map(([key, item]) => [key, structure(item)]),
+      );
+    };
+    expect(structure(current.$defs)).toEqual(structure(previous.$defs));
   });
 });
 
@@ -196,12 +221,11 @@ describe("schema vocabulary", () => {
 });
 
 describe("fixture set", () => {
-  it("contains the synthetic, map, flow-control, corpus and drawing documents", () => {
-    expect(fixtureFileNames()).toHaveLength(20);
-    for (const name of ["bare.json", "contiguous.json", "map.json", "styled.json"]) {
-      expect(fixtureFileNames()).toContain(name);
-    }
-    expect(fixtureFileNames()).toContain("conversion_maps.json");
-    expect(fixtureFileNames()).toContain("flow_control.json");
+  it("contains exactly 34 single manifests", () => {
+    expect(fixtureFileNames()).toHaveLength(34);
+    expect(fixtureFileNames()).toContain("conversion_maps__maps_quarters.json");
+    expect(fixtureFileNames()).toContain("styled__perf.json");
+    expect(fixtureFileNames()).toContain("styled__score.json");
+    expect(fixtureFileNames()).not.toContain("empty.json");
   });
 });

@@ -14,9 +14,7 @@ from timeskeleton import (
     schema_path,
 )
 
-from .conftest import FIXTURE_NAMES
-
-SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.3.0/timeskeleton.schema.json"
+SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json"
 
 TIMELINE_CLASSES = [
     "ContinuousLogicalTimeline",
@@ -83,16 +81,16 @@ MANIFEST_KEYS = [
 
 
 def test_schema_version_is_the_latest_supported_version() -> None:
-    assert SCHEMA_VERSION == "0.3.0"
-    assert SUPPORTED_VERSIONS == ("0.1.0", "0.2.0", "0.2.1", "0.3.0")
+    assert SCHEMA_VERSION == "0.4.0"
+    assert SUPPORTED_VERSIONS == ("0.1.0", "0.2.0", "0.2.1", "0.3.0", "0.4.0")
     assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
 
 
 def test_schema_path_names_the_bundled_file() -> None:
     path = schema_path()
     assert path.is_file()
-    assert path.name == "timeskeleton-0.3.0.schema.json"
-    assert schema_path("0.3.0") == path
+    assert path.name == "timeskeleton-0.4.0.schema.json"
+    assert schema_path("0.4.0") == path
 
 
 def test_schema_identity() -> None:
@@ -102,13 +100,13 @@ def test_schema_identity() -> None:
     version = schema["properties"]["meta"]["properties"]["schema_version"]
     assert version == {
         "const": SCHEMA_VERSION,
-        "description": "The timeskeleton release this document conforms to.",
+        "description": "The timeskeleton release this manifest conforms to.",
     }
 
 
 def test_0_2_1_differs_from_0_2_0_in_its_id_version_and_description_only() -> None:
     expected = copy.deepcopy(load_schema("0.2.0"))
-    expected["$id"] = SCHEMA_ID.replace("0.3.0", "0.2.1")
+    expected["$id"] = SCHEMA_ID.replace("0.4.0", "0.2.1")
     expected["description"] = load_schema("0.2.1")["description"]
     assert expected["description"].startswith(load_schema("0.2.0")["description"][:40])
     expected["properties"]["meta"]["properties"]["schema_version"]["const"] = "0.2.1"
@@ -139,6 +137,28 @@ def test_0_3_0_is_0_2_1_plus_the_graphical_block() -> None:
     schema["properties"]["meta"]["properties"]["schema_version"]["const"] = "0.2.1"
     assert schema == previous
     assert "graphical" not in schema["required"]
+
+
+def test_0_4_0_holds_exactly_one_timeline_and_keeps_the_definitions() -> None:
+    current = load_schema("0.4.0")
+    previous = load_schema("0.3.0")
+    assert list(current["properties"]) == ["meta", "timeline", "graphical"]
+    assert current["properties"]["timeline"] == {"$ref": "#/$defs/TimelineManifest"}
+    assert current["required"] == ["meta", "timeline"]
+    assert current["additionalProperties"] is False
+
+    def structure(value):
+        if isinstance(value, dict):
+            return {
+                key: structure(item)
+                for key, item in value.items()
+                if key not in {"description", "title"}
+            }
+        if isinstance(value, list):
+            return [structure(item) for item in value]
+        return value
+
+    assert structure(current["$defs"]) == structure(previous["$defs"])
 
 
 def test_the_graphical_block_vocabulary() -> None:
@@ -246,13 +266,44 @@ def test_metrical_position_map_states_its_meter_map_once() -> None:
     assert position_map["additionalProperties"] is False
 
 
-def test_fixture_set_contains_the_synthetic_and_extended_documents() -> None:
+def test_fixture_set_contains_exactly_the_0_4_0_manifests() -> None:
     names = [path.name for path in fixture_paths()]
-    assert len(names) == 20
-    assert {f"{name}.json" for name in FIXTURE_NAMES}.issubset(names)
-    assert "conversion_maps.json" in names
-    assert "flow_control.json" in names
-    assert {"bare.json", "contiguous.json", "map.json", "styled.json"}.issubset(names)
+    assert names == [
+        "bare.json",
+        "contiguous.json",
+        "continuous_graphical.json",
+        "continuous_logical.json",
+        "continuous_physical.json",
+        "conversion_maps__maps_quarters.json",
+        "conversion_maps__maps_samples.json",
+        "conversion_maps__maps_seconds.json",
+        "conversion_maps__maps_ticks.json",
+        "corpus_audio_audio.json",
+        "corpus_midi_score_midi.json",
+        "corpus_parangonar_parangonada__perf_1966_Szegedi_cpt1.json",
+        "corpus_parangonar_parangonada__perf_1966_Szegedi_dpt1.json",
+        "corpus_parangonar_parangonada__perf_1970_Gould_cpt1.json",
+        "corpus_parangonar_parangonada__perf_1970_Gould_dpt1.json",
+        "corpus_parangonar_parangonada__perf_1971_Curzon_cpt1.json",
+        "corpus_parangonar_parangonada__perf_1971_Curzon_dpt1.json",
+        "corpus_parangonar_parangonada__perf_1985_Brendel_cpt1.json",
+        "corpus_parangonar_parangonada__perf_1985_Brendel_dpt1.json",
+        "corpus_parangonar_parangonada__perf_2023_Hewitt_cpt1.json",
+        "corpus_parangonar_parangonada__perf_2023_Hewitt_dpt1.json",
+        "corpus_parangonar_parangonada__score_clt1.json",
+        "corpus_parangonar_parangonada__score_dlt1.json",
+        "corpus_score_ms3.json",
+        "corpus_supra_iiif.json",
+        "discrete_graphical.json",
+        "discrete_logical.json",
+        "discrete_physical.json",
+        "flow_control.json",
+        "map.json",
+        "nested.json",
+        "styled__perf.json",
+        "styled__score.json",
+        "with_region.json",
+    ]
 
 
 def test_the_0_3_0_fixtures_are_the_0_2_1_fixtures_and_four_drawings() -> None:
@@ -277,14 +328,14 @@ def test_the_0_3_0_fixtures_are_the_0_2_1_fixtures_and_four_drawings() -> None:
         assert current[name].read_text(encoding="utf-8") == expected, name
 
 
-def test_only_the_styled_fixture_carries_a_graphical_block() -> None:
+def test_the_styled_manifests_keep_their_own_graphical_containers() -> None:
     styled = []
     for path in fixture_paths():
-        document = json.loads(path.read_text(encoding="utf-8"))
-        if "graphical" in document:
+        manifest = json.loads(path.read_text(encoding="utf-8"))
+        if "graphical" in manifest:
             styled.append(path.name)
-            assert list(document) == ["meta", "manifest", "graphical"]
-            assert document["graphical"] == {
+            assert list(manifest) == ["meta", "timeline", "graphical"]
+            expected = {
                 "styles": [
                     {"select": {}, "set": {"show_length": True}},
                     {"select": {"element": "label"}, "set": {"colour": "#404040"}},
@@ -311,15 +362,19 @@ def test_only_the_styled_fixture_carries_a_graphical_block() -> None:
                             },
                         }
                     ],
+                },
+            }
+            if path.name == "styled__perf.json":
+                expected["timelines"] = {
                     "perf": [
                         {
                             "select": {"element": "wedge", "domain": "physical"},
                             "set": {"colour": "#7F00FF"},
                         }
-                    ],
-                },
-            }
-    assert styled == ["styled.json"]
+                    ]
+                }
+            assert manifest["graphical"] == expected
+    assert styled == ["styled__perf.json", "styled__score.json"]
 
 
 @pytest.mark.parametrize("accessor", [schema_path, load_schema, fixture_paths])

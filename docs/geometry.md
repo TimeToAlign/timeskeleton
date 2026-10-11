@@ -1,31 +1,52 @@
 # The geometry of a TimeSkeleton drawing
 
-This document specifies how a TimeSkeleton document is drawn: the optional
-`graphical` block of a document, the layout that turns a document into
-**geometry** (`schema/geometry-<version>.schema.json`), and the two writers
-that turn geometry into SVG and TikZ text. It is complete: two
-implementations that follow it produce the same geometry, byte for byte
-through the standard writer `dumps`, and the same SVG and TikZ text. The
-golden fixtures under `fixtures/<version>/geometry/` pin it.
+This specification states how a TimeSkeleton manifest is drawn: its optional
+`graphical` block of style rules (section 2), the layout that turns the
+manifest into one **block** of geometry (sections 3 to 7), and the two
+writers that turn a block into SVG and TikZ text (section 8). It is
+complete: two implementations that follow it draw the same manifest as the
+same SVG and TikZ text, byte for byte.
 
-Version 0.3.0. Terms in `code` are JSON members; "the root" is the top-level
-timeline a block draws.
+Geometry is the layout's intermediate value, and its JSON form (section 7)
+is internal to an implementation such as the TimeLineEditor. From 0.4.0 on
+there is no geometry schema: this specification, together with the SVG and
+TikZ fixtures of a schema version, pins the drawing, and 0.4.0 has no such
+fixtures yet. Schema 0.3.0 shipped a geometry schema
+(`schema/geometry-0.3.0.schema.json`) and geometry, SVG and TikZ fixtures of
+its envelopes (`fixtures/0.3.0/geometry/`). They stay in the repository,
+frozen with that release, as a record of how 0.3.0 drew an envelope; they
+constrain nothing, and where they differ from this specification, this
+specification decides.
+
+A published envelope (schema 0.1.0 to 0.3.0) is drawn by dividing it with
+`split` into envelopes of one top-level timeline each, bringing each to a
+manifest with `migrate`, and drawing every manifest as its own block. Terms
+in `code` are JSON members; "the root" is the manifest's top-level timeline.
 
 ## 1. Overview
 
-A document is drawn as a column of **blocks**, one per top-level timeline,
-in the canonical order of `manifest.timelines` (by id). A block is a
-rectangle holding horizontal **rows**: the root timeline on row 0, child
-timelines and conversion maps above it, regions and flow-control jumps below
-it, flow-control breaks as vertical lines through the whole block, wedges
-marking coordinates, and labels.
+A manifest is drawn as one block, a rectangle holding horizontal **rows**:
+the root on row 0, child timelines and conversion maps above it, regions and
+flow-control jumps below it, flow-control breaks as vertical lines through
+the whole block, wedges marking coordinates, and labels.
 
-Layout is a pure function of the document. It measures no text and knows no
-page: every horizontal position it writes is exact, every vertical position
-is a row or an exact fraction of a row. Only the writers map positions to a
-page, under one transform and one number formatting rule (section 8).
+The layout measures no text and knows no page: every horizontal position it
+writes is exact, every vertical position is a row or an exact fraction of a
+row. Only the writers map positions to a page, under one transform and one
+number formatting rule (section 8).
+
+> **Proposal, not yet specified.** On an interactive canvas, the drawing of
+> a block becomes a pure function of three inputs: its manifest, the
+> properties of the block that places the manifest on the canvas (such as
+> its scale, its name column and its style overrides), and an injected
+> function that measures text, which tests replace by fixed metrics. The
+> canvas places the block; only the writers map it to a page. Until this is
+> specified, the rules below apply as written.
 
 ## 2. The `graphical` block
+
+The shape of the `graphical` block is being redesigned before 0.4.0 is
+released; this section describes its current shape.
 
 ```json
 "graphical": {
@@ -33,7 +54,7 @@ page, under one transform and one number formatting rule (section 8).
     {"select": {"element": "label"}, "set": {"colour": "#404040"}}
   ],
   "timelines": {
-    "perf": [
+    "performance": [
       {"select": {"element": "child", "domain": "physical", "modality": "discrete"}, "set": {"line_pattern": "dashed"}}
     ]
   }
@@ -42,12 +63,12 @@ page, under one transform and one number formatting rule (section 8).
 
 The block is optional. An absent block, and a block without rules, draw
 every element with its default style (section 4). Style rules are held by
-**containers**: `styles` holds the rules of the document, the outermost
-container; `timelines` holds, by timeline id, the rules of the container
-formed by that timeline and all its descendants. A rule selects elements
+**containers**: `styles` holds the manifest's own rules, the outermost
+container; `timelines` holds, by timeline id, the root's included, the rules
+of the container formed by that timeline and all its descendants. A rule selects elements
 of its container and sets properties on them; the order of the rules in a
 list matters, so writers never reorder them. A rule list under the id of a
-timeline the document does not hold selects nothing. (Later versions may
+timeline the manifest does not hold selects nothing. (Later versions may
 add containers, such as groups of timelines, beside `timelines`.)
 
 ### 2.1 Elements
@@ -65,13 +86,18 @@ Every drawn thing is an **element**. The attributes used for selection are:
 - its **modality**, whether its timeline is `continuous` or `discrete`,
   from the same class.
 
+In the coming redesign of the block, and not in the current schema, a
+selector may also name an element's type by its library class: a timeline
+class such as `DiscretePhysicalTimeline`, or a conversion-map type such as
+`QuartersToTicks`.
+
 An element belongs to its **timeline**, listed in section 2.2, and through
 it to the container of that timeline and of each of its ancestors, and to
-the document.
+the manifest.
 
 ### 2.2 Element ids
 
-Timeline ids are unique within a document. Every other element id is
+Timeline ids are unique within a manifest. Every other element id is
 derived from a timeline id `T` and is compared as a whole string.
 
 | Element | id | timeline |
@@ -129,8 +155,9 @@ The rank of a matching rule is, from the most to the least significant:
    element outranks every rule that does not, in any container;
 2. the depth of its container: the nearest container (the timeline closest
    to the element among those whose subtree holds it) outranks the ones
-   enclosing it, and every timeline outranks the document. The document has
-   depth 0, a root timeline depth 1, its children depth 2, and so on;
+   enclosing it, and every timeline outranks the manifest's own rules. The
+   manifest's own rules (`styles`) have depth 0, the root timeline depth 1,
+   its children depth 2, and so on;
 3. whether its selector names the element type (`element`): within one
    container, a rule naming the type outranks a rule naming only the domain
    and/or the modality;
@@ -145,7 +172,7 @@ The rank of a matching rule is, from the most to the least significant:
 ### 3.1 Positions along the root
 
 A horizontal position derived from time is a value on the **root's axis**,
-written in the JSON number forms of the document:
+written in the JSON number forms of the manifest:
 
 - a value computed only from integers and Fractions is **exact**. It is
   written as a JSON integer when the root's `number_type` is `int` and the
@@ -188,7 +215,7 @@ units (proportions) from its origin at the block's bottom-left corner. It
 holds two extents, each an `offset` and a `length`: `names`, the name
 column, at offset 0, and `plot`, the plot area, right after it. The root is
 placed in the plot area by a `LinearMap` from the root's unit to `number`
-(`placement`, the document schema's definition).
+(`placement`, the `LinearMap` definition of the TimeSkeleton schema).
 
 - The frame's numbers are floats when the root's number type is `float`,
   and Fraction pairs otherwise.
@@ -260,9 +287,8 @@ The name of a timeline or a conversion map is its `name`, or its `id` when
 
 ## 6. Layout
 
-`layout(document)` returns `{"meta": {"schema_version": "0.3.0"},
-"blocks": [...]}`, one block per top-level timeline in canonical order. The
-document is read in canonical order whatever order it was written in.
+`layout(manifest)` returns the manifest's block (section 7). The manifest is
+read in canonical order whatever order it was written in.
 
 ### 6.1 Traversal
 
@@ -378,7 +404,7 @@ those of its element.
   5.2) and the label is visible. It sits at the end of the break's line on
   the break's `side`: below (the default), `at` = the break's position and
   its `bottom`, anchor `north`; above, its `top`, anchor `south`. It lies
-  outside the block's rectangle, which the page margins hold.
+  outside the block's rectangle, in the SVG page's margin.
 - **The name column.** For each row, the drawn lines and maps of the row,
   in primitive order, whose name labels are visible contribute their names
   (section 5.2); the row's label text is those names joined by `, `. It is
@@ -390,45 +416,40 @@ those of its element.
 Every other label has `"space": "root"`: its `x` is a position on the root's
 axis.
 
-## 7. Geometry
+## 7. The block
 
-The geometry document validates against `schema/geometry-0.3.0.schema.json`:
+A block is written as one JSON object; the example abbreviates its
+primitives:
 
 ```json
 {
-  "meta": {"schema_version": "0.3.0"},
-  "blocks": [
-    {
-      "id": "<root id>",
-      "frame": {"length": [10, 1], "names": {"offset": [0, 1], "length": [2, 1]}, "plot": {"offset": [2, 1], "length": [8, 1]}},
-      "placement": {"type": "LinearMap", "id": "placement", "...": "..."},
-      "rows": {"min": -1, "max": 2},
-      "background": "#BAC8D3",
-      "primitives": [{"kind": "timeline", "...": "..."}]
-    }
-  ]
+  "id": "<root id>",
+  "frame": {"length": [10, 1], "names": {"offset": [0, 1], "length": [2, 1]}, "plot": {"offset": [2, 1], "length": [8, 1]}},
+  "placement": {"type": "LinearMap", "id": "placement", "...": "..."},
+  "rows": {"min": -1, "max": 2},
+  "background": "#BAC8D3",
+  "primitives": [{"kind": "timeline", "...": "..."}]
 }
 ```
 
-The members of every object are written in the order this document lists
-them. A primitive's `kind` names the element type it draws; it is the
+The members of every object are written in the order this specification
+lists them. A primitive's `kind` names the element type it draws; it is the
 discriminator of the list of primitives, an open union: a later version may
-add primitives with another `kind`, and a reader ignores a primitive whose
+add primitives with another `kind`, and a writer skips a primitive whose
 `kind` it does not know.
 
 ## 8. Writers
 
 ### 8.1 The page
 
-Writers place blocks on a page measured in **page units** (pixels in SVG,
-points in TikZ). Two options choose the scale: `width` (default 400), the
-width of every block, and `row_height` (default 32), the height of a row.
+Writers place the block on a page measured in **page units** (pixels in
+SVG, points in TikZ). Two options choose the scale: `width` (default 400),
+the width of the block, and `row_height` (default 32), the height of a row.
 Option names follow each language's convention (`row_height` in Python,
 `rowHeight` in TypeScript). Every other measure is fixed:
 
 | Measure | Page units |
 |---|---|
-| gap between blocks | 16 |
 | SVG margin around the page | 16 |
 | line width | 0.8 |
 | font size | 7 |
@@ -440,17 +461,15 @@ Option names follow each language's convention (`row_height` in Python,
 | map rectangle height | 4 |
 | character width (name column) | 4.2 (0.6 of the font size) |
 
-Blocks are stacked from the top in block order. Block `k` has height
-`H_k = (M_k − m_k + 1) × row_height`; its top lies `T_k = Σ_{j<k} (H_j +
-16)` below the top of the page, and the page is `S = Σ H_k + 16 × (n − 1)`
-high (0 for no block).
+The page is the block: it is `W = width` wide and `H = (M − m + 1) ×
+row_height` high, the SVG adding its margin of 16 on every side and the TikZ
+picture none.
 
 With `F` the frame's length, the page abscissa of a frame position `f` is
 `f × width / F`, and of a root position `x` it is that of the frame position
 `plot.offset + scalar × x + offset` (section 3.3). The page ordinate of a vertical
-position `y` (rows) is, in SVG (downwards) `T_k + (M_k + 1/2 − y) ×
-row_height`, and in TikZ (upwards) `S − T_k − H_k + (y − m_k + 1/2) ×
-row_height`.
+position `y` (rows) is, in SVG (downwards) `(M + 1/2 − y) × row_height`,
+and in TikZ (upwards) `(y − m + 1/2) × row_height`.
 
 All of this is computed **exactly**: a float in the geometry enters as its
 exact binary value, and every page coordinate is an exact rational until it
@@ -490,13 +509,13 @@ A label with `rotate` `θ` is rotated by `θ` degrees counter-clockwise about
 The output is UTF-8, one element per line, no indentation, final newline:
 
 ```
-<svg xmlns="http://www.w3.org/2000/svg" width="{W+32}" height="{S+32}" viewBox="-16 -16 {W+32} {S+32}" font-family="DejaVu Sans, sans-serif" font-size="7">
+<svg xmlns="http://www.w3.org/2000/svg" width="{W+32}" height="{H+32}" viewBox="-16 -16 {W+32} {H+32}" font-family="DejaVu Sans, sans-serif" font-size="7">
 ...
 </svg>
 ```
 
-Per block, the background
-`<rect x="0" y="{T}" width="{W}" height="{H}" fill="#BAC8D3"/>`, then each
+Then the background
+`<rect x="0" y="0" width="{W}" height="{H}" fill="#BAC8D3"/>` and each
 primitive. Below, `(X, Y)` are page coordinates, `c` the colour, `{dash}` is
 empty for `solid`, ` stroke-dasharray="0.8 1"` for `dotted` and
 ` stroke-dasharray="3 3"` for `dashed`, and `{stroke}` is
@@ -554,9 +573,9 @@ LuaLaTeX document:
 ```
 
 Without it, the output is the `tikzpicture` environment alone; the
-including document loads TikZ, `arrows.meta` and a sans-serif font that has
+including LaTeX document loads TikZ, `arrows.meta` and a sans-serif font that has
 `♩` (U+2669). Every line ends with a newline. The colours defined are those
-of every block's background and of every primitive of a known `kind`,
+of the block's background and of every primitive of a known `kind`,
 including a label the writer leaves out (section 8.3); each is defined once,
 right after `\begin{tikzpicture}`, as `\definecolor{ts<RRGGBB>}{HTML}{<RRGGBB>}`,
 sorted by its hexadecimal digits. `{c}` stands for `ts<RRGGBB>`, `{pattern}` for `,densely dotted`

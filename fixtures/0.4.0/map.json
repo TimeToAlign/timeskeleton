@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "schema_version": "0.4.0",
+    "generator": "timetoalign 1.2.0 (2549cbe4)"
+  },
+  "timeline": {
+    "id": "melody",
+    "name": "Melody",
+    "class": "ContinuousLogicalTimeline",
+    "unit": "quarters",
+    "number_type": "fraction",
+    "length": {
+      "unit": "quarters",
+      "number_type": "fraction",
+      "value": [
+        8,
+        1
+      ]
+    },
+    "locked": false,
+    "meta": {},
+    "children": {
+      "phrase": {
+        "offset": {
+          "unit": "quarters",
+          "number_type": "fraction",
+          "value": [
+            2,
+            1
+          ]
+        },
+        "timeline": {
+          "id": "phrase",
+          "name": "Phrase",
+          "class": "ContinuousLogicalTimeline",
+          "unit": "quarters",
+          "number_type": "fraction",
+          "length": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              4,
+              1
+            ]
+          },
+          "locked": true,
+          "meta": {},
+          "children": {},
+          "conversion_maps": [
+            {
+              "type": "QuartersToTicks",
+              "id": "ticks",
+              "name": "Ticks",
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "scalar": 480,
+              "ppq": 480
+            }
+          ],
+          "regions": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": {}
+          },
+          "measure_map": null,
+          "metric_hierarchy": null
+        }
+      }
+    },
+    "conversion_maps": [
+      {
+        "type": "ScalarMap",
+        "id": "tempo",
+        "name": "Tempo",
+        "source_unit": "quarters",
+        "target_unit": "seconds",
+        "scalar": [
+          1,
+          2
+        ]
+      }
+    ],
+    "regions": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": {}
+    },
+    "measure_map": null,
+    "metric_hierarchy": null
+  }
+}

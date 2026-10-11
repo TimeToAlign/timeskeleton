@@ -1,0 +1,40 @@
+{
+  "meta": {
+    "schema_version": "0.4.0",
+    "generator": "timetoalign 1.2.0 (2549cbe4)"
+  },
+  "timeline": {
+    "id": "maps:seconds",
+    "name": "Second maps",
+    "class": "ContinuousPhysicalTimeline",
+    "unit": "seconds",
+    "number_type": "float",
+    "length": {
+      "unit": "seconds",
+      "number_type": "float",
+      "value": 2.0
+    },
+    "locked": false,
+    "meta": {},
+    "children": {},
+    "conversion_maps": [
+      {
+        "type": "SecondsToSamples",
+        "id": "map:SecondsToSamples_1",
+        "name": "seconds_to_samples",
+        "source_unit": "seconds",
+        "target_unit": "samples",
+        "scalar": 48000,
+        "sample_rate": 48000
+      }
+    ],
+    "regions": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": {}
+    },
+    "measure_map": null,
+    "metric_hierarchy": null
+  }
+}

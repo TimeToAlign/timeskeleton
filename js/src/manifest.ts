@@ -1,10 +1,11 @@
 /**
  * Lossless reading, the canonical order and the standard writer of a
- * TimeSkeleton document.
+ * TimeSkeleton manifest or published envelope.
  *
- * Every collection of a document whose order carries no meaning has one
- * canonical order, so that equal documents are equal text: `manifest.timelines`
- * by id; at every depth, `children` by offset, then id; `conversion_maps` by
+ * Every collection of a manifest, or an envelope of an earlier version, whose
+ * order carries no meaning has one canonical order, so equal values are equal
+ * text. An envelope's `manifest.timelines` are ordered by id; at every depth,
+ * `children` by offset, then id; `conversion_maps` by
  * id; `regions` by start, then end, then name; flow-control `breaks` by
  * coordinate, then canonical JSON text; `jumps` by from coordinate, then to
  * coordinate, then canonical JSON text; `markers` by name. Coordinates compare
@@ -15,7 +16,7 @@
  * `\` and the control characters, two-space indentation and a final newline.
  * A float is always written as a float (`2.0`, `1e-07`), spelled as Python's
  * `repr` spells it; an integer never carries a decimal point or an exponent.
- * Both packages write the same document as the same bytes.
+ * Both packages write the same value as the same bytes.
  */
 
 /**
@@ -358,7 +359,7 @@ export function compactJson(value: Lossless<Json>): string {
 }
 
 /**
- * Return the standard text of a document, or of any JSON value.
+ * Return the standard text of any JSON value.
  *
  * The value is put in `canonicalOrder`, then written with two-space
  * indentation and a final newline, characters unescaped, every float spelled as
@@ -544,17 +545,19 @@ function orderTimeline(manifest: JsonObject): void {
 }
 
 /**
- * Return a deep copy of `value` with its document in canonical order.
+ * Return a deep copy of `value` with its manifest or envelope ordered.
  *
- * `value` is a TimeSkeleton document, or any JSON value: only the collections
- * found where a document holds them are reordered, so a value that is no
- * document is copied unchanged. Python's `timeskeleton.canonical_order` gives
- * the same order.
+ * A top-level `timeline` orders that timeline manifest. An earlier envelope's
+ * `manifest.timelines` are ordered by id, then each timeline manifest is
+ * ordered. Any other JSON value is copied unchanged. Python's
+ * `timeskeleton.canonical_order` gives the same order.
  *
  * @throws {TypeError} if a collection holds an entry whose ordering members are missing or of the wrong type.
  */
 export function canonicalOrder<T>(value: T): T {
   const result = clone(value);
+  const timeline = member(result, "timeline");
+  if (isJsonObject(timeline)) orderTimeline(timeline);
   const manifest = member(result, "manifest");
   const timelines = member(manifest, "timelines");
   if (isJsonObject(manifest) && isJsonObject(timelines)) {

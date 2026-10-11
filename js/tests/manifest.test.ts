@@ -13,6 +13,7 @@ import {
   parse,
   parseJson,
   SchemaValidationError,
+  split,
   validate,
 } from "../src/index.js";
 import {
@@ -76,12 +77,21 @@ function standardFiles(): [string, string][] {
       rejectionText(file, "0.3.0"),
     ]),
     ["0.2.1-to-0.3.0/after.json", migrationText("0.2.1-to-0.3.0", "after")],
+    ...fixtureFileNames("0.4.0").map((file): [string, string] => [
+      `0.4.0/${file}`,
+      fixtureText(file.slice(0, -5), "0.4.0"),
+    ]),
+    ...rejectionFileNames("0.4.0").map((file): [string, string] => [
+      `rejections/0.4.0/${file}`,
+      rejectionText(file, "0.4.0"),
+    ]),
+    ["0.3.0-to-0.4.0/after.json", migrationText("0.3.0-to-0.4.0", "after")],
   ];
 }
 
 describe("the standard writer", () => {
-  it("round-trips all 117 standard files", () => {
-    expect(standardFiles().length).toBe(16 + 34 + 1 + (20 + 45 + 1));
+  it("round-trips all 199 standard files", () => {
+    expect(standardFiles().length).toBe(16 + 34 + 1 + (20 + 45 + 1) + (34 + 47 + 1));
   });
 
   it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {
@@ -163,14 +173,12 @@ describe("integer boundaries", () => {
   it.each([9007199254740993n, 9223372036854775807n])(
     "validates, migrates and writes %s exactly",
     (value) => {
-      const document = parseJson(fixtureText("discrete_logical", "0.2.0")) as JsonObject;
-      const timelines = (document.manifest as JsonObject).timelines as JsonObject;
-      const timeline = Object.values(timelines)[0] as JsonObject;
+      const manifest = parseJson(fixtureText("discrete_logical", "0.4.0")) as JsonObject;
+      const timeline = manifest.timeline as JsonObject;
       (timeline.length as JsonObject).value = value;
-      validate(document);
-      const result = migrate(document) as unknown as JsonObject;
-      const migrated = Object.values((result.manifest as JsonObject).timelines as JsonObject)[0];
-      expect(((migrated as JsonObject).length as JsonObject).value).toBe(value);
+      validate(manifest);
+      const result = migrate(manifest) as unknown as JsonObject;
+      expect(((result.timeline as JsonObject).length as JsonObject).value).toBe(value);
       expect(dumps(result)).toContain(`"value": ${value}\n`);
     },
   );
@@ -178,20 +186,20 @@ describe("integer boundaries", () => {
 
 describe("canonical order", () => {
   it("orders array-index marker names by code point and writes them so", () => {
-    const document = {
+    const envelope = {
       manifest: {
         timelines: {
           t: { flow_control: { breaks: [], jumps: [], markers: { a: 1, "2": 2, "10": 3 } } },
         },
       },
     };
-    const text = dumps(document);
+    const text = dumps(envelope);
     expect(text.indexOf('"10"')).toBeLessThan(text.indexOf('"2"'));
     expect(text.indexOf('"2"')).toBeLessThan(text.indexOf('"a"'));
     expect(dumps(parseJson(text))).toBe(text);
   });
 
-  it("copies, and leaves a value that is no document unchanged", () => {
+  it("copies, and leaves a value that is no manifest or envelope unchanged", () => {
     const value = parseJson('{"b": [3, 1], "a": {"manifest": 1}}');
     const ordered = canonicalOrder(value);
     expect(ordered).not.toBe(value);
@@ -201,10 +209,10 @@ describe("canonical order", () => {
   });
 
   it("refuses a collection it cannot order", () => {
-    const document = {
+    const envelope = {
       manifest: { timelines: { a: { regions: [{ name: "r" }, { name: "s" }] } } },
     };
-    expect(() => dumps(document)).toThrow(TypeError);
+    expect(() => dumps(envelope)).toThrow(TypeError);
   });
 });
 
@@ -222,11 +230,14 @@ describe("values the writer refuses", () => {
 });
 
 describe("parse", () => {
-  it("reads and validates a document", () => {
-    const document = parse(fixtureText("continuous_physical", "0.2.1"));
-    expect(document.meta.schema_version).toBe("0.2.1");
-    const timeline = Object.values(document.manifest.timelines)[0];
-    const offsets = Object.values(timeline?.children ?? {}).map((child) => child.offset.value);
+  it("reads and validates an envelope", () => {
+    const envelope = parse(fixtureText("continuous_physical", "0.2.1")) as unknown as JsonObject;
+    expect((envelope.meta as JsonObject).schema_version).toBe("0.2.1");
+    const timelines = (envelope.manifest as JsonObject).timelines as JsonObject;
+    const timeline = Object.values(timelines)[0] as JsonObject;
+    const offsets = Object.values(timeline.children as JsonObject).map(
+      (child) => ((child as JsonObject).offset as JsonObject).value,
+    );
     expect(offsets).toEqual([0.5, new JsonFloat(6)]);
     expect(isJsonFloat(offsets[1])).toBe(true);
   });
@@ -240,7 +251,7 @@ describe("parse", () => {
       expect((error as SchemaValidationError).path).toEqual(testCase.path);
       return;
     }
-    throw new Error("document was accepted");
+    throw new Error("envelope was accepted");
   });
 });
 
@@ -308,16 +319,26 @@ describe("compactJson", () => {
 });
 
 describe("parse, migrate, dumps", () => {
-  it("gives the Python migrations' after.json through both pairs", () => {
-    const before = parse(migrationText("0.2.0-to-0.2.1", "before"));
-    expect(dumps(migrate(before))).toBe(migrationText("0.2.1-to-0.3.0", "after"));
+  it("gives the Python migration's 0.4.0 after.json", () => {
+    const before = parse(migrationText("0.3.0-to-0.4.0", "before"));
+    expect(dumps(migrate(before))).toBe(migrationText("0.3.0-to-0.4.0", "after"));
   });
 
-  it.each(fixtureFileNames("0.2.0"))("gives the 0.3.0 text of %s", (file) => {
-    const name = file.slice(0, -5);
-    const expected = parseJson(fixtureText(name, "0.3.0")) as JsonObject;
-    const result = migrate(parse(fixtureText(name, "0.2.0"))) as unknown as JsonObject;
-    (result.meta as JsonObject).generator = (expected.meta as JsonObject).generator;
-    expect(dumps(result)).toBe(fixtureText(name, "0.3.0"));
+  it.each(fixtureFileNames("0.3.0"))("splits and migrates every member of %s", (file) => {
+    const envelope = parse(fixtureText(file.slice(0, -5), "0.3.0"));
+    for (const part of split(envelope)) {
+      const result = migrate(part) as unknown as JsonObject;
+      const rootId = (result.timeline as JsonObject).id;
+      const expectedFile = fixtureFileNames("0.4.0").find((name) => {
+        const expected = parseJson(fixtureText(name.slice(0, -5), "0.4.0")) as JsonObject;
+        return (expected.timeline as JsonObject).id === rootId;
+      });
+      expect(expectedFile).toBeDefined();
+      const expected = parseJson(
+        fixtureText((expectedFile as string).slice(0, -5), "0.4.0"),
+      ) as JsonObject;
+      (result.meta as JsonObject).generator = (expected.meta as JsonObject).generator;
+      expect(dumps(result)).toBe(dumps(expected));
+    }
   });
 });

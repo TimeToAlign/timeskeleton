@@ -22,7 +22,7 @@ from timeskeleton import (
 )
 
 GEOMETRY_ID = "https://timetoalign.github.io/timeskeleton/0.3.0/geometry.schema.json"
-DOCUMENT_ID = (
+ENVELOPE_SCHEMA_ID = (
     "https://timetoalign.github.io/timeskeleton/0.3.0/timeskeleton.schema.json"
 )
 
@@ -47,8 +47,8 @@ def test_geometry_versions_and_schema_identity() -> None:
         for reference in [reference.split('"')[0]]
         if not reference.startswith("#")
     }
-    assert references == {DOCUMENT_ID}
-    assert load_schema()["$id"] == DOCUMENT_ID
+    assert references == {ENVELOPE_SCHEMA_ID}
+    assert load_schema("0.3.0")["$id"] == ENVELOPE_SCHEMA_ID
 
 
 def test_the_primitive_union_lists_eight_kinds() -> None:
@@ -77,7 +77,7 @@ def test_unknown_geometry_version_is_refused(accessor) -> None:
         accessor("0.2.1")
 
 
-def test_one_specimen_per_document_fixture() -> None:
+def test_one_specimen_per_envelope_fixture() -> None:
     assert [path.name for path in geometry_paths()] == [
         path.stem for path in fixture_paths("0.3.0")
     ]
@@ -91,7 +91,7 @@ def test_one_specimen_per_document_fixture() -> None:
 
 
 @pytest.mark.parametrize("path", geometry_paths(), ids=lambda path: path.name)
-def test_every_golden_geometry_validates_in_standard_text(path) -> None:
+def test_every_geometry_fixture_validates_in_standard_text(path) -> None:
     text = (path / "geometry.json").read_text(encoding="utf-8")
     geometry = json.loads(text)
     validate_geometry(geometry)
@@ -118,7 +118,7 @@ def test_every_frame_is_its_name_column_then_its_plot_area(path) -> None:
 
 
 @pytest.mark.parametrize("path", geometry_paths(), ids=lambda path: path.name)
-def test_every_golden_svg_parses(path) -> None:
+def test_every_svg_fixture_parses(path) -> None:
     root = ElementTree.parse(path / "figure.svg").getroot()
     assert root.tag == "{http://www.w3.org/2000/svg}svg"
 

@@ -55,6 +55,9 @@ def _standard_files() -> list:
         *fixture_paths("0.3.0"),
         *rejection_paths("0.3.0"),
         afters["0.2.1-to-0.3.0"],
+        *fixture_paths("0.4.0"),
+        *rejection_paths("0.4.0"),
+        afters["0.3.0-to-0.4.0"],
     ]
 
 
@@ -66,8 +69,8 @@ def test_standard_files_round_trip_byte_for_byte(path) -> None:
     assert dumps(json.loads(text)) == text
 
 
-def test_the_standard_files_number_one_hundred_and_seventeen() -> None:
-    assert len(_standard_files()) == (16 + 34 + 1) + (20 + 45 + 1)
+def test_the_standard_files_number_one_hundred_and_ninety_nine() -> None:
+    assert len(_standard_files()) == (16 + 34 + 1) + (20 + 45 + 1) + (34 + 47 + 1)
 
 
 def test_non_ascii_text_is_written_unescaped() -> None:
@@ -81,12 +84,12 @@ def test_number_corpus() -> None:
     assert dumps(json.loads(NUMBER_CORPUS)) == NUMBER_CORPUS_TEXT
 
 
-def test_canonical_order_copies_and_reorders_documents_only() -> None:
+def test_canonical_order_copies_and_reorders_manifests_and_envelopes_only() -> None:
     (path,) = [p for p in fixture_paths("0.2.0") if p.name == "conversion_maps.json"]
-    document = json.loads(path.read_text(encoding="utf-8"))
-    text = json.dumps(document)
-    ordered = canonical_order(document)
-    assert json.dumps(document) == text
+    envelope = json.loads(path.read_text(encoding="utf-8"))
+    text = json.dumps(envelope)
+    ordered = canonical_order(envelope)
+    assert json.dumps(envelope) == text
     assert list(ordered["manifest"]["timelines"]) == [
         "maps:quarters",
         "maps:samples",
@@ -94,6 +97,14 @@ def test_canonical_order_copies_and_reorders_documents_only() -> None:
         "maps:ticks",
     ]
     assert json.dumps(canonical_order(ordered)) == json.dumps(ordered)
+    manifest = json.loads(
+        next(
+            path
+            for path in fixture_paths("0.4.0")
+            if path.name == "continuous_logical.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert dumps(canonical_order(manifest)) == dumps(manifest)
     value = {"b": [3, 1], "a": {"manifest": 1}}
     assert json.dumps(canonical_order(value)) == json.dumps(value)
 
@@ -109,6 +120,6 @@ def test_values_the_writer_refuses(value) -> None:
 
 
 def test_an_unorderable_collection_is_refused() -> None:
-    document = {"manifest": {"timelines": {"a": {"regions": [{"name": "r"}] * 2}}}}
+    envelope = {"manifest": {"timelines": {"a": {"regions": [{"name": "r"}] * 2}}}}
     with pytest.raises(ValueError, match="cannot put regions in canonical order"):
-        dumps(document)
+        dumps(envelope)

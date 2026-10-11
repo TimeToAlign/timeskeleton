@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "schema_version": "0.4.0",
+    "generator": "timetoalign 1.2.0 (2549cbe4)"
+  },
+  "timeline": {
+    "id": "bare",
+    "name": "Bare",
+    "class": "ContinuousLogicalTimeline",
+    "unit": "quarters",
+    "number_type": "fraction",
+    "length": {
+      "unit": "quarters",
+      "number_type": "fraction",
+      "value": [
+        8,
+        1
+      ]
+    },
+    "locked": false,
+    "meta": {},
+    "children": {},
+    "conversion_maps": [],
+    "regions": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": {}
+    },
+    "measure_map": null,
+    "metric_hierarchy": null
+  }
+}

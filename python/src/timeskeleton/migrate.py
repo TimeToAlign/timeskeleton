@@ -1,19 +1,20 @@
 """Migrations between schema versions.
 
-A migration is a pure function from a document at one version to the same
-document at the next version, declaring that version. ``migrate`` chains them
-from the declared version up to ``SCHEMA_VERSION``. Each migration is
-pinned by a fixture pair (the document before and after) in the test suite.
+A migration is a pure function from a manifest or envelope at one version to
+the corresponding value at the next version. ``migrate`` chains the steps from
+the declared version up to ``SCHEMA_VERSION``. Each step is pinned by a fixture
+pair in the test suite.
 """
 
 from __future__ import annotations
 
 import copy
+import json
 from collections.abc import Callable, Mapping
 from fractions import Fraction
 from typing import Any
 
-from .document import canonical_order
+from .manifest import canonical_order
 from .validate import (
     SCHEMA_VERSION,
     SUPPORTED_VERSIONS,
@@ -24,16 +25,23 @@ from .validate import (
     validate,
 )
 
+ENVELOPE_VERSIONS = ("0.1.0", "0.2.0", "0.2.1", "0.3.0")
+"""The versions that publish an envelope, the only ones :func:`split` accepts.
+
+:func:`split` migrates to the last of them, so a later version is never
+splittable by position in ``SUPPORTED_VERSIONS``.
+"""
+
 Migration = Callable[[dict[str, Any]], dict[str, Any]]
 Path = tuple[str | int, ...]
 
 
 class MigrationError(ValueError):
-    """Raised when a document holds a member whose shape a migration does not know.
+    """Raised when a value holds a member whose shape a migration does not know.
 
     Attributes:
         path: The location of the offending value as a tuple of object keys and
-            array indices, empty for the document root.
+            array indices, empty for the root.
         message: Why the member cannot be migrated.
     """
 
@@ -334,7 +342,7 @@ def _timeline(manifest: dict[str, Any], path: Path) -> None:
                 _timeline(child["timeline"], (*path, "children", key, "timeline"))
 
 
-def _migrate_0_1_0_to_0_2_0(document: dict[str, Any]) -> dict[str, Any]:
+def _migrate_0_1_0_to_0_2_0(value: dict[str, Any]) -> dict[str, Any]:
     """Give the members 0.1.0 left opaque their 0.2.0 shapes.
 
     0.1.0 specified only the envelope, a timeline's top level and its
@@ -350,53 +358,153 @@ def _migrate_0_1_0_to_0_2_0(document: dict[str, Any]) -> dict[str, Any]:
         MigrationError: At the path of the first member that cannot be
             migrated.
     """
-    timelines = document.get("manifest", {}).get("timelines")
+    timelines = value.get("manifest", {}).get("timelines")
     if isinstance(timelines, Mapping):
         for key, manifest in timelines.items():
             if isinstance(manifest, dict):
                 _timeline(manifest, ("manifest", "timelines", key))
-    return _stamped(document, "0.2.0")
+    return _stamped(value, "0.2.0")
 
 
 # -- 0.2.0 to 0.2.1 ----------------------------------------------------------
 
 
-def _migrate_0_2_0_to_0_2_1(document: dict[str, Any]) -> dict[str, Any]:
-    """Write the document in the canonical order of 0.2.1.
+def _migrate_0_2_0_to_0_2_1(value: dict[str, Any]) -> dict[str, Any]:
+    """Write the value in the canonical order of 0.2.1.
 
     0.2.1 specifies the same shapes as 0.2.0 and fixes the order of every
     collection whose order carries no meaning (see
-    :func:`~timeskeleton.canonical_order`). The document is validated against
+    :func:`~timeskeleton.canonical_order`). The value is validated against
     0.2.1 before it is reordered, since the order does not affect validity, so
     a refusal names the path of the input.
 
     Raises:
         MigrationError: At the path of the first member with no 0.2.1 shape.
     """
-    return canonical_order(_stamped(document, "0.2.1"))
+    return canonical_order(_stamped(value, "0.2.1"))
 
 
 # -- 0.2.1 to 0.3.0 ----------------------------------------------------------
 
 
-def _migrate_0_2_1_to_0_3_0(document: dict[str, Any]) -> dict[str, Any]:
+def _migrate_0_2_1_to_0_3_0(value: dict[str, Any]) -> dict[str, Any]:
     """Declare 0.3.0.
 
     0.3.0 keeps every definition of 0.2.1 and adds the optional ``graphical``
-    block, which a 0.2.1 document does not carry, so the shapes are unchanged.
-    The document is validated against 0.3.0 and then put in canonical order.
+    block, which a 0.2.1 value does not carry, so the shapes are unchanged.
+    The value is validated against 0.3.0 and then put in canonical order.
 
     Raises:
         MigrationError: At the path of the first member with no 0.3.0 shape.
     """
-    return canonical_order(_stamped(document, "0.3.0"))
+    return canonical_order(_stamped(value, "0.3.0"))
 
 
-def _stamped(document: dict[str, Any], version: str) -> dict[str, Any]:
-    """Return ``document`` declaring ``version``, refused unless valid at it."""
+# -- 0.3.0 to 0.4.0 ----------------------------------------------------------
+
+
+def _subtree_ids(root_id: str, manifest: Mapping[str, Any]) -> set[str]:
+    """Return the ids of a root timeline and every descendant."""
+    identifiers = {root_id}
+    children = manifest.get("children")
+    if isinstance(children, Mapping):
+        for child_id, child in children.items():
+            if isinstance(child_id, str):
+                identifiers.add(child_id)
+            if isinstance(child, Mapping) and isinstance(
+                child.get("timeline"), Mapping
+            ):
+                identifiers.update(_subtree_ids(child_id, child["timeline"]))
+    return identifiers
+
+
+def graphical_for_subtree(
+    graphical: Mapping[str, Any], root_id: str, manifest: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Copy graphical rules, retaining the timeline containers of one subtree.
+
+    Args:
+        graphical: The ``graphical`` block of an envelope or manifest.
+        root_id: The id of the timeline that roots the subtree.
+        manifest: The timeline manifest of ``root_id``.
+
+    Returns:
+        A copy of ``graphical`` holding every manifest-level rule and, in
+        ``timelines``, only the containers of ``root_id`` and its descendants;
+        ``timelines`` is absent when none remains.
+    """
+    result: dict[str, Any] = {}
+    if "styles" in graphical:
+        result["styles"] = copy.deepcopy(graphical["styles"])
+    timelines = graphical.get("timelines")
+    if isinstance(timelines, Mapping):
+        identifiers = _subtree_ids(root_id, manifest)
+        retained = {
+            identifier: copy.deepcopy(rules)
+            for identifier, rules in timelines.items()
+            if identifier in identifiers
+        }
+        if retained:
+            result["timelines"] = retained
+    return result
+
+
+def _migrate_0_3_0_to_0_4_0(envelope: dict[str, Any]) -> dict[str, Any]:
+    """Turn an envelope holding one top-level timeline into one manifest.
+
+    An editor places many timelines on a canvas, each with its own manifest; a
+    manifest is what the library serializes for one object and knows nothing
+    about where or how often it is placed. The earlier envelope conflated that
+    placement concern with the manifest, so an envelope holding several roots
+    must first be divided with :func:`split`. The manifest is validated against
+    0.4.0 and then put in canonical order.
+
+    Raises:
+        MigrationError: At ``manifest.timelines`` unless the envelope holds
+            exactly one top-level timeline, else at the path of the first
+            member with no 0.4.0 shape.
+    """
+    timelines = envelope.get("manifest", {}).get("timelines", {})
+    roots = list(timelines) if isinstance(timelines, Mapping) else []
+    if len(roots) != 1:
+        raise MigrationError(
+            ("manifest", "timelines"),
+            "a 0.4.0 manifest holds one timeline; this envelope holds "
+            f"{len(roots)} top-level timelines: divide it with split() first",
+        )
+    root_id = roots[0]
+    timeline = timelines[root_id]
+    meta = envelope.get("meta", {})
+    result: dict[str, Any] = {
+        "meta": {
+            "schema_version": "0.4.0",
+            **(
+                {"generator": copy.deepcopy(meta["generator"])}
+                if isinstance(meta, Mapping) and "generator" in meta
+                else {}
+            ),
+        },
+        "timeline": copy.deepcopy(timeline),
+    }
+    if "graphical" in envelope:
+        graphical = envelope["graphical"]
+        result["graphical"] = (
+            graphical_for_subtree(graphical, root_id, timeline)
+            if isinstance(graphical, Mapping) and isinstance(timeline, Mapping)
+            else copy.deepcopy(graphical)
+        )
+    try:
+        validate(result)
+    except SchemaValidationError as error:
+        raise MigrationError(error.path, f"no 0.4.0 shape: {error.message}") from error
+    return canonical_order(result)
+
+
+def _stamped(value: dict[str, Any], version: str) -> dict[str, Any]:
+    """Return ``value`` declaring ``version``, refused unless valid at it."""
     stamped = {
-        **document,
-        "meta": {**document.get("meta", {}), "schema_version": version},
+        **value,
+        "meta": {**value.get("meta", {}), "schema_version": version},
     }
     try:
         validate(stamped)
@@ -411,29 +519,86 @@ MIGRATIONS: dict[str, tuple[str, Migration]] = {
     "0.1.0": ("0.2.0", _migrate_0_1_0_to_0_2_0),
     "0.2.0": ("0.2.1", _migrate_0_2_0_to_0_2_1),
     "0.2.1": ("0.3.0", _migrate_0_2_1_to_0_3_0),
+    "0.3.0": ("0.4.0", _migrate_0_3_0_to_0_4_0),
 }
 """Source version to ``(target version, migration)``.
 
-Each migration returns the document declaring its target version.
+Each migration returns the value declaring its target version.
 """
 
 
-def migrate(document: Mapping[str, Any]) -> dict[str, Any]:
-    """Return a deep copy of ``document`` brought to ``SCHEMA_VERSION``.
+def split(envelope: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Divide a published envelope into one 0.3.0 envelope per root timeline.
 
-    A document already at the latest version is copied unchanged and not
+    Each result is an envelope at the last of ``ENVELOPE_VERSIONS``. The
+    results are ordered by timeline id. ``[migrate(e) for e in
+    split(envelope)]`` turns any published envelope into manifests.
+
+    Raises:
+        MigrationError: If the value is not an envelope at one of
+            ``ENVELOPE_VERSIONS``, at ``meta.schema_version``.
+    """
+    version = declared_version(envelope)
+    if version not in ENVELOPE_VERSIONS:
+        raise MigrationError(
+            ("meta", "schema_version"),
+            f"split() accepts a published envelope, not version {json.dumps(version)}",
+        )
+    target = ENVELOPE_VERSIONS[-1]
+    migrated = copy.deepcopy(dict(envelope))
+    while version != target:
+        version, step = MIGRATIONS[version]
+        migrated = step(migrated)
+    try:
+        validate(migrated)
+    except SchemaValidationError as error:
+        raise MigrationError(
+            error.path, f"no {target} shape: {error.message}"
+        ) from error
+    manifest = migrated.get("manifest")
+    timelines = manifest.get("timelines") if isinstance(manifest, Mapping) else None
+    if not isinstance(timelines, Mapping):
+        timelines = {}
+    results: list[dict[str, Any]] = []
+    for root_id in sorted(timelines):
+        timeline = timelines[root_id]
+        result: dict[str, Any] = {
+            "meta": copy.deepcopy(migrated["meta"]),
+            "manifest": {"timelines": {root_id: copy.deepcopy(timeline)}},
+        }
+        if "graphical" in migrated:
+            graphical = migrated["graphical"]
+            result["graphical"] = (
+                graphical_for_subtree(graphical, root_id, timeline)
+                if isinstance(graphical, Mapping) and isinstance(timeline, Mapping)
+                else copy.deepcopy(graphical)
+            )
+        try:
+            validate(result)
+        except SchemaValidationError as error:
+            raise MigrationError(
+                error.path, f"no {target} shape: {error.message}"
+            ) from error
+        results.append(result)
+    return results
+
+
+def migrate(value: Mapping[str, Any]) -> dict[str, Any]:
+    """Return a deep copy of ``value`` brought to ``SCHEMA_VERSION``.
+
+    A value already at the latest version is copied unchanged and not
     validated; call :func:`~timeskeleton.validate` on it when the input is
-    untrusted. A migrated document satisfies the latest schema.
+    untrusted. A migrated value satisfies the latest schema.
 
     Raises:
         UnsupportedVersionError: If ``meta.schema_version`` is missing, not a
             string, or not one of ``SUPPORTED_VERSIONS``.
         MigrationError: If a member cannot be migrated, at its path.
     """
-    version = declared_version(document)
+    version = declared_version(value)
     if version is None or version not in SUPPORTED_VERSIONS:
         raise UnsupportedVersionError(version)
-    result = copy.deepcopy(dict(document))
+    result = copy.deepcopy(dict(value))
     while version != SCHEMA_VERSION:
         version, step = MIGRATIONS[version]
         result = step(result)

@@ -35,16 +35,16 @@ describe("the geometry schema", () => {
 });
 
 describe("validateGeometry", () => {
-  it("has one golden geometry per document fixture", () => {
-    const documents = readdirSync(directory)
+  it("has one geometry fixture per envelope fixture", () => {
+    const envelopes = readdirSync(directory)
       .filter((name) => name.endsWith(".json"))
       .map((name) => name.slice(0, -5))
       .sort();
-    expect(specimens).toEqual(documents);
+    expect(specimens).toEqual(envelopes);
     expect(specimens).toHaveLength(20);
   });
 
-  it.each(specimens)("accepts the golden geometry of %s in standard text", (name) => {
+  it.each(specimens)("accepts the geometry fixture of %s in standard text", (name) => {
     const text = geometryText(name);
     const geometry = parseJson(text);
     validateGeometry(geometry);

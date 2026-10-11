@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "schema_version": "0.4.0",
+    "generator": "timetoalign 1.2.0 (2549cbe4)"
+  },
+  "timeline": {
+    "id": "perf:2023_Hewitt:cpt1",
+    "name": "2023_Hewitt",
+    "class": "ContinuousPhysicalTimeline",
+    "unit": "seconds",
+    "number_type": "float",
+    "length": {
+      "unit": "seconds",
+      "number_type": "float",
+      "value": 89.94301587301587
+    },
+    "locked": false,
+    "meta": {},
+    "children": {},
+    "conversion_maps": [],
+    "regions": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": {}
+    },
+    "measure_map": null,
+    "metric_hierarchy": null
+  }
+}

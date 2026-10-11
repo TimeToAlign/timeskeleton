@@ -1,23 +1,23 @@
 #!/usr/bin/env python
-"""Emit the golden fixtures of the current schema through timetoalign.
+"""Emit the manifest and envelope fixtures of the current schema through timetoalign.
 
-Every document is built with public constructors or a public loader, serialized
+Every manifest is built with public constructors or a public loader, serialized
 with ``Timeline.to_dict()``, written with ``timeskeleton.dumps`` and
 round-tripped through ``Timeline.from_dict``; a manifest whose order differs
-from the library's fails the round trip. A styled document is such a document
-plus a ``graphical`` block written in this script (``GRAPHICAL``); the manifests
-are never written by hand.
+from the library's fails the round trip. A styled manifest also carries a
+``graphical`` block composed in this script from ``GRAPHICAL``.
 The current schema version is ``timeskeleton.SCHEMA_VERSION``. The fixtures of
 a released version are frozen: the script refuses to write into
 ``fixtures/<version>/`` once the tag ``v<version>`` exists. Map identifiers
 come from a per-process counter, so every run in a fresh interpreter emits the
-same documents.
+same manifests.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from fractions import Fraction
@@ -67,7 +67,7 @@ from timetoalign.maps import (
 from timetoalign.testdata import ensure_data
 from timetoalign.timelines.flowcontrol import Break, Jump
 
-from timeskeleton import SCHEMA_VERSION, dumps
+from timeskeleton import SCHEMA_VERSION, dumps, graphical_for_subtree
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = REPOSITORY_ROOT / "fixtures" / SCHEMA_VERSION
@@ -162,14 +162,10 @@ def conversion_map_timelines() -> list[Timeline]:
             x_values=[Fraction(0), Fraction(4), Fraction(8)],
             y_values=[1.0, 2.0, 3.0],
         ),
-        QuartersToMeasureNumber(
-            boundaries=[Fraction(0), Fraction(4)], mns=["1", "2"]
-        ),
+        QuartersToMeasureNumber(boundaries=[Fraction(0), Fraction(4)], mns=["1", "2"]),
         QuartersToTicks(ppq=480),
         RotationMap(4, scale=0.5, base=1, offset=0.25, source_unit="quarters"),
-        ScalarMap(
-            Fraction(2, 3), source_unit="quarters", target_unit="seconds"
-        ),
+        ScalarMap(Fraction(2, 3), source_unit="quarters", target_unit="seconds"),
         ShiftMap(offset=Fraction(1, 2), source_unit="quarters"),
         TableMap(
             x_values=[Fraction(0), Fraction(4)],
@@ -232,10 +228,10 @@ def flow_control_timeline() -> Timeline:
     return timeline
 
 
-def drawing_documents() -> dict[str, list[Timeline]]:
-    """Build the small documents that show one drawn component each.
+def drawing_manifests() -> dict[str, list[Timeline]]:
+    """Build the small manifests that show one drawn component each.
 
-    Every timeline and map carries an explicit id, so the documents do not
+    Every timeline and map carries an explicit id, so the manifests do not
     depend on the order in which the script constructs them.
     """
     bare = ContinuousLogicalTimeline(length=8, unit="quarters", uid="bare", name="Bare")
@@ -268,7 +264,7 @@ def drawing_documents() -> dict[str, list[Timeline]]:
 
 
 def styled_timelines() -> list[Timeline]:
-    """Build the two timelines of the styled document, one per domain."""
+    """Build the two timelines of the styled fixture, one per domain."""
     score = ContinuousLogicalTimeline(
         length=8, unit="quarters", uid="score", name="Score"
     )
@@ -331,10 +327,10 @@ GRAPHICAL: dict[str, dict[str, Any]] = {
         },
     },
 }
-"""The ``graphical`` block of each styled document, by fixture name."""
+"""The ``graphical`` block of each styled fixture, by fixture name."""
 
 
-def corpus_documents() -> dict[str, list[Timeline]]:
+def corpus_manifests() -> dict[str, list[Timeline]]:
     """Load the smallest selected corpus specimens through public loaders."""
     score = ensure_data("score")
     midi = ensure_data("midi")
@@ -343,19 +339,14 @@ def corpus_documents() -> dict[str, list[Timeline]]:
     supra = ensure_data("supra")
 
     score_path = (
-        score
-        / "flow_control/flow_only/out_of_the_flow_experience-flow_only.notes.tsv"
+        score / "flow_control/flow_only/out_of_the_flow_experience-flow_only.notes.tsv"
     )
     score_timeline = Ms3Loader(auto_discover=True).load(score_path).create_timeline()
     midi_timeline = (
-        ScoreMidiLoader()
-        .load(midi / "score/beethoven_mtd.mid")
-        .create_timeline()
+        ScoreMidiLoader().load(midi / "score/beethoven_mtd.mid").create_timeline()
     )
     audio_timeline = (
-        AudioLoader()
-        .load(audio / "hard_techno/Bass Kick.mp3")
-        .create_timeline()
+        AudioLoader().load(audio / "hard_techno/Bass Kick.mp3").create_timeline()
     )
     parangonada_timelines = (
         ParangonadaLoader()
@@ -363,9 +354,7 @@ def corpus_documents() -> dict[str, list[Timeline]]:
         .create_timelines()
     )
     graphical_timeline = (
-        IIIFManifestLoader()
-        .load(supra / "image/ifff_manifest.json")
-        .create_timeline()
+        IIIFManifestLoader().load(supra / "image/ifff_manifest.json").create_timeline()
     )
     return {
         "corpus_score_ms3": [score_timeline],
@@ -376,15 +365,15 @@ def corpus_documents() -> dict[str, list[Timeline]]:
     }
 
 
-def build_documents() -> dict[str, list[Timeline]]:
+def build_manifests() -> dict[str, list[Timeline]]:
     """Return fixture names and top-level timelines in emission order."""
-    documents: dict[str, list[Timeline]] = {}
-    documents["continuous_logical"] = [
+    manifests: dict[str, list[Timeline]] = {}
+    manifests["continuous_logical"] = [
         with_children(
             ContinuousLogicalTimeline, "quarters", 12, [(4, Fraction(1, 3)), (3, 2)]
         )
     ]
-    documents["discrete_logical"] = [
+    manifests["discrete_logical"] = [
         with_children(
             DiscreteLogicalTimeline,
             "ticks",
@@ -392,12 +381,12 @@ def build_documents() -> dict[str, list[Timeline]]:
             [(Fraction(120), Fraction(3)), (Fraction(96), Fraction(7))],
         )
     ]
-    documents["continuous_physical"] = [
+    manifests["continuous_physical"] = [
         with_children(
             ContinuousPhysicalTimeline, "seconds", 12.5, [(4.25, 0.5), (3.0, 6.0)]
         )
     ]
-    documents["discrete_physical"] = [
+    manifests["discrete_physical"] = [
         with_children(
             DiscretePhysicalTimeline,
             "samples",
@@ -405,7 +394,7 @@ def build_documents() -> dict[str, list[Timeline]]:
             [(Fraction(11025), Fraction(100)), (Fraction(2205), Fraction(20000))],
         )
     ]
-    documents["continuous_graphical"] = [
+    manifests["continuous_graphical"] = [
         with_children(
             ContinuousGraphicalTimeline,
             "points",
@@ -413,7 +402,7 @@ def build_documents() -> dict[str, list[Timeline]]:
             [(200.0, 10.0), (150.0, 300.0)],
         )
     ]
-    documents["discrete_graphical"] = [
+    manifests["discrete_graphical"] = [
         with_children(
             DiscreteGraphicalTimeline,
             "pixels",
@@ -425,34 +414,37 @@ def build_documents() -> dict[str, list[Timeline]]:
         ContinuousLogicalTimeline, "quarters", 12, [(4, Fraction(1, 3)), (3, 2)]
     )
     with_region.create_region("theme", 2, 6)
-    documents["with_region"] = [with_region]
-    documents["empty"] = []
+    manifests["with_region"] = [with_region]
+    manifests["empty"] = []
     grandchild = ContinuousLogicalTimeline(length=2, unit="quarters")
     child = ContinuousLogicalTimeline(length=8, unit="quarters")
     child.add_child(grandchild, Fraction(3, 2))
     nested = ContinuousLogicalTimeline(length=16, unit="quarters")
     nested.add_child(child, 4)
-    documents["nested"] = [nested]
-    documents["conversion_maps"] = conversion_map_timelines()
-    documents["flow_control"] = [flow_control_timeline()]
-    documents.update(corpus_documents())
-    documents.update(drawing_documents())
-    documents["styled"] = styled_timelines()
-    return documents
+    manifests["nested"] = [nested]
+    manifests["conversion_maps"] = conversion_map_timelines()
+    manifests["flow_control"] = [flow_control_timeline()]
+    manifests.update(corpus_manifests())
+    manifests.update(drawing_manifests())
+    manifests["styled"] = styled_timelines()
+    return manifests
 
 
-def document(
-    timelines: list[Timeline],
+def manifest(
+    timeline: Timeline,
     generator: str,
     graphical: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Wrap top-level timelines, and a graphical block if any, in the document envelope."""
+    """Wrap one timeline, and a graphical block if any, in a manifest."""
+    timeline_manifest = timeline.to_dict()
     result: dict[str, Any] = {
         "meta": {"schema_version": SCHEMA_VERSION, "generator": generator},
-        "manifest": {"timelines": {timeline.id: timeline.to_dict() for timeline in timelines}},
+        "timeline": timeline_manifest,
     }
     if graphical is not None:
-        result["graphical"] = graphical
+        result["graphical"] = graphical_for_subtree(
+            graphical, timeline.id, timeline_manifest
+        )
     return result
 
 
@@ -462,20 +454,23 @@ def write(path: Path, data: dict[str, Any]) -> None:
 
 
 def check_round_trip(path: Path) -> int:
-    """Return the number of manifests that survive from_dict/to_dict."""
+    """Confirm that a manifest survives from_dict/to_dict."""
     with path.open(encoding="utf-8") as handle:
         data = json.load(handle)
-    count = 0
-    for timeline_id, manifest in data["manifest"]["timelines"].items():
-        rebuilt = Timeline.from_dict(manifest).to_dict()
-        if json.dumps(rebuilt) != json.dumps(manifest):
-            raise SystemExit(
-                f"{path.name}: timeline {timeline_id!r} does not round-trip through "
-                f"timetoalign.\nexpected: {json.dumps(manifest, indent=2)}\n"
-                f"got:      {json.dumps(rebuilt, indent=2)}"
-            )
-        count += 1
-    return count
+    timeline = data["timeline"]
+    rebuilt = Timeline.from_dict(timeline).to_dict()
+    if json.dumps(rebuilt) != json.dumps(timeline):
+        raise SystemExit(
+            f"{path.name}: timeline {timeline['id']!r} does not round-trip through "
+            f"timetoalign.\nexpected: {json.dumps(timeline, indent=2)}\n"
+            f"got:      {json.dumps(rebuilt, indent=2)}"
+        )
+    return 1
+
+
+def slug(identifier: str) -> str:
+    """Return a fixture-safe spelling of a timeline id."""
+    return re.sub(r"[^A-Za-z0-9_-]", "_", identifier)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -507,18 +502,35 @@ def main(argv: list[str] | None = None) -> int:
             "Emit into another directory with --output."
         )
 
+    planned: list[tuple[Path, Timeline, str]] = []
+    claimed: dict[Path, str] = {}
+    for name, timelines in build_manifests().items():
+        for timeline in timelines:
+            filename = name if len(timelines) == 1 else f"{name}__{slug(timeline.id)}"
+            path = args.output / f"{filename}.json"
+            if path in claimed:
+                raise SystemExit(
+                    f"timeline ids {claimed[path]!r} and {timeline.id!r} of {name!r} "
+                    f"both produce the file name {path.name}; nothing was written."
+                )
+            claimed[path] = timeline.id
+            planned.append((path, timeline, name))
+
     args.output.mkdir(parents=True, exist_ok=True)
     for stale in args.output.glob("*.json"):
         stale.unlink()
     written: list[Path] = []
-    for name, timelines in build_documents().items():
-        path = args.output / f"{name}.json"
-        write(path, document(timelines, generator, GRAPHICAL.get(name)))
+    for path, timeline, name in planned:
+        write(path, manifest(timeline, generator, GRAPHICAL.get(name)))
         written.append(path)
 
     for path in written:
         manifests = check_round_trip(path)
-        display = path.relative_to(REPOSITORY_ROOT) if path.is_relative_to(REPOSITORY_ROOT) else path
+        display = (
+            path.relative_to(REPOSITORY_ROOT)
+            if path.is_relative_to(REPOSITORY_ROOT)
+            else path
+        )
         print(f"{display}: {manifests} manifest(s) round-trip")
     print(f"generator: {generator}")
     return 0

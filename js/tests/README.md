@@ -1,7 +1,8 @@
 # Test strategy for the `@timetoalign/timeskeleton` npm package
 
-This suite proves the public contract of schema 0.3.0 and of its geometry
-schema, while retaining coverage for every supported published version.
+This suite proves the draft public contract of schema 0.4.0 and the geometry
+schema of 0.3.0, while retaining coverage for every supported published
+version.
 
 ## What the package promises
 
@@ -14,10 +15,10 @@ schema, while retaining coverage for every supported published version.
    0.3.0 plus eleven cases of the graphical block, listed in the Python suite's
    README).
 3. Each migration step reproduces the shared `after.json` of its pair byte for
-   byte and yields a valid document at its target version; the 0.1.0 to 0.2.0
+   byte and yields a valid value at its target version; the 0.1.0 to 0.2.0
    step refuses every member whose shape it does not know at that member's
    path; the 0.2.0 to 0.2.1 step writes the canonical order; `migrate` copies
-   all latest-version documents unchanged.
+   all latest-version values unchanged.
 4. Generated errors expose paths as object keys and numeric array indices.
 5. The checked-in generated schema and type sources equal a fresh generator
    run, and the generated schema bundle contains every supported version.
@@ -27,19 +28,45 @@ schema, while retaining coverage for every supported published version.
    The bundle also holds every geometry schema (`geometrySchemas`, keyed by
    version, `geometrySchema` the latest), and the generated types include the
    geometry's (`Geometry`, `Block`, `Primitive` as the union of the eight
-   primitive types, ...), generated with the document's in one file.
-6. `validateGeometry` accepts every golden geometry
+   primitive types, ...), generated in one file with the manifest types.
+6. `validateGeometry` accepts every geometry fixture
    (`fixtures/<version>/geometry/<name>/geometry.json`, read with
    `parseJson`), whose text `dumps` reproduces byte for byte; it rejects every
    shared case of `fixtures/<version>/geometry-rejections/` at the stored
    path, the same path the Python validator reports, including a case whose
-   violation lies inside a definition of the document schema the geometry
-   schema refers to (a frame extent's offset, a `Number`); and it accepts a
+   violation lies inside a definition of the 0.3.0 envelope schema the
+   geometry schema refers to (a frame extent's offset, a `Number`); and it accepts a
    primitive of an unknown kind, since the union of primitives is open.
 7. The 0.2.1 to 0.3.0 migration declares 0.3.0 and changes nothing else: its
    `after.json` is `before.json` with the one version line substituted, and a
-   0.2.1 document with an unknown break `control_type` is refused at that
+   0.2.1 envelope with an unknown break `control_type` is refused at that
    member's path with `no 0.3.0 shape: `.
+8. Every 0.4.0 manifest fixture validates and is reproduced byte for byte by
+   the canonical writer; all 47 rejection cases fail at their exact stored
+   paths, including a manifest without its one required `timeline`. Every
+   rejection case declares `"0.4.0"` except two: `meta_schema_version_unknown`
+   declares the unknown version `"9.9.9"`, and `root_missing_meta` has no
+   `meta` to declare one (the test "has every 0.4.0 rejection declare 0.4.0
+   except the two without a declaration").
+9. The 0.3.0 to 0.4.0 migration reproduces its pair byte for byte, preserves
+   manifest-level styles, and keeps only graphical timeline rules in the
+   root's subtree. An envelope with any number other than one top-level
+   timeline is refused at `manifest.timelines` with guidance to use `split`.
+   The step writes the canonical order ("writes the canonical order"), and an
+   envelope whose timeline is no object is a `MigrationError` at `timeline`,
+   as in Python ("refuses a timeline that is no object at the timeline").
+10. `split` accepts exactly the versions in `ENVELOPE_VERSIONS` (0.1.0, 0.2.0,
+    0.2.1 and 0.3.0), never a later one by position, and returns one canonical
+    0.3.0 envelope per top-level timeline in id order, with graphical timeline
+    rules limited to that root's subtree. Splitting every fixture of each of
+    those versions gives 8, 29, 29 and 34 envelopes, each valid against 0.3.0
+    (the test "divides every %s envelope fixture into %i envelopes"). Its fixture pair is reproduced byte
+    for byte, the empty envelope returns an empty list, and a 0.4.0 manifest is
+    refused at `meta.schema_version`. Splitting then migrating every 0.3.0
+    fixture reproduces the `timeline` and `graphical` members of the 0.4.0
+    manifests; `meta` is not compared.
+11. Migrating every earlier envelope or manifest fixture that has exactly one top-level
+    timeline reaches a valid 0.4.0 manifest.
 
 ## One path rule for both validators
 
@@ -62,7 +89,7 @@ reports the offending row member or row.
 
 `fixtures/migrations/0.1.0-to-0.2.0/before.json` was written by timetoalign at
 the commit that emitted 0.1.0 (`meta.generator`), so it holds exactly what
-0.1.0 documents hold: a tagged-measure measure map with an anacrusis (a
+0.1.0 values hold: a tagged-measure measure map with an anacrusis (a
 `MeasureConstituent` at offset 3), a repeat whose last bar names two successors
 (`["m2", "m4"]`), a `MetricalPositionMap` with its redundant `maps` and
 `names`, a `LinearMap` and a region. The migration must turn the map into four
@@ -77,7 +104,7 @@ measure at that `next`; a `MetricalPositionMap` whose `maps` are not the two
 derived from `meter_map` at its `maps`; and a conversion map of an unknown type
 at that conversion map, through the 0.2.0 schema.
 
-Both packages read the same document text the same way. A `next` holding a
+Both packages read the same text the same way. A `next` holding a
 non-string entry (an array) is a `MigrationError` at that `next`, never a type
 error, and `count: true` is refused at that `count`, because a boolean is no
 integer. A JavaScript reader cannot tell `1.0` from `1`, so an integral JSON
@@ -87,7 +114,7 @@ number counts as an integer on both sides: a measure whose `qstamp` is written
 ## The 0.2.0 to 0.2.1 migration: canonical order
 
 0.2.1 has the definitions of 0.2.0 and fixes the order of every collection
-whose order carries no meaning, so that equal documents are equal text:
+whose order carries no meaning, so that equal values are equal text:
 `manifest.timelines` by id; at every depth, `children` by offset, then id;
 `conversion_maps` by id; `regions` by start, then end, then name; flow-control
 `breaks` by coordinate, then canonical JSON text; `jumps` by from coordinate,
@@ -102,7 +129,7 @@ asserted in both packages with the same expected values:
   the standard writer, is byte-equal to the 0.2.1 fixture of the same name
   that timetoalign emitted, `meta.generator` aside; the fixture script fails
   unless the library's own order is that of the standard writer. Three of
-  the sixteen 0.2.0 documents were not canonical (`conversion_maps`:
+  the sixteen 0.2.0 envelopes were not canonical (`conversion_maps`:
   timelines and maps; `corpus_parangonar_parangonada`: timelines;
   `corpus_score_ms3`: children and markers), so the equality is not vacuous.
 - **The pair.** `fixtures/migrations/0.2.0-to-0.2.1/before.json` was written
@@ -145,7 +172,7 @@ asserted in both packages with the same expected values:
 Both packages export `dumps` (canonical order, then two-space indentation, a
 final newline, characters unescaped except `"`, `\` and control characters,
 every float spelled as Python's `repr`, every integer without a decimal point)
-and `canonical_order` / `canonicalOrder`. They must write the same document as
+and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
 - **Every standard file round-trips.** Each of the 16 fixtures and 34
@@ -172,11 +199,11 @@ the same bytes. What proves it:
   than written in some order.
 
 The step validates its input against 0.2.1 before it reorders, since order
-does not affect validity: a 0.2.0 document with an unknown break
+does not affect validity: a 0.2.0 value with an unknown break
 `control_type` is refused as a `MigrationError` at that member's path in the
-input. A migration step returns the document declaring its target version;
+input. A migration step returns the value declaring its target version;
 each pair is asserted against the one step it pins, and the whole chain from
-every supported version must give a valid latest document.
+every supported version must give a valid latest value.
 
 ## Versions
 
@@ -189,7 +216,7 @@ The library bounds integers to signed int64, but the JSON Schema does not
 repeat that bound because it cannot express it portably. There is no
 decimal-string representation. `JSON.parse("9007199254740993")` produces
 `9007199254740992`; the suite pins that, and pins that `parseJson` reads the exact
-`9007199254740993n`. Documents whose integer length is `9007199254740993` or
+`9007199254740993n`. Values whose integer length is `9007199254740993` or
 `9223372036854775807` validate, migrate and are written back by `dumps` with
 the same integer.
 
@@ -218,7 +245,7 @@ written order of array-index keys included), for storing single values: for
 every value nested anywhere in every 0.2.1 fixture, writing, reading back and
 writing again gives the same text, and for every 0.2.1 fixture and rejection
 its text equals Python's `json.dumps(value, separators=(",", ":"),
-ensure_ascii=False)` (the suite runs `python3`). A document read by `parse`,
+ensure_ascii=False)` (the suite runs `python3`). A value read by `parse`,
 migrated by `migrate` and written by `dumps` must be byte-identical to the
 Python migration's output: the shared `after.json` for the pair, and for every
 0.2.0 fixture the 0.2.1 fixture of the same name (generator aside), which the

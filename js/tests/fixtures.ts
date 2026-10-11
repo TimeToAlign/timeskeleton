@@ -70,7 +70,20 @@ export function loadRejection(
 
 /** Directory names of the migration pairs, `<source>-to-<target>`, sorted. */
 export function migrationPairs(): string[] {
-  return readdirSync(resolve(repositoryRoot, "fixtures", "migrations")).sort();
+  return readdirSync(resolve(repositoryRoot, "fixtures", "migrations"))
+    .filter((name) => /^\d+\.\d+\.\d+-to-\d+\.\d+\.\d+$/.test(name))
+    .sort();
+}
+
+/** The split input text and sorted output file names. */
+export function splitFixture(): { before: string; after: readonly [string, string][] } {
+  const root = resolve(repositoryRoot, "fixtures", "migrations", "split", "0.3.0");
+  return {
+    before: readFileSync(resolve(root, "before.json"), "utf8"),
+    after: readdirSync(resolve(root, "after"))
+      .sort()
+      .map((name) => [name, readFileSync(resolve(root, "after", name), "utf8")]),
+  };
 }
 
 /** The text of one side of a migration pair. */

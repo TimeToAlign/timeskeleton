@@ -1,0 +1,261 @@
+{
+  "manifest": {
+    "meta": {
+      "schema_version": "0.4.0",
+      "generator": "timetoalign 1.2.0 (2549cbe4)"
+    },
+    "timeline": {
+      "id": "score",
+      "name": "Score",
+      "class": "ContinuousLogicalTimeline",
+      "unit": "quarters",
+      "number_type": "fraction",
+      "length": {
+        "unit": "quarters",
+        "number_type": "fraction",
+        "value": [
+          8,
+          1
+        ]
+      },
+      "locked": false,
+      "meta": {},
+      "children": {
+        "a": {
+          "offset": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "timeline": {
+            "id": "a",
+            "name": null,
+            "class": "ContinuousLogicalTimeline",
+            "unit": "quarters",
+            "number_type": "fraction",
+            "length": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                4,
+                1
+              ]
+            },
+            "locked": true,
+            "meta": {},
+            "children": {},
+            "conversion_maps": [],
+            "regions": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": {}
+            },
+            "measure_map": null,
+            "metric_hierarchy": null
+          }
+        },
+        "b": {
+          "offset": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              4,
+              1
+            ]
+          },
+          "timeline": {
+            "id": "b",
+            "name": null,
+            "class": "ContinuousLogicalTimeline",
+            "unit": "quarters",
+            "number_type": "fraction",
+            "length": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                4,
+                1
+              ]
+            },
+            "locked": true,
+            "meta": {},
+            "children": {},
+            "conversion_maps": [],
+            "regions": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": {}
+            },
+            "measure_map": null,
+            "metric_hierarchy": null
+          }
+        }
+      },
+      "conversion_maps": [
+        {
+          "type": "QuartersToTicks",
+          "id": "ticks",
+          "name": "Ticks",
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "scalar": 480,
+          "ppq": 480
+        }
+      ],
+      "regions": [
+        {
+          "name": "intro",
+          "start": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "end": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              2,
+              1
+            ]
+          },
+          "meta": {}
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [
+          {
+            "from_coordinate": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                8,
+                1
+              ]
+            },
+            "to_coordinate": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                0,
+                1
+              ]
+            },
+            "control_type": "da_capo",
+            "condition": "always",
+            "repeat_count": 1,
+            "target_name": null,
+            "label": "D.C.",
+            "meta": {}
+          }
+        ],
+        "markers": {}
+      },
+      "measure_map": null,
+      "metric_hierarchy": null
+    },
+    "graphical": {
+      "styles": [
+        {
+          "select": {},
+          "set": {
+            "show_length": true
+          }
+        },
+        {
+          "select": {
+            "element": "label"
+          },
+          "set": {
+            "colour": "#404040"
+          }
+        },
+        {
+          "select": {
+            "element": "map"
+          },
+          "set": {
+            "side": "below"
+          }
+        },
+        {
+          "select": {
+            "timeline": "b"
+          },
+          "set": {
+            "visible": false
+          }
+        }
+      ],
+      "timelines": {
+        "score": [
+          {
+            "select": {
+              "element": "wedge"
+            },
+            "set": {
+              "side": "above",
+              "colour": "#006600"
+            }
+          },
+          {
+            "select": {
+              "domain": "logical"
+            },
+            "set": {
+              "colour": "#000080"
+            }
+          },
+          {
+            "select": {
+              "element": "region"
+            },
+            "set": {
+              "colour": "#800000"
+            }
+          },
+          {
+            "select": {
+              "element": "region"
+            },
+            "set": {
+              "colour": "#008080"
+            }
+          },
+          {
+            "select": {
+              "element": "child"
+            },
+            "set": {
+              "visible": true
+            }
+          }
+        ],
+        "b": [
+          {
+            "select": {},
+            "set": {
+              "colour": "#FF8000",
+              "show_projected_coordinates": true
+            }
+          }
+        ]
+      }
+    }
+  },
+  "path": [
+    "graphical",
+    "styles",
+    3,
+    "select"
+  ],
+  "reason": "A timeline is selected by its container in timelines, not by a selector member."
+}

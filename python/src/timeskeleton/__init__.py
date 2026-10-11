@@ -1,18 +1,22 @@
-"""timeskeleton: the TimeSkeleton document schema, its fixtures and validator.
+"""The TimeSkeleton manifest schemas, fixtures, validators and migrations.
 
-A TimeSkeleton document is a JSON object ``{"meta": ..., "manifest": ...}``
-describing a set of musical timelines as timetoalign serializes them. This
-package bundles every published schema version, the golden fixtures emitted
-by timetoalign, a validator reporting the path of the first violation, the
-migrations that bring an older document to the latest version, and the
-canonical order and standard writer of a document, and the schema and
-validator of the geometry a document is drawn as (from 0.3.0 on).
+A manifest describes one musical timeline as timetoalign serializes it. An
+editor can place many such timelines on a canvas, but the manifest knows
+nothing about where or how often its object is placed. Published envelopes
+remain validatable and can be migrated and divided with :func:`split`.
 """
 
 from __future__ import annotations
 
-from .document import canonical_json, canonical_order, dumps
-from .migrate import MIGRATIONS, MigrationError, migrate
+from .manifest import canonical_json, canonical_order, dumps
+from .migrate import (
+    ENVELOPE_VERSIONS,
+    MIGRATIONS,
+    MigrationError,
+    graphical_for_subtree,
+    migrate,
+    split,
+)
 from .validate import (
     GEOMETRY_VERSIONS,
     SCHEMA_VERSION,
@@ -30,11 +34,13 @@ from .validate import (
     migration_paths,
     rejection_paths,
     schema_path,
+    split_paths,
     validate,
     validate_geometry,
 )
 
 __all__ = [
+    "ENVELOPE_VERSIONS",
     "GEOMETRY_VERSIONS",
     "MIGRATIONS",
     "MigrationError",
@@ -50,6 +56,7 @@ __all__ = [
     "geometry_paths",
     "geometry_rejection_paths",
     "geometry_schema_path",
+    "graphical_for_subtree",
     "json_pointer",
     "load_geometry_schema",
     "load_schema",
@@ -57,6 +64,8 @@ __all__ = [
     "migrate",
     "rejection_paths",
     "schema_path",
+    "split",
+    "split_paths",
     "validate",
     "validate_geometry",
 ]

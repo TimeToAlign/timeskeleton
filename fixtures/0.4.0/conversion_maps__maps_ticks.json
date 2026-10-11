@@ -1,0 +1,43 @@
+{
+  "meta": {
+    "schema_version": "0.4.0",
+    "generator": "timetoalign 1.2.0 (2549cbe4)"
+  },
+  "timeline": {
+    "id": "maps:ticks",
+    "name": "Tick maps",
+    "class": "DiscreteLogicalTimeline",
+    "unit": "ticks",
+    "number_type": "int",
+    "length": {
+      "unit": "ticks",
+      "number_type": "int",
+      "value": 960
+    },
+    "locked": false,
+    "meta": {},
+    "children": {},
+    "conversion_maps": [
+      {
+        "type": "TicksToQuarters",
+        "id": "map:TicksToQuarters_1",
+        "name": "ticks_to_quarters",
+        "source_unit": "ticks",
+        "target_unit": "quarters",
+        "scalar": [
+          1,
+          480
+        ],
+        "ppq": 480
+      }
+    ],
+    "regions": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": {}
+    },
+    "measure_map": null,
+    "metric_hierarchy": null
+  }
+}

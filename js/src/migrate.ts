@@ -1,22 +1,23 @@
 /**
  * Migrations between schema versions.
  *
- * A migration is a pure function from a document at one version to the same
- * document at the next version, declaring that version. `migrate` chains them
+ * A migration is a pure function from a value at one version to the same
+ * value at the next version, declaring that version. `migrate` chains them
  * from the declared version up to `SCHEMA_VERSION`. Each migration is
- * pinned by a fixture pair (the document before and after) in the test suite.
+ * pinned by a fixture pair (the value before and after) in the test suite.
  */
 
+import type { TimeSkeletonManifest } from "./generated/types.js";
 import {
   canonicalOrder,
   clone,
+  compareCodePoints,
   exactNumber,
   isJsonObject,
   jsonInteger,
   type Rational,
   rational,
-} from "./document.js";
-import type { TimeSkeletonDocument } from "./generated/types.js";
+} from "./manifest.js";
 import {
   declaredVersion,
   jsonPointer,
@@ -28,13 +29,13 @@ import {
   validate,
 } from "./validate.js";
 
-export type Migration = (document: Record<string, unknown>) => Record<string, unknown>;
+export type Migration = (value: Record<string, unknown>) => Record<string, unknown>;
 
 type Path = readonly PathSegment[];
 type JsonObject = Record<string, unknown>;
 
 /**
- * Thrown when a document holds a member whose shape a migration does not know.
+ * Thrown when a value holds a member whose shape a migration does not know.
  *
  * `path` locates the offending value and `detail` says why; `message` reads
  * `<JSON pointer>: <detail>`.
@@ -445,31 +446,31 @@ function migrateTimeline(manifest: JsonObject, path: Path): void {
  *
  * @throws {MigrationError} at the path of the first member that cannot be migrated.
  */
-function migrate010To020(document: JsonObject): JsonObject {
-  const manifest = document.manifest;
+function migrate010To020(value: JsonObject): JsonObject {
+  const manifest = value.manifest;
   const timelines = isObject(manifest) ? manifest.timelines : undefined;
   if (isObject(timelines)) {
     for (const [key, timeline] of Object.entries(timelines)) {
       if (isObject(timeline)) migrateTimeline(timeline, ["manifest", "timelines", key]);
     }
   }
-  return stamped(document, "0.2.0");
+  return stamped(value, "0.2.0");
 }
 
 // -- 0.2.0 to 0.2.1 ---------------------------------------------------------------
 
 /**
- * Write the document in the canonical order of 0.2.1.
+ * Write the value in the canonical order of 0.2.1.
  *
  * 0.2.1 specifies the same shapes as 0.2.0 and fixes the order of every
  * collection whose order carries no meaning (see `canonicalOrder`). The
- * document is validated against 0.2.1 before it is reordered, since the order
+ * value is validated against 0.2.1 before it is reordered, since the order
  * does not affect validity, so a refusal names the path of the input.
  *
  * @throws {MigrationError} at the path of the first member with no 0.2.1 shape.
  */
-function migrate020To021(document: JsonObject): JsonObject {
-  return canonicalOrder(stamped(document, "0.2.1"));
+function migrate020To021(value: JsonObject): JsonObject {
+  return canonicalOrder(stamped(value, "0.2.1"));
 }
 
 // -- 0.2.1 to 0.3.0 ---------------------------------------------------------------
@@ -478,19 +479,114 @@ function migrate020To021(document: JsonObject): JsonObject {
  * Declare 0.3.0.
  *
  * 0.3.0 keeps every definition of 0.2.1 and adds the optional `graphical`
- * block, which a 0.2.1 document does not carry, so the shapes are unchanged.
- * The document is validated against 0.3.0 and then put in canonical order.
+ * block, which a 0.2.1 value does not carry, so the shapes are unchanged.
+ * The value is validated against 0.3.0 and then put in canonical order.
  *
  * @throws {MigrationError} at the path of the first member with no 0.3.0 shape.
  */
-function migrate021To030(document: JsonObject): JsonObject {
-  return canonicalOrder(stamped(document, "0.3.0"));
+function migrate021To030(value: JsonObject): JsonObject {
+  return canonicalOrder(stamped(value, "0.3.0"));
 }
 
-/** Return `document` declaring `version`, refused unless valid at it. */
-function stamped(document: JsonObject, version: string): JsonObject {
-  const meta = isObject(document.meta) ? document.meta : {};
-  const result: JsonObject = { ...document, meta: { ...meta, schema_version: version } };
+// -- 0.3.0 to 0.4.0 ---------------------------------------------------------------
+
+/** Return the ids of a root timeline and every descendant. */
+function subtreeIds(rootId: string, manifest: JsonObject): Set<string> {
+  const identifiers = new Set([rootId]);
+  if (isObject(manifest.children)) {
+    for (const [childId, child] of Object.entries(manifest.children)) {
+      identifiers.add(childId);
+      if (isObject(child) && isObject(child.timeline)) {
+        for (const identifier of subtreeIds(childId, child.timeline)) {
+          identifiers.add(identifier);
+        }
+      }
+    }
+  }
+  return identifiers;
+}
+
+/**
+ * Copy graphical rules, retaining the timeline containers of one subtree.
+ *
+ * @param graphical the `graphical` block of an envelope or manifest.
+ * @param rootId the id of the timeline that roots the subtree.
+ * @param manifest the timeline manifest of `rootId`.
+ * @returns a copy of `graphical` holding every manifest-level rule and, in
+ * `timelines`, only the containers of `rootId` and its descendants;
+ * `timelines` is absent when none remains.
+ */
+export function graphicalForSubtree(
+  graphical: JsonObject,
+  rootId: string,
+  manifest: JsonObject,
+): JsonObject {
+  const result: JsonObject = {};
+  if (Object.hasOwn(graphical, "styles")) result.styles = clone(graphical.styles);
+  if (isObject(graphical.timelines)) {
+    const retained = clone(graphical.timelines);
+    const identifiers = subtreeIds(rootId, manifest);
+    for (const identifier of Object.keys(retained)) {
+      if (!identifiers.has(identifier)) delete retained[identifier];
+    }
+    if (Object.keys(retained).length > 0) result.timelines = retained;
+  }
+  return result;
+}
+
+/**
+ * Turn an envelope holding one top-level timeline into one manifest.
+ *
+ * An editor places many timelines on a canvas, each with its own manifest; a
+ * manifest is what the library serializes for one object and knows nothing
+ * about where or how often it is placed. The earlier envelope conflated that
+ * placement concern with the manifest, so an envelope holding several roots
+ * must first be divided with `split`. The manifest is validated against 0.4.0
+ * and then put in canonical order.
+ *
+ * @throws {MigrationError} at `manifest.timelines` unless the envelope holds exactly one top-level timeline, else at the path of the first member with no 0.4.0 shape.
+ */
+function migrate030To040(envelope: JsonObject): JsonObject {
+  const manifest = envelope.manifest;
+  const timelines = isObject(manifest) && isObject(manifest.timelines) ? manifest.timelines : {};
+  const roots = Object.keys(timelines);
+  if (roots.length !== 1) {
+    throw new MigrationError(
+      ["manifest", "timelines"],
+      `a 0.4.0 manifest holds one timeline; this envelope holds ${roots.length} top-level timelines: divide it with split() first`,
+    );
+  }
+  const rootId = roots[0] as string;
+  const timeline = timelines[rootId];
+  const meta = isObject(envelope.meta) ? envelope.meta : {};
+  const result: JsonObject = {
+    meta: {
+      schema_version: "0.4.0",
+      ...(Object.hasOwn(meta, "generator") ? { generator: clone(meta.generator) } : {}),
+    },
+    timeline: clone(timeline),
+  };
+  if (Object.hasOwn(envelope, "graphical")) {
+    result.graphical =
+      isObject(envelope.graphical) && isObject(timeline)
+        ? graphicalForSubtree(envelope.graphical, rootId, timeline)
+        : clone(envelope.graphical);
+  }
+  try {
+    validate(result);
+  } catch (error) {
+    if (error instanceof SchemaValidationError) {
+      throw new MigrationError(error.path, `no 0.4.0 shape: ${error.detail}`);
+    }
+    throw error;
+  }
+  return canonicalOrder(result);
+}
+
+/** Return `value` declaring `version`, refused unless valid at it. */
+function stamped(value: JsonObject, version: string): JsonObject {
+  const meta = isObject(value.meta) ? value.meta : {};
+  const result: JsonObject = { ...value, meta: { ...meta, schema_version: version } };
   try {
     validate(result);
   } catch (error) {
@@ -503,31 +599,103 @@ function stamped(document: JsonObject, version: string): JsonObject {
 }
 
 /**
+ * The versions that publish an envelope, the only ones `split` accepts.
+ * `split` migrates to the last of them, so a later version is never
+ * splittable by position in `SUPPORTED_VERSIONS`.
+ */
+export const ENVELOPE_VERSIONS: readonly string[] = ["0.1.0", "0.2.0", "0.2.1", "0.3.0"];
+
+/**
  * Source version to `[target version, migration]`. Each migration returns the
- * document declaring its target version.
+ * value declaring its target version.
  */
 export const MIGRATIONS: Readonly<Record<string, readonly [string, Migration]>> = {
   "0.1.0": ["0.2.0", migrate010To020],
   "0.2.0": ["0.2.1", migrate020To021],
   "0.2.1": ["0.3.0", migrate021To030],
+  "0.3.0": ["0.4.0", migrate030To040],
 };
 
 /**
- * Return a deep copy of `document` brought to `SCHEMA_VERSION`.
+ * Divide a published envelope into one 0.3.0 envelope per root timeline.
  *
- * A document already at the latest version is copied unchanged and not
+ * Each result is an envelope at the last of `ENVELOPE_VERSIONS`. Results are ordered by timeline id. `[...split(envelope)].map(migrate)`
+ * turns any published envelope into manifests.
+ *
+ * @throws {MigrationError} at `meta.schema_version` if the value is not an envelope at one of `ENVELOPE_VERSIONS`.
+ */
+export function split(envelope: unknown): JsonObject[] {
+  const version = declaredVersion(envelope);
+  if (version === null || !ENVELOPE_VERSIONS.includes(version)) {
+    throw new MigrationError(
+      ["meta", "schema_version"],
+      `split() accepts a published envelope, not version ${JSON.stringify(version)}`,
+    );
+  }
+  const target = ENVELOPE_VERSIONS[ENVELOPE_VERSIONS.length - 1] as string;
+  let current: string = version;
+  let migrated = clone(envelope) as JsonObject;
+  while (current !== target) {
+    const step = MIGRATIONS[current];
+    if (step === undefined) {
+      throw new MigrationError(["meta", "schema_version"], `cannot split version ${current}`);
+    }
+    const [next, apply] = step;
+    migrated = apply(migrated);
+    current = next;
+  }
+  try {
+    validate(migrated);
+  } catch (error) {
+    if (error instanceof SchemaValidationError) {
+      throw new MigrationError(error.path, `no ${target} shape: ${error.detail}`);
+    }
+    throw error;
+  }
+  const manifest = migrated.manifest;
+  const timelines = isObject(manifest) && isObject(manifest.timelines) ? manifest.timelines : {};
+  const results: JsonObject[] = [];
+  for (const rootId of Object.keys(timelines).sort(compareCodePoints)) {
+    const timeline = timelines[rootId];
+    const result: JsonObject = {
+      meta: clone(migrated.meta),
+      manifest: { timelines: { [rootId]: clone(timeline) } },
+    };
+    if (Object.hasOwn(migrated, "graphical")) {
+      result.graphical =
+        isObject(migrated.graphical) && isObject(timeline)
+          ? graphicalForSubtree(migrated.graphical, rootId, timeline)
+          : clone(migrated.graphical);
+    }
+    try {
+      validate(result);
+    } catch (error) {
+      if (error instanceof SchemaValidationError) {
+        throw new MigrationError(error.path, `no ${target} shape: ${error.detail}`);
+      }
+      throw error;
+    }
+    results.push(result);
+  }
+  return results;
+}
+
+/**
+ * Return a deep copy of `value` brought to `SCHEMA_VERSION`.
+ *
+ * A value already at the latest version is copied unchanged and not
  * validated; call `validate` on it when the input is untrusted. A migrated
- * document satisfies the latest schema.
+ * value satisfies the latest schema.
  *
  * @throws {UnsupportedVersionError} if `meta.schema_version` is missing, not a string, or not supported.
  * @throws {MigrationError} if a member cannot be migrated, at its path.
  */
-export function migrate(document: unknown): TimeSkeletonDocument {
-  const version = declaredVersion(document);
+export function migrate(value: unknown): TimeSkeletonManifest {
+  const version = declaredVersion(value);
   if (version === null || !SUPPORTED_VERSIONS.includes(version)) {
     throw new UnsupportedVersionError(version);
   }
-  let result = clone(document) as Record<string, unknown>;
+  let result = clone(value) as Record<string, unknown>;
   let current = version;
   while (current !== SCHEMA_VERSION) {
     const step = MIGRATIONS[current];
@@ -538,5 +706,5 @@ export function migrate(document: unknown): TimeSkeletonDocument {
     result = apply(result);
     current = next;
   }
-  return result as unknown as TimeSkeletonDocument;
+  return result as unknown as TimeSkeletonManifest;
 }

@@ -4,25 +4,21 @@ TimeSkeleton is schema-first. The versioned schema is the contract; the Python a
 
 ## Schema changes
 
-For a format change, add a new versioned file under `schema/`; do not alter a published schema. Update the supported-version and latest-version declarations in both packages, then implement an ordered, pure migration in each package from the prior version. Add before-and-after fixture pairs for each migration and shared rejection fixtures, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the golden fixtures through timetoalign. Keep every earlier schema version and its fixtures validatable.
+For a format change, add a new versioned file under `schema/`; do not alter a published schema. Update the supported-version and latest-version declarations in both packages, then implement an ordered, pure migration in each package from the prior version. Add before-and-after fixture pairs for each migration and shared rejection fixtures, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the manifest fixtures through timetoalign. Keep every earlier schema version and its fixtures validatable.
 
-The golden fixtures under `fixtures/<version>/` are generated artifacts. Use an environment containing the timetoalign revision represented by the schema:
+The manifest fixtures under `fixtures/<version>/` are generated artifacts. Use an environment containing the timetoalign revision represented by the schema:
 
 ```bash
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"
 ```
 
-Do not edit golden fixture JSON by hand. The script refuses to write into the fixtures of a version whose `v<version>` tag exists. Rejection cases under `fixtures/rejections/` and migration pairs under `fixtures/migrations/` are authored by hand.
+Do not edit a manifest fixture by hand. The script refuses to write into the fixtures of a version whose `v<version>` tag exists. Rejection cases under `fixtures/rejections/` and migration pairs under `fixtures/migrations/` are authored by hand.
 
-## The geometry specification and its goldens
+## The drawing specification
 
-`docs/geometry.md` specifies how a document is drawn, and `schema/geometry-<version>.schema.json` the geometry it produces; both change with a schema version, as the document schema does. Every document fixture has a golden geometry, SVG and TikZ figure under `fixtures/<version>/geometry/<name>/`. The geometries marked hand-derived in `fixtures/<version>/geometry/README.md` are written by hand from the specification, with every step of their arithmetic in that README. The others, and every figure, are written by the TimeLineEditor's layout and writers; from `app/packages/writers/` of a TimeLineEditor checkout whose workspace uses this checkout's JavaScript package (`pnpm build` in `js/` first):
+`docs/geometry.md` specifies how a manifest is drawn. From 0.4.0 on there is no geometry schema: the JSON form of geometry is internal to an implementation such as the TimeLineEditor, and the specification, with the SVG and TikZ fixtures of a version, pins the drawing. 0.4.0 has no SVG or TikZ fixtures yet. A rule a reader could not reproduce from the specification alone is a defect of the specification.
 
-```bash
-node scripts/emit-geometry.ts /path/to/timeskeleton
-```
-
-The script refuses to run when its layout disagrees with a hand-derived geometry, and once the tag `v<version>` exists. Review the diff of every re-emitted file, and keep the geometry rejection cases under `fixtures/<version>/geometry-rejections/` (one change to a golden geometry each, with the path both validators report) authored by hand.
+`schema/geometry-0.3.0.schema.json` and `fixtures/0.3.0/geometry/` (the geometry, SVG and TikZ fixtures of the 0.3.0 envelopes and the geometry rejection cases) are frozen with the 0.3.0 release as a record of how 0.3.0 drew an envelope. Do not edit them; they constrain nothing.
 
 ## Dependencies and decisions
 
@@ -64,13 +60,13 @@ python3 scripts/check_versions.py
 ## Known limitations
 
 - The validator tests do not pin the JSON implementation's maximum safe-integer boundary in either implementation.
-- Python and TypeScript rejection paths are independently compared with expected values, but no test compares both implementations' paths for the same generated invalid documents.
+- Python and TypeScript rejection paths are independently compared with expected values, but no test compares both implementations' paths for the same generated invalid manifests or envelopes.
 
 ## Release
 
 Releases are made by [release-please](https://github.com/googleapis/release-please) and `.github/workflows/release.yml`. Write commit messages in the [Conventional Commits](https://www.conventionalcommits.org/) form; release-please builds `CHANGELOG.md` from them.
 
-A timeskeleton version is a schema version, so release-please never computes it from the commits. The commit that adds a schema version updates every declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION` in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, the self entry in `python/uv.lock`), adds `schema/timeskeleton-X.Y.Z.schema.json` and `schema/geometry-X.Y.Z.schema.json`, a non-empty `fixtures/X.Y.Z/` with its golden geometry, its migration pair and rejection fixtures, passes `python3 scripts/check_versions.py`, and carries the footer
+A timeskeleton version is a schema version, so release-please never computes it from the commits. The commit that adds a schema version updates every declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION` in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, the self entry in `python/uv.lock`), adds `schema/timeskeleton-X.Y.Z.schema.json`, a non-empty `fixtures/X.Y.Z/`, its migration pair and rejection fixtures, passes `python3 scripts/check_versions.py`, and carries the footer
 
 ```text
 Release-As: X.Y.Z

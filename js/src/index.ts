@@ -1,26 +1,13 @@
 /**
- * @timetoalign/timeskeleton: the TimeSkeleton document schema, generated
- * types, a validator, migrations, and the lossless reader, canonical order and
- * standard writer of a document.
+ * @timetoalign/timeskeleton: TimeSkeleton manifest schemas, generated types,
+ * validators, migrations, and lossless reading and writing.
  *
- * A TimeSkeleton document is a JSON object `{ meta, manifest }` describing a
- * set of musical timelines as timetoalign serializes them; its geometry is the
- * drawing laid out from it (`docs/geometry.md`).
+ * A manifest describes one musical timeline as timetoalign serializes it. An
+ * editor can place many timelines on a canvas, but a manifest knows nothing
+ * about where or how often its object is placed. Published envelopes remain
+ * validatable and can be migrated and divided with `split`.
  */
 
-export {
-  canonicalJson,
-  canonicalOrder,
-  compactJson,
-  dumps,
-  isJsonFloat,
-  isJsonObject,
-  type Json,
-  JsonFloat,
-  type JsonNumber,
-  type Lossless,
-  parseJson,
-} from "./document.js";
 export { geometrySchema, geometrySchemas, schema, schemas } from "./generated/schema.js";
 export type {
   Anchor,
@@ -54,11 +41,32 @@ export type {
   TimelineClass,
   TimelineManifest,
   TimelinePrimitive,
-  TimeSkeletonDocument,
+  TimeSkeletonManifest,
   TimeUnit,
   WedgePrimitive,
 } from "./generated/types.js";
-export { MIGRATIONS, type Migration, MigrationError, migrate } from "./migrate.js";
+export {
+  canonicalJson,
+  canonicalOrder,
+  compactJson,
+  dumps,
+  isJsonFloat,
+  isJsonObject,
+  type Json,
+  JsonFloat,
+  type JsonNumber,
+  type Lossless,
+  parseJson,
+} from "./manifest.js";
+export {
+  ENVELOPE_VERSIONS,
+  graphicalForSubtree,
+  MIGRATIONS,
+  type Migration,
+  MigrationError,
+  migrate,
+  split,
+} from "./migrate.js";
 export {
   declaredVersion,
   GEOMETRY_VERSIONS,
