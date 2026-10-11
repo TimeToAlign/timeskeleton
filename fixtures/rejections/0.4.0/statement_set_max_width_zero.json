@@ -1,0 +1,55 @@
+{
+  "manifest": {
+    "meta": {
+      "schema_version": "0.4.0",
+      "generator": "timetoalign 1.2.0 (82f7914a)"
+    },
+    "timeline": {
+      "id": "bare",
+      "name": "Bare",
+      "class": "ContinuousLogicalTimeline",
+      "unit": "quarters",
+      "number_type": "fraction",
+      "length": {
+        "unit": "quarters",
+        "number_type": "fraction",
+        "value": [
+          8,
+          1
+        ]
+      },
+      "locked": false,
+      "meta": {},
+      "children": {},
+      "conversion_maps": [],
+      "regions": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": {}
+      },
+      "measure_map": null,
+      "metric_hierarchy": null
+    },
+    "graphical": {
+      "statements": [
+        {
+          "select": {
+            "element": "name"
+          },
+          "set": {
+            "max-width": 0
+          }
+        }
+      ]
+    }
+  },
+  "path": [
+    "graphical",
+    "statements",
+    0,
+    "set",
+    "max-width"
+  ],
+  "reason": "A numeric max-width is strictly positive."
+}

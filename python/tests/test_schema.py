@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import copy
 import json
 
 import pytest
@@ -45,6 +44,7 @@ TIME_UNITS = [
 ]
 
 NUMBER_TYPES = ["int", "float", "fraction"]
+ID_PATTERN = r"^[^\u0000-\u001f]*$"
 
 MEASURE_MAP_ROW_KEYS = [
     "ID",
@@ -82,7 +82,7 @@ MANIFEST_KEYS = [
 
 def test_schema_version_is_the_latest_supported_version() -> None:
     assert SCHEMA_VERSION == "0.4.0"
-    assert SUPPORTED_VERSIONS == ("0.1.0", "0.2.0", "0.2.1", "0.3.0", "0.4.0")
+    assert SUPPORTED_VERSIONS == ("0.4.0",)
     assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
 
 
@@ -104,79 +104,67 @@ def test_schema_identity() -> None:
     }
 
 
-def test_0_2_1_differs_from_0_2_0_in_its_id_version_and_description_only() -> None:
-    expected = copy.deepcopy(load_schema("0.2.0"))
-    expected["$id"] = SCHEMA_ID.replace("0.4.0", "0.2.1")
-    expected["description"] = load_schema("0.2.1")["description"]
-    assert expected["description"].startswith(load_schema("0.2.0")["description"][:40])
-    expected["properties"]["meta"]["properties"]["schema_version"]["const"] = "0.2.1"
-    assert load_schema("0.2.1") == expected
+def test_the_manifest_holds_exactly_one_timeline() -> None:
+    schema = load_schema()
+    assert list(schema["properties"]) == ["meta", "timeline", "graphical"]
+    assert schema["properties"]["timeline"] == {"$ref": "#/$defs/TimelineManifest"}
+    assert schema["properties"]["graphical"] == {"$ref": "#/$defs/Graphical"}
+    assert schema["required"] == ["meta", "timeline"]
+    assert schema["additionalProperties"] is False
 
 
-GRAPHICAL_DEFINITIONS = [
-    "Graphical",
-    "StyleRules",
-    "StyleRule",
-    "StyleSelector",
-    "ElementType",
-    "StyleProperties",
+CONVERSION_MAP_TYPES = [
+    "BeatInMeasureMap",
+    "ChainMap",
+    "CombinationMap",
+    "ConstantMap",
+    "FloorMap",
+    "InterpolationMap",
+    "IntervalToConstantMap",
+    "LinearMap",
+    "MetricMap",
+    "MetricalPositionMap",
+    "PiecewiseMap",
+    "QuartersToFloatingMeasures",
+    "QuartersToMeasureNumber",
+    "QuartersToTicks",
+    "RotationMap",
+    "SamplesToSeconds",
+    "ScalarMap",
+    "SecondsToSamples",
+    "ShiftMap",
+    "TableMap",
+    "TicksToQuarters",
 ]
-
-
-def test_0_3_0_is_0_2_1_plus_the_graphical_block() -> None:
-    schema = copy.deepcopy(load_schema("0.3.0"))
-    assert list(schema["properties"]) == ["meta", "manifest", "graphical"]
-    assert schema["properties"].pop("graphical") == {"$ref": "#/$defs/Graphical"}
-    assert list(schema["$defs"])[-len(GRAPHICAL_DEFINITIONS) :] == GRAPHICAL_DEFINITIONS
-    for name in GRAPHICAL_DEFINITIONS:
-        del schema["$defs"][name]
-    previous = load_schema("0.2.1")
-    assert schema["description"].startswith(previous["description"] + " Version 0.3.0")
-    schema["description"] = previous["description"]
-    schema["$id"] = previous["$id"]
-    schema["properties"]["meta"]["properties"]["schema_version"]["const"] = "0.2.1"
-    assert schema == previous
-    assert "graphical" not in schema["required"]
-
-
-def test_0_4_0_holds_exactly_one_timeline_and_keeps_the_definitions() -> None:
-    current = load_schema("0.4.0")
-    previous = load_schema("0.3.0")
-    assert list(current["properties"]) == ["meta", "timeline", "graphical"]
-    assert current["properties"]["timeline"] == {"$ref": "#/$defs/TimelineManifest"}
-    assert current["required"] == ["meta", "timeline"]
-    assert current["additionalProperties"] is False
-
-    def structure(value):
-        if isinstance(value, dict):
-            return {
-                key: structure(item)
-                for key, item in value.items()
-                if key not in {"description", "title"}
-            }
-        if isinstance(value, list):
-            return [structure(item) for item in value]
-        return value
-
-    assert structure(current["$defs"]) == structure(previous["$defs"])
 
 
 def test_the_graphical_block_vocabulary() -> None:
     defs = load_schema()["$defs"]
     graphical = defs["Graphical"]
     assert graphical["properties"] == {
-        "styles": {"$ref": "#/$defs/StyleRules"},
-        "timelines": {
+        "styles": {
             "type": "object",
-            "description": graphical["properties"]["timelines"]["description"],
-            "additionalProperties": {"$ref": "#/$defs/StyleRules"},
+            "description": graphical["properties"]["styles"]["description"],
+            "additionalProperties": {"$ref": "#/$defs/Declaration"},
+        },
+        "statements": {
+            "type": "array",
+            "description": graphical["properties"]["statements"]["description"],
+            "items": {"$ref": "#/$defs/Statement"},
         },
     }
     assert "required" not in graphical
     assert graphical["additionalProperties"] is False
-    assert defs["StyleRules"]["items"] == {"$ref": "#/$defs/StyleRule"}
-    assert defs["StyleRule"]["required"] == ["select", "set"]
+    statement = defs["Statement"]
+    assert statement["required"] == ["select", "set"]
+    assert statement["additionalProperties"] is False
+    assert statement["properties"]["select"] == {"$ref": "#/$defs/Selector"}
+    assert [
+        {key: value for key, value in branch.items() if key != "description"}
+        for branch in statement["properties"]["set"]["oneOf"]
+    ] == [{"$ref": "#/$defs/Declaration"}, {"type": "string"}]
     assert defs["ElementType"]["enum"] == [
+        "block",
         "timeline",
         "child",
         "map",
@@ -184,30 +172,63 @@ def test_the_graphical_block_vocabulary() -> None:
         "break",
         "jump",
         "wedge",
+        "name",
         "label",
     ]
-    selector = defs["StyleSelector"]
-    assert list(selector["properties"]) == ["element", "domain", "modality", "ids"]
-    domains = selector["properties"]["domain"]["enum"]
-    assert domains == ["graphical", "logical", "physical"]
-    assert selector["properties"]["modality"]["enum"] == ["continuous", "discrete"]
-    assert selector["properties"]["ids"]["minItems"] == 1
-    assert selector["additionalProperties"] is False
-    properties = defs["StyleProperties"]
-    assert list(properties["properties"]) == [
-        "colour",
-        "line_pattern",
-        "visible",
-        "side",
-        "show_length",
-        "show_projected_coordinates",
+    map_types = [
+        name
+        for name, definition in defs.items()
+        if definition.get("properties", {}).get("type", {}).get("const") == name
     ]
-    assert properties["properties"]["colour"]["pattern"] == "^#[0-9A-F]{6}$"
-    patterns = properties["properties"]["line_pattern"]["enum"]
-    assert patterns == ["solid", "dotted", "dashed"]
-    assert properties["properties"]["side"]["enum"] == ["above", "below"]
-    assert properties["additionalProperties"] is False
-    assert properties["minProperties"] == 1
+    assert map_types == CONVERSION_MAP_TYPES
+    selector = defs["Selector"]
+    properties = selector["properties"]
+    assert list(properties) == [
+        "element",
+        "ids",
+        "domain",
+        "modality",
+        "class",
+        "within",
+    ]
+    assert properties["element"] == {"$ref": "#/$defs/ElementType"}
+    assert properties["ids"]["items"] == {"type": "string"}
+    assert properties["ids"]["minItems"] == 1
+    assert properties["ids"]["uniqueItems"] is True
+    assert properties["domain"]["enum"] == ["graphical", "logical", "physical"]
+    assert properties["modality"]["enum"] == ["continuous", "discrete"]
+    assert properties["class"]["enum"] == TIMELINE_CLASSES + CONVERSION_MAP_TYPES
+    assert properties["within"]["type"] == "string"
+    assert selector["additionalProperties"] is False
+    assert defs["Paint"]["pattern"] == "^(#[0-9A-F]{6}|none)$"
+    declaration = defs["Declaration"]
+    assert declaration["additionalProperties"] is False
+    assert "minProperties" not in declaration
+    members = declaration["properties"]
+    assert members == {
+        "stroke": {"$ref": "#/$defs/Paint"},
+        "stroke-width": {"type": "number", "minimum": 0},
+        "stroke-dasharray": {
+            "type": "string",
+            "description": members["stroke-dasharray"]["description"],
+            "pattern": (
+                "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
+            ),
+        },
+        "fill": {"$ref": "#/$defs/Paint"},
+        "opacity": {"type": "number", "minimum": 0, "maximum": 1},
+        "font-size": {"type": "number", "exclusiveMinimum": 0},
+        "rx": {"type": "number", "minimum": 0},
+        "display": {"type": "string", "enum": ["inline", "none"]},
+        "side": {"type": "string", "enum": ["above", "below"]},
+        "content": {"type": "string"},
+        "max-width": {
+            "oneOf": [
+                {"type": "number", "exclusiveMinimum": 0},
+                {"const": "none"},
+            ]
+        },
+    }
 
 
 def test_enumerations_are_the_library_vocabulary() -> None:
@@ -222,6 +243,27 @@ def test_timeline_manifest_is_closed_over_fourteen_keys() -> None:
     assert manifest["required"] == MANIFEST_KEYS
     assert list(manifest["properties"]) == MANIFEST_KEYS
     assert manifest["additionalProperties"] is False
+    assert manifest["properties"]["metric_hierarchy"]["description"] == (
+        "The metric hierarchy, or null; an object without further constraints."
+    )
+
+
+def test_ids_exclude_control_characters() -> None:
+    defs = load_schema()["$defs"]
+    assert defs["TimelineManifest"]["properties"]["id"]["pattern"] == ID_PATTERN
+    assert defs["TimelineManifest"]["properties"]["children"]["propertyNames"] == {
+        "pattern": ID_PATTERN
+    }
+    definitions_with_id = [
+        definition
+        for definition in defs.values()
+        if "id" in definition.get("properties", {})
+    ]
+    assert len(definitions_with_id) == 22
+    assert all(
+        definition["properties"]["id"]["pattern"] == ID_PATTERN
+        for definition in definitions_with_id
+    )
 
 
 def test_measure_map_is_a_nonempty_compressed_row_list() -> None:
@@ -306,75 +348,83 @@ def test_fixture_set_contains_exactly_the_0_4_0_manifests() -> None:
     ]
 
 
-def test_the_0_3_0_fixtures_are_the_0_2_1_fixtures_and_four_drawings() -> None:
-    previous = {path.name: path for path in fixture_paths("0.2.1")}
-    current = {path.name: path for path in fixture_paths("0.3.0")}
-    assert sorted(set(current) - set(previous)) == [
-        "bare.json",
-        "contiguous.json",
-        "map.json",
-        "styled.json",
+def test_the_styled_manifests_carry_their_statements() -> None:
+    grey = {"stroke": "#404040", "fill": "#404040"}
+    shared = [
+        {"select": {"element": "label"}, "set": grey},
+        {"select": {"element": "name"}, "set": grey},
+        {"select": {"element": "map"}, "set": {"side": "below"}},
+        {"select": {"ids": ["a"]}, "set": {"display": "none"}},
     ]
-    generator = json.loads(current["empty.json"].read_text(encoding="utf-8"))["meta"][
-        "generator"
-    ]
-    for name, path in previous.items():
-        old = json.loads(path.read_text(encoding="utf-8"))["meta"]["generator"]
-        expected = (
-            path.read_text(encoding="utf-8")
-            .replace('"schema_version": "0.2.1"', '"schema_version": "0.3.0"')
-            .replace(json.dumps(old), json.dumps(generator))
-        )
-        assert current[name].read_text(encoding="utf-8") == expected, name
-
-
-def test_the_styled_manifests_keep_their_own_graphical_containers() -> None:
-    styled = []
+    green = {"side": "above", "stroke": "#006600", "fill": "#006600"}
+    violet = {"stroke": "#7F00FF", "fill": "#7F00FF"}
+    accent = {
+        "stroke": "#7F00FF",
+        "stroke-width": 0,
+        "stroke-dasharray": "3 3",
+        "fill": "#7F00FF",
+        "opacity": 0.5,
+        "font-size": 10,
+        "rx": 0,
+        "display": "inline",
+        "side": "above",
+        "content": "Styled score",
+        "max-width": 160,
+    }
+    expected = {
+        "styled__score.json": {
+            "styles": {"accent": accent},
+            "statements": [
+                *shared,
+                {"select": {"element": "wedge", "within": "score"}, "set": green},
+                {
+                    "select": {"class": "ContinuousLogicalTimeline"},
+                    "set": "accent",
+                },
+                {
+                    "select": {"domain": "logical", "within": "score"},
+                    "set": {"stroke": "#000080", "fill": "#000080"},
+                },
+                {
+                    "select": {"element": "region", "within": "score"},
+                    "set": {"stroke": "#800000", "fill": "#800000"},
+                },
+                {
+                    "select": {"element": "region", "within": "score"},
+                    "set": {"stroke": "#008080", "fill": "#008080"},
+                },
+                {
+                    "select": {"element": "child", "within": "score"},
+                    "set": {"display": "inline"},
+                },
+                {
+                    "select": {"within": "b"},
+                    "set": {"stroke": "#FF8000", "fill": "#FF8000"},
+                },
+            ],
+        },
+        "styled__perf.json": {
+            "statements": [
+                *shared,
+                {
+                    "select": {
+                        "element": "wedge",
+                        "domain": "physical",
+                        "within": "perf",
+                    },
+                    "set": violet,
+                },
+            ],
+        },
+    }
+    styled = {}
     for path in fixture_paths():
         manifest = json.loads(path.read_text(encoding="utf-8"))
         if "graphical" in manifest:
-            styled.append(path.name)
             assert list(manifest) == ["meta", "timeline", "graphical"]
-            expected = {
-                "styles": [
-                    {"select": {}, "set": {"show_length": True}},
-                    {"select": {"element": "label"}, "set": {"colour": "#404040"}},
-                    {"select": {"element": "map"}, "set": {"side": "below"}},
-                    {"select": {"ids": ["a"]}, "set": {"visible": False}},
-                ],
-                "timelines": {
-                    "score": [
-                        {
-                            "select": {"element": "wedge"},
-                            "set": {"side": "above", "colour": "#006600"},
-                        },
-                        {"select": {"domain": "logical"}, "set": {"colour": "#000080"}},
-                        {"select": {"element": "region"}, "set": {"colour": "#800000"}},
-                        {"select": {"element": "region"}, "set": {"colour": "#008080"}},
-                        {"select": {"element": "child"}, "set": {"visible": True}},
-                    ],
-                    "b": [
-                        {
-                            "select": {},
-                            "set": {
-                                "colour": "#FF8000",
-                                "show_projected_coordinates": True,
-                            },
-                        }
-                    ],
-                },
-            }
-            if path.name == "styled__perf.json":
-                expected["timelines"] = {
-                    "perf": [
-                        {
-                            "select": {"element": "wedge", "domain": "physical"},
-                            "set": {"colour": "#7F00FF"},
-                        }
-                    ]
-                }
-            assert manifest["graphical"] == expected
-    assert styled == ["styled__perf.json", "styled__score.json"]
+            styled[path.name] = manifest["graphical"]
+    assert styled == expected
+    assert [len(value["statements"]) for value in expected.values()] == [11, 5]
 
 
 @pytest.mark.parametrize("accessor", [schema_path, load_schema, fixture_paths])

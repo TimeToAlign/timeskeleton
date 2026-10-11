@@ -305,19 +305,20 @@ export type NumberPositive = number | FractionPositive;
  */
 export type FractionPositive = [number, number];
 /**
- * The type of a drawn element: the root timeline of a block, a child timeline at any depth, a conversion map, a region, a flow-control break or jump, a coordinate wedge, or a text label.
+ * A colour as #RRGGBB with upper-case hexadecimal digits, or none.
+ *
+ * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
+ * via the `definition` "Paint".
+ */
+export type Paint = string;
+/**
+ * The type of a drawn element: the box's background, the root timeline's line, a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at the root's start or end, a name in the name column, or any other text label.
  *
  * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
  * via the `definition` "ElementType".
  */
-export type ElementType = "timeline" | "child" | "map" | "region" | "break" | "jump" | "wedge" | "label";
-/**
- * Style rules in order; between rules of equal rank in one container the later one decides.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "StyleRules".
- */
-export type StyleRules = StyleRule[];
+export type ElementType =
+  "block" | "timeline" | "child" | "map" | "region" | "break" | "jump" | "wedge" | "name" | "label";
 export type CoordinateNonnegative1 =
   | {
       number_type?: "int";
@@ -341,73 +342,9 @@ export type CoordinateNonnegative1 =
  * via the `definition` "NumberNonnegative".
  */
 export type NumberNonnegative = number | FractionNonnegative;
-/**
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Colour".
- */
-export type Colour = string;
-/**
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Primitive".
- */
-export type Primitive =
-  | TimelinePrimitive
-  | ChildPrimitive
-  | MapPrimitive
-  | RegionPrimitive
-  | BreakPrimitive
-  | JumpPrimitive
-  | WedgePrimitive
-  | LabelPrimitive;
-/**
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "LinePattern".
- */
-export type LinePattern = "solid" | "dotted" | "dashed";
-/**
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Side".
- */
-export type Side = "above" | "below";
-/**
- * A position on the root timeline's axis (or, for a label in the frame's space, on the frame's axis): a JSON integer, a JSON float or a Fraction pair.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Position".
- */
-export type Position = number | Fraction;
-/**
- * A vertical position in rows, as an exact Fraction pair in lowest terms.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Height".
- */
-export type Height = Fraction;
-/**
- * A TikZ node anchor.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Anchor".
- */
-export type Anchor =
-  | "center"
-  | "north"
-  | "south"
-  | "east"
-  | "west"
-  | "north east"
-  | "north west"
-  | "south east"
-  | "south west"
-  | "base"
-  | "base east"
-  | "base west"
-  | "mid"
-  | "mid east"
-  | "mid west";
 
 /**
- * One timeline manifest as timetoalign's Timeline.to_dict() writes it, with optional styling of its own elements. It carries the timeline's structure: axis, children at exact offsets, conversion maps, regions, flow control, compressed Measure Map standard rows and metric hierarchy. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Version 0.2.0 specified conversion maps, regions, flow control and measure maps; the metric hierarchy is the one structured member that remains opaque. Version 0.2.1 keeps those definitions and fixes the canonical order in which writers emit every collection whose order carries no meaning: timelines by id; children by offset, then id; conversion maps by id; regions by start, end, name; breaks by coordinate, jumps by from and to coordinate, each then by canonical JSON text; markers by name. Readers accept any order. Version 0.3.0 adds the optional graphical block: style rules held by containers (the manifest, and any timeline with its subtree), each rule selecting drawn elements and setting display properties on them. A manifest without the block is drawn with the defaults of the geometry specification. Version 0.4.0 holds exactly one timeline manifest at the top level instead of a map of timelines; a 0.3.0 envelope holding several top-level timelines is divided by `split` before it is migrated.
+ * A TimeSkeleton 0.4.0 manifest holding exactly one timeline, with its axis, children at exact offsets, conversion maps, regions, flow control, compressed Measure Map standard rows, opaque metric hierarchy and optional graphical block. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Collections whose order carries no meaning have one canonical order: children by offset, then id; conversion maps by id; regions by start, end, name; breaks by coordinate, jumps by from and to coordinate, each then by canonical JSON text; markers by name. Readers accept any order. The graphical block holds named styles and an ordered list of statements, each selecting drawn elements and setting presentation properties named as in SVG; `docs/drawing.md` specifies how a manifest is drawn, and a manifest without the block is drawn with the other style layers alone.
  */
 export interface TimeSkeletonManifest {
   /**
@@ -478,7 +415,7 @@ export interface TimelineManifest {
    */
   measure_map: MeasureMap | null;
   /**
-   * The metric hierarchy, or null. Opaque in 0.1.0: an object without further constraints.
+   * The metric hierarchy, or null; an object without further constraints.
    */
   metric_hierarchy: {
     [k: string]: unknown;
@@ -825,81 +762,112 @@ export interface Jump {
   };
 }
 /**
- * How the manifest is drawn: style rules held by containers. `styles` holds the rules of the manifest itself, the outermost container, which apply to every element; `timelines` holds, by timeline id (the root's included), the rules of the container formed by that timeline and its descendants, which outrank the rules of every container enclosing it. An absent block, or one without rules, draws every element with its default style.
+ * How the manifest is drawn (`docs/drawing.md`): named styles and an ordered list of statements. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements. An absent block draws every element with the other style layers alone.
  *
  * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
  * via the `definition` "Graphical".
  */
 export interface Graphical {
-  styles?: StyleRules;
   /**
-   * Rules by timeline id: the rules of the container formed by that timeline and its descendants.
+   * Declarations by style name.
    */
-  timelines?: {
-    [k: string]: StyleRules;
+  styles?: {
+    [k: string]: Declaration;
   };
+  /**
+   * Statements in order; of two statements of equal rank the later one decides.
+   */
+  statements?: Statement[];
 }
 /**
- * One style rule: the elements it selects and the properties it sets on them.
+ * Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.
  *
  * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "StyleRule".
+ * via the `definition` "Declaration".
  */
-export interface StyleRule {
-  select: StyleSelector;
-  set: StyleProperties;
+export interface Declaration {
+  stroke?: Paint;
+  "stroke-width"?: number;
+  /**
+   * none, or non-negative decimal numbers separated by single spaces.
+   */
+  "stroke-dasharray"?: string;
+  fill?: Paint;
+  opacity?: number;
+  "font-size"?: number;
+  rx?: number;
+  display?: "inline" | "none";
+  side?: "above" | "below";
+  content?: string;
+  "max-width"?: number | "none";
 }
 /**
- * An element matches when it matches every member present. An empty selector matches every element of the container.
+ * One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.
  *
  * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "StyleSelector".
+ * via the `definition` "Statement".
  */
-export interface StyleSelector {
+export interface Statement {
+  select: Selector;
+  set: Declaration | string;
+}
+/**
+ * An element matches when it matches every member present. The empty selector matches every element.
+ *
+ * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
+ * via the `definition` "Selector".
+ */
+export interface Selector {
   element?: ElementType;
   /**
-   * The domain of the element's timeline: what its time measures (graphical space, musical time, physical time).
-   */
-  domain?: "graphical" | "logical" | "physical";
-  /**
-   * Whether the element's timeline is continuous or discrete.
-   */
-  modality?: "continuous" | "discrete";
-  /**
-   * Element ids; the element's id must be one of them.
+   * Element addresses; the element's address must be one of them.
    *
    * @minItems 1
    */
   ids?: [string, ...string[]];
-}
-/**
- * Display properties. An element reads only the properties that apply to its type; the others are ignored.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "StyleProperties".
- */
-export interface StyleProperties {
   /**
-   * The stroke and fill colour as #RRGGBB with upper-case hexadecimal digits.
+   * The domain of the element: what its time measures (graphical space, musical time, physical time).
    */
-  colour?: string;
-  line_pattern?: "solid" | "dotted" | "dashed";
+  domain?: "graphical" | "logical" | "physical";
   /**
-   * Whether the element is drawn. false filters it out.
+   * Whether the element is continuous or discrete.
    */
-  visible?: boolean;
+  modality?: "continuous" | "discrete";
   /**
-   * Which side of its line or of the root timeline the element is drawn on.
+   * The class of the element: its timeline's class, or a conversion map's type.
    */
-  side?: "above" | "below";
+  class?:
+    | "ContinuousLogicalTimeline"
+    | "ContinuousPhysicalTimeline"
+    | "ContinuousGraphicalTimeline"
+    | "DiscreteLogicalTimeline"
+    | "DiscretePhysicalTimeline"
+    | "DiscreteGraphicalTimeline"
+    | "BeatInMeasureMap"
+    | "ChainMap"
+    | "CombinationMap"
+    | "ConstantMap"
+    | "FloorMap"
+    | "InterpolationMap"
+    | "IntervalToConstantMap"
+    | "LinearMap"
+    | "MetricMap"
+    | "MetricalPositionMap"
+    | "PiecewiseMap"
+    | "QuartersToFloatingMeasures"
+    | "QuartersToMeasureNumber"
+    | "QuartersToTicks"
+    | "RotationMap"
+    | "SamplesToSeconds"
+    | "ScalarMap"
+    | "SecondsToSamples"
+    | "ShiftMap"
+    | "TableMap"
+    | "TicksToQuarters";
   /**
-   * Whether a timeline's length is drawn as a label.
+   * A timeline id: the element must belong to that timeline or to one of its descendants.
    */
-  show_length?: boolean;
-  /**
-   * Whether a child timeline's start and end are also drawn on the root timeline, in the root's coordinates.
-   */
-  show_projected_coordinates?: boolean;
+  within?: string;
 }
 export interface CoordinateNonnegative2 {
   unit: TimeUnit;
@@ -910,350 +878,4 @@ export interface CoordinateNonnegative2 {
   value: {
     [k: string]: unknown;
   };
-}
-/**
- * The drawing of one top-level timeline.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Block".
- */
-export interface Block {
-  /**
-   * The id of the root timeline.
-   */
-  id: string;
-  frame: Frame;
-  /**
-   * The LinearMap placing the root's coordinates in the plot area: a root position x lies at frame position plot.offset + scalar × x + offset.
-   */
-  placement: LinearMap & {
-    id?: "placement";
-    target_unit?: "number";
-    [k: string]: unknown;
-  };
-  /**
-   * The lowest and highest row of the block; both include row 0.
-   */
-  rows: {
-    min: number;
-    max: number;
-  };
-  background: Colour;
-  /**
-   * The primitives in drawing order.
-   */
-  primitives: Primitive[];
-}
-/**
- * The horizontal extent of a block in abstract units (proportions), its origin at the block's bottom-left corner: its length, the name column (names) and the plot area (plot), where the placement puts the root timeline. Every number is a Fraction pair, or a float when the root's number type is float.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Frame".
- */
-export interface Frame {
-  /**
-   * A bare JSON number or an exact Fraction pair.
-   */
-  length: number | Fraction;
-  names: Extent;
-  plot: Extent;
-}
-/**
- * An interval of the frame: where it starts and how long it is.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Extent".
- */
-export interface Extent {
-  offset: Number;
-  length: Number;
-}
-/**
- * The line of a root timeline: a filled circle at its start, a stealth at its end.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "TimelinePrimitive".
- */
-export interface TimelinePrimitive {
-  kind: "timeline";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  /**
-   * The row: 0 for the root, positive above, negative below.
-   */
-  row: number;
-  /**
-   * Where the line starts.
-   */
-  start: number | Fraction;
-  /**
-   * Where the line ends.
-   */
-  end: number | Fraction;
-  colour: Colour;
-  line_pattern: LinePattern;
-}
-/**
- * The line of a child timeline: a filled circle at its start, an open diamond at its end.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "ChildPrimitive".
- */
-export interface ChildPrimitive {
-  kind: "child";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  /**
-   * The row: 0 for the root, positive above, negative below.
-   */
-  row: number;
-  /**
-   * Where the line starts.
-   */
-  start: number | Fraction;
-  /**
-   * Where the line ends.
-   */
-  end: number | Fraction;
-  colour: Colour;
-  line_pattern: LinePattern;
-}
-/**
- * A conversion map: a double line closed at both ends.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "MapPrimitive".
- */
-export interface MapPrimitive {
-  kind: "map";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  /**
-   * The row: 0 for the root, positive above, negative below.
-   */
-  row: number;
-  /**
-   * The start of the map's timeline.
-   */
-  start: number | Fraction;
-  /**
-   * The end of the map's timeline.
-   */
-  end: number | Fraction;
-  colour: Colour;
-  line_pattern: LinePattern;
-}
-/**
- * A region: a curly brace.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "RegionPrimitive".
- */
-export interface RegionPrimitive {
-  kind: "region";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  /**
-   * The row: 0 for the root, positive above, negative below.
-   */
-  row: number;
-  side: Side;
-  /**
-   * The region's start.
-   */
-  start: number | Fraction;
-  /**
-   * The region's end.
-   */
-  end: number | Fraction;
-  /**
-   * Where the brace's arms end.
-   */
-  base: Fraction;
-  /**
-   * Where the brace's tip is.
-   */
-  apex: Fraction;
-  colour: Colour;
-  line_pattern: LinePattern;
-}
-/**
- * A flow-control break: a vertical line through the block.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "BreakPrimitive".
- */
-export interface BreakPrimitive {
-  kind: "break";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  /**
-   * The break's position.
-   */
-  at: number | Fraction;
-  /**
-   * The bottom of the block.
-   */
-  bottom: Fraction;
-  /**
-   * The top of the block.
-   */
-  top: Fraction;
-  colour: Colour;
-  line_pattern: LinePattern;
-}
-/**
- * A flow-control jump: an arc with a stealth at its arrival.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "JumpPrimitive".
- */
-export interface JumpPrimitive {
-  kind: "jump";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  /**
-   * The row: 0 for the root, positive above, negative below.
-   */
-  row: number;
-  side: Side;
-  /**
-   * Where the jump leaves.
-   */
-  from: number | Fraction;
-  /**
-   * Where the jump arrives.
-   */
-  to: number | Fraction;
-  /**
-   * The height of both ends.
-   */
-  base: Fraction;
-  /**
-   * The height the arc reaches halfway.
-   */
-  apex: Fraction;
-  colour: Colour;
-  line_pattern: LinePattern;
-}
-/**
- * A coordinate: a wedge whose tip touches the line.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "WedgePrimitive".
- */
-export interface WedgePrimitive {
-  kind: "wedge";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  /**
-   * The row: 0 for the root, positive above, negative below.
-   */
-  row: number;
-  side: Side;
-  /**
-   * The coordinate.
-   */
-  at: number | Fraction;
-  /**
-   * The height of the tip, on the line.
-   */
-  tip: Fraction;
-  /**
-   * The height of the wedge's thick end.
-   */
-  base: Fraction;
-  colour: Colour;
-}
-/**
- * A text label: a TikZ-style node at a point, anchored there.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "LabelPrimitive".
- */
-export interface LabelPrimitive {
-  kind: "label";
-  /**
-   * The element id.
-   */
-  id: string;
-  /**
-   * The id of the element's timeline.
-   */
-  timeline: string;
-  at: {
-    /**
-     * root: x is on the root's axis; frame: x is on the frame's axis.
-     */
-    space: "root" | "frame";
-    x: Position;
-    y: Height;
-  };
-  anchor: Anchor;
-  /**
-   * Counter-clockwise rotation in degrees about at.
-   */
-  rotate?: number;
-  text: string;
-  colour: Colour;
-}
-/**
- * The drawing of a TimeSkeleton document as laid out by the geometry specification (docs/geometry.md): one block per top-level timeline, each with its frame (its horizontal extent in abstract units), the placement of its root in the frame, its rows and its primitives. Horizontal positions derived from time are exact values on the root timeline's axis; vertical positions are rows or exact fractions of a row. Only writers map them to a page.
- *
- * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
- * via the `definition` "Geometry".
- */
-export interface Geometry {
-  meta: {
-    /**
-     * The timeskeleton release this geometry conforms to.
-     */
-    schema_version: "0.3.0";
-  };
-  /**
-   * One block per top-level timeline, in the canonical order of the document's timelines.
-   */
-  blocks: Block[];
 }

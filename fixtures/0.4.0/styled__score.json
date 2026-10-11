@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "0.4.0",
-    "generator": "timetoalign 1.2.0 (2549cbe4)"
+    "generator": "timetoalign 1.2.0 (82f7914a)"
   },
   "timeline": {
     "id": "score",
@@ -162,19 +162,38 @@
     "metric_hierarchy": null
   },
   "graphical": {
-    "styles": [
-      {
-        "select": {},
-        "set": {
-          "show_length": true
-        }
-      },
+    "styles": {
+      "accent": {
+        "stroke": "#7F00FF",
+        "stroke-width": 0,
+        "stroke-dasharray": "3 3",
+        "fill": "#7F00FF",
+        "opacity": 0.5,
+        "font-size": 10,
+        "rx": 0,
+        "display": "inline",
+        "side": "above",
+        "content": "Styled score",
+        "max-width": 160
+      }
+    },
+    "statements": [
       {
         "select": {
           "element": "label"
         },
         "set": {
-          "colour": "#404040"
+          "stroke": "#404040",
+          "fill": "#404040"
+        }
+      },
+      {
+        "select": {
+          "element": "name"
+        },
+        "set": {
+          "stroke": "#404040",
+          "fill": "#404040"
         }
       },
       {
@@ -192,63 +211,74 @@
           ]
         },
         "set": {
-          "visible": false
+          "display": "none"
+        }
+      },
+      {
+        "select": {
+          "element": "wedge",
+          "within": "score"
+        },
+        "set": {
+          "side": "above",
+          "stroke": "#006600",
+          "fill": "#006600"
+        }
+      },
+      {
+        "select": {
+          "class": "ContinuousLogicalTimeline"
+        },
+        "set": "accent"
+      },
+      {
+        "select": {
+          "domain": "logical",
+          "within": "score"
+        },
+        "set": {
+          "stroke": "#000080",
+          "fill": "#000080"
+        }
+      },
+      {
+        "select": {
+          "element": "region",
+          "within": "score"
+        },
+        "set": {
+          "stroke": "#800000",
+          "fill": "#800000"
+        }
+      },
+      {
+        "select": {
+          "element": "region",
+          "within": "score"
+        },
+        "set": {
+          "stroke": "#008080",
+          "fill": "#008080"
+        }
+      },
+      {
+        "select": {
+          "element": "child",
+          "within": "score"
+        },
+        "set": {
+          "display": "inline"
+        }
+      },
+      {
+        "select": {
+          "within": "b"
+        },
+        "set": {
+          "stroke": "#FF8000",
+          "fill": "#FF8000"
         }
       }
-    ],
-    "timelines": {
-      "score": [
-        {
-          "select": {
-            "element": "wedge"
-          },
-          "set": {
-            "side": "above",
-            "colour": "#006600"
-          }
-        },
-        {
-          "select": {
-            "domain": "logical"
-          },
-          "set": {
-            "colour": "#000080"
-          }
-        },
-        {
-          "select": {
-            "element": "region"
-          },
-          "set": {
-            "colour": "#800000"
-          }
-        },
-        {
-          "select": {
-            "element": "region"
-          },
-          "set": {
-            "colour": "#008080"
-          }
-        },
-        {
-          "select": {
-            "element": "child"
-          },
-          "set": {
-            "visible": true
-          }
-        }
-      ],
-      "b": [
-        {
-          "select": {},
-          "set": {
-            "colour": "#FF8000",
-            "show_projected_coordinates": true
-          }
-        }
-      ]
-    }
+    ]
   }
 }

@@ -1,10 +1,8 @@
 """The canonical order of a TimeSkeleton manifest and its standard writer.
 
-Every collection of a manifest, or an envelope of an earlier version, whose
-order carries no meaning has one canonical order, so equal values are equal
-text:
+Every collection of a manifest whose order carries no meaning has one
+canonical order, so equal values are equal text:
 
-* an envelope's ``manifest.timelines`` by id;
 * at every depth, ``children`` by offset, then id;
 * ``conversion_maps`` by id;
 * ``regions`` by start, then end, then name;
@@ -141,13 +139,11 @@ def _order_timeline(manifest: dict[str, Any]) -> None:
 
 
 def canonical_order(value: Any) -> Any:
-    """Return a deep copy of ``value`` with its manifest or envelope ordered.
+    """Return a deep copy of ``value`` with its manifest ordered.
 
     A value with a top-level ``timeline`` member orders that timeline manifest.
-    A value with ``manifest.timelines`` orders the timelines of an envelope of
-    an earlier version by id, then orders each timeline manifest. Only the
-    collections listed in the module docstring move; any other JSON value is
-    copied unchanged. The order does not depend on the schema version.
+    Only the collections listed in the module docstring move; any other JSON
+    value is copied unchanged.
 
     Raises:
         ValueError: If a collection holds an entry whose ordering members are
@@ -157,20 +153,11 @@ def canonical_order(value: Any) -> Any:
     timeline = result.get("timeline") if isinstance(result, Mapping) else None
     if isinstance(timeline, dict):
         _order_timeline(timeline)
-    manifest = result.get("manifest") if isinstance(result, Mapping) else None
-    timelines = manifest.get("timelines") if isinstance(manifest, Mapping) else None
-    if isinstance(timelines, dict):
-        for timeline in timelines.values():
-            if isinstance(timeline, dict):
-                _order_timeline(timeline)
-        manifest["timelines"] = dict(
-            sorted(timelines.items(), key=lambda item: item[0])
-        )
     return result
 
 
 def dumps(value: Any) -> str:
-    """Return the standard text of a manifest, envelope, or any JSON value.
+    """Return the standard text of a manifest, or of any JSON value.
 
     The value is put in :func:`canonical_order`, then written as UTF-8 text
     with two-space indentation and a final newline, characters unescaped

@@ -26,12 +26,14 @@
     },
     "./schema/*": "./schema/*",
     "./fixtures/*": "./fixtures/*",
+    "./fonts/*": "./fonts/*",
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
     "schema",
-    "fixtures"
+    "fixtures",
+    "fonts"
   ],
   "sideEffects": false,
   "publishConfig": {

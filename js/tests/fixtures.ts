@@ -8,20 +8,6 @@ const here = dirname(fileURLToPath(import.meta.url));
 /** The repository root, which holds the only copies of `schema/` and `fixtures/`. */
 export const repositoryRoot = resolve(here, "../..");
 
-export const FIXTURE_NAMES = [
-  "continuous_graphical",
-  "continuous_logical",
-  "continuous_physical",
-  "discrete_graphical",
-  "discrete_logical",
-  "discrete_physical",
-  "empty",
-  "nested",
-  "with_region",
-] as const;
-
-export type FixtureName = (typeof FIXTURE_NAMES)[number];
-
 export function fixtureDirectory(version: string = SCHEMA_VERSION): string {
   return resolve(repositoryRoot, "fixtures", version);
 }
@@ -66,38 +52,4 @@ export function loadRejection(
   version: string = SCHEMA_VERSION,
 ): Record<string, unknown> {
   return parseJson(rejectionText(name, version)) as Record<string, unknown>;
-}
-
-/** Directory names of the migration pairs, `<source>-to-<target>`, sorted. */
-export function migrationPairs(): string[] {
-  return readdirSync(resolve(repositoryRoot, "fixtures", "migrations"))
-    .filter((name) => /^\d+\.\d+\.\d+-to-\d+\.\d+\.\d+$/.test(name))
-    .sort();
-}
-
-/** The split input text and sorted output file names. */
-export function splitFixture(): { before: string; after: readonly [string, string][] } {
-  const root = resolve(repositoryRoot, "fixtures", "migrations", "split", "0.3.0");
-  return {
-    before: readFileSync(resolve(root, "before.json"), "utf8"),
-    after: readdirSync(resolve(root, "after"))
-      .sort()
-      .map((name) => [name, readFileSync(resolve(root, "after", name), "utf8")]),
-  };
-}
-
-/** The text of one side of a migration pair. */
-export function migrationText(pair: string, name: "before" | "after"): string {
-  return readFileSync(
-    resolve(repositoryRoot, "fixtures", "migrations", pair, `${name}.json`),
-    "utf8",
-  );
-}
-
-/** Parse one side of a migration pair afresh; the pair defaults to 0.1.0 to 0.2.0. */
-export function migrationFixture(
-  name: "before" | "after",
-  pair = "0.1.0-to-0.2.0",
-): Record<string, unknown> {
-  return parseJson(migrationText(pair, name)) as Record<string, unknown>;
 }

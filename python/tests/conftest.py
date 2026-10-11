@@ -8,21 +8,9 @@ import pytest
 
 from timeskeleton import SCHEMA_VERSION, fixture_paths
 
-FIXTURE_NAMES = [
-    "continuous_graphical",
-    "continuous_logical",
-    "continuous_physical",
-    "discrete_graphical",
-    "discrete_logical",
-    "discrete_physical",
-    "empty",
-    "nested",
-    "with_region",
-]
-
 
 @pytest.fixture
-def load_fixture() -> Callable[[str, str], dict[str, Any]]:
+def load_fixture() -> Callable[..., dict[str, Any]]:
     """Return a loader that parses one bundled fixture afresh on every call."""
 
     def _load(name: str, version: str = SCHEMA_VERSION) -> dict[str, Any]:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Emit the manifest and envelope fixtures of the current schema through timetoalign.
+"""Emit the manifest fixtures of the current schema through timetoalign.
 
 Every manifest is built with public constructors or a public loader, serialized
 with ``Timeline.to_dict()``, written with ``timeskeleton.dumps`` and
@@ -16,6 +16,7 @@ same manifests.
 from __future__ import annotations
 
 import argparse
+import copy
 import json
 import re
 import subprocess
@@ -67,7 +68,7 @@ from timetoalign.maps import (
 from timetoalign.testdata import ensure_data
 from timetoalign.timelines.flowcontrol import Break, Jump
 
-from timeskeleton import SCHEMA_VERSION, dumps, graphical_for_subtree
+from timeskeleton import SCHEMA_VERSION, dumps
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = REPOSITORY_ROOT / "fixtures" / SCHEMA_VERSION
@@ -293,41 +294,78 @@ def styled_timelines() -> list[Timeline]:
     return [score, performance]
 
 
-GRAPHICAL: dict[str, dict[str, Any]] = {
+_GREY = {"stroke": "#404040", "fill": "#404040"}
+_SHARED_STATEMENTS: list[dict[str, Any]] = [
+    {"select": {"element": "label"}, "set": _GREY},
+    {"select": {"element": "name"}, "set": _GREY},
+    {"select": {"element": "map"}, "set": {"side": "below"}},
+    {"select": {"ids": ["a"]}, "set": {"display": "none"}},
+]
+_GREEN_ABOVE = {"side": "above", "stroke": "#006600", "fill": "#006600"}
+_VIOLET = {"stroke": "#7F00FF", "fill": "#7F00FF"}
+_ACCENT = {
+    "stroke": "#7F00FF",
+    "stroke-width": 0,
+    "stroke-dasharray": "3 3",
+    "fill": "#7F00FF",
+    "opacity": 0.5,
+    "font-size": 10,
+    "rx": 0,
+    "display": "inline",
+    "side": "above",
+    "content": "Styled score",
+    "max-width": 160,
+}
+
+GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     "styled": {
-        "styles": [
-            {"select": {}, "set": {"show_length": True}},
-            {"select": {"element": "label"}, "set": {"colour": "#404040"}},
-            {"select": {"element": "map"}, "set": {"side": "below"}},
-            {"select": {"ids": ["a"]}, "set": {"visible": False}},
-        ],
-        "timelines": {
-            "score": [
+        "score": {
+            "styles": {"accent": _ACCENT},
+            "statements": [
+                *_SHARED_STATEMENTS,
                 {
-                    "select": {"element": "wedge"},
-                    "set": {"side": "above", "colour": "#006600"},
+                    "select": {"element": "wedge", "within": "score"},
+                    "set": _GREEN_ABOVE,
                 },
-                {"select": {"domain": "logical"}, "set": {"colour": "#000080"}},
-                {"select": {"element": "region"}, "set": {"colour": "#800000"}},
-                {"select": {"element": "region"}, "set": {"colour": "#008080"}},
-                {"select": {"element": "child"}, "set": {"visible": True}},
-            ],
-            "b": [
+                {"select": {"class": "ContinuousLogicalTimeline"}, "set": "accent"},
                 {
-                    "select": {},
-                    "set": {"colour": "#FF8000", "show_projected_coordinates": True},
-                }
-            ],
-            "perf": [
+                    "select": {"domain": "logical", "within": "score"},
+                    "set": {"stroke": "#000080", "fill": "#000080"},
+                },
                 {
-                    "select": {"element": "wedge", "domain": "physical"},
-                    "set": {"colour": "#7F00FF"},
-                }
+                    "select": {"element": "region", "within": "score"},
+                    "set": {"stroke": "#800000", "fill": "#800000"},
+                },
+                {
+                    "select": {"element": "region", "within": "score"},
+                    "set": {"stroke": "#008080", "fill": "#008080"},
+                },
+                {
+                    "select": {"element": "child", "within": "score"},
+                    "set": {"display": "inline"},
+                },
+                {
+                    "select": {"within": "b"},
+                    "set": {"stroke": "#FF8000", "fill": "#FF8000"},
+                },
             ],
+        },
+        "perf": {
+            "statements": [
+                *_SHARED_STATEMENTS,
+                {
+                    "select": {
+                        "element": "wedge",
+                        "domain": "physical",
+                        "within": "perf",
+                    },
+                    "set": _VIOLET,
+                },
+            ]
         },
     },
 }
-"""The ``graphical`` block of each styled fixture, by fixture name."""
+"""The ``graphical`` block of each styled manifest, by fixture name and root id."""
 
 
 def corpus_manifests() -> dict[str, list[Timeline]]:
@@ -415,7 +453,6 @@ def build_manifests() -> dict[str, list[Timeline]]:
     )
     with_region.create_region("theme", 2, 6)
     manifests["with_region"] = [with_region]
-    manifests["empty"] = []
     grandchild = ContinuousLogicalTimeline(length=2, unit="quarters")
     child = ContinuousLogicalTimeline(length=8, unit="quarters")
     child.add_child(grandchild, Fraction(3, 2))
@@ -436,15 +473,12 @@ def manifest(
     graphical: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Wrap one timeline, and a graphical block if any, in a manifest."""
-    timeline_manifest = timeline.to_dict()
     result: dict[str, Any] = {
         "meta": {"schema_version": SCHEMA_VERSION, "generator": generator},
-        "timeline": timeline_manifest,
+        "timeline": timeline.to_dict(),
     }
     if graphical is not None:
-        result["graphical"] = graphical_for_subtree(
-            graphical, timeline.id, timeline_manifest
-        )
+        result["graphical"] = copy.deepcopy(graphical)
     return result
 
 
@@ -521,7 +555,10 @@ def main(argv: list[str] | None = None) -> int:
         stale.unlink()
     written: list[Path] = []
     for path, timeline, name in planned:
-        write(path, manifest(timeline, generator, GRAPHICAL.get(name)))
+        write(
+            path,
+            manifest(timeline, generator, GRAPHICAL.get(name, {}).get(timeline.id)),
+        )
         written.append(path)
 
     for path in written:

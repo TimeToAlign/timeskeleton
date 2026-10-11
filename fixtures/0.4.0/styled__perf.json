@@ -1,7 +1,7 @@
 {
   "meta": {
     "schema_version": "0.4.0",
-    "generator": "timetoalign 1.2.0 (2549cbe4)"
+    "generator": "timetoalign 1.2.0 (82f7914a)"
   },
   "timeline": {
     "id": "perf",
@@ -60,19 +60,23 @@
     "metric_hierarchy": null
   },
   "graphical": {
-    "styles": [
-      {
-        "select": {},
-        "set": {
-          "show_length": true
-        }
-      },
+    "statements": [
       {
         "select": {
           "element": "label"
         },
         "set": {
-          "colour": "#404040"
+          "stroke": "#404040",
+          "fill": "#404040"
+        }
+      },
+      {
+        "select": {
+          "element": "name"
+        },
+        "set": {
+          "stroke": "#404040",
+          "fill": "#404040"
         }
       },
       {
@@ -90,22 +94,20 @@
           ]
         },
         "set": {
-          "visible": false
+          "display": "none"
+        }
+      },
+      {
+        "select": {
+          "element": "wedge",
+          "domain": "physical",
+          "within": "perf"
+        },
+        "set": {
+          "stroke": "#7F00FF",
+          "fill": "#7F00FF"
         }
       }
-    ],
-    "timelines": {
-      "perf": [
-        {
-          "select": {
-            "element": "wedge",
-            "domain": "physical"
-          },
-          "set": {
-            "colour": "#7F00FF"
-          }
-        }
-      ]
-    }
+    ]
   }
 }

@@ -1,13 +1,13 @@
 """Bundle the repository-level files into the package.
 
-The schema and fixture directories and the README live at the repository
-root, beside ``python/``, so that one copy serves the Python package, the npm
+The schema, fixture and font directories and the README live at the
+repository root, beside ``python/``, so that one copy serves the Python package, the npm
 package and the fixture script. A static ``force-include`` cannot reach them
 when the wheel is built from the sdist (hatchling raises ``FileNotFoundError``
 for a missing source), so two hooks resolve them at build time:
 
 * ``AssetsHook`` (build hook): in a repository checkout, the root
-  ``schema/`` and ``fixtures/`` directories go into the sdist under
+  ``schema/``, ``fixtures/`` and ``fonts/`` directories go into the sdist under
   ``src/timeskeleton/`` and into the wheel under ``timeskeleton/``, and the
   root ``README.md`` goes into the sdist. In an unpacked sdist those copies
   are ordinary package files and need no forcing.
@@ -25,7 +25,7 @@ from typing import Any
 from hatchling.builders.hooks.plugin.interface import BuildHookInterface
 from hatchling.metadata.plugin.interface import MetadataHookInterface
 
-ASSETS = ("schema", "fixtures")
+ASSETS = ("schema", "fixtures", "fonts")
 README = "README.md"
 
 

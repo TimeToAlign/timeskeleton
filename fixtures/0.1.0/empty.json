@@ -1,9 +1,0 @@
-{
-  "meta": {
-    "schema_version": "0.1.0",
-    "generator": "timetoalign 1.2.0 (cc7c4e55)"
-  },
-  "manifest": {
-    "timelines": {}
-  }
-}

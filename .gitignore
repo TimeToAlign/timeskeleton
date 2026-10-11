@@ -14,6 +14,7 @@ js/dist/
 # Copied into the npm package by `pnpm build`; the originals live at the repository root.
 js/schema/
 js/fixtures/
+js/fonts/
 js/README.md
 
 # Editors and systems

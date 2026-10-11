@@ -1,0 +1,291 @@
+{
+  "manifest": {
+    "meta": {
+      "schema_version": "0.4.0",
+      "generator": "timetoalign 1.2.0 (82f7914a)"
+    },
+    "timeline": {
+      "id": "score",
+      "name": "Score",
+      "class": "ContinuousLogicalTimeline",
+      "unit": "quarters",
+      "number_type": "fraction",
+      "length": {
+        "unit": "quarters",
+        "number_type": "fraction",
+        "value": [
+          8,
+          1
+        ]
+      },
+      "locked": false,
+      "meta": {},
+      "children": {
+        "a": {
+          "offset": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "timeline": {
+            "id": "a",
+            "name": null,
+            "class": "ContinuousLogicalTimeline",
+            "unit": "quarters",
+            "number_type": "fraction",
+            "length": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                4,
+                1
+              ]
+            },
+            "locked": true,
+            "meta": {},
+            "children": {},
+            "conversion_maps": [],
+            "regions": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": {}
+            },
+            "measure_map": null,
+            "metric_hierarchy": null
+          }
+        },
+        "b": {
+          "offset": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              4,
+              1
+            ]
+          },
+          "timeline": {
+            "id": "b",
+            "name": null,
+            "class": "ContinuousLogicalTimeline",
+            "unit": "quarters",
+            "number_type": "fraction",
+            "length": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                4,
+                1
+              ]
+            },
+            "locked": true,
+            "meta": {},
+            "children": {},
+            "conversion_maps": [],
+            "regions": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": {}
+            },
+            "measure_map": null,
+            "metric_hierarchy": null
+          }
+        }
+      },
+      "conversion_maps": [
+        {
+          "type": "QuartersToTicks",
+          "id": "ticks",
+          "name": "Ticks",
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "scalar": 480,
+          "ppq": 480
+        }
+      ],
+      "regions": [
+        {
+          "name": "intro",
+          "start": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "end": {
+            "unit": "quarters",
+            "number_type": "fraction",
+            "value": [
+              2,
+              1
+            ]
+          },
+          "meta": {}
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [
+          {
+            "from_coordinate": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                8,
+                1
+              ]
+            },
+            "to_coordinate": {
+              "unit": "quarters",
+              "number_type": "fraction",
+              "value": [
+                0,
+                1
+              ]
+            },
+            "control_type": "da_capo",
+            "condition": "always",
+            "repeat_count": 1,
+            "target_name": null,
+            "label": "D.C.",
+            "meta": {}
+          }
+        ],
+        "markers": {}
+      },
+      "measure_map": null,
+      "metric_hierarchy": null
+    },
+    "graphical": {
+      "styles": {
+        "accent": {
+          "stroke": "#7F00FF",
+          "stroke-width": 0,
+          "stroke-dasharray": "3 3",
+          "fill": "#7F00FF",
+          "opacity": 0.5,
+          "font-size": 10,
+          "rx": 0,
+          "display": "inline",
+          "side": "above",
+          "content": "Styled score",
+          "max-width": 160
+        }
+      },
+      "statements": [
+        {
+          "select": {
+            "element": "label"
+          },
+          "set": {
+            "stroke": "#404040",
+            "fill": "#404040"
+          }
+        },
+        {
+          "select": {
+            "element": "name"
+          },
+          "set": {
+            "stroke": "#404040",
+            "fill": "#404040"
+          }
+        },
+        {
+          "select": {
+            "element": "map"
+          },
+          "set": 5
+        },
+        {
+          "select": {
+            "ids": [
+              "a"
+            ]
+          },
+          "set": {
+            "display": "none"
+          }
+        },
+        {
+          "select": {
+            "element": "wedge",
+            "within": "score"
+          },
+          "set": {
+            "side": "above",
+            "stroke": "#006600",
+            "fill": "#006600"
+          }
+        },
+        {
+          "select": {
+            "class": "ContinuousLogicalTimeline"
+          },
+          "set": "accent"
+        },
+        {
+          "select": {
+            "domain": "logical",
+            "within": "score"
+          },
+          "set": {
+            "stroke": "#000080",
+            "fill": "#000080"
+          }
+        },
+        {
+          "select": {
+            "element": "region",
+            "within": "score"
+          },
+          "set": {
+            "stroke": "#800000",
+            "fill": "#800000"
+          }
+        },
+        {
+          "select": {
+            "element": "region",
+            "within": "score"
+          },
+          "set": {
+            "stroke": "#008080",
+            "fill": "#008080"
+          }
+        },
+        {
+          "select": {
+            "element": "child",
+            "within": "score"
+          },
+          "set": {
+            "display": "inline"
+          }
+        },
+        {
+          "select": {
+            "within": "b"
+          },
+          "set": {
+            "stroke": "#FF8000",
+            "fill": "#FF8000"
+          }
+        }
+      ]
+    }
+  },
+  "path": [
+    "graphical",
+    "statements",
+    2,
+    "set"
+  ],
+  "reason": "A statement sets a declaration object or the name of a style."
+}

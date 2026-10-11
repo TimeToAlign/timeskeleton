@@ -1,49 +1,32 @@
 /**
- * @timetoalign/timeskeleton: TimeSkeleton manifest schemas, generated types,
- * validators, migrations, and lossless reading and writing.
+ * @timetoalign/timeskeleton: the TimeSkeleton manifest schema, generated
+ * types, a validator, lossless reading and writing, and the font that
+ * measures a drawing's text.
  *
  * A manifest describes one musical timeline as timetoalign serializes it. An
  * editor can place many timelines on a canvas, but a manifest knows nothing
- * about where or how often its object is placed. Published envelopes remain
- * validatable and can be migrated and divided with `split`.
+ * about where or how often its object is placed.
  */
 
-export { geometrySchema, geometrySchemas, schema, schemas } from "./generated/schema.js";
+export { type FontMetrics, fontMetrics } from "./font.js";
+export { schema, schemas } from "./generated/schema.js";
 export type {
-  Anchor,
-  Block,
-  BreakPrimitive,
-  ChildPrimitive,
-  Colour,
   Coordinate,
   CoordinateNonnegative,
+  Declaration,
   ElementType,
   Fraction,
   FractionNonnegative,
-  Frame,
-  Geometry,
   Graphical,
-  Height,
-  JumpPrimitive,
-  LabelPrimitive,
   LinearMap,
-  LinePattern,
-  MapPrimitive,
   NumberType,
-  Position,
-  Primitive,
-  RegionPrimitive,
-  Side,
-  StyleProperties,
-  StyleRule,
-  StyleRules,
-  StyleSelector,
+  Paint,
+  Selector,
+  Statement,
   TimelineClass,
   TimelineManifest,
-  TimelinePrimitive,
   TimeSkeletonManifest,
   TimeUnit,
-  WedgePrimitive,
 } from "./generated/types.js";
 export {
   canonicalJson,
@@ -58,18 +41,9 @@ export {
   type Lossless,
   parseJson,
 } from "./manifest.js";
-export {
-  ENVELOPE_VERSIONS,
-  graphicalForSubtree,
-  MIGRATIONS,
-  type Migration,
-  MigrationError,
-  migrate,
-  split,
-} from "./migrate.js";
+export { completeStyles } from "./styles.js";
 export {
   declaredVersion,
-  GEOMETRY_VERSIONS,
   jsonPointer,
   type PathSegment,
   parse,
@@ -78,5 +52,4 @@ export {
   SUPPORTED_VERSIONS,
   UnsupportedVersionError,
   validate,
-  validateGeometry,
 } from "./validate.js";

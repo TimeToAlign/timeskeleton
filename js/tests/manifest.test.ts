@@ -1,6 +1,8 @@
 import { spawnSync } from "node:child_process";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  canonicalJson,
   canonicalOrder,
   compactJson,
   dumps,
@@ -9,17 +11,16 @@ import {
   type Json,
   JsonFloat,
   type Lossless,
-  migrate,
   parse,
   parseJson,
   SchemaValidationError,
-  split,
   validate,
 } from "../src/index.js";
 import {
+  fixtureDirectory,
   fixtureFileNames,
   fixtureText,
-  migrationText,
+  loadFixture,
   rejectionFileNames,
   rejectionText,
 } from "./fixtures.js";
@@ -59,39 +60,17 @@ const NUMBER_CORPUS_TEXT = [
 
 function standardFiles(): [string, string][] {
   return [
-    ...fixtureFileNames("0.2.1").map((file): [string, string] => [
-      `0.2.1/${file}`,
-      fixtureText(file.slice(0, -5), "0.2.1"),
-    ]),
-    ...rejectionFileNames("0.2.1").map((file): [string, string] => [
+    ...fixtureFileNames().map((file): [string, string] => [file, fixtureText(file.slice(0, -5))]),
+    ...rejectionFileNames().map((file): [string, string] => [
       `rejections/${file}`,
-      rejectionText(file, "0.2.1"),
+      rejectionText(file),
     ]),
-    ["0.2.0-to-0.2.1/after.json", migrationText("0.2.0-to-0.2.1", "after")],
-    ...fixtureFileNames("0.3.0").map((file): [string, string] => [
-      `0.3.0/${file}`,
-      fixtureText(file.slice(0, -5), "0.3.0"),
-    ]),
-    ...rejectionFileNames("0.3.0").map((file): [string, string] => [
-      `rejections/0.3.0/${file}`,
-      rejectionText(file, "0.3.0"),
-    ]),
-    ["0.2.1-to-0.3.0/after.json", migrationText("0.2.1-to-0.3.0", "after")],
-    ...fixtureFileNames("0.4.0").map((file): [string, string] => [
-      `0.4.0/${file}`,
-      fixtureText(file.slice(0, -5), "0.4.0"),
-    ]),
-    ...rejectionFileNames("0.4.0").map((file): [string, string] => [
-      `rejections/0.4.0/${file}`,
-      rejectionText(file, "0.4.0"),
-    ]),
-    ["0.3.0-to-0.4.0/after.json", migrationText("0.3.0-to-0.4.0", "after")],
   ];
 }
 
 describe("the standard writer", () => {
-  it("round-trips all 199 standard files", () => {
-    expect(standardFiles().length).toBe(16 + 34 + 1 + (20 + 45 + 1) + (34 + 47 + 1));
+  it("round-trips all 84 standard files", () => {
+    expect(standardFiles().length).toBe(34 + 50);
   });
 
   it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {
@@ -170,49 +149,197 @@ describe("parseJson", () => {
 });
 
 describe("integer boundaries", () => {
-  it.each([9007199254740993n, 9223372036854775807n])(
-    "validates, migrates and writes %s exactly",
-    (value) => {
-      const manifest = parseJson(fixtureText("discrete_logical", "0.4.0")) as JsonObject;
-      const timeline = manifest.timeline as JsonObject;
-      (timeline.length as JsonObject).value = value;
-      validate(manifest);
-      const result = migrate(manifest) as unknown as JsonObject;
-      expect(((result.timeline as JsonObject).length as JsonObject).value).toBe(value);
-      expect(dumps(result)).toContain(`"value": ${value}\n`);
-    },
-  );
+  it.each([9007199254740993n, 9223372036854775807n])("validates and writes %s exactly", (value) => {
+    const manifest = parseJson(fixtureText("discrete_logical")) as JsonObject;
+    const timeline = manifest.timeline as JsonObject;
+    (timeline.length as JsonObject).value = value;
+    validate(manifest);
+    const text = dumps(manifest);
+    expect(text).toContain(`"value": ${value}\n`);
+    const read = parseJson(text) as JsonObject;
+    expect(((read.timeline as JsonObject).length as JsonObject).value).toBe(value);
+  });
 });
 
 describe("canonical order", () => {
   it("orders array-index marker names by code point and writes them so", () => {
-    const envelope = {
-      manifest: {
-        timelines: {
-          t: { flow_control: { breaks: [], jumps: [], markers: { a: 1, "2": 2, "10": 3 } } },
-        },
-      },
+    const manifest = {
+      timeline: { flow_control: { breaks: [], jumps: [], markers: { a: 1, "2": 2, "10": 3 } } },
     };
-    const text = dumps(envelope);
+    const text = dumps(manifest);
     expect(text.indexOf('"10"')).toBeLessThan(text.indexOf('"2"'));
     expect(text.indexOf('"2"')).toBeLessThan(text.indexOf('"a"'));
     expect(dumps(parseJson(text))).toBe(text);
   });
 
-  it("copies, and leaves a value that is no manifest or envelope unchanged", () => {
-    const value = parseJson('{"b": [3, 1], "a": {"manifest": 1}}');
+  it("copies, and leaves a value that is no manifest unchanged", () => {
+    const value = parseJson('{"b": [3, 1], "a": {"timeline": 1}}');
     const ordered = canonicalOrder(value);
     expect(ordered).not.toBe(value);
     expect(dumps(ordered)).toBe(
-      '{\n  "b": [\n    3,\n    1\n  ],\n  "a": {\n    "manifest": 1\n  }\n}\n',
+      '{\n  "b": [\n    3,\n    1\n  ],\n  "a": {\n    "timeline": 1\n  }\n}\n',
     );
   });
 
   it("refuses a collection it cannot order", () => {
-    const envelope = {
-      manifest: { timelines: { a: { regions: [{ name: "r" }, { name: "s" }] } } },
+    const manifest = { timeline: { regions: [{ name: "r" }, { name: "s" }] } };
+    expect(() => dumps(manifest)).toThrow(TypeError);
+  });
+
+  it("resolves every tie", () => {
+    const result = canonicalOrder(tiedManifest());
+    validate(result);
+    const timeline = result.timeline as unknown as JsonObject;
+    const children = timeline.children as Record<string, { timeline: JsonObject }>;
+    expect(Object.keys(children)).toEqual(["b", "a", "m", "z"]);
+    const nested = children.z as { timeline: JsonObject };
+    expect(Object.keys(nested.timeline.children as JsonObject)).toEqual(["x", "y"]);
+    expect((timeline.conversion_maps as JsonObject[]).map((entry) => entry.id)).toEqual([
+      "B",
+      "a",
+      "b",
+      "\u{FB00}",
+      "\u{1F600}",
+    ]);
+    expect((timeline.regions as JsonObject[]).map((entry) => entry.name)).toEqual([
+      "d",
+      "c",
+      "a",
+      "b",
+    ]);
+    const flow = timeline.flow_control as JsonObject;
+    expect((flow.breaks as JsonObject[]).map((entry) => entry.label)).toEqual([
+      "early",
+      "Fine",
+      "always",
+    ]);
+    expect((flow.jumps as JsonObject[]).map((entry) => entry.label)).toEqual([
+      "early",
+      "short",
+      "DaCapo",
+      "Repeat",
+    ]);
+    expect(Object.keys(flow.markers as JsonObject)).toEqual([
+      "Coda",
+      "repeat-start",
+      "\u{E9}",
+      "\u{FB00}",
+      "\u{1F600}",
+    ]);
+  });
+});
+
+function at(numerator: number, denominator = 1): JsonObject {
+  return { unit: "quarters", number_type: "fraction", value: [numerator, denominator] };
+}
+
+/** The flow-control fixture, extended with ties at every key level. */
+function tiedManifest(): JsonObject {
+  const manifest = loadFixture("flow_control");
+  const timeline = manifest.timeline as JsonObject;
+  const copyOf = (id: string): JsonObject => ({
+    ...(loadFixture("flow_control").timeline as JsonObject),
+    id,
+  });
+
+  const nested = copyOf("z");
+  nested.children = {
+    y: { offset: at(1), timeline: copyOf("y") },
+    x: { offset: at(0), timeline: copyOf("x") },
+  };
+  timeline.children = {
+    z: { offset: at(1), timeline: nested },
+    m: { offset: at(1), timeline: copyOf("m") },
+    b: { offset: at(5, 8), timeline: copyOf("b") },
+    a: { offset: at(2, 3), timeline: copyOf("a") },
+  };
+  timeline.conversion_maps = ["\u{1F600}", "\u{FB00}", "b", "a", "B"].map((id) => ({
+    type: "ShiftMap",
+    id,
+    name: id,
+    source_unit: "quarters",
+    target_unit: null,
+    offset: [1, 2],
+  }));
+  timeline.regions = (
+    [
+      ["b", at(2), at(6)],
+      ["a", at(2), at(6)],
+      ["c", at(2), at(4)],
+      ["d", at(5, 8), at(2, 3)],
+    ] as const
+  ).map(([name, start, end]) => ({ name, start, end, meta: {} }));
+  const flow = timeline.flow_control as JsonObject;
+  const [fine] = flow.breaks as JsonObject[];
+  flow.breaks = [
+    { ...fine, condition: "always", label: "always" },
+    { ...fine, coordinate: at(5, 8), label: "early" },
+    fine,
+  ];
+  const [repeat] = flow.jumps as JsonObject[];
+  flow.jumps = [
+    repeat,
+    { ...repeat, control_type: "da_capo", label: "DaCapo" },
+    { ...repeat, to_coordinate: at(2, 3), label: "short" },
+    { ...repeat, from_coordinate: at(5, 8), label: "early" },
+  ];
+  for (const name of ["\u{1F600}", "\u{FB00}", "\u{E9}", "Coda"]) {
+    (flow.markers as JsonObject)[name] = at(2);
+  }
+  return manifest;
+}
+
+describe("canonical JSON text", () => {
+  it("sorts keys by code point and writes no whitespace", () => {
+    const value = {
+      "\u{1F600}": { b: true, a: [1, 2.5, null] },
+      "\u{FB00}": "\u{FC}",
+      "\u{E9}": 1,
+      z: "\n",
+      a: [],
     };
-    expect(() => dumps(envelope)).toThrow(TypeError);
+    expect(canonicalJson(value)).toBe(
+      '{"a":[],"z":"\\n","\u{E9}":1,"\u{FB00}":"\u{FC}","\u{1F600}":{"a":[1,2.5,null],"b":true}}',
+    );
+  });
+
+  it("equals Python's text for every break and jump of every fixture", () => {
+    const script = [
+      "import json, pathlib, sys",
+      "texts = []",
+      "def visit(timeline):",
+      "    flow = timeline['flow_control']",
+      "    for entry in flow['breaks'] + flow['jumps']:",
+      "        texts.append(json.dumps(entry, sort_keys=True, separators=(',', ':'), ensure_ascii=False))",
+      "    for child in timeline['children'].values():",
+      "        visit(child['timeline'])",
+      "for path in sorted(pathlib.Path(sys.argv[1]).glob('*.json')):",
+      "    visit(json.loads(path.read_text(encoding='utf-8'))['timeline'])",
+      "sys.stdout.buffer.write(json.dumps(texts, ensure_ascii=False).encode('utf-8'))",
+    ].join("\n");
+    const python = spawnSync("python3", ["-I", "-c", script, resolve(fixtureDirectory())], {
+      encoding: "utf8",
+    });
+    expect(python.status, python.stderr).toBe(0);
+    const expected = JSON.parse(python.stdout) as string[];
+    const texts: string[] = [];
+    const visit = (timeline: JsonObject): void => {
+      const flow = timeline.flow_control as JsonObject;
+      for (const entry of [
+        ...(flow.breaks as Lossless<Json>[]),
+        ...(flow.jumps as Lossless<Json>[]),
+      ]) {
+        texts.push(canonicalJson(entry));
+      }
+      for (const child of Object.values(timeline.children as Record<string, JsonObject>)) {
+        visit(child.timeline as JsonObject);
+      }
+    };
+    for (const file of fixtureFileNames()) {
+      visit(loadFixture(file.slice(0, -5)).timeline as JsonObject);
+    }
+    expect(texts.length).toBe(8);
+    expect(texts).toEqual(expected);
   });
 });
 
@@ -230,11 +357,10 @@ describe("values the writer refuses", () => {
 });
 
 describe("parse", () => {
-  it("reads and validates an envelope", () => {
-    const envelope = parse(fixtureText("continuous_physical", "0.2.1")) as unknown as JsonObject;
-    expect((envelope.meta as JsonObject).schema_version).toBe("0.2.1");
-    const timelines = (envelope.manifest as JsonObject).timelines as JsonObject;
-    const timeline = Object.values(timelines)[0] as JsonObject;
+  it("reads and validates a manifest", () => {
+    const manifest = parse(fixtureText("continuous_physical")) as unknown as JsonObject;
+    expect((manifest.meta as JsonObject).schema_version).toBe("0.4.0");
+    const timeline = manifest.timeline as JsonObject;
     const offsets = Object.values(timeline.children as JsonObject).map(
       (child) => ((child as JsonObject).offset as JsonObject).value,
     );
@@ -242,16 +368,16 @@ describe("parse", () => {
     expect(isJsonFloat(offsets[1])).toBe(true);
   });
 
-  it.each(rejectionFileNames("0.2.1"))("refuses %s at its stored path", (name) => {
-    const testCase = parseJson(rejectionText(name, "0.2.1")) as JsonObject;
+  it.each(rejectionFileNames())("refuses %s at its stored path", (name) => {
+    const testCase = parseJson(rejectionText(name)) as JsonObject;
     try {
-      parse(compactJson(testCase.document as Lossless<Json>));
+      parse(compactJson(testCase.manifest as Lossless<Json>));
     } catch (error) {
       expect(error).toBeInstanceOf(SchemaValidationError);
       expect((error as SchemaValidationError).path).toEqual(testCase.path);
       return;
     }
-    throw new Error("envelope was accepted");
+    throw new Error("manifest was accepted");
   });
 });
 
@@ -278,10 +404,10 @@ function atoms(value: Lossless<Json>, into: Lossless<Json>[] = []): Lossless<Jso
 }
 
 describe("compactJson", () => {
-  it("is a fixpoint for every value nested in every 0.2.1 fixture", () => {
+  it("is a fixpoint for every value nested in every fixture", () => {
     let count = 0;
-    for (const file of fixtureFileNames("0.2.1")) {
-      for (const atom of atoms(parseJson(fixtureText(file.slice(0, -5), "0.2.1")))) {
+    for (const file of fixtureFileNames()) {
+      for (const atom of atoms(parseJson(fixtureText(file.slice(0, -5))))) {
         const text = compactJson(atom);
         expect(compactJson(parseJson(text))).toBe(text);
         count++;
@@ -296,10 +422,10 @@ describe("compactJson", () => {
     );
   });
 
-  it("equals Python's compact text for every 0.2.1 fixture and rejection", () => {
+  it("equals Python's compact text for every fixture and rejection", () => {
     const files = [
-      ...fixtureFileNames("0.2.1").map((file) => fixtureText(file.slice(0, -5), "0.2.1")),
-      ...rejectionFileNames("0.2.1").map((file) => rejectionText(file, "0.2.1")),
+      ...fixtureFileNames().map((file) => fixtureText(file.slice(0, -5))),
+      ...rejectionFileNames().map((file) => rejectionText(file)),
     ];
     const script = [
       "import json, sys",
@@ -315,30 +441,5 @@ describe("compactJson", () => {
     expect(files.map((text) => compactJson(parseJson(text)))).toEqual(
       JSON.parse(python.stdout) as string[],
     );
-  });
-});
-
-describe("parse, migrate, dumps", () => {
-  it("gives the Python migration's 0.4.0 after.json", () => {
-    const before = parse(migrationText("0.3.0-to-0.4.0", "before"));
-    expect(dumps(migrate(before))).toBe(migrationText("0.3.0-to-0.4.0", "after"));
-  });
-
-  it.each(fixtureFileNames("0.3.0"))("splits and migrates every member of %s", (file) => {
-    const envelope = parse(fixtureText(file.slice(0, -5), "0.3.0"));
-    for (const part of split(envelope)) {
-      const result = migrate(part) as unknown as JsonObject;
-      const rootId = (result.timeline as JsonObject).id;
-      const expectedFile = fixtureFileNames("0.4.0").find((name) => {
-        const expected = parseJson(fixtureText(name.slice(0, -5), "0.4.0")) as JsonObject;
-        return (expected.timeline as JsonObject).id === rootId;
-      });
-      expect(expectedFile).toBeDefined();
-      const expected = parseJson(
-        fixtureText((expectedFile as string).slice(0, -5), "0.4.0"),
-      ) as JsonObject;
-      (result.meta as JsonObject).generator = (expected.meta as JsonObject).generator;
-      expect(dumps(result)).toBe(dumps(expected));
-    }
   });
 });

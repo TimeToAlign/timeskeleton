@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
-import { fixtureFileNames, loadSchemaFile } from "./fixtures.js";
+import { fixtureFileNames, loadFixture, loadSchemaFile } from "./fixtures.js";
 
 const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json";
 
@@ -33,6 +33,7 @@ const TIME_UNITS = [
 ];
 
 const NUMBER_TYPES = ["int", "float", "fraction"];
+const ID_PATTERN = "^[^\\u0000-\\u001f]*$";
 
 const MEASURE_MAP_ROW_KEYS = [
   "ID",
@@ -70,64 +71,13 @@ const MANIFEST_KEYS = [
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
     expect(SCHEMA_VERSION).toBe("0.4.0");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.1.0", "0.2.0", "0.2.1", "0.3.0", "0.4.0"]);
+    expect(SUPPORTED_VERSIONS).toEqual(["0.4.0"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
   it("bundles the schema file at the repository root", () => {
     expect(schema).toEqual(loadSchemaFile());
-    expect(schemas).toEqual({
-      "0.1.0": loadSchemaFile("0.1.0"),
-      "0.2.0": loadSchemaFile("0.2.0"),
-      "0.2.1": loadSchemaFile("0.2.1"),
-      "0.3.0": loadSchemaFile("0.3.0"),
-      "0.4.0": loadSchemaFile("0.4.0"),
-    });
-  });
-
-  it("differs from 0.2.0 in its $id, version constant and description only", () => {
-    const previous = loadSchemaFile("0.2.0") as { description: string };
-    const expected = structuredClone(previous) as {
-      $id: string;
-      description: string;
-      properties: { meta: { properties: { schema_version: { const: string } } } };
-    };
-    const current = loadSchemaFile("0.2.1") as { description: string };
-    expect(current.description.startsWith(previous.description.slice(0, 40))).toBe(true);
-    expected.$id = SCHEMA_ID.replace("0.4.0", "0.2.1");
-    expected.description = current.description;
-    expected.properties.meta.properties.schema_version.const = "0.2.1";
-    expect(loadSchemaFile("0.2.1")).toEqual(expected);
-  });
-
-  it("is 0.2.1 plus the graphical block", () => {
-    const current = structuredClone(loadSchemaFile("0.3.0")) as {
-      $id: string;
-      description: string;
-      properties: Record<string, unknown> & {
-        meta: { properties: { schema_version: { const: string } } };
-      };
-      $defs: Record<string, unknown>;
-    };
-    const previous = loadSchemaFile("0.2.1") as { $id: string; description: string };
-    const added = [
-      "Graphical",
-      "StyleRules",
-      "StyleRule",
-      "StyleSelector",
-      "ElementType",
-      "StyleProperties",
-    ];
-    expect(Object.keys(current.properties)).toEqual(["meta", "manifest", "graphical"]);
-    expect(current.properties.graphical).toEqual({ $ref: "#/$defs/Graphical" });
-    delete current.properties.graphical;
-    expect(Object.keys(current.$defs).slice(-added.length)).toEqual(added);
-    for (const name of added) delete current.$defs[name];
-    expect(current.description.startsWith(`${previous.description} Version 0.3.0`)).toBe(true);
-    current.description = previous.description;
-    current.$id = previous.$id;
-    current.properties.meta.properties.schema_version.const = "0.2.1";
-    expect(current).toEqual(previous);
+    expect(schemas).toEqual({ "0.4.0": loadSchemaFile("0.4.0") });
   });
 
   it("carries the pinned $id, $schema and version constant", () => {
@@ -139,28 +89,129 @@ describe("schema identity", () => {
     });
   });
 
-  it("holds one timeline and keeps every 0.3.0 definition", () => {
-    const current = loadSchemaFile("0.4.0") as {
+  it("holds one timeline", () => {
+    const current = loadSchemaFile() as {
       properties: Record<string, unknown>;
       required: string[];
       additionalProperties: boolean;
-      $defs: Record<string, unknown>;
     };
-    const previous = loadSchemaFile("0.3.0") as { $defs: Record<string, unknown> };
     expect(Object.keys(current.properties)).toEqual(["meta", "timeline", "graphical"]);
     expect(current.properties.timeline).toEqual({ $ref: "#/$defs/TimelineManifest" });
+    expect(current.properties.graphical).toEqual({ $ref: "#/$defs/Graphical" });
     expect(current.required).toEqual(["meta", "timeline"]);
     expect(current.additionalProperties).toBe(false);
-    const structure = (value: unknown): unknown => {
-      if (Array.isArray(value)) return value.map(structure);
-      if (typeof value !== "object" || value === null) return value;
-      return Object.fromEntries(
-        Object.entries(value)
-          .filter(([key]) => key !== "description" && key !== "title")
-          .map(([key, item]) => [key, structure(item)]),
-      );
+  });
+});
+
+const CONVERSION_MAP_TYPES = [
+  "BeatInMeasureMap",
+  "ChainMap",
+  "CombinationMap",
+  "ConstantMap",
+  "FloorMap",
+  "InterpolationMap",
+  "IntervalToConstantMap",
+  "LinearMap",
+  "MetricMap",
+  "MetricalPositionMap",
+  "PiecewiseMap",
+  "QuartersToFloatingMeasures",
+  "QuartersToMeasureNumber",
+  "QuartersToTicks",
+  "RotationMap",
+  "SamplesToSeconds",
+  "ScalarMap",
+  "SecondsToSamples",
+  "ShiftMap",
+  "TableMap",
+  "TicksToQuarters",
+];
+
+describe("the graphical block", () => {
+  const defs = schema.$defs as unknown as Record<string, Record<string, unknown>>;
+
+  it("holds named styles and ordered statements", () => {
+    const graphical = defs.Graphical as {
+      properties: Record<string, Record<string, unknown>>;
+      additionalProperties: boolean;
     };
-    expect(structure(current.$defs)).toEqual(structure(previous.$defs));
+    expect(Object.keys(graphical.properties)).toEqual(["styles", "statements"]);
+    expect(graphical.properties.styles?.additionalProperties).toEqual({
+      $ref: "#/$defs/Declaration",
+    });
+    expect(graphical.properties.statements?.items).toEqual({ $ref: "#/$defs/Statement" });
+    expect(graphical.additionalProperties).toBe(false);
+    const statement = defs.Statement as {
+      required: string[];
+      properties: { set: { oneOf: Record<string, unknown>[] } };
+    };
+    expect(statement.required).toEqual(["select", "set"]);
+    expect(statement.properties.set.oneOf.map(({ description: _, ...branch }) => branch)).toEqual([
+      { $ref: "#/$defs/Declaration" },
+      { type: "string" },
+    ]);
+  });
+
+  it("selects by the six selector members", () => {
+    const selector = defs.Selector as {
+      properties: Record<string, Record<string, unknown>>;
+      additionalProperties: boolean;
+    };
+    expect(Object.keys(selector.properties)).toEqual([
+      "element",
+      "ids",
+      "domain",
+      "modality",
+      "class",
+      "within",
+    ]);
+    expect(defs.ElementType?.enum).toEqual([
+      "block",
+      "timeline",
+      "child",
+      "map",
+      "region",
+      "break",
+      "jump",
+      "wedge",
+      "name",
+      "label",
+    ]);
+    expect(selector.properties.ids?.minItems).toBe(1);
+    expect(selector.properties.ids?.uniqueItems).toBe(true);
+    expect(selector.properties.domain?.enum).toEqual(["graphical", "logical", "physical"]);
+    expect(selector.properties.modality?.enum).toEqual(["continuous", "discrete"]);
+    expect(selector.properties.class?.enum).toEqual([...TIMELINE_CLASSES, ...CONVERSION_MAP_TYPES]);
+    expect(selector.properties.within?.type).toBe("string");
+    expect(selector.additionalProperties).toBe(false);
+  });
+
+  it("sets the eleven presentation properties", () => {
+    const declaration = defs.Declaration as {
+      properties: Record<string, Record<string, unknown>>;
+      additionalProperties: boolean;
+    };
+    const { description: _, ...dasharray } = declaration.properties["stroke-dasharray"] ?? {};
+    expect({ ...declaration.properties, "stroke-dasharray": dasharray }).toEqual({
+      stroke: { $ref: "#/$defs/Paint" },
+      "stroke-width": { type: "number", minimum: 0 },
+      "stroke-dasharray": {
+        type: "string",
+        pattern: "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$",
+      },
+      fill: { $ref: "#/$defs/Paint" },
+      opacity: { type: "number", minimum: 0, maximum: 1 },
+      "font-size": { type: "number", exclusiveMinimum: 0 },
+      rx: { type: "number", minimum: 0 },
+      display: { type: "string", enum: ["inline", "none"] },
+      side: { type: "string", enum: ["above", "below"] },
+      content: { type: "string" },
+      "max-width": {
+        oneOf: [{ type: "number", exclusiveMinimum: 0 }, { const: "none" }],
+      },
+    });
+    expect(defs.Paint?.pattern).toBe("^(#[0-9A-F]{6}|none)$");
+    expect(declaration.additionalProperties).toBe(false);
   });
 });
 
@@ -176,6 +227,23 @@ describe("schema vocabulary", () => {
     expect(manifest.required).toEqual(MANIFEST_KEYS);
     expect(Object.keys(manifest.properties)).toEqual(MANIFEST_KEYS);
     expect(manifest.additionalProperties).toBe(false);
+    expect(manifest.properties.metric_hierarchy.description).toBe(
+      "The metric hierarchy, or null; an object without further constraints.",
+    );
+  });
+
+  it("excludes control characters from ids and child keys", () => {
+    const definitions = Object.values(schema.$defs) as Array<{
+      properties?: Record<string, Record<string, unknown>>;
+    }>;
+    const definitionsWithId = definitions.filter((definition) => definition.properties?.id);
+    expect(definitionsWithId).toHaveLength(22);
+    for (const definition of definitionsWithId) {
+      expect(definition.properties?.id?.pattern).toBe(ID_PATTERN);
+    }
+    expect(schema.$defs.TimelineManifest.properties.children.propertyNames).toEqual({
+      pattern: ID_PATTERN,
+    });
   });
 
   it("defines a nonempty compressed measure-map row list", () => {
@@ -227,5 +295,70 @@ describe("fixture set", () => {
     expect(fixtureFileNames()).toContain("styled__perf.json");
     expect(fixtureFileNames()).toContain("styled__score.json");
     expect(fixtureFileNames()).not.toContain("empty.json");
+  });
+
+  it("pins the styled blocks", () => {
+    const score = loadFixture("styled__score").graphical;
+    const performance = loadFixture("styled__perf").graphical;
+    expect(score).toEqual({
+      styles: {
+        accent: {
+          stroke: "#7F00FF",
+          "stroke-width": 0,
+          "stroke-dasharray": "3 3",
+          fill: "#7F00FF",
+          opacity: 0.5,
+          "font-size": 10,
+          rx: 0,
+          display: "inline",
+          side: "above",
+          content: "Styled score",
+          "max-width": 160,
+        },
+      },
+      statements: [
+        { select: { element: "label" }, set: { stroke: "#404040", fill: "#404040" } },
+        { select: { element: "name" }, set: { stroke: "#404040", fill: "#404040" } },
+        { select: { element: "map" }, set: { side: "below" } },
+        { select: { ids: ["a"] }, set: { display: "none" } },
+        {
+          select: { element: "wedge", within: "score" },
+          set: { side: "above", stroke: "#006600", fill: "#006600" },
+        },
+        { select: { class: "ContinuousLogicalTimeline" }, set: "accent" },
+        {
+          select: { domain: "logical", within: "score" },
+          set: { stroke: "#000080", fill: "#000080" },
+        },
+        {
+          select: { element: "region", within: "score" },
+          set: { stroke: "#800000", fill: "#800000" },
+        },
+        {
+          select: { element: "region", within: "score" },
+          set: { stroke: "#008080", fill: "#008080" },
+        },
+        {
+          select: { element: "child", within: "score" },
+          set: { display: "inline" },
+        },
+        {
+          select: { within: "b" },
+          set: { stroke: "#FF8000", fill: "#FF8000" },
+        },
+      ],
+    });
+    expect(performance).toEqual({
+      statements: [
+        { select: { element: "label" }, set: { stroke: "#404040", fill: "#404040" } },
+        { select: { element: "name" }, set: { stroke: "#404040", fill: "#404040" } },
+        { select: { element: "map" }, set: { side: "below" } },
+        { select: { ids: ["a"] }, set: { display: "none" } },
+        {
+          select: { element: "wedge", domain: "physical", within: "perf" },
+          set: { stroke: "#7F00FF", fill: "#7F00FF" },
+        },
+      ],
+    });
   });
 });

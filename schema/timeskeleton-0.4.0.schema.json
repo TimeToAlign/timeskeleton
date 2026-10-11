@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timeskeleton/0.4.0/timeskeleton.schema.json",
   "title": "TimeSkeleton manifest",
-  "description": "One timeline manifest as timetoalign's Timeline.to_dict() writes it, with optional styling of its own elements. It carries the timeline's structure: axis, children at exact offsets, conversion maps, regions, flow control, compressed Measure Map standard rows and metric hierarchy. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Version 0.2.0 specified conversion maps, regions, flow control and measure maps; the metric hierarchy is the one structured member that remains opaque. Version 0.2.1 keeps those definitions and fixes the canonical order in which writers emit every collection whose order carries no meaning: timelines by id; children by offset, then id; conversion maps by id; regions by start, end, name; breaks by coordinate, jumps by from and to coordinate, each then by canonical JSON text; markers by name. Readers accept any order. Version 0.3.0 adds the optional graphical block: style rules held by containers (the manifest, and any timeline with its subtree), each rule selecting drawn elements and setting display properties on them. A manifest without the block is drawn with the defaults of the geometry specification. Version 0.4.0 holds exactly one timeline manifest at the top level instead of a map of timelines; a 0.3.0 envelope holding several top-level timelines is divided by `split` before it is migrated.",
+  "description": "A TimeSkeleton 0.4.0 manifest holding exactly one timeline, with its axis, children at exact offsets, conversion maps, regions, flow control, compressed Measure Map standard rows, opaque metric hierarchy and optional graphical block. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Collections whose order carries no meaning have one canonical order: children by offset, then id; conversion maps by id; regions by start, end, name; breaks by coordinate, jumps by from and to coordinate, each then by canonical JSON text; markers by name. Readers accept any order. The graphical block holds named styles and an ordered list of statements, each selecting drawn elements and setting presentation properties named as in SVG; `docs/drawing.md` specifies how a manifest is drawn, and a manifest without the block is drawn with the other style layers alone.",
   "type": "object",
   "properties": {
     "meta": {
@@ -261,6 +261,7 @@
       "properties": {
         "id": {
           "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$",
           "description": "The timeline id, unique within its manifest."
         },
         "name": {
@@ -294,6 +295,9 @@
         "children": {
           "type": "object",
           "description": "Child timelines keyed by their id, each placed at an offset on this timeline's axis.",
+          "propertyNames": {
+            "pattern": "^[^\\u0000-\\u001f]*$"
+          },
           "additionalProperties": {
             "type": "object",
             "properties": {
@@ -345,7 +349,7 @@
             "object",
             "null"
           ],
-          "description": "The metric hierarchy, or null. Opaque in 0.1.0: an object without further constraints."
+          "description": "The metric hierarchy, or null; an object without further constraints."
         }
       },
       "required": [
@@ -425,7 +429,8 @@
           "const": "BeatInMeasureMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -474,7 +479,8 @@
           "const": "ChainMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -526,7 +532,8 @@
           "const": "CombinationMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -585,7 +592,8 @@
           "const": "ConstantMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -632,7 +640,8 @@
           "const": "FloorMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -689,7 +698,8 @@
           "const": "InterpolationMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -756,7 +766,8 @@
           "const": "IntervalToConstantMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -812,7 +823,8 @@
           "const": "LinearMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -865,7 +877,8 @@
           "const": "MetricMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -939,7 +952,8 @@
           "const": "MetricalPositionMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -993,7 +1007,8 @@
           "const": "PiecewiseMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1052,7 +1067,8 @@
           "const": "QuartersToFloatingMeasures"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1131,7 +1147,8 @@
           "const": "QuartersToMeasureNumber"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1190,7 +1207,8 @@
           "const": "QuartersToTicks"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1243,7 +1261,8 @@
           "const": "RotationMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1304,7 +1323,8 @@
           "const": "SamplesToSeconds"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1357,7 +1377,8 @@
           "const": "ScalarMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1406,7 +1427,8 @@
           "const": "SecondsToSamples"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1459,7 +1481,8 @@
           "const": "ShiftMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1508,7 +1531,8 @@
           "const": "TableMap"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1587,7 +1611,8 @@
           "const": "TicksToQuarters"
         },
         "id": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^[^\\u0000-\\u001f]*$"
         },
         "name": {
           "type": [
@@ -1979,37 +2004,42 @@
     },
     "Graphical": {
       "type": "object",
-      "description": "How the manifest is drawn: style rules held by containers. `styles` holds the rules of the manifest itself, the outermost container, which apply to every element; `timelines` holds, by timeline id (the root's included), the rules of the container formed by that timeline and its descendants, which outrank the rules of every container enclosing it. An absent block, or one without rules, draws every element with its default style.",
+      "description": "How the manifest is drawn (`docs/drawing.md`): named styles and an ordered list of statements. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements. An absent block draws every element with the other style layers alone.",
       "properties": {
         "styles": {
-          "$ref": "#/$defs/StyleRules"
-        },
-        "timelines": {
           "type": "object",
-          "description": "Rules by timeline id: the rules of the container formed by that timeline and its descendants.",
+          "description": "Declarations by style name.",
           "additionalProperties": {
-            "$ref": "#/$defs/StyleRules"
+            "$ref": "#/$defs/Declaration"
+          }
+        },
+        "statements": {
+          "type": "array",
+          "description": "Statements in order; of two statements of equal rank the later one decides.",
+          "items": {
+            "$ref": "#/$defs/Statement"
           }
         }
       },
       "additionalProperties": false
     },
-    "StyleRules": {
-      "type": "array",
-      "description": "Style rules in order; between rules of equal rank in one container the later one decides.",
-      "items": {
-        "$ref": "#/$defs/StyleRule"
-      }
-    },
-    "StyleRule": {
+    "Statement": {
       "type": "object",
-      "description": "One style rule: the elements it selects and the properties it sets on them.",
+      "description": "One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.",
       "properties": {
         "select": {
-          "$ref": "#/$defs/StyleSelector"
+          "$ref": "#/$defs/Selector"
         },
         "set": {
-          "$ref": "#/$defs/StyleProperties"
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Declaration"
+            },
+            {
+              "type": "string",
+              "description": "The name of a style of the same block's `styles`."
+            }
+          ]
         }
       },
       "required": [
@@ -2018,12 +2048,21 @@
       ],
       "additionalProperties": false
     },
-    "StyleSelector": {
+    "Selector": {
       "type": "object",
-      "description": "An element matches when it matches every member present. An empty selector matches every element of the container.",
+      "description": "An element matches when it matches every member present. The empty selector matches every element.",
       "properties": {
         "element": {
           "$ref": "#/$defs/ElementType"
+        },
+        "ids": {
+          "type": "array",
+          "description": "Element addresses; the element's address must be one of them.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
         },
         "domain": {
           "type": "string",
@@ -2032,7 +2071,7 @@
             "logical",
             "physical"
           ],
-          "description": "The domain of the element's timeline: what its time measures (graphical space, musical time, physical time)."
+          "description": "The domain of the element: what its time measures (graphical space, musical time, physical time)."
         },
         "modality": {
           "type": "string",
@@ -2040,23 +2079,53 @@
             "continuous",
             "discrete"
           ],
-          "description": "Whether the element's timeline is continuous or discrete."
+          "description": "Whether the element is continuous or discrete."
         },
-        "ids": {
-          "type": "array",
-          "description": "Element ids; the element's id must be one of them.",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1
+        "class": {
+          "type": "string",
+          "enum": [
+            "ContinuousLogicalTimeline",
+            "ContinuousPhysicalTimeline",
+            "ContinuousGraphicalTimeline",
+            "DiscreteLogicalTimeline",
+            "DiscretePhysicalTimeline",
+            "DiscreteGraphicalTimeline",
+            "BeatInMeasureMap",
+            "ChainMap",
+            "CombinationMap",
+            "ConstantMap",
+            "FloorMap",
+            "InterpolationMap",
+            "IntervalToConstantMap",
+            "LinearMap",
+            "MetricMap",
+            "MetricalPositionMap",
+            "PiecewiseMap",
+            "QuartersToFloatingMeasures",
+            "QuartersToMeasureNumber",
+            "QuartersToTicks",
+            "RotationMap",
+            "SamplesToSeconds",
+            "ScalarMap",
+            "SecondsToSamples",
+            "ShiftMap",
+            "TableMap",
+            "TicksToQuarters"
+          ],
+          "description": "The class of the element: its timeline's class, or a conversion map's type."
+        },
+        "within": {
+          "type": "string",
+          "description": "A timeline id: the element must belong to that timeline or to one of its descendants."
         }
       },
       "additionalProperties": false
     },
     "ElementType": {
       "type": "string",
-      "description": "The type of a drawn element: the root timeline of a block, a child timeline at any depth, a conversion map, a region, a flow-control break or jump, a coordinate wedge, or a text label.",
+      "description": "The type of a drawn element: the box's background, the root timeline's line, a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at the root's start or end, a name in the name column, or any other text label.",
       "enum": [
+        "block",
         "timeline",
         "child",
         "map",
@@ -2064,49 +2133,77 @@
         "break",
         "jump",
         "wedge",
+        "name",
         "label"
       ]
     },
-    "StyleProperties": {
+    "Paint": {
+      "type": "string",
+      "description": "A colour as #RRGGBB with upper-case hexadecimal digits, or none.",
+      "pattern": "^(#[0-9A-F]{6}|none)$"
+    },
+    "Declaration": {
       "type": "object",
-      "description": "Display properties. An element reads only the properties that apply to its type; the others are ignored.",
+      "description": "Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.",
       "properties": {
-        "colour": {
-          "type": "string",
-          "pattern": "^#[0-9A-F]{6}$",
-          "description": "The stroke and fill colour as #RRGGBB with upper-case hexadecimal digits."
+        "stroke": {
+          "$ref": "#/$defs/Paint"
         },
-        "line_pattern": {
+        "stroke-width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "stroke-dasharray": {
+          "type": "string",
+          "description": "none, or non-negative decimal numbers separated by single spaces.",
+          "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
+        },
+        "fill": {
+          "$ref": "#/$defs/Paint"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "font-size": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "rx": {
+          "type": "number",
+          "minimum": 0
+        },
+        "display": {
           "type": "string",
           "enum": [
-            "solid",
-            "dotted",
-            "dashed"
+            "inline",
+            "none"
           ]
-        },
-        "visible": {
-          "type": "boolean",
-          "description": "Whether the element is drawn. false filters it out."
         },
         "side": {
           "type": "string",
           "enum": [
             "above",
             "below"
-          ],
-          "description": "Which side of its line or of the root timeline the element is drawn on."
+          ]
         },
-        "show_length": {
-          "type": "boolean",
-          "description": "Whether a timeline's length is drawn as a label."
+        "content": {
+          "type": "string"
         },
-        "show_projected_coordinates": {
-          "type": "boolean",
-          "description": "Whether a child timeline's start and end are also drawn on the root timeline, in the root's coordinates."
+        "max-width": {
+          "oneOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "const": "none"
+            }
+          ]
         }
       },
-      "additionalProperties": false,
-      "minProperties": 1
+      "additionalProperties": false
     }
   }
 }

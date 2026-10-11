@@ -27,13 +27,17 @@ Repository = "https://github.com/TimeToAlign/timeskeleton"
 Issues = "https://github.com/TimeToAlign/timeskeleton/issues"
 
 [dependency-groups]
-dev = ["pytest==9.1.1", "ruff==0.16.9"]
+dev = [
+    "fonttools==4.66.0",
+    "pytest==9.1.1",
+    "ruff==0.16.9",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/timeskeleton"]
 
-# The schema and fixture directories and the README live at the repository
-# root. The hooks bundle them into the sdist and the wheel without copying
+# The schema, fixture and font directories and the README live at the
+# repository root. The hooks bundle them into the sdist and the wheel without copying
 # them into the source tree; see hatch_build.py.
 [tool.hatch.build.hooks.custom]
 path = "hatch_build.py"
