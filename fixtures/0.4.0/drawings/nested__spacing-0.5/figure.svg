@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="490.3513" height="106.9883" viewBox="0 0 490.3513 106.9883" font-family="DejaVu Sans" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="458.3513" height="74.9883" rx="10" fill="#F3F4F6"/>
+<line data-address="tl:24" x1="41.0723" y1="40.0117" x2="441.0723" y2="40.0117" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="tl:24" cx="41.0723" cy="40.0117" r="3" fill="#00CC00"/>
+<polygon data-address="tl:24" points="450.0723,40.0117 441.0723,35.5117 441.0723,44.5117" fill="#00CC00"/>
+<line data-address="tl:23" x1="141.0723" y1="27.207" x2="336.5723" y2="27.207" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="tl:23" cx="141.0723" cy="27.207" r="3" fill="#00CC00"/>
+<polygon data-address="tl:23" points="336.5723,27.207 341.0723,23.607 345.5723,27.207 341.0723,30.807" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="tl:22" x1="178.5723" y1="14.4023" x2="224.0723" y2="14.4023" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="tl:22" cx="178.5723" cy="14.4023" r="3" fill="#00CC00"/>
+<polygon data-address="tl:22" points="224.0723,14.4023 228.5723,10.8023 233.0723,14.4023 228.5723,18.0023" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="tl:24/start" points="41.0723,41.5117 38.0723,54.5117 44.0723,54.5117" fill="#000000"/>
+<polygon data-address="tl:24/end" points="441.0723,41.5117 438.0723,54.5117 444.0723,54.5117" fill="#000000"/>
+<text data-address="tl:22/name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">tl:22</text>
+<text data-address="tl:23/name" x="8" y="31.0151" text-anchor="start" font-size="11" fill="#000000">tl:23</text>
+<text data-address="tl:24/name" x="8" y="43.8198" text-anchor="start" font-size="11" fill="#000000">tl:24</text>
+<text data-address="tl:24/start/label" x="41.0723" y="64.8657" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="tl:24/end/label" x="441.0723" y="64.8657" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+</g>
+</svg>

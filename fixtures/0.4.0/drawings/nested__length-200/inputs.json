@@ -1,0 +1,16 @@
+{
+  "manifest": "nested.json",
+  "placement": {
+    "length": 200,
+    "spacing": 1,
+    "width": null,
+    "height": null,
+    "order": [
+      "children",
+      "regions",
+      "flow"
+    ]
+  },
+  "scale": 1,
+  "layers": []
+}

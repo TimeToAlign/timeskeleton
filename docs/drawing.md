@@ -170,7 +170,7 @@ to TikZ (section 7.4).
 
 | Property | Values | Inherited | Read by |
 |---|---|---|---|
-| `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `name` and `label` |
+| `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `wedge`, `name` and `label` |
 | `stroke-width` | a number ≥ 0 | yes | as `stroke` |
 | `stroke-dasharray` | `none`, or numbers separated by single spaces | yes | as `stroke` |
 | `fill` | `#RRGGBB` or `none` | yes | `block`, `timeline`, `child` (the circle at their start; the arrowhead at their end), `jump` (its arrowhead), `wedge`, `name`, `label` |
@@ -217,8 +217,8 @@ The rank of a statement is, from the most to the least significant:
 
 A position derived from time is a value on the **root's axis**: a
 coordinate of a timeline is carried to the root by adding the offsets of
-its ancestors, from the root down. The root starts at 0 (in its number
-type) and ends at its length; a child of a timeline starting at `s`, with
+its ancestors, from the root down. The root starts at the zero of its
+number type (labelled `0`, or `0.0` for a float) and ends at its length; a child of a timeline starting at `s`, with
 offset `o`, starts at `s + o` and ends at that start plus its own length; a
 region, break or jump of a timeline starting at `s` lies at `s` plus its
 coordinate.
@@ -247,8 +247,12 @@ show the exact coordinate, never the double.
 
 Every other number of a drawing is a double, computed in IEEE 754 binary64
 in the order its formula is written, left to right, multiplications and
-divisions before additions and subtractions. `max` and `min` compare
-exactly.
+divisions before additions and subtractions, and a constant factor such as
+`4/3`, `4w`, `2w` or `1.5w` formed before it multiplies. A distance outwards
+is summed whole before it becomes an ordinate `y_root − o` or `y_root + o`;
+a map's centre is offset from its timeline's line instead, and a break
+label from the flow row (section 6.4). A label's baseline is then that
+ordinate plus `a(9)` or minus `d(9)`. `max` and `min` compare exactly.
 
 ## 4. Defaults
 
@@ -378,8 +382,9 @@ Distances marked "× v" are multiplied by the vertical stretch `v`
 | break label offset | 3 |
 
 `s` is the name font size of a band: the largest font size of the names of
-its rows, displayed or not (section 6.6); the root's row is a band of its
-own. Wherever `h(9)`, `a(9)` or `d(9)` appears in this section and the
+its rows, displayed or not (section 6.6); a child whose line is not
+displayed has no row. The root's row is a band of its own, so `p0` (section
+6.4) takes the root's name size alone and a children band its own rows'. Wherever `h(9)`, `a(9)` or `d(9)` appears in this section and the
 next, 9 stands for the largest font size of the labels of the band in
 question (9 by default). The labels of a flow band are its drawn jump labels
 and break labels together, so its jump levels and break-label tiers share one
@@ -413,8 +418,8 @@ placement's `order` (section 1):
 
 A distance `o` outwards from the root's line lies at `y_root − o` above and
 `y_root + o` below. The first band of a side starts at `o = 0`, except a
-children band, which starts no nearer than `p0 / 2`, `p0` the row pitch of
-the root's row, so that the rows of a side, the root's included, lie one
+children band, which starts no nearer than `p0 / 2` wherever it lies in the
+order, `p0` the row pitch of the root's row, so that the rows of a side, the root's included, lie one
 pitch apart when no map stack widens them. Each following band starts at
 the outer edge of the one before plus `B`.
 
@@ -432,9 +437,9 @@ timeline that is not displayed are not drawn and take no room.
 **The root band.** The root's map stack on the side, and the root's wedges
 whose `side` it is, each wedge labelled with the coordinate it marks in the
 root's unit: `0` and `length`. The labels of one side are placed by first
-fit, start before end, into tiers centred on their wedge's `X`. The wedges
-reach `w / 2 + 13`, plus `2 + T × h(9)` when `T ≥ 1` labels are drawn, `w`
-the root's stroke width; the band reaches the larger of that reach (when a
+fit, start before end, into tiers centred on their wedge's `X`. Only wedge labels fill these tiers. The
+wedges reach `w / 2 + 13`, plus `2 + T × h(9)` when the labels fill `T ≥ 1`
+tiers, `w` the root's stroke width; the band reaches the larger of that reach (when a
 wedge is drawn) and the root's stack's reach `e`. Wedges are drawn over the
 stack.
 
@@ -446,7 +451,9 @@ other anchor of a child is its parent's. So a nested child lies beyond its
 parent when both are on one side. Row `k` has an **inner** half (towards
 the root) and an **outer** half: each is `p / 2`, or the reach of the
 largest map stack of the row's children on that half's side when it is
-larger. With `ik` and `ok` the inner and outer halves of row `k`, row 1's
+larger. The outer half's side is the row's own side and the inner half's
+the opposite one, so a child above the root has its `above` maps in its
+outer half. With `ik` and `ok` the inner and outer halves of row `k`, row 1's
 line lies at `l1 = c0 + i1` outwards, `c0` the start of the band, and row
 `k + 1`'s at `l(k+1) = lk + (ok + i(k+1))`; the band is `i1 + o1 + i2 + o2
 + … + iC + oC` wide for `C` rows, summed left to right.
@@ -455,7 +462,8 @@ line lies at `l1 = c0 + i1` outwards, `c0` the start of the band, and row
 and each timeline's regions in canonical order, are placed on their side by
 first fit with the extent from `min(xs, xe)` to `max(xs, xe)` of their
 start and end, widened to the extent of their label when it is drawn. Row
-`k` has its brace's arms at `r0 + (k − 1) × pr`; the band is `R × pr − 4 ×
+`k` has its brace's arms at `r0 + (k − 1) × pr`, `r0` the start of the
+band; the band is `R × pr − 4 ×
 v` wide.
 
 **Flow.** A flow band holds first the **break-label tiers** of its side,
@@ -473,7 +481,8 @@ for `K ≥ 1` levels, and `T × h(9)` wide for none. Jump descriptors and
 labels follow this placement order.
 
 **Breaks.** A displayed break is a vertical line from the flow row of its
-side across every band to the padding of the opposite side. Its label sits
+side across every band to the padding of the opposite side: from `(x, yf)`
+to `(x, P)` below the root and to `(x, Hc − P)` above it (section 6.5). Its label sits
 at the line's end on the flow row, alongside the line on the root's side of
 the flow row: the break labels of a side are placed by first fit, in
 traversal order and each timeline's breaks in canonical order, into the
@@ -484,10 +493,10 @@ root.
 
 ### 6.5 Heights
 
-The root's line lies at `y_root = P + Ea`, `Ea` the outer edge of the
-above side (0 when it has no band), but never less than `P + h(s) / 2`. The
-content's height is `Hc = y_root + Eb + P`, `Eb` the outer edge of the
-below side, never less than `h(s) / 2`. Here `s` is the root's row's name
+The root's line lies at `y_root = max(P + Ea, P + h(s) / 2)`, `Ea` the
+outer edge of the above side (0 when it has no band). The content's height
+is `Hc = y_root + max(Eb, h(s) / 2) + P`, `Eb` the outer edge of the below
+side. Here `s` is the root's row's name
 font size.
 
 ### 6.6 Elements
@@ -510,9 +519,10 @@ above side and down below.
   shaft ends at its head's base, and the head continues the shaft's
   direction at that point.
 - **Wedges.** A filled triangle, not stroked, with its tip on the root
-  line's edge on its side (`y_root ± w / 2`) and its base 13 further out, 6
-  wide. Its label is centred on `X`, in its tier beyond the base: tier `k`
-  starts `w / 2 + 13 + 2 + (k − 1) × h(9)` out.
+  line's edge on its side (`y_root ± w / 2`) and its base 13 further out
+  (`y_root ± (w / 2 + 13)`), 6 wide. Its label is centred on `X`, in its
+  tier beyond the base: tier `k` starts `w / 2 + 13 + 2 + (k − 1) × h(9)`
+  out, the label gap included, and its baseline lies beyond that start.
 - **Maps.** A closed double line: the outline of the rectangle from `Xs`
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
@@ -546,7 +556,7 @@ above side and down below.
   text instead (an editor sets it to give a row its own name, and resets it
   to `none`). When the text is wider than that name's `max-width`, it is cut
   to its longest prefix that, followed by `…` (U+2026), fits, and the cut
-  text is shown. It is drawn starting at `P`, vertically centred on the
+  text is shown. It is drawn starting at `x = P`, vertically centred on the
   row: baseline at `y + (a(s) − d(s)) / 2`, `s` the font size of that first
   name, whose address the text carries. Name descriptors are ordered from
   the top row down.
@@ -568,7 +578,10 @@ starts at
 so that no label crosses the padding on the left. The content's width `Wc`
 is `P` plus the largest right edge of any drawn element (lines, markers,
 wedges, braces, arcs, labels and names), or `P + x0` when nothing is
-drawn. The box is `W =
+drawn. Right edges are geometric, no stroke width counted: a timeline's
+circle `Xs + w` and its arrowhead's tip `Xe + 3w` or diamond's corner `Xe +
+1.5w`, a map's `Xe`, a wedge's `X + 3`, the largest x of a brace's or a
+jump's points, and a text's end from its advance widths. The box is `W =
 max(Wc, width)` wide and `H = max(Hc, height)` high, a `null` request
 counting as 0; the background is a rectangle filling it with corner radius
 `rx`.
@@ -593,29 +606,29 @@ background; the breaks; the maps (in traversal order, each timeline's in
 canonical order, whatever their side); the regions; the jumps; the root and
 then the children in traversal order; the wedges; the names, the wedge
 labels, the region labels, the jump labels and the break labels. Every
-descriptor except the background carries `data-address`, the
-address of its element. An editor renders these same descriptors on
+descriptor except the background carries `data-address`, the address of its
+element; the several descriptors of one element carry the same address. An editor renders these same descriptors on
 screen; the SVG writer serializes them.
 
 | Element | Descriptors |
 |---|---|
 | background | `<rect x="0" y="0" width="{W}" height="{H}" rx="{rx}" fill="{fill}"/>` |
-| root, child, not locked | `<line>` from `(Xs, y)` to `(Xe, y)`; `<circle cx="{Xs}" cy="{y}" r="{w}">`; `<polygon points="{Xe+3w},{y} {Xe},{y−1.5w} {Xe},{y+1.5w}">` |
-| root, child, locked | `<line>` from `(Xs, y)` to `(Xe − 1.5w, y)`; `<circle>` as above; `<polygon points="{Xe−1.5w},{y} {Xe},{y−1.2w} {Xe+1.5w},{y} {Xe},{y+1.2w}" fill="none">` stroked with width `w/2` and no dash |
+| root, child, not locked | `<line x1="{Xs}" y1="{y}" x2="{Xe}" y2="{y}">`; `<circle cx="{Xs}" cy="{y}" r="{w}">`; `<polygon points="{Xe+3w},{y} {Xe},{y−1.5w} {Xe},{y+1.5w}">` |
+| root, child, locked | `<line>` from `(Xs, y)` to `(Xe − 1.5w, y)`; `<circle>` as above; `<polygon points="{Xe−1.5w},{y} {Xe},{y−1.2w} {Xe+1.5w},{y} {Xe},{y+1.2w}" fill="none">` stroked in the timeline's `stroke` with width `w/2` and no dash |
 | wedge | `<polygon points="{X},{yt} {X−3},{yb} {X+3},{yb}">`, `yt` its tip and `yb` its base (section 6.6) |
 | map | `<polygon points="{Xs},{yc−d/2} {Xe},{yc−d/2} {Xe},{yc+d/2} {Xs},{yc+d/2}" fill="none">` stroked |
 | region | `<path d="{brace}">` |
 | jump | `<path d="M{P0}C{C1} {C2} {Bh}">`, the shaft; `<polygon>` arrowhead `{P3} {Bh − 2w × n} {Bh + 2w × n}`, `n = (−uy, ux)` (section 6.6) |
-| break | `<line>` |
-| name, label | `<text x="{x}" y="{baseline}" text-anchor="{start|middle}" font-size="{s}">` |
+| break | `<line x1="{x}" y1="{yf}" x2="{x}" y2="{y2}">` (section 6.4) |
+| name, label | `<text x="{x}" y="{baseline}" text-anchor="{a}" font-size="{s}">`, `a` `start` for names and break labels, `middle` for the centred labels |
 
-A line or path carries `fill="none"` (a line none at all) and `stroke`,
+A path carries `fill="none"` and a line no `fill`; both carry `stroke`,
 `stroke-width` and, unless `none`, `stroke-dasharray`; a circle, a polygon
 and a text carry `fill`, and the diamond and the map's outline, the
 stroked polygons, also the stroke attributes (the map's dash included). `opacity` is written when it is not 1. An
 element without text is written self-closing (`<line …/>`); a text is written `<text …>{text}</text>`. Attributes are
-written in
-this order: `data-address`, the coordinates in the order shown, `text-anchor`,
+written in this order, except the background's, which follow its template
+and then `opacity`: `data-address`, the coordinates in the order shown, `text-anchor`,
 `font-size`, `fill`, `stroke`, `stroke-width`, `stroke-dasharray`,
 `opacity`.
 

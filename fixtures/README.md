@@ -88,6 +88,38 @@ Every generated file carries the full timeline shape that timetoalign writes:
 contains `breaks`, `jumps`, and `markers`, and absent measure maps and metric
 hierarchies are `null`.
 
+## Drawings
+
+Each directory `fixtures/0.4.0/drawings/<name>/` pins one drawing of the
+[drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md)
+with exactly three files:
+
+- `inputs.json`, everything a drawing needs besides the manifest itself and
+  the font, written with `dumps`:
+  - `manifest`: the file name of the manifest in `fixtures/0.4.0/`;
+  - `placement`: `length`, `spacing`, `width`, `height` and `order`, all
+    five always written, defaults included (400, 1, `null`, `null`,
+    `["children", "regions", "flow"]`);
+  - `scale`: the scale `z` at which the writers place the drawing;
+  - `layers`: the statement lists of whoever places the drawing, lowest
+    precedence first. The defaults and the manifest's own `graphical` block
+    are not repeated here: the layers of the drawing are the defaults, then
+    the manifest's `graphical`, then these (an empty list when there are
+    none).
+- `figure.svg`: the SVG of the drawing alone, placed at `(0, 0)` with the
+  scale `z`;
+- `figure.tex`: the TikZ of the same placement, a standalone document with
+  the font directory `.`.
+
+Two implementations that follow the specification write both figures byte
+for byte. Seven `figure.svg` files are derived by hand from the
+specification alone and are never regenerated; `drawings/README.md` lists
+them with their arithmetic. Every other figure, and every `inputs.json`, is
+emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
+<timeskeleton checkout>` (run in its `app/packages/writers/`), which compares
+the hand-derived SVGs with its own output instead of writing them.
+Once tag `v0.4.0` exists, the script refuses to replace the drawings.
+
 ## Rejection coverage
 
 The rejection cases cover the manifest root and metadata, timeline classes and

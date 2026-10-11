@@ -1,0 +1,31 @@
+{
+  "manifest": "map.json",
+  "placement": {
+    "length": 400,
+    "spacing": 1,
+    "width": null,
+    "height": null,
+    "order": [
+      "children",
+      "regions",
+      "flow"
+    ]
+  },
+  "scale": 1,
+  "layers": [
+    {
+      "statements": [
+        {
+          "select": {
+            "ids": [
+              "phrase/map/ticks"
+            ]
+          },
+          "set": {
+            "side": "below"
+          }
+        }
+      ]
+    }
+  ]
+}

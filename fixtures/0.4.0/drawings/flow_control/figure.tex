@@ -1,0 +1,28 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFF0000}{HTML}{FF0000}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (500.2566,84.332);
+\path[draw=tsFF0000,line width=1.5pt,dash pattern=on 2pt off 2pt] (382.9775,28.4766) -- (382.9775,76.332);
+\path[draw=ts000000,line width=1.5pt] (282.9775,28.4766) .. controls (245.4775,17.8099) and (170.4775,17.8099) .. (138.7486,26.835);
+\path[fill=ts000000] (132.9775,28.4766) -- (137.9278,23.9495) -- (139.5694,29.7205) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (82.9775,69.9297) -- (482.9775,69.9297);
+\path[fill=ts00CC00] (82.9775,69.9297) circle[radius=3];
+\path[fill=ts00CC00] (491.9775,69.9297) -- (482.9775,74.4297) -- (482.9775,65.4297) -- cycle;
+\path[fill=ts000000] (82.9775,68.4297) -- (79.9775,55.4297) -- (85.9775,55.4297) -- cycle;
+\path[fill=ts000000] (482.9775,68.4297) -- (479.9775,55.4297) -- (485.9775,55.4297) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (8,66.1216) {Flow control};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (82.9775,45.0757) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (482.9775,45.0757) {16 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (207.9775,10.1226) {Repeat};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (385.9775,30.5991) {Fine};
+\end{scope}
+\end{tikzpicture}
+\end{document}

@@ -113,7 +113,7 @@ declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION`
 in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, and the
 self entry in `python/uv.lock`), adds
 `schema/timeskeleton-X.Y.Z.schema.json`, a non-empty
-`fixtures/X.Y.Z/`, and rejection fixtures, and passes
+`fixtures/X.Y.Z/` with its `drawings/`, and rejection fixtures, and passes
 `python3 scripts/check_versions.py`. A version after 0.4.0 also adds its
 migration pair. The commit carries the footer:
 

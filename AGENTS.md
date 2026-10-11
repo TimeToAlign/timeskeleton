@@ -9,8 +9,9 @@ These rules apply to every contributor, human or automated.
   truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
   and SVG and TikZ writers; it is part of the contract.
-- `fixtures/`: generated 0.4.0 manifests and hand-authored rejection cases;
-  see `fixtures/README.md`.
+- `fixtures/`: generated 0.4.0 manifests, hand-authored rejection cases, and
+  the drawings (`inputs.json`, `figure.svg` and `figure.tex` per drawing;
+  seven `figure.svg` derived by hand, everything else emitted); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37, its licence, and the advance-width metrics used
   by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
@@ -36,11 +37,16 @@ These rules apply to every contributor, human or automated.
   proves the behavior, then implement tests with exact expected values.
 - Emit manifest fixtures under `fixtures/<version>/` only through
   `scripts/emit_fixtures.py`; never hand-edit them. The script refuses to
-  overwrite the fixtures of a version whose `v<version>` tag exists.
+  overwrite the fixtures of a version whose `v<version>` tag exists. Emit
+  the drawings under `fixtures/<version>/drawings/` only through
+  TimeLineEditor's `emit-drawings` script, which never rewrites the seven
+  hand-derived figures.
 - `docs/drawing.md` pins the drawing. There is no drawing schema, and a drawing's JSON form is internal to
   an implementation. A rule a reader could not reproduce from the
   specification alone is a defect of the specification. This repository never
-  depends on TimeLineEditor.
+  depends on TimeLineEditor in code or packages; only the emitted drawing
+  figures are produced by TimeLineEditor's writers (its `emit-drawings`
+  script, writing into a timeskeleton checkout).
 - Write every manifest fixture and rejection case with the standard writer
   `dumps` of either package: canonical order, two-space indentation, final
   newline, and floats spelled as Python's `repr`. In JavaScript, read

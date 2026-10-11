@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="541.2715" height="95.9766" viewBox="0 0 541.2715 95.9766" font-family="DejaVu Sans" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="509.2715" height="63.9766" rx="10" fill="#F3F4F6"/>
+<line data-address="tl:13" x1="73.1377" y1="29" x2="473.1377" y2="29" stroke="#FF0000" stroke-width="3"/>
+<circle data-address="tl:13" cx="73.1377" cy="29" r="3" fill="#FF0000"/>
+<polygon data-address="tl:13" points="482.1377,29 473.1377,24.5 473.1377,33.5" fill="#FF0000"/>
+<line data-address="tl:14" x1="79.8044" y1="15" x2="208.6377" y2="15" stroke="#FF0000" stroke-width="3"/>
+<circle data-address="tl:14" cx="79.8044" cy="15" r="3" fill="#FF0000"/>
+<polygon data-address="tl:14" points="208.6377,15 213.1377,11.4 217.6377,15 213.1377,18.6" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<line data-address="tl:15" x1="273.1377" y1="15" x2="368.6377" y2="15" stroke="#FF0000" stroke-width="3"/>
+<circle data-address="tl:15" cx="273.1377" cy="15" r="3" fill="#FF0000"/>
+<polygon data-address="tl:15" points="368.6377,15 373.1377,11.4 377.6377,15 373.1377,18.6" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<polygon data-address="tl:13/start" points="73.1377,30.5 70.1377,43.5 76.1377,43.5" fill="#000000"/>
+<polygon data-address="tl:13/end" points="473.1377,30.5 470.1377,43.5 476.1377,43.5" fill="#000000"/>
+<text data-address="tl:14/name" x="8" y="18.8081" text-anchor="start" font-size="11" fill="#000000">tl:14, tl:15</text>
+<text data-address="tl:13/name" x="8" y="32.8081" text-anchor="start" font-size="11" fill="#000000">tl:13</text>
+<text data-address="tl:13/start/label" x="73.1377" y="53.854" text-anchor="middle" font-size="9" fill="#000000">0.0 points</text>
+<text data-address="tl:13/end/label" x="473.1377" y="53.854" text-anchor="middle" font-size="9" fill="#000000">600.0 points</text>
+</g>
+</svg>
