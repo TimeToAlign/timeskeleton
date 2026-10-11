@@ -2,6 +2,25 @@
 
 Release entries are written by release-please from the Conventional Commits since the previous release.
 
+## [0.4.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.3.0...v0.4.0) (2026-10-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* specify the drawing and keep only schema 0.4.0
+* hold one timeline manifest per file and add split
+
+### Features
+
+* hold one timeline manifest per file and add split ([3b7d6dc](https://github.com/TimeToAlign/timeskeleton/commit/3b7d6dc4ceff6eabf69cddc43d1819d5b73f0f69))
+* publish the drawing fixtures and declare version 0.4.0 ([7995bdd](https://github.com/TimeToAlign/timeskeleton/commit/7995bddfba81ae2972a441b2e29a355322a0c9f4))
+* specify the drawing and keep only schema 0.4.0 ([cea5130](https://github.com/TimeToAlign/timeskeleton/commit/cea5130549bf5bf11bd7e7dad303625a2809d20e))
+
+
+### Bug Fixes
+
+* draw C-Map stacks per timeline and place arrow tips as TikZ does ([ab8976f](https://github.com/TimeToAlign/timeskeleton/commit/ab8976f3a9659b9390a53f10b267e31d1a468f39))
+
 ## [0.3.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.2.1...v0.3.0) (2026-10-10)
 
 
