@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "timeskeleton"
 version = "0.3.0"
-description = "The TimeSkeleton document schema, its golden fixtures and a validator"
+description = "The TimeSkeleton manifest schema, its golden fixtures and a validator"
 dynamic = ["readme"]
 requires-python = ">=3.11"
 license = "MIT"
