@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (9a728128)",
+    "schema_version": "0.6.0"
+  },
+  "timeline": {
+    "children": {},
+    "class": "ContinuousLogicalTimeline",
+    "conversion_maps": [],
+    "flow_control": {
+      "breaks": [
+        {
+          "condition": "after_dc_ds",
+          "control_type": "fine",
+          "coordinate": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              12,
+              1
+            ]
+          },
+          "id": "break_1",
+          "label": "Fine",
+          "meta": {
+            "source": "synthetic"
+          },
+          "name": "fine",
+          "repeat_count": 1
+        }
+      ],
+      "jumps": [
+        {
+          "condition": "first_n",
+          "control_type": "repeat_end",
+          "from_coordinate": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              8,
+              1
+            ]
+          },
+          "id": "jump_1",
+          "label": "Repeat",
+          "meta": {
+            "source": "synthetic"
+          },
+          "repeat_count": 2,
+          "target": "marker_1",
+          "to_coordinate": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              2,
+              1
+            ]
+          }
+        }
+      ],
+      "markers": [
+        {
+          "coordinate": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              2,
+              1
+            ]
+          },
+          "id": "marker_1",
+          "name": "repeat-start"
+        }
+      ]
+    },
+    "id": "flow:quarters",
+    "length": {
+      "number_type": "fraction",
+      "unit": "quarters",
+      "value": [
+        16,
+        1
+      ]
+    },
+    "locked": false,
+    "measure_map": null,
+    "meta": {},
+    "metric_hierarchy": null,
+    "name": "Flow control",
+    "number_type": "fraction",
+    "regions": [],
+    "unit": "quarters"
+  }
+}

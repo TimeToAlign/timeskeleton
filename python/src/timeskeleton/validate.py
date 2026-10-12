@@ -21,10 +21,10 @@ from typing import Any
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
-SCHEMA_VERSION = "0.5.0"
+SCHEMA_VERSION = "0.6.0"
 """The latest schema version bundled by this package."""
 
-SUPPORTED_VERSIONS: tuple[str, ...] = ("0.5.0",)
+SUPPORTED_VERSIONS: tuple[str, ...] = ("0.5.0", "0.6.0")
 """Every bundled schema version, oldest first."""
 
 

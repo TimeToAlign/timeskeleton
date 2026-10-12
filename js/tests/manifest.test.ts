@@ -421,7 +421,7 @@ describe("values the writer refuses", () => {
 describe("parse", () => {
   it("reads and validates a manifest", () => {
     const manifest = parse(fixtureText("continuous_physical")) as unknown as JsonObject;
-    expect((manifest.meta as JsonObject).schema_version).toBe("0.5.0");
+    expect((manifest.meta as JsonObject).schema_version).toBe("0.6.0");
     const timeline = manifest.timeline as JsonObject;
     const offsets = Object.values(timeline.children as JsonObject).map(
       (child) => ((child as JsonObject).offset as JsonObject).value,

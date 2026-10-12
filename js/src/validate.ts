@@ -12,10 +12,10 @@ import type { TimelineManifest, TimeSkeletonManifest } from "./generated/types.j
 import { compareCodePoints, type Lossless, parseJson, plain } from "./manifest.js";
 
 /** The latest schema version bundled by this package. */
-export const SCHEMA_VERSION = "0.5.0";
+export const SCHEMA_VERSION = "0.6.0";
 
 /** Every bundled schema version, oldest first. */
-export const SUPPORTED_VERSIONS: readonly string[] = ["0.5.0"];
+export const SUPPORTED_VERSIONS: readonly string[] = ["0.5.0", "0.6.0"];
 
 const SCHEMAS: Readonly<Record<string, object>> = schemas;
 

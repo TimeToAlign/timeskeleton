@@ -1,14 +1,22 @@
 # Fixtures
 
-Every JSON file directly under `fixtures/0.5.0/` is a complete TimeSkeleton
-manifest with one `{meta, timeline, graphical?}` object. The manifests are
-emitted by timetoalign through `scripts/emit_fixtures.py`; that script is
-their only writer. Regenerate them after a serialization change and review the
-diff. Once tag `v0.5.0` exists, the script refuses to replace them.
+Fixtures are kept per schema version: `fixtures/0.5.0/` and
+`fixtures/0.6.0/`, the current version, each with its `drawings/`, and the
+rejection cases of each version under `fixtures/rejections/<version>/`.
 
-The rejection cases under `fixtures/rejections/0.5.0/` are hand-authored.
-Each changes one rule and records the path both validators must report. The
-emission script does not touch them.
+Every JSON file directly under `fixtures/<version>/` is a complete
+TimeSkeleton manifest with one `{meta, timeline, graphical?}` object. The
+manifests are emitted by timetoalign through `scripts/emit_fixtures.py`; that
+script is their only writer. Regenerate them after a serialization change and
+review the diff. The script refuses to replace the fixtures of a version whose
+tag `v<version>` exists, so a released version's fixtures stay as released.
+
+The rejection cases under `fixtures/rejections/<version>/` are
+hand-authored. Each changes one rule and records the path both validators
+must report. The emission script does not touch them.
+
+The migration pairs under `fixtures/migrations/` are hand-authored too
+(section [Migrations](#migrations)).
 
 The [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md)
 pins how a manifest is drawn. A drawing is derived; these directories contain no drawing schema.
@@ -93,13 +101,16 @@ hierarchies are `null`.
 
 ## Drawings
 
-Each directory `fixtures/0.5.0/drawings/<name>/` pins one drawing of the
+Each directory `fixtures/<version>/drawings/<name>/` pins one drawing of the
 [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md)
-with exactly three files:
+as it stands in that version, with exactly three files; the drawings of the
+current version follow `docs/drawing.md` as it stands, and those of a
+released version follow the specification tagged with it:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
   the font, written with `dumps`:
-  - `manifest`: the file name of the manifest in `fixtures/0.5.0/`;
+  - `manifest`: the file name of the manifest in the same version's
+    directory;
   - `placement`: `length`, `spacing`, `width`, `height` and `order`, all
     five always written, defaults included (400, 1, `null`, `null`,
     `["children", "regions", "flow"]`);
@@ -121,7 +132,8 @@ them with their arithmetic. Every other figure, and every `inputs.json`, is
 emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
 <timeskeleton checkout>` (run in its `app/packages/writers/`), which compares
 the hand-derived SVGs with its own output instead of writing them.
-Once tag `v0.5.0` exists, the script refuses to replace the drawings.
+The script refuses to replace the drawings of a version whose tag
+`v<version>` exists.
 
 ## Rejection coverage
 
@@ -133,5 +145,14 @@ identity rules `validate` checks beyond the schema: ids unique across a
 manifest and jump targets naming a marker of their own timeline. Tests in
 both packages load the same files and compare the reported path with the
 case's expected path.
+
+## Migrations
+
+Each directory `fixtures/migrations/<from>-to-<to>/` pins one migration step
+with two files: `before.json`, a manifest of version `<from>`, and
+`after.json`, the standard text (`dumps`) of `migrate` applied to it. Both
+packages migrate `before.json` and compare the result with `after.json` byte
+for byte. In `0.5.0-to-0.6.0`, `before.json` is `fixtures/0.5.0/bare.json`
+and `after.json` differs from it only in `meta.schema_version`.
 
 See the [main README](../README.md) for the schema API and canonical writer.

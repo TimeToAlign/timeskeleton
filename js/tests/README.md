@@ -1,21 +1,24 @@
 # Test strategy for the `@timetoalign/timeskeleton` npm package
 
-This suite proves the draft public contract of schema 0.5.0.
+This suite proves the draft public contract of schema 0.6.0 and of the
+schema versions it still validates (0.5.0).
 
 ## What the package promises
 
-1. Every bundled fixture validates against the schema, read and validated by
-   `parse` and as `JSON.parse` reads it.
-2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/` at
-   the exact stored path, in both readings and through `parse`; all 55 cases
-   fail, including a manifest without its one required `timeline`. Every case
-   declares `"0.5.0"` except two: `meta_schema_version_unknown` declares the
-   unknown version `"9.9.9"`, and `root_missing_meta` has no `meta` to
-   declare one (the test "has every 0.5.0 rejection declare 0.5.0 except the
-   two without a declaration").
-3. A manifest declaring any other version (`"0.3.0"`, `"0.1.0"`, `"1.0.0"`,
-   each made from `bare.json`) is rejected through the same error, a
-   `SchemaValidationError` at `["meta", "schema_version"]`.
+1. Every bundled fixture of every supported version validates against the
+   schema of the version it declares, read and validated by `parse` and as
+   `JSON.parse` reads it.
+2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/` and
+   `fixtures/rejections/0.6.0/` at the exact stored path, in both readings;
+   all 110 cases fail, including a manifest without its one required
+   `timeline`; `parse` rejects the 55 cases of the latest version. Every case
+   of a version's directory declares that version except two:
+   `meta_schema_version_unknown` declares the unknown version `"9.9.9"`, and
+   `root_missing_meta` has no `meta` to declare one (the test "has every
+   rejection declare its version except the two without a declaration").
+3. A manifest declaring any other version (`"0.3.0"`, `"0.1.0"`, `"0.4.0"`,
+   `"1.0.0"`, each made from `bare.json`) is rejected through the same error,
+   a `SchemaValidationError` at `["meta", "schema_version"]`.
 4. Generated errors expose paths as object keys and numeric array indices.
 5. The checked-in generated files (`types.ts`, `schema.ts`, `font.ts`) equal a
    fresh generator run, and the generated schema bundle is the schema file.
@@ -38,6 +41,35 @@ This suite proves the draft public contract of schema 0.5.0.
 8. The npm package ships `docs/drawing.md`: after `scripts/copy-assets.ts`,
    `npm pack --dry-run --json` lists `docs/drawing.md`, the copy equals the
    repository's file byte for byte, and `package.json` exports `./docs/*`.
+
+## Versions and migration
+
+The rules and their proofs are stated in the Python suite's README
+("Versions and migration"); this suite asserts the same cases with the same
+expected values: `SCHEMA_VERSION` `"0.6.0"` and `SUPPORTED_VERSIONS`
+`["0.5.0", "0.6.0"]`; `schemas` keyed by both versions, each equal to its
+schema file, `schema` the 0.6.0 one, and the two equal once `$id`, the
+top-level `description` and the version constant are removed; the 0.6.0
+manifests equal to `migrate` of the 0.5.0 manifests without `meta.generator`;
+the 0.6.0 rejection cases equal to the 0.5.0 cases with their manifests
+migrated; the pinned pair (`dumps(migrate(parseJson(before)))` byte for byte
+`after.json`, `before.json` byte for byte `fixtures/0.5.0/bare.json`, the
+result validating); only the declaration changing for every 0.5.0 fixture
+(compared as text written by `dumps`); a 0.6.0 value copied, not returned;
+the input never changed or shared; the chain reaching the latest version;
+and the refusals (`UnsupportedVersionError` with `version` `"9.9.9"`,
+`"0.4.0"`, `null` and `null`, and the message for `"9.9.9"` exactly
+`unsupported schema_version "9.9.9"; this package supports 0.5.0, 0.6.0`).
+
+`migrate` copies what `parseJson` read. What proves it beyond the fixtures'
+`6.0` floats, which the text comparison above already covers:
+
+- **Exact numbers and key order survive.** The text
+  `{"meta":{"schema_version":"0.5.0"},"timeline":{"children":{"10":1.0,"2":123456789012345678}}}`
+  read by `parseJson` and migrated is written by `compactJson` as the same
+  text with `"0.6.0"`: the array-index keys keep their written order (`"10"`
+  before `"2"`), `1.0` stays a `JsonFloat` and the integer stays a `bigint`.
+  The value is not a manifest, which `migrate` does not require.
 
 ## Identity
 
@@ -112,7 +144,7 @@ and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
 - **Every standard file round-trips.** Each of the 23 fixtures and 55
-  rejection cases (78 files) is reproduced byte for byte by
+  rejection cases of the latest version (78 files) is reproduced byte for byte by
   `dumps(parseJson(text))`. `corpus_score_ms3` carries `→` and float-axis
   fixtures carry `6.0`, so neither the escaping nor the float spelling can be
   wrong without a failure.

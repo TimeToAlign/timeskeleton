@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (9a728128)",
+    "schema_version": "0.6.0"
+  },
+  "timeline": {
+    "children": {
+      "dgt_2": {
+        "offset": {
+          "number_type": "int",
+          "unit": "pixels",
+          "value": 16
+        },
+        "timeline": {
+          "children": {},
+          "class": "DiscreteGraphicalTimeline",
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "dgt_2",
+          "length": {
+            "number_type": "int",
+            "unit": "pixels",
+            "value": 640
+          },
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": null,
+          "number_type": "int",
+          "regions": [],
+          "unit": "pixels"
+        }
+      },
+      "dgt_3": {
+        "offset": {
+          "number_type": "int",
+          "unit": "pixels",
+          "value": 1000
+        },
+        "timeline": {
+          "children": {},
+          "class": "DiscreteGraphicalTimeline",
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "dgt_3",
+          "length": {
+            "number_type": "int",
+            "unit": "pixels",
+            "value": 480
+          },
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": null,
+          "number_type": "int",
+          "regions": [],
+          "unit": "pixels"
+        }
+      }
+    },
+    "class": "DiscreteGraphicalTimeline",
+    "conversion_maps": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": []
+    },
+    "id": "dgt_1",
+    "length": {
+      "number_type": "int",
+      "unit": "pixels",
+      "value": 1920
+    },
+    "locked": false,
+    "measure_map": null,
+    "meta": {},
+    "metric_hierarchy": null,
+    "name": null,
+    "number_type": "int",
+    "regions": [],
+    "unit": "pixels"
+  }
+}

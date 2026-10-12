@@ -6,23 +6,24 @@ timelines, with manifest fixtures emitted by
 packages for Python and TypeScript. It carries timeline structure, not event
 data.
 
-**Status: alpha.** The repository contains schema version 0.5.0, its first
-version. It provides validators that locate a violation under one shared path
+**Status: alpha.** The repository contains schema versions 0.5.0 and 0.6.0;
+0.6.0 is the current version. It provides validators that locate a violation under one shared path
 rule, a canonical manifest order, standard writers that produce the same bytes
 in Python and TypeScript, a lossless JSON reader for TypeScript, generated
-TypeScript types, and shared fixtures. It also specifies how a manifest is
-drawn, and both packages ship that specification.
+TypeScript types, a migration from 0.5.0 to 0.6.0, and shared fixtures. It
+also specifies how a manifest is drawn, and both packages ship that
+specification.
 
 ## The manifest
 
 A TimeSkeleton file is one manifest: a JSON object with `meta`, `timeline`,
-and an optional `graphical` block. `meta.schema_version` is `"0.5.0"`, and
+and an optional `graphical` block. `meta.schema_version` is `"0.6.0"`, and
 `meta.generator` is optional. `timeline` is one timeline manifest matching
 timetoalign's `Timeline.to_dict(events=False)` output: its axis (`class`,
 `unit`, `number_type`, and `length`), child timelines at exact offsets,
 conversion maps, regions, flow control, measure map, and metric hierarchy.
 The schema identifier is
-[`https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json).
+[`https://timetoalign.github.io/timeskeleton/0.6.0/timeskeleton.schema.json`](https://timetoalign.github.io/timeskeleton/0.6.0/timeskeleton.schema.json).
 
 A manifest describes exactly one top-level timeline and all its descendants.
 It says nothing about where or how often an application places that timeline.
@@ -170,9 +171,15 @@ else:
     text = dumps(value)
 ```
 
-- `validate(value)` checks a manifest against the version it declares. A value
-  that does not declare the supported version is checked against 0.5.0 and is
-  rejected at `meta.schema_version`.
+- `validate(value)` checks a manifest against the schema of the version it
+  declares, 0.5.0 or 0.6.0. A value that declares neither is checked against
+  0.6.0 and is rejected at `meta.schema_version`.
+- `migrate(value)` returns a copy of a manifest of any supported version
+  rewritten to 0.6.0, through one step per later version; the input is not
+  changed and the result is not validated. From 0.5.0 only
+  `meta.schema_version` changes, since the two versions share one manifest
+  format. A value that declares no supported version raises
+  `UnsupportedVersionError`, as do the version-taking accessors below.
 - `dumps(value)` returns the standard text of a manifest or any JSON value.
 - `canonical_order(value)` returns a deep copy with the manifest's arrays in
   canonical order. `canonical_json(value)` returns compact JSON with object
@@ -182,11 +189,12 @@ else:
   first.
 - `complete_styles(graphical)` returns `(completed, missing)` and warns with
   `MissingStyleWarning` when `missing` is non-empty.
-- `SCHEMA_VERSION` is `"0.5.0"`, and `SUPPORTED_VERSIONS` is `("0.5.0",)`.
+- `SCHEMA_VERSION` is `"0.6.0"`, and `SUPPORTED_VERSIONS` is
+  `("0.5.0", "0.6.0")`.
   `declared_version(value)` returns `meta.schema_version` when it is a string.
 - `schema_path()` and `load_schema()` return the bundled schema;
   `fixture_paths()` and `rejection_paths()` return the bundled manifest and
-  rejection fixtures.
+  rejection fixtures. Each takes a version, 0.6.0 by default.
 - `font_path()` returns the bundled TrueType file, and `font_metrics()` returns
   its metrics.
 
@@ -217,7 +225,10 @@ function load(text: string): string {
 
 - `parse(text)` reads and validates a manifest without losing a number or key
   order. `parseJson(text)` reads any JSON text without validating it.
-- `validate(value)` narrows an unknown value to `TimeSkeletonManifest`.
+- `validate(value)` narrows an unknown value to `TimeSkeletonManifest`,
+  checking it against the schema of the version it declares.
+- `migrate(value)` returns a copy rewritten to 0.6.0, as Python's `migrate`
+  does, keeping every number and key order `parseJson` read.
 - `dumps(value)` is the standard writer. `compactJson(value)` writes without
   whitespace, and `canonicalJson(value)` also sorts object keys by code point.
 - `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
@@ -227,7 +238,7 @@ function load(text: string): string {
 - `completeStyles(graphical)` returns `{graphical: completed, missing}`.
 - `fontMetrics` contains the bundled font's advance-width metrics.
 - `schema`, `schemas`, `SCHEMA_VERSION`, and `SUPPORTED_VERSIONS` expose the
-  bundled 0.5.0 contract. The generated types include
+  bundled 0.5.0 and 0.6.0 contracts. The generated types include
   `TimeSkeletonManifest`, `TimelineManifest`, `Graphical`, `Statement`,
   `Selector`, and `Declaration`.
 
@@ -247,10 +258,12 @@ to be written as a float. JavaScript code that writes manifests must use
 
 ## Versioning
 
-Schema 0.5.0 is the earliest version this repository validates. Every schema
-version from 0.5.0 onward remains validatable. A later schema version adds
-pure, ordered migrations in both packages, with each step pinned by a
-before-and-after fixture pair.
+Schema 0.5.0 is the earliest version this repository validates, and every
+schema version from 0.5.0 onward remains validatable. Each later version has
+a pure, ordered migration from the version before it in both packages,
+pinned by a before-and-after fixture pair under `fixtures/migrations/`.
+0.6.0 keeps the manifest format of 0.5.0 and revises the drawing
+specification; its migration rewrites `meta.schema_version` alone.
 
 A timeskeleton release is a schema-version event: one `vX.Y.Z` tag publishes
 both packages through trusted publishing. `scripts/check_versions.py` checks
@@ -258,8 +271,9 @@ that all version declarations agree.
 
 ## Fixtures
 
-The [fixture guide](fixtures/README.md) describes the generated 0.5.0
-manifests and the hand-authored rejection cases. Manifest fixtures are emitted
+The [fixture guide](fixtures/README.md) describes the generated manifests and
+drawings of each version, the hand-authored rejection cases, and the migration
+pairs. Manifest fixtures are emitted
 only by `scripts/emit_fixtures.py` using timetoalign and record its version and
 commit in `meta.generator`. Do not edit them by hand.
 

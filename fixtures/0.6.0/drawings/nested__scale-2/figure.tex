@@ -1,0 +1,30 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\begin{scope}[shift={(16,16)},scale=2,transform shape]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (459.1946,77.9766);
+\path[draw=ts00CC00,line width=3pt] (41.9155,34.9766) -- (441.9155,34.9766);
+\path[fill=ts00CC00] (41.9155,34.9766) circle[radius=3];
+\path[fill=ts00CC00] (450.9155,34.9766) -- (441.9155,39.4766) -- (441.9155,30.4766) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (141.9155,48.9766) -- (337.4155,48.9766);
+\path[fill=ts00CC00] (141.9155,48.9766) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (337.4155,48.9766) -- (341.9155,52.5766) -- (346.4155,48.9766) -- (341.9155,45.3766) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (179.4155,62.9766) -- (224.9155,62.9766);
+\path[fill=ts00CC00] (179.4155,62.9766) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (224.9155,62.9766) -- (229.4155,66.5766) -- (233.9155,62.9766) -- (229.4155,59.3766) -- cycle;
+\path[fill=ts000000] (41.9155,33.4766) -- (38.9155,20.4766) -- (44.9155,20.4766) -- cycle;
+\path[fill=ts000000] (441.9155,33.4766) -- (438.9155,20.4766) -- (444.9155,20.4766) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (8,59.1685) {clt\_2};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (8,45.1685) {clt\_3};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (8,31.1685) {clt\_1};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (41.9155,10.1226) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (441.9155,10.1226) {16 ♩};
+\end{scope}
+\end{tikzpicture}
+\end{document}

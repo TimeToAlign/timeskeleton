@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from .font import font_metrics, font_path
 from .manifest import canonical_json, canonical_order, dumps
+from .migrate import migrate
 from .styles import MissingStyleWarning, complete_styles
 from .validate import (
     SCHEMA_VERSION,
@@ -42,6 +43,7 @@ __all__ = [
     "identity_problems",
     "json_pointer",
     "load_schema",
+    "migrate",
     "rejection_paths",
     "schema_path",
     "validate",

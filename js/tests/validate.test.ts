@@ -41,27 +41,40 @@ describe("validate", () => {
     }
   });
 
-  it.each(rejectionFileNames())("rejects %s at its stored path", (name) => {
-    const testCase = loadRejection(name);
+  it.each(
+    SUPPORTED_VERSIONS.flatMap((version) =>
+      rejectionFileNames(version).map((name) => [version, name] as const),
+    ),
+  )("rejects %s/%s at its stored path", (version, name) => {
+    const testCase = loadRejection(name, version);
     expect(rejection(testCase.manifest).path).toEqual(testCase.path);
-    const plainCase = parseJson(rejectionText(name)) as Record<string, unknown>;
+    const plainCase = parseJson(rejectionText(name, version)) as Record<string, unknown>;
     expect(rejection(plainCase.manifest).path).toEqual(testCase.path);
   });
 
-  it("has every 0.5.0 rejection declare 0.5.0 except the two without a declaration", () => {
-    const exempt = ["meta_schema_version_unknown.json", "root_missing_meta.json"];
-    const declaring: string[] = [];
-    for (const name of rejectionFileNames("0.5.0")) {
-      const version = declaredVersion(loadRejection(name, "0.5.0").manifest);
-      if (exempt.includes(name)) expect(version).not.toBe("0.5.0");
-      else {
-        expect(version, name).toBe("0.5.0");
-        declaring.push(name);
-      }
-    }
-    expect(declaring).toHaveLength(53);
-    expect(declaredVersion(loadRejection(exempt[0] as string, "0.5.0").manifest)).toBe("9.9.9");
+  it("holds 55 rejection cases per version", () => {
+    expect(SUPPORTED_VERSIONS.map((version) => rejectionFileNames(version).length)).toEqual([
+      55, 55,
+    ]);
   });
+
+  it.each(SUPPORTED_VERSIONS)(
+    "has every rejection declare its version except the two without a declaration (%s)",
+    (version) => {
+      const declared = new Map(
+        rejectionFileNames(version).map((name) => [
+          name,
+          declaredVersion(loadRejection(name, version).manifest),
+        ]),
+      );
+      expect(declared.get("meta_schema_version_unknown.json")).toBe("9.9.9");
+      expect(declared.get("root_missing_meta.json")).toBeNull();
+      declared.delete("meta_schema_version_unknown.json");
+      declared.delete("root_missing_meta.json");
+      expect(declared.size).toBe(53);
+      expect(new Set(declared.values())).toEqual(new Set([version]));
+    },
+  );
 
   it("renders a rejection path as a JSON pointer", () => {
     const testCase = loadRejection(rejectionFileNames()[0] as string);
@@ -69,7 +82,7 @@ describe("validate", () => {
     expect(error.message.startsWith(`${jsonPointer(error.path)}: `)).toBe(true);
   });
 
-  it.each(["0.3.0", "0.1.0", "1.0.0"])(
+  it.each(["0.3.0", "0.1.0", "0.4.0", "1.0.0"])(
     "rejects a manifest declaring %s at its declaration",
     (version) => {
       const manifest = loadFixture("bare");

@@ -1,6 +1,6 @@
 # Contributing
 
-TimeSkeleton is schema-first. The 0.5.0 schema is the contract; the Python and
+TimeSkeleton is schema-first. The current schema, 0.6.0, is the contract; the Python and
 TypeScript packages validate it, and timetoalign emits its manifest fixtures.
 
 ## Schema changes
@@ -23,7 +23,8 @@ python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoal
 
 Do not edit a manifest fixture by hand. The script refuses to write into the
 fixtures of a version whose `v<version>` tag exists. Rejection cases under
-`fixtures/rejections/` and future migration pairs are authored by hand.
+`fixtures/rejections/` and migration pairs under `fixtures/migrations/` are
+authored by hand.
 
 ## The drawing specification
 

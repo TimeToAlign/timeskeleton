@@ -1,19 +1,25 @@
 # Test strategy for the `timeskeleton` Python package
 
-This suite proves the draft public contract of schema 0.5.0.
+This suite proves the draft public contract of schema 0.6.0 and of the
+schema versions it still validates (0.5.0).
 
 ## What the package promises
 
-1. Every bundled fixture validates against the schema.
-2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/` at the
-   exact stored path; all 55 cases fail, including a manifest without its
-   one required `timeline`. Every case declares `"0.5.0"` except two:
+1. Every bundled fixture of every supported version validates against the
+   schema of the version it declares.
+2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/` and
+   `fixtures/rejections/0.6.0/` at the exact stored path; all 110 cases fail,
+   including a manifest without its one required `timeline`. Every case of a
+   version's directory declares that version except two:
    `meta_schema_version_unknown` declares the unknown version `"9.9.9"`, and
    `root_missing_meta` has no `meta` to declare one
-   (`test_every_0_5_0_rejection_declares_0_5_0_except_two`).
-3. A manifest declaring any other version (`"0.3.0"`, `"0.1.0"`, `"1.0.0"`,
-   each made from `bare.json`) is rejected through the same error, a
-   `SchemaValidationError` at `meta.schema_version`.
+   (`test_every_rejection_declares_its_version_except_two`).
+3. A manifest declaring any other version (`"0.3.0"`, `"0.1.0"`, `"0.4.0"`,
+   `"1.0.0"`, each made from `bare.json`) is rejected through the same error,
+   a `SchemaValidationError` at `meta.schema_version`: it is checked against
+   the latest schema, whose version constant it fails. `UnsupportedVersionError`
+   is raised by the version-taking accessors and by `migrate`, never by
+   `validate`.
 4. Schema, fixture and font accessors resolve package data independently of
    the current working directory.
 5. Validation errors expose paths as tuples of object keys and array indices
@@ -22,6 +28,60 @@ This suite proves the draft public contract of schema 0.5.0.
    standard writer.
 7. The wheel and the sdist ship `docs/drawing.md`, byte for byte the
    repository's copy.
+8. `migrate` rewrites a value of any supported version to the latest one
+   (see "Versions and migration").
+
+## Versions and migration
+
+`SCHEMA_VERSION` is `"0.6.0"` and `SUPPORTED_VERSIONS` is `("0.5.0", "0.6.0")`,
+oldest first, the last one the latest. 0.6.0 changes the drawings a version
+pins, not the manifest format. What proves the version handling:
+
+- **One schema per version, the format unchanged.** `schema_path(version)`
+  names `timeskeleton-<version>.schema.json` for both versions; each schema's
+  `$id` contains `/<version>/` and its `meta.schema_version` constant is the
+  version. With `$id`, the top-level `description` and that constant removed,
+  the two parsed schemas are equal.
+- **The declared version selects the schema.** The schemas differ in their
+  version constant, so a 0.5.0 value checked against the 0.6.0 schema fails at
+  `meta.schema_version`. Every 0.5.0 fixture and every 0.6.0 fixture
+  validating therefore proves that `validate` checks each value against the
+  schema of the version it declares; every rejection case of either directory
+  is rejected at its stored path, never at `meta.schema_version` unless that
+  path is stored.
+- **The 0.6.0 manifests are the 0.5.0 manifests.** Both directories hold the
+  same 23 file names, and each 0.6.0 manifest equals `migrate` of its 0.5.0
+  counterpart once both `meta.generator` members are removed (the generator
+  names the timetoalign revision that emitted the fixtures, the one member a
+  re-emission may change).
+- **The 0.6.0 rejection cases are the 0.5.0 cases.** Both directories hold the
+  same 55 file names, each pair with the same `path` and `reason`, and the
+  0.6.0 manifest equals `migrate` of the 0.5.0 manifest for every case
+  `migrate` accepts; the two cases it refuses (`meta_schema_version_unknown`,
+  `root_missing_meta`) are byte for byte the same in both directories.
+
+`migrate(value)` returns a copy rewritten to `SCHEMA_VERSION` by an ordered
+chain of steps, one per version after 0.5.0; 0.5.0 to 0.6.0 rewrites
+`meta.schema_version` and nothing else. It does not validate. What proves it:
+
+- **The pinned pair.** `fixtures/migrations/0.5.0-to-0.6.0/before.json` is byte
+  for byte `fixtures/0.5.0/bare.json`, and `dumps(migrate(before))` is byte for
+  byte `after.json`; the migrated value validates.
+- **Only the declaration changes.** For every 0.5.0 fixture, `dumps` of its
+  migration is its file text with `"schema_version": "0.5.0"` replaced by
+  `"schema_version": "0.6.0"`, a single occurrence.
+- **The latest version is copied.** For every 0.6.0 fixture, `migrate`
+  returns a value equal to its input that is not the input object.
+- **The input is never changed.** After migrating a 0.5.0 and a 0.6.0 value,
+  each input equals a fresh parse of its file, and changing the result's
+  `meta` and `timeline` leaves the input unchanged (nothing is shared).
+- **The chain reaches the latest version.** `bare.json` declaring each
+  supported version migrates to a value declaring `SCHEMA_VERSION`.
+- **Refusals.** A value declaring `"9.9.9"` or `"0.4.0"`, a value without
+  `meta`, and a value whose `schema_version` is the number 5 raise
+  `UnsupportedVersionError` with `version` `"9.9.9"`, `"0.4.0"`, `None` and
+  `None`, and the message for `"9.9.9"` is exactly
+  `unsupported schema_version '9.9.9'; this package supports 0.5.0, 0.6.0`.
 
 ## One path rule for both validators
 
@@ -127,7 +187,7 @@ and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
 - **Every standard file round-trips.** Each of the 23 fixtures and 55
-  rejection cases (78 files) is reproduced byte for byte by
+  rejection cases of the latest version (78 files) is reproduced byte for byte by
   `dumps(json.loads(text))` in Python and by `dumps(parseJson(text))` in
   JavaScript. The JavaScript suite also reverses the keys of every object of
   every standard file, and the items of every array the canonical order sorts
@@ -213,7 +273,7 @@ properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
   by one statement, whose selector is `ids: ["score/name"]`; no statement
   sets `stroke-width` 0, `opacity` below 0.5, or `display: none` other than
   the one hiding child `a`.
-- **Rejections.** Fourteen cases of `fixtures/rejections/0.5.0/`, eight of them
+- **Rejections.** Fourteen cases of each rejection directory, eight of them
   one change to `styled__score.json`, six one change to `bare.json`, with the path both validators report: an unknown
   selector member `kind` (the selector), the element type `segment` (the
   `element`), an empty `ids` list (the list), an unknown property `colour`

@@ -42,6 +42,7 @@ export {
   type Lossless,
   parseJson,
 } from "./manifest.js";
+export { migrate } from "./migrate.js";
 export { completeStyles } from "./styles.js";
 export {
   declaredVersion,

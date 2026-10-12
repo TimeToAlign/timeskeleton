@@ -53,3 +53,8 @@ export function loadRejection(
 ): Record<string, unknown> {
   return parseJson(rejectionText(name, version)) as Record<string, unknown>;
 }
+
+/** The text of one file of a migration pair, e.g. `("0.5.0-to-0.6.0", "before.json")`. */
+export function migrationText(pair: string, file: string): string {
+  return readFileSync(resolve(repositoryRoot, "fixtures", "migrations", pair, file), "utf8");
+}

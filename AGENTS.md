@@ -4,14 +4,16 @@ These rules apply to every contributor, human or automated.
 
 ## Repository layout
 
-- `schema/`: the 0.5.0 JSON Schema for one manifest
+- `schema/`: one JSON Schema per version, 0.5.0 and 0.6.0, for one manifest
   `{meta, timeline, graphical?}`; it is the format contract and source of
   truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
   and SVG and TikZ writers; it is part of the contract, and both packages
   ship it.
-- `fixtures/`: generated 0.5.0 manifests under `fixtures/0.5.0/`, hand-authored rejection cases, and
-  the drawings (`inputs.json`, `figure.svg` and `figure.tex` per drawing;
+- `fixtures/`: generated manifests under `fixtures/<version>/`,
+  hand-authored rejection cases under `fixtures/rejections/<version>/`,
+  hand-authored migration pairs under `fixtures/migrations/`, and the
+  drawings (`inputs.json`, `figure.svg` and `figure.tex` per drawing;
   seven `figure.svg` derived by hand, everything else emitted); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37, its licence, and the advance-width metrics used
   by the drawing.
@@ -59,7 +61,8 @@ These rules apply to every contributor, human or automated.
   methods lose the distinction between `2.0` and `2`, integers beyond 2^53,
   and the order of array-index keys.
 - Author rejection cases under `fixtures/rejections/` by hand, one rule per
-  case; the fixture script does not emit them.
+  case, and migration pairs under `fixtures/migrations/` by hand; the fixture
+  script emits neither.
 - Regenerate `js/src/generated/` after changing the schema or font metrics.
   The generated TypeScript files belong in this repository.
 - Regenerate `fonts/dejavu-sans-2.37.metrics.json` with

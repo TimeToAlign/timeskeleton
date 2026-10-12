@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import json
 
 import pytest
@@ -13,7 +14,7 @@ from timeskeleton import (
     schema_path,
 )
 
-SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json"
+SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.6.0/timeskeleton.schema.json"
 
 TIMELINE_CLASSES = [
     "ContinuousLogicalTimeline",
@@ -81,16 +82,37 @@ MANIFEST_KEYS = [
 
 
 def test_schema_version_is_the_latest_supported_version() -> None:
-    assert SCHEMA_VERSION == "0.5.0"
-    assert SUPPORTED_VERSIONS == ("0.5.0",)
+    assert SCHEMA_VERSION == "0.6.0"
+    assert SUPPORTED_VERSIONS == ("0.5.0", "0.6.0")
     assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
 
 
 def test_schema_path_names_the_bundled_file() -> None:
     path = schema_path()
     assert path.is_file()
-    assert path.name == "timeskeleton-0.5.0.schema.json"
-    assert schema_path("0.5.0") == path
+    assert path.name == "timeskeleton-0.6.0.schema.json"
+    assert schema_path("0.6.0") == path
+    assert schema_path("0.5.0").name == "timeskeleton-0.5.0.schema.json"
+    assert schema_path("0.5.0").is_file()
+
+
+@pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
+def test_each_schema_declares_its_version(version: str) -> None:
+    schema = load_schema(version)
+    assert f"/{version}/" in schema["$id"]
+    assert schema["properties"]["meta"]["properties"]["schema_version"]["const"] == (
+        version
+    )
+
+
+def test_the_manifest_format_is_unchanged_since_0_5_0() -> None:
+    def without_version(version: str) -> dict:
+        schema = copy.deepcopy(load_schema(version))
+        del schema["$id"], schema["description"]
+        del schema["properties"]["meta"]["properties"]["schema_version"]["const"]
+        return schema
+
+    assert without_version("0.5.0") == without_version("0.6.0")
 
 
 def test_schema_identity() -> None:

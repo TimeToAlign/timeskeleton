@@ -25,7 +25,11 @@ def test_every_fixture_validates(version: str) -> None:
         validate(json.loads(path.read_text(encoding="utf-8")))
 
 
-@pytest.mark.parametrize("path", rejection_paths(), ids=lambda path: path.stem)
+@pytest.mark.parametrize(
+    "path",
+    [path for version in SUPPORTED_VERSIONS for path in rejection_paths(version)],
+    ids=lambda path: f"{path.parent.name}/{path.stem}",
+)
 def test_shared_rejection_is_rejected_at_its_path(path) -> None:
     case = json.loads(path.read_text(encoding="utf-8"))
     with pytest.raises(SchemaValidationError) as caught:
@@ -33,29 +37,24 @@ def test_shared_rejection_is_rejected_at_its_path(path) -> None:
     assert caught.value.path == tuple(case["path"])
 
 
-def test_every_0_5_0_rejection_declares_0_5_0_except_two() -> None:
+def test_the_rejection_cases_number_fifty_five_per_version() -> None:
+    assert [len(rejection_paths(version)) for version in SUPPORTED_VERSIONS] == [55, 55]
+
+
+@pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
+def test_every_rejection_declares_its_version_except_two(version: str) -> None:
     exempt = {"meta_schema_version_unknown", "root_missing_meta"}
-    declaring = set()
-    for path in rejection_paths("0.5.0"):
-        manifest = json.loads(path.read_text(encoding="utf-8"))["manifest"]
-        if path.stem in exempt:
-            assert declared_version(manifest) != "0.5.0"
-        else:
-            assert declared_version(manifest) == "0.5.0", path.stem
-            declaring.add(path.stem)
-    assert len(declaring) == 53
-    assert (
-        declared_version(
-            json.loads(
-                next(
-                    path
-                    for path in rejection_paths("0.5.0")
-                    if path.stem == "meta_schema_version_unknown"
-                ).read_text(encoding="utf-8")
-            )["manifest"]
+    declared = {
+        path.stem: declared_version(
+            json.loads(path.read_text(encoding="utf-8"))["manifest"]
         )
-        == "9.9.9"
-    )
+        for path in rejection_paths(version)
+    }
+    assert declared.pop("meta_schema_version_unknown") == "9.9.9"
+    assert declared.pop("root_missing_meta") is None
+    assert len(declared) == 53
+    assert set(declared.values()) == {version}
+    assert exempt.isdisjoint(declared)
 
 
 def test_error_renders_as_json_pointer() -> None:
@@ -134,7 +133,7 @@ def test_names_remain_unrestricted(load_fixture) -> None:
     validate(manifest)
 
 
-@pytest.mark.parametrize("version", ["0.3.0", "0.1.0", "1.0.0"])
+@pytest.mark.parametrize("version", ["0.3.0", "0.1.0", "0.4.0", "1.0.0"])
 def test_any_other_declared_version_is_rejected_at_its_declaration(
     version: str, load_fixture
 ) -> None:

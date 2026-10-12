@@ -7,8 +7,9 @@ A timeskeleton release is one version carried by:
 * ``js/package.json`` (``version``),
 * ``SCHEMA_VERSION`` in ``python/src/timeskeleton/validate.py`` and in
   ``js/src/validate.ts``,
-* exactly one schema file ``schema/timeskeleton-<version>.schema.json`` whose
-  ``$id`` and ``meta.schema_version`` constant carry the version,
+* the schema file ``schema/timeskeleton-<version>.schema.json``, whose ``$id``
+  and ``meta.schema_version`` constant carry the version (the schema files of
+  older versions remain beside it),
 * a non-empty fixture directory ``fixtures/<version>/``.
 
 Usage::

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="587.1399" height="81.3789" viewBox="0 0 587.1399 81.3789" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="555.1399" height="49.3789" rx="10" fill="#F3F4F6"/>
+<line data-address="Bass Kick" x1="96.126" y1="14.4023" x2="496.126" y2="14.4023" stroke="#0050EF" stroke-width="3"/>
+<circle data-address="Bass Kick" cx="96.126" cy="14.4023" r="3" fill="#0050EF"/>
+<polygon data-address="Bass Kick" points="505.126,14.4023 496.126,9.9023 496.126,18.9023" fill="#0050EF"/>
+<polygon data-address="Bass Kick/start" points="96.126,15.9023 93.126,28.9023 99.126,28.9023" fill="#000000"/>
+<polygon data-address="Bass Kick/end" points="496.126,15.9023 493.126,28.9023 499.126,28.9023" fill="#000000"/>
+<text data-address="Bass Kick/name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Bass Kick.mp3</text>
+<text data-address="Bass Kick/start/label" x="96.126" y="39.2563" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-address="Bass Kick/end/label" x="496.126" y="39.2563" text-anchor="middle" font-size="9" fill="#000000">231.0791836734694 s</text>
+</g>
+</svg>

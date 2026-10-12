@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
 import { fixtureFileNames, loadFixture, loadSchemaFile } from "./fixtures.js";
 
-const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.5.0/timeskeleton.schema.json";
+const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.6.0/timeskeleton.schema.json";
 
 const TIMELINE_CLASSES = [
   "ContinuousLogicalTimeline",
@@ -70,14 +70,41 @@ const MANIFEST_KEYS = [
 
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
-    expect(SCHEMA_VERSION).toBe("0.5.0");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.5.0"]);
+    expect(SCHEMA_VERSION).toBe("0.6.0");
+    expect(SUPPORTED_VERSIONS).toEqual(["0.5.0", "0.6.0"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
   it("bundles the schema file at the repository root", () => {
     expect(schema).toEqual(loadSchemaFile());
-    expect(schemas).toEqual({ "0.5.0": loadSchemaFile("0.5.0") });
+    expect(schemas).toEqual({
+      "0.5.0": loadSchemaFile("0.5.0"),
+      "0.6.0": loadSchemaFile("0.6.0"),
+    });
+  });
+
+  it.each(SUPPORTED_VERSIONS)("declares %s in its schema", (version) => {
+    const versionSchema = loadSchemaFile(version) as {
+      $id: string;
+      properties: { meta: { properties: { schema_version: { const: string } } } };
+    };
+    expect(versionSchema.$id).toContain(`/${version}/`);
+    expect(versionSchema.properties.meta.properties.schema_version.const).toBe(version);
+  });
+
+  it("keeps the manifest format of 0.5.0", () => {
+    const withoutVersion = (version: string) => {
+      const versionSchema = loadSchemaFile(version) as {
+        $id?: string;
+        description?: string;
+        properties: { meta: { properties: { schema_version: { const?: string } } } };
+      };
+      delete versionSchema.$id;
+      delete versionSchema.description;
+      delete versionSchema.properties.meta.properties.schema_version.const;
+      return versionSchema;
+    };
+    expect(withoutVersion("0.5.0")).toEqual(withoutVersion("0.6.0"));
   });
 
   it("carries the pinned $id, $schema and version constant", () => {

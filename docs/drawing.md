@@ -371,7 +371,7 @@ Distances marked "× v" are multiplied by the vertical stretch `v`
 
 | Constant | Canvas units |
 |---|---|
-| padding `P` | 8 |
+| padding `P` | 8 (above and below the content: P × v, section 6.5) |
 | gap between the name column and the root's start `G` | 8 |
 | gap between bands `B` | 4 × v |
 | row pitch `p` | max(14 × v, h(s)) |
@@ -487,7 +487,7 @@ labels follow this placement order.
 
 **Breaks.** A displayed break is a vertical line from the flow row of its
 side across every band to the padding of the opposite side: from `(x, yf)`
-to `(x, P)` below the root and to `(x, Hc − P)` above it (section 6.5). Its label sits
+to `(x, P × v)` below the root and to `(x, Hc − P × v)` above it (section 6.5). Its label sits
 at the line's end on the flow row, alongside the line on the root's side of
 the flow row: the break labels of a side are placed by first fit, in
 traversal order and each timeline's breaks in canonical order, into the
@@ -498,11 +498,13 @@ root.
 
 ### 6.5 Heights
 
-The root's line lies at `y_root = max(P + Ea, P + h(s) / 2)`, `Ea` the
-outer edge of the above side (0 when it has no band). The content's height
-is `Hc = y_root + max(Eb, h(s) / 2) + P`, `Eb` the outer edge of the below
-side. Here `s` is the root's row's name
-font size.
+The root's line lies at `y_root = max(P × v + Ea, P × v + h(s) / 2)`, `Ea`
+the outer edge of the above side (0 when it has no band). The content's
+height is `Hc = y_root + max(Eb, h(s) / 2) + P × v`, `Eb` the outer edge of
+the below side. Here `s` is the root's row's name font size. The padding
+above and below is stretched by `v` so that the vertical stretch also works
+on a single timeline, by growing the room above and below it; with `v = 1`
+it is `P`.
 
 ### 6.6 Elements
 
@@ -657,7 +659,7 @@ fractional digits without trailing zeros. A value that rounds to zero is
 The output is UTF-8, one element per line, no indentation, a final newline:
 
 ```
-<svg xmlns="http://www.w3.org/2000/svg" width="{PW}" height="{PH}" viewBox="0 0 {PW} {PH}" font-family="DejaVu Sans" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="{PW}" height="{PH}" viewBox="0 0 {PW} {PH}" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate({X} {Y}) scale({z})">
 ...
 </g>
@@ -665,7 +667,9 @@ The output is UTF-8, one element per line, no indentation, a final newline:
 ```
 
 with one `<g>` per drawing, `(X, Y)` its position on the page, and
-` scale({z})` left out when `z` is 1. In text, `&`, `<` and `>` are written
+` scale({z})` left out when `z` is 1. `text-rendering="geometricPrecision"`
+keeps a renderer from hinting small text, which would move its glyphs off
+the advance widths the layout measured. In text, `&`, `<` and `>` are written
 `&amp;`, `&lt;` and `&gt;`; in attribute values, so are they, and `"` as
 `&quot;`.
 
