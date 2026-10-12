@@ -1,0 +1,124 @@
+{
+  "bundle": {
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "rec-a:dpt_1"
+        ],
+        "meta": {},
+        "name": "rec-a"
+      },
+      {
+        "id": "group_2",
+        "members": [
+          "rec-ref:dpt_1"
+        ],
+        "meta": {},
+        "name": "rec-ref"
+      }
+    ],
+    "id": "bundle_1",
+    "meta": {},
+    "name": "alignment",
+    "support_policy": "omit"
+  },
+  "graphical": {
+    "order": {
+      "group_1": [
+        "rec-a:dpt_1"
+      ],
+      "group_2": [
+        "rec-ref:dpt_1"
+      ]
+    }
+  },
+  "meta": {
+    "generator": "timetoalign 1.2.0 (d3a500d7)",
+    "schema_version": "0.7.0"
+  },
+  "timelines": [
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "rec-a:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 1764
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {
+        "sample_rate": 44100,
+        "sample_rate_provenance": "assumed"
+      },
+      "metric_hierarchy": null,
+      "name": "rec a",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "rec-ref:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 2205
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {
+        "sample_rate": 44100,
+        "sample_rate_provenance": "assumed"
+      },
+      "metric_hierarchy": null,
+      "name": "rec ref",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    }
+  ]
+}

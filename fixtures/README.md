@@ -1,15 +1,27 @@
 # Fixtures
 
-Fixtures are kept per schema version: `fixtures/0.5.0/` and
-`fixtures/0.6.0/`, the current version, each with its `drawings/`, and the
-rejection cases of each version under `fixtures/rejections/<version>/`.
+Fixtures are kept per schema version in `fixtures/<version>/`, for 0.5.0,
+0.6.0 and 0.7.0, the current version; a version's drawings lie in its
+`drawings/` directory, and the rejection cases of each version under
+`fixtures/rejections/<version>/`.
 
-Every JSON file directly under `fixtures/<version>/` is a complete
-TimeSkeleton manifest with one `{meta, timeline, graphical?}` object. The
-manifests are emitted by timetoalign through `scripts/emit_fixtures.py`; that
-script is their only writer. Regenerate them after a serialization change and
-review the diff. The script refuses to replace the fixtures of a version whose
-tag `v<version>` exists, so a released version's fixtures stay as released.
+The generated fixtures are complete TimeSkeleton files, one directory per
+file kind:
+
+- every JSON file directly under `fixtures/<version>/` is a timeline file
+  `{meta, timeline, graphical?}`;
+- every JSON file under `fixtures/<version>/groups/` is a group file `{meta,
+  timelines, group, graphical}`;
+- every JSON file under `fixtures/<version>/bundles/` is a bundle file
+  `{meta, timelines, bundle, graphical}`.
+
+Versions 0.5.0 and 0.6.0 have timeline files only. The files are emitted by
+timetoalign through `scripts/emit_fixtures.py`; that script is their only
+writer. Regenerate them after a serialization change and review the diff;
+`--kinds` followed by one or more of `timeline`, `group` and `bundle`
+regenerates those kinds alone. The script refuses to replace the fixtures of
+a version whose tag `v<version>` exists, so a released version's fixtures
+stay as released.
 
 The rejection cases under `fixtures/rejections/<version>/` are
 hand-authored. Each changes one rule and records the path both validators
@@ -19,41 +31,46 @@ The migration pairs under `fixtures/migrations/` are hand-authored too
 (section [Migrations](#migrations)).
 
 The [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md)
-pins how a manifest is drawn. A drawing is derived; these directories contain no drawing schema.
+pins how a timeline manifest is drawn. A drawing is derived; these directories contain no drawing schema.
 
 ## Provenance
 
-Each generated manifest records the timetoalign revision that produced it in
+Each generated file records the timetoalign revision that produced it in
 `meta.generator`:
 
 ```text
 timetoalign <installed version> (<commit>)
 ```
 
-To regenerate the manifests, run the script with an interpreter containing
+To regenerate the files, run the script with an interpreter containing
 the represented timetoalign revision:
 
 ```bash
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C <timetoalign-checkout> rev-parse --short HEAD)"
 ```
 
-The script writes each manifest with `timeskeleton.dumps` (object keys sorted
+The script writes each file with `timeskeleton.dumps` (object keys sorted
 by code point, arrays in canonical order), reads it back, validates it, and
-fails unless its timeline is stable through
-`Timeline.from_dict(m).to_dict()`, compared with sorted keys and arrays as
-they stand. A library whose array order differs from the canonical order
-therefore fails the round trip. Every timeline, conversion map, region,
+fails unless its content is stable through the library: a timeline file's
+`timeline` through `Timeline.from_dict(m).to_dict()`, a group file without
+its `meta` through `TimelineGroup.from_dict(m).to_dict()`, and a bundle file
+without its `meta` through `AlignmentBundle.from_dict(m).to_dict()`, each
+compared with sorted keys and arrays as they stand. A library whose array
+order differs from the canonical order therefore fails the round trip. A
+group's or bundle's `graphical.order` is the library's own member order and
+takes part in the round trip; a timeline file's `graphical` block is composed
+by the script and does not. Every timeline, conversion map, region,
 break, jump and marker carries an id; ids the script does not give are
 minted by timetoalign and depend on the construction order in the script,
 which is part of the fixture contract.
 
-A builder that produces one top-level timeline uses `<builder>.json`. A
-builder that produces several uses `<builder>__<slug>.json` for each
-timeline, where `<slug>` is the timeline id with every character outside
-`[A-Za-z0-9_-]` replaced by `_`. The script refuses two ids that would
-produce the same file name.
+A builder that produces one top-level timeline, group or bundle uses
+`<builder>.json` in its kind's directory. A builder that produces several
+uses `<builder>__<slug>.json` for each, where `<slug>` is its id with every
+character outside `[A-Za-z0-9_-]` replaced by `_`. The script refuses two ids
+that would produce the same file name.
 
-## Manifest coverage
+## Timeline file coverage
 
 The six axis fixtures cover every combination of continuous or discrete with
 logical, physical, or graphical:
@@ -96,8 +113,29 @@ first, so no two fixtures pin the same combination:
 
 Every generated file carries the full timeline shape that timetoalign writes:
 `name` is `null` when absent, placed children are locked, empty flow control
-contains `breaks`, `jumps`, and `markers`, and absent measure maps and metric
-hierarchies are `null`.
+contains `breaks`, `jumps`, and `markers`, absent measure maps and metric
+hierarchies are `null`, and from 0.7.0 on every timeline states
+`is_segment_line`.
+
+## Group and bundle file coverage
+
+A group or bundle file takes the place of an earlier file of its kind only
+when its structural signature is new: the structure of its root timelines,
+the class and depth (0 for a root) of the members of each group, and, for a
+bundle, the number of its ungrouped roots. The script names each file it
+skips on standard error. The constructed files are built first:
+
+| Builder | Construction |
+| --- | --- |
+| `group_number_types` | a group of three timelines whose axes have different number types (quarters as fractions, seconds as floats, pixels as integers), in a display order that differs from their id order |
+| `group_child_member` | a group of the second half of a score, a child of the score placed at its exact offset, with a whole recording |
+| `bundle_mixed` | a bundle of two groups, a score with its performance and a page with an excerpt of a recording (a child of the recording, whose root joins the bundle ungrouped), and one more ungrouped timeline |
+
+The corpus builders, prefixed `corpus_`, write the groups and bundles that
+public timetoalign loaders create from corpus specimens: the group of a
+TiLiA export, and the bundles of a Parangonada alignment, a Matchfile, an
+MPM performance, an IEEE 1599 document, a Listen Here! export and a TiLiA
+export. No bundle fixture carries MatchClaims.
 
 ## Drawings
 
@@ -137,22 +175,35 @@ The script refuses to replace the drawings of a version whose tag
 
 ## Rejection coverage
 
-The rejection cases cover the manifest root and metadata, timeline classes and
+The rejection cases cover the file root and metadata, timeline classes and
 units, coordinate number forms and bounds, child offsets, conversion maps,
-regions, flow control, measure maps, metric hierarchies, the
-`graphical` block's selectors, declarations, and statement shapes, and the
-identity rules `validate` checks beyond the schema: ids unique across a
-manifest and jump targets naming a marker of their own timeline. Tests in
-both packages load the same files and compare the reported path with the
-case's expected path.
+regions, flow control, measure maps, metric hierarchies, the `graphical`
+block's selectors, declarations, and statement shapes, and the identity rules
+`validate` checks beyond the schema: ids unique across a manifest and jump
+targets naming a marker of their own timeline. From 0.7.0 on they also cover
+segment lines (a missing or non-boolean `is_segment_line`, a segment of
+another class or another `is_segment_line` value, a segment that leaves a gap
+or does not start at 0, segments that fall short of the segment line's
+length), the file kinds (none or several of `timeline`, `group` and `bundle`),
+the group and bundle file shapes and their `graphical.order`, and the identity
+rules of group and bundle files: each root its own scope, timeline ids unique
+across the file, group ids distinct from timeline ids and from each other,
+members naming timelines of the file, a timeline a member of at most one
+group, no member of a group lying inside another, every root of a group file
+containing a member, and display orders that are permutations of their group's
+members. Tests in both packages load the same files and compare the reported
+path with the case's expected path.
 
 ## Migrations
 
 Each directory `fixtures/migrations/<from>-to-<to>/` pins one migration step
-with two files: `before.json`, a manifest of version `<from>`, and
+with two files: `before.json`, a file of version `<from>`, and
 `after.json`, the standard text (`dumps`) of `migrate` applied to it. Both
 packages migrate `before.json` and compare the result with `after.json` byte
-for byte. In `0.5.0-to-0.6.0`, `before.json` is `fixtures/0.5.0/bare.json`
-and `after.json` differs from it only in `meta.schema_version`.
+for byte. In `0.5.0-to-0.6.0`, `before.json` is `fixtures/0.5.0/bare.json`,
+and `after.json` differs from it only in `meta.schema_version`. In
+`0.6.0-to-0.7.0`, `before.json` is `fixtures/0.6.0/bare.json`, and
+`after.json` differs from it in `meta.schema_version` and in the timeline's
+`is_segment_line: false`.
 
-See the [main README](../README.md) for the schema API and canonical writer.
+See the [main README](../README.md) for the file kinds, the schema API and the canonical writer.

@@ -1,0 +1,265 @@
+{
+  "bundle": {
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "score:clt_1",
+          "score:dlt_1"
+        ],
+        "meta": {},
+        "name": "score"
+      },
+      {
+        "id": "group_2",
+        "members": [
+          "perf:cpt_1",
+          "perf:dgt_1",
+          "perf:dpt_1"
+        ],
+        "meta": {},
+        "name": "perf"
+      }
+    ],
+    "id": "bundle_1",
+    "meta": {},
+    "name": "Beethoven_op35_1971Curzon_Var14only",
+    "support_policy": "omit"
+  },
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "group_2": [
+        "perf:cpt_1",
+        "perf:dpt_1",
+        "perf:dgt_1"
+      ]
+    }
+  },
+  "meta": {
+    "generator": "timetoalign 1.2.0 (d3a500d7)",
+    "schema_version": "0.7.0"
+  },
+  "timelines": [
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:cpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 75.37598985608956
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": {},
+      "class": "DiscreteGraphicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "pixels_to_seconds",
+          "scalar": 0.0029024943310657597,
+          "source_unit": "pixels",
+          "target_unit": "seconds",
+          "type": "ScalarMap"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:dgt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "pixels",
+        "value": 26469
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    },
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 3324081
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": {},
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [
+        {
+          "extrapolate": "extrapolate",
+          "id": "tmap_1",
+          "kind": "linear",
+          "name": "quarters_to_seconds",
+          "source_unit": "quarters",
+          "target_unit": "seconds",
+          "type": "TableMap",
+          "x_values": [
+            [
+              0,
+              1
+            ],
+            [
+              79,
+              2
+            ],
+            [
+              40,
+              1
+            ],
+            [
+              111,
+              2
+            ],
+            [
+              56,
+              1
+            ],
+            [
+              125,
+              2
+            ],
+            [
+              64,
+              1
+            ],
+            [
+              46439,
+              720
+            ]
+          ],
+          "y_values": [
+            0.0,
+            23.7,
+            24.9,
+            34.199999999999996,
+            35.4,
+            39.3,
+            42.9,
+            43.278691983122364
+          ]
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "score:clt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          46439,
+          720
+        ]
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    },
+    {
+      "children": {},
+      "class": "DiscreteLogicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "ticks_to_quarters",
+          "ppq": 720,
+          "scalar": [
+            1,
+            720
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "TicksToQuarters"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "score:dlt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "ticks",
+        "value": 46440
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "number_type": "int",
+      "regions": [],
+      "unit": "ticks"
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "graphical": {
+    "order": [
+      "score",
+      "page",
+      "performance"
+    ]
+  },
+  "group": {
+    "id": "group_1",
+    "members": [
+      "page",
+      "performance",
+      "score"
+    ],
+    "meta": {},
+    "name": "Edition"
+  },
+  "meta": {
+    "generator": "timetoalign 1.2.0 (d3a500d7)",
+    "schema_version": "0.7.0"
+  },
+  "timelines": [
+    {
+      "children": {},
+      "class": "DiscreteGraphicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "page",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "pixels",
+        "value": 1920
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Page",
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    },
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "performance",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 12.5
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Performance",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": {},
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "score",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          12,
+          1
+        ]
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Score",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ]
+}

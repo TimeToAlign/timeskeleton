@@ -3,6 +3,8 @@ import {
   compactJson,
   declaredVersion,
   dumps,
+  FILE_KINDS,
+  type FileKind,
   isJsonFloat,
   type Json,
   type Lossless,
@@ -34,6 +36,38 @@ function withoutGenerator(value: JsonObject): JsonObject {
   return value;
 }
 
+/** The store-built children of `corpus_score_ms3`: 0.6.0 id -> 0.7.0 id. */
+const MINTED_CHILDREN: Record<string, string> = { notes: "clt_2", controls: "clt_3" };
+
+/** Rename the store-built children as 0.7.0 does: a minted id, the store name. */
+function withMintedChildren(value: JsonObject): JsonObject {
+  const timeline = value.timeline as JsonObject;
+  const children = timeline.children as JsonObject;
+  const renamed: JsonObject = {};
+  for (const [store, minted] of Object.entries(MINTED_CHILDREN)) {
+    const child = children[store] as JsonObject;
+    (child.timeline as JsonObject).id = minted;
+    (child.timeline as JsonObject).name = store;
+    renamed[minted] = child;
+  }
+  expect(Object.keys(children).sort()).toEqual(Object.keys(MINTED_CHILDREN).sort());
+  timeline.children = renamed;
+  return value;
+}
+
+/** The value declaring 0.7.0, with `is_segment_line: false` on every timeline. */
+function atLatest(value: JsonObject): JsonObject {
+  const mark = (timeline: JsonObject): void => {
+    timeline.is_segment_line = false;
+    for (const entry of Object.values(timeline.children as JsonObject)) {
+      mark((entry as JsonObject).timeline as JsonObject);
+    }
+  };
+  (value.meta as JsonObject).schema_version = "0.7.0";
+  mark(value.timeline as JsonObject);
+  return value;
+}
+
 function refusal(value: unknown): UnsupportedVersionError {
   try {
     migrate(value);
@@ -45,24 +79,64 @@ function refusal(value: unknown): UnsupportedVersionError {
 }
 
 describe("migrate", () => {
-  it("reproduces the pinned pair", () => {
-    const before = migrationText("0.5.0-to-0.6.0", "before.json");
-    expect(before).toBe(fixtureText("bare", "0.5.0"));
-    const migrated = migrate(read(before));
-    expect(dumps(migrated)).toBe(migrationText("0.5.0-to-0.6.0", "after.json"));
-    validate(migrated);
-  });
-
-  it.each(fixtureFileNames("0.5.0"))("changes only the declaration of %s", (file) => {
-    const text = fixtureText(file.slice(0, -5), "0.5.0");
-    expect(text.split('"schema_version": "0.5.0"')).toHaveLength(2);
-    expect(dumps(migrate(read(text)))).toBe(
-      text.replace('"schema_version": "0.5.0"', '"schema_version": "0.6.0"'),
+  it("reproduces the pinned pairs", () => {
+    for (const source of ["0.5.0", "0.6.0"]) {
+      const target = source === "0.5.0" ? "0.6.0" : "0.7.0";
+      expect(migrationText(`${source}-to-${target}`, "before.json")).toBe(
+        fixtureText("bare", source),
+      );
+    }
+    const first = migrationText("0.5.0-to-0.6.0", "before.json");
+    expect(migrationText("0.5.0-to-0.6.0", "after.json")).toBe(
+      first.replace('"schema_version": "0.5.0"', '"schema_version": "0.6.0"'),
     );
+    const second = migrationText("0.6.0-to-0.7.0", "before.json");
+    expect(migrationText("0.6.0-to-0.7.0", "after.json")).toBe(
+      second
+        .replace('"schema_version": "0.6.0"', '"schema_version": "0.7.0"')
+        .replace('    "id": "bare",\n', '    "id": "bare",\n    "is_segment_line": false,\n'),
+    );
+    for (const text of [first, second]) {
+      const migrated = migrate(read(text));
+      expect(dumps(migrated)).toBe(dumps(atLatest(read(text))));
+      validate(migrated);
+    }
+    expect(dumps(migrate(read(second)))).toBe(migrationText("0.6.0-to-0.7.0", "after.json"));
   });
 
-  it.each(fixtureFileNames("0.6.0"))("copies the latest version of %s", (file) => {
-    const value = read(fixtureText(file.slice(0, -5), "0.6.0"));
+  it.each(
+    ["0.5.0", "0.6.0"].flatMap((version) =>
+      fixtureFileNames(version).map((file) => [version, file] as const),
+    ),
+  )("changes only the declaration and the flag of %s/%s", (version, file) => {
+    const text = fixtureText(file.slice(0, -5), version);
+    expect(text.split(`"schema_version": "${version}"`)).toHaveLength(2);
+    expect(dumps(migrate(read(text)))).toBe(dumps(atLatest(read(text))));
+  });
+
+  it("marks every timeline", () => {
+    const migrated = migrate(read(fixtureText("nested", "0.6.0")));
+    const root = migrated.timeline as JsonObject;
+    const [child] = Object.values(root.children as JsonObject).map(
+      (entry) => (entry as JsonObject).timeline as JsonObject,
+    );
+    const [grandchild] = Object.values((child as JsonObject).children as JsonObject).map(
+      (entry) => (entry as JsonObject).timeline as JsonObject,
+    );
+    expect([root, child, grandchild].map((timeline) => timeline?.is_segment_line)).toEqual([
+      false,
+      false,
+      false,
+    ]);
+    for (const timeline of [root, child, grandchild]) delete timeline?.is_segment_line;
+    (migrated.meta as JsonObject).schema_version = "0.6.0";
+    expect(migrated).toEqual(read(fixtureText("nested", "0.6.0")));
+  });
+
+  it.each(
+    FILE_KINDS.flatMap((kind) => fixtureFileNames("0.7.0", kind).map((file) => [kind, file])),
+  )("copies the latest version of %s %s", (kind, file) => {
+    const value = read(fixtureText(file.slice(0, -5), "0.7.0", kind as FileKind));
     const migrated = migrate(value);
     expect(migrated).toEqual(value);
     expect(migrated).not.toBe(value);
@@ -85,33 +159,58 @@ describe("migrate", () => {
     const value = loadFixture("bare");
     (value.meta as JsonObject).schema_version = version;
     expect(declaredVersion(migrate(value))).toBe(SCHEMA_VERSION);
+    expect(SCHEMA_VERSION).toBe("0.7.0");
   });
 
-  it("finds the 0.5.0 manifests in the 0.6.0 manifests", () => {
-    const names = fixtureFileNames("0.5.0");
-    expect(fixtureFileNames("0.6.0")).toEqual(names);
+  it.each([
+    ["0.5.0", "0.6.0"],
+    ["0.6.0", "0.7.0"],
+  ])("finds the %s manifests in the %s manifests", (old, current) => {
+    const names = fixtureFileNames(old);
+    expect(fixtureFileNames(current)).toEqual(names);
     expect(names).toHaveLength(23);
     for (const file of names) {
       const name = file.slice(0, -5);
-      expect(withoutGenerator(migrate(read(fixtureText(name, "0.5.0")))), name).toEqual(
-        withoutGenerator(read(fixtureText(name, "0.6.0"))),
-      );
+      let expected = withoutGenerator(migrate(read(fixtureText(name, old))));
+      const actual = withoutGenerator(migrate(read(fixtureText(name, current))));
+      if (current === "0.7.0" && name === "corpus_score_ms3") {
+        expect(expected).not.toEqual(actual);
+        expected = withMintedChildren(expected);
+      }
+      expect(expected, name).toEqual(actual);
     }
   });
 
-  it("finds the 0.5.0 rejection cases in the 0.6.0 cases", () => {
-    const names = rejectionFileNames("0.5.0");
-    expect(rejectionFileNames("0.6.0")).toEqual(names);
+  it.each([
+    ["0.5.0", "0.6.0", 55],
+    ["0.6.0", "0.7.0", 93],
+  ])("finds the %s rejection cases in the %s cases", (old, current, count) => {
+    const names = rejectionFileNames(old);
+    const later = rejectionFileNames(current);
     expect(names).toHaveLength(55);
+    expect(later).toHaveLength(count);
     const refused = ["meta_schema_version_unknown.json", "root_missing_meta.json"];
     for (const name of names) {
-      const before = loadRejection(name, "0.5.0");
-      const after = loadRejection(name, "0.6.0");
-      expect([before.path, before.reason]).toEqual([after.path, after.reason]);
-      if (refused.includes(name)) {
-        expect(rejectionText(name, "0.5.0")).toBe(rejectionText(name, "0.6.0"));
+      expect(later).toContain(name);
+      const before = loadRejection(name, old);
+      const after = loadRejection(name, current);
+      expect(before.path).toEqual(after.path);
+      if (current === "0.7.0" && name === "root_missing_timeline.json") {
+        expect(after.reason).toBe(
+          "A file holds exactly one of timeline, group and bundle beside meta; this one holds none.",
+        );
+      } else expect(before.reason).toBe(after.reason);
+      if (refused.includes(name) && current === "0.6.0") {
+        expect(rejectionText(name, old)).toBe(rejectionText(name, current));
+      } else if (refused.includes(name)) {
+        // migrate refuses these; 0.7.0 gives their timeline the new flag.
+        (
+          (before.manifest as Record<string, unknown>).timeline as Record<string, unknown>
+        ).is_segment_line = false;
+        expect(before).toEqual(after);
       } else {
-        expect(migrate(before.manifest), name).toEqual(after.manifest);
+        expect(declaredVersion(after.manifest)).toBe(current);
+        expect(migrate(before.manifest), name).toEqual(migrate(after.manifest));
       }
     }
   });
@@ -120,7 +219,9 @@ describe("migrate", () => {
     const text =
       '{"meta":{"schema_version":"0.5.0"},"timeline":{"children":{"10":1.0,"2":123456789012345678}}}';
     const migrated = migrate(parseJson(text)) as JsonObject;
-    expect(compactJson(migrated as Lossless<Json>)).toBe(text.replace('"0.5.0"', '"0.6.0"'));
+    expect(compactJson(migrated as Lossless<Json>)).toBe(
+      text.replace('"0.5.0"', '"0.7.0"').replace("}}}", '},"is_segment_line":false}}'),
+    );
     const children = (migrated.timeline as JsonObject).children as JsonObject;
     expect(isJsonFloat(children["10"])).toBe(true);
     expect(children["2"]).toBe(123456789012345678n);
@@ -142,7 +243,7 @@ describe("migrate", () => {
     const value = loadFixture("bare");
     (value.meta as JsonObject).schema_version = "9.9.9";
     expect(refusal(value).message).toBe(
-      'unsupported schema_version "9.9.9"; this package supports 0.5.0, 0.6.0',
+      'unsupported schema_version "9.9.9"; this package supports 0.5.0, 0.6.0, 0.7.0',
     );
   });
 });

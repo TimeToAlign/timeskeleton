@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (d3a500d7)",
+    "schema_version": "0.7.0"
+  },
+  "timeline": {
+    "children": {},
+    "class": "DiscreteLogicalTimeline",
+    "conversion_maps": [
+      {
+        "id": "lmap_1",
+        "name": "ticks_to_quarters",
+        "offset": [
+          -1,
+          2
+        ],
+        "scalar": [
+          1,
+          32
+        ],
+        "source_unit": "ticks",
+        "target_unit": "quarters",
+        "type": "LinearMap"
+      }
+    ],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": []
+    },
+    "id": "score:dlt_1",
+    "is_segment_line": false,
+    "length": {
+      "number_type": "int",
+      "unit": "ticks",
+      "value": 2064
+    },
+    "locked": false,
+    "measure_map": null,
+    "meta": {},
+    "metric_hierarchy": null,
+    "name": "Beethoven_Eroica_op35-cpjku",
+    "number_type": "int",
+    "regions": [],
+    "unit": "ticks"
+  }
+}

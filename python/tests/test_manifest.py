@@ -8,6 +8,7 @@ from typing import Any
 import pytest
 
 from timeskeleton import (
+    FILE_KINDS,
     canonical_json,
     canonical_order,
     dumps,
@@ -49,7 +50,8 @@ NUMBER_CORPUS_TEXT = (
 
 
 def _standard_files() -> list:
-    return [*fixture_paths(), *rejection_paths()]
+    fixtures = [path for kind in FILE_KINDS for path in fixture_paths(kind=kind)]
+    return [*fixtures, *rejection_paths()]
 
 
 @pytest.mark.parametrize(
@@ -60,8 +62,9 @@ def test_standard_files_round_trip_byte_for_byte(path) -> None:
     assert dumps(json.loads(text)) == text
 
 
-def test_the_standard_files_number_seventy_eight() -> None:
-    assert len(_standard_files()) == 23 + 55
+def test_the_standard_files_number_one_hundred_and_twenty_six() -> None:
+    assert [len(fixture_paths(kind=kind)) for kind in FILE_KINDS] == [23, 3, 7]
+    assert len(_standard_files()) == 23 + 3 + 7 + 93
 
 
 def test_non_ascii_text_is_written_unescaped() -> None:
@@ -75,7 +78,7 @@ def test_number_corpus() -> None:
     assert dumps(json.loads(NUMBER_CORPUS)) == NUMBER_CORPUS_TEXT
 
 
-def test_canonical_order_copies_and_reorders_manifests_only(load_fixture) -> None:
+def test_canonical_order_copies_and_reorders_files_only(load_fixture) -> None:
     manifest = load_fixture("continuous_logical")
     text = json.dumps(manifest)
     assert dumps(canonical_order(manifest)) == dumps(manifest)
@@ -224,6 +227,72 @@ def test_every_tie_resolves_to_the_canonical_order(load_fixture) -> None:
     written = json.loads(dumps(result))["timeline"]
     assert list(written["children"]) == ["a", "b", "m", "z"]
     assert list(written["children"]["z"]["timeline"]["children"]) == ["x", "y"]
+
+
+def test_a_group_file_is_put_in_order(group_document) -> None:
+    group_document["timelines"].reverse()
+    group_document["group"]["members"].reverse()
+    recording = group_document["timelines"][0]
+    recording["regions"] = [
+        {"id": region, "name": None, "start": _at(start), "end": _at(8), "meta": {}}
+        for region, start in [("late", 4), ("early", 0)]
+    ]
+    given = copy.deepcopy(group_document)
+    result = canonical_order(group_document)
+    assert group_document == given
+    assert [root["id"] for root in result["timelines"]] == ["piece", "recording"]
+    assert result["group"]["members"] == ["recording", "second-half"]
+    assert result["graphical"]["order"] == ["second-half", "recording"]
+    regions = result["timelines"][1]["regions"]
+    assert [region["id"] for region in regions] == ["early", "late"]
+    validate(result)
+
+
+def test_a_bundle_file_is_put_in_order(bundle_document) -> None:
+    groups = bundle_document["bundle"]["groups"]
+    groups.reverse()
+    for group in groups:
+        group["members"].reverse()
+    bundle_document["timelines"].reverse()
+    bundle_document["graphical"]["order"] = {
+        "group_2": ["excerpt", "page"],
+        "group_1": ["performance", "score"],
+    }
+    result = canonical_order(bundle_document)
+    assert [root["id"] for root in result["timelines"]] == [
+        "annotations",
+        "page",
+        "performance",
+        "recording",
+        "score",
+    ]
+    assert [group["id"] for group in result["bundle"]["groups"]] == [
+        "group_1",
+        "group_2",
+    ]
+    assert [group["members"] for group in result["bundle"]["groups"]] == [
+        ["performance", "score"],
+        ["excerpt", "page"],
+    ]
+    assert result["graphical"]["order"] == {
+        "group_2": ["excerpt", "page"],
+        "group_1": ["performance", "score"],
+    }
+    validate(result)
+
+
+def test_members_are_ordered_by_code_point() -> None:
+    value = {"group": {"members": ["\U0001f600", "\ufb00", "b"]}}
+    assert canonical_order(value)["group"]["members"] == ["b", "\ufb00", "\U0001f600"]
+
+
+@pytest.mark.parametrize(
+    "value",
+    [{"group": {"members": ["a", 5]}}, {"bundle": {"groups": [{"members": [5, "a"]}]}}],
+)
+def test_a_member_that_is_no_string_is_refused(value) -> None:
+    with pytest.raises(ValueError, match="cannot put members in canonical order"):
+        canonical_order(value)
 
 
 def test_canonical_json_text() -> None:

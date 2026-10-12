@@ -1,0 +1,445 @@
+{
+  "manifest": {
+    "meta": {
+      "generator": "timetoalign 1.2.0 (f0a58ce1)",
+      "schema_version": "0.7.0"
+    },
+    "timeline": {
+      "children": {
+        "dgt_2": {
+          "offset": {
+            "number_type": "int",
+            "unit": "pixels",
+            "value": 16
+          },
+          "timeline": {
+            "children": {},
+            "class": "DiscreteGraphicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "dgt_2",
+            "is_segment_line": false,
+            "length": {
+              "number_type": "int",
+              "unit": "pixels",
+              "value": 640
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "int",
+            "regions": [],
+            "unit": "pixels"
+          }
+        },
+        "dgt_3": {
+          "offset": {
+            "number_type": "int",
+            "unit": "pixels",
+            "value": 1000
+          },
+          "timeline": {
+            "children": {},
+            "class": "DiscreteGraphicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "dgt_3",
+            "is_segment_line": false,
+            "length": {
+              "number_type": "int",
+              "unit": "pixels",
+              "value": 480
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "int",
+            "regions": [],
+            "unit": "pixels"
+          }
+        }
+      },
+      "class": "DiscreteGraphicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "dgt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "pixels",
+        "value": 1920
+      },
+      "locked": false,
+      "measure_map": [
+        {
+          "actual_length": [
+            1,
+            1
+          ],
+          "count": 1,
+          "end_repeat": false,
+          "name": "0",
+          "next": [
+            "2"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 0,
+          "offset_within_measure": [
+            3,
+            1
+          ],
+          "qstamp": [
+            0,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            1,
+            1
+          ],
+          "count": 3,
+          "end_repeat": true,
+          "name": "2",
+          "next": [
+            "1",
+            "4"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 2,
+          "qstamp": [
+            5,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            1,
+            1
+          ],
+          "count": 4,
+          "end_repeat": false,
+          "name": "2",
+          "next": [
+            "5",
+            "6",
+            "7"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 2,
+          "qstamp": [
+            6,
+            1
+          ],
+          "start_repeat": true,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            2,
+            1
+          ],
+          "count": 5,
+          "end_repeat": true,
+          "name": "2",
+          "next": [
+            "4"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 2,
+          "qstamp": [
+            7,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4",
+          "volta": 1
+        },
+        {
+          "actual_length": [
+            1,
+            1
+          ],
+          "count": 6,
+          "end_repeat": false,
+          "name": "2",
+          "next": [
+            "8"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 2,
+          "qstamp": [
+            9,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4",
+          "volta": 2
+        },
+        {
+          "actual_length": [
+            2,
+            1
+          ],
+          "count": 7,
+          "end_repeat": false,
+          "name": "3",
+          "next": [],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 3,
+          "qstamp": [
+            10,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4",
+          "volta": 3
+        },
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 8,
+          "end_repeat": true,
+          "name": "4",
+          "next": [
+            "9"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 4,
+          "qstamp": [
+            12,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 9,
+          "end_repeat": false,
+          "name": "5",
+          "next": [
+            "9",
+            "10",
+            "13"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 5,
+          "qstamp": [
+            16,
+            1
+          ],
+          "start_repeat": true,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 10,
+          "end_repeat": false,
+          "name": "6",
+          "next": [
+            "10",
+            "11"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 6,
+          "qstamp": [
+            20,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 11,
+          "end_repeat": true,
+          "name": "7",
+          "next": [
+            "11",
+            "12"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 7,
+          "qstamp": [
+            24,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            2,
+            1
+          ],
+          "count": 12,
+          "end_repeat": false,
+          "name": "8",
+          "next": [
+            "9"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 8,
+          "qstamp": [
+            28,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            2,
+            1
+          ],
+          "count": 13,
+          "end_repeat": false,
+          "name": "9",
+          "next": [
+            "14",
+            "15"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 9,
+          "qstamp": [
+            30,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            2,
+            1
+          ],
+          "count": 14,
+          "end_repeat": true,
+          "name": "9",
+          "next": [
+            "12"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 9,
+          "offset_within_measure": [
+            2,
+            1
+          ],
+          "qstamp": [
+            32,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4",
+          "volta": 1
+        },
+        {
+          "actual_length": [
+            3,
+            1
+          ],
+          "count": 15,
+          "end_repeat": false,
+          "name": "10",
+          "next": [
+            "1"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 10,
+          "qstamp": [
+            34,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4",
+          "volta": 2
+        }
+      ],
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
+      "number_type": "int",
+      "regions": [],
+      "unit": "pixels"
+    }
+  },
+  "path": [
+    "timeline",
+    "measure_map"
+  ],
+  "reason": "A measure map is anchored in quarter notes; only a quarters timeline may carry one."
+}

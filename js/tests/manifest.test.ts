@@ -6,6 +6,7 @@ import {
   canonicalOrder,
   compactJson,
   dumps,
+  FILE_KINDS,
   isJsonFloat,
   isJsonObject,
   type Json,
@@ -13,6 +14,7 @@ import {
   type Lossless,
   parse,
   parseJson,
+  SCHEMA_VERSION,
   SchemaValidationError,
   validate,
 } from "../src/index.js";
@@ -61,7 +63,12 @@ const NUMBER_CORPUS_TEXT = [
 
 function standardFiles(): [string, string][] {
   return [
-    ...fixtureFileNames().map((file): [string, string] => [file, fixtureText(file.slice(0, -5))]),
+    ...FILE_KINDS.flatMap((kind) =>
+      fixtureFileNames(SCHEMA_VERSION, kind).map((file): [string, string] => [
+        `${kind}/${file}`,
+        fixtureText(file.slice(0, -5), SCHEMA_VERSION, kind),
+      ]),
+    ),
     ...rejectionFileNames().map((file): [string, string] => [
       `rejections/${file}`,
       rejectionText(file),
@@ -70,8 +77,11 @@ function standardFiles(): [string, string][] {
 }
 
 describe("the standard writer", () => {
-  it("round-trips all 78 standard files", () => {
-    expect(standardFiles().length).toBe(23 + 55);
+  it("round-trips all 126 standard files", () => {
+    expect(FILE_KINDS.map((kind) => fixtureFileNames(SCHEMA_VERSION, kind).length)).toEqual([
+      23, 3, 7,
+    ]);
+    expect(standardFiles().length).toBe(23 + 3 + 7 + 93);
   });
 
   it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {
@@ -341,7 +351,20 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
   if (isJsonObject(value)) {
     const timeline = arrays && "flow_control" in value && "regions" in value;
     const flow = arrays && "breaks" in value && "jumps" in value && "markers" in value;
-    const members = timeline ? ["conversion_maps", "regions"] : flow ? Object.keys(value) : [];
+    const file = arrays && "timelines" in value;
+    const group = arrays && "members" in value && "id" in value;
+    const bundle = arrays && "groups" in value && "support_policy" in value;
+    const members = timeline
+      ? ["conversion_maps", "regions"]
+      : flow
+        ? Object.keys(value)
+        : file
+          ? ["timelines"]
+          : group
+            ? ["members"]
+            : bundle
+              ? ["groups"]
+              : [];
     return Object.fromEntries(
       Object.keys(value)
         .reverse()
@@ -421,7 +444,7 @@ describe("values the writer refuses", () => {
 describe("parse", () => {
   it("reads and validates a manifest", () => {
     const manifest = parse(fixtureText("continuous_physical")) as unknown as JsonObject;
-    expect((manifest.meta as JsonObject).schema_version).toBe("0.6.0");
+    expect((manifest.meta as JsonObject).schema_version).toBe("0.7.0");
     const timeline = manifest.timeline as JsonObject;
     const offsets = Object.values(timeline.children as JsonObject).map(
       (child) => ((child as JsonObject).offset as JsonObject).value,

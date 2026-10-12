@@ -1,18 +1,21 @@
-"""The canonical order of a TimeSkeleton manifest and its standard writer.
+"""The canonical order of a TimeSkeleton file and its standard writer.
 
 The standard writer sorts the keys of every object by Unicode code point, so
 equal objects are equal text whatever order their keys were given in. Every
-array of a manifest whose order carries no meaning has one canonical order:
+array of a file whose order carries no meaning has one canonical order:
 
-* ``conversion_maps`` by id;
-* ``regions`` by start, then end, then id;
-* flow-control ``breaks`` and ``markers`` by coordinate, then id;
-* ``jumps`` by from coordinate, then to coordinate, then id.
+* in every timeline manifest, ``conversion_maps`` by id; ``regions`` by
+  start, then end, then id; flow-control ``breaks`` and ``markers`` by
+  coordinate, then id; ``jumps`` by from coordinate, then to coordinate, then
+  id;
+* in a group or bundle file, ``timelines`` by id, a bundle's ``groups`` by
+  id and every group's ``members`` by code point.
 
 Coordinates compare by their exact numeric value, never by their JSON
-spelling; strings compare by Unicode code point. Ids are unique within a
-manifest, so no two entries tie. Nothing else is reordered. Readers accept
-any order; writers emit the canonical one.
+spelling; strings compare by Unicode code point. Ids are unique within their
+scope, so no two entries tie. Nothing else is reordered; in particular a
+``graphical.order`` array is a display order and stays as it is. Readers
+accept any order; writers emit the canonical one.
 
 The standard writer emits UTF-8 text with every character unescaped except
 ``"``, ``\\`` and the control characters, two-space indentation and a final
@@ -132,27 +135,63 @@ def _order_timeline(manifest: dict[str, Any]) -> None:
         )
 
 
+def _identifier(value: Any) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"not an id: {value!r}")
+    return value
+
+
+def _order_group(group: dict[str, Any]) -> None:
+    """Put the members of one group in order, in place."""
+    if isinstance(group.get("members"), list):
+        group["members"] = _sorted(group["members"], _identifier, "members")
+
+
 def canonical_order(value: Any) -> Any:
-    """Return a deep copy of ``value`` with the arrays of its manifest ordered.
+    """Return a deep copy of ``value`` with the arrays of its file ordered.
 
     A value with a top-level ``timeline`` member orders the arrays of that
-    timeline manifest and of its children at every depth. Only the arrays
-    listed in the module docstring move; object keys are left as they are
-    (``dumps`` sorts them), and any other JSON value is copied unchanged.
+    timeline manifest and of its children at every depth. A value with a
+    top-level ``timelines`` array orders every manifest in it and the array by
+    id; its ``group`` has its ``members`` ordered, and its ``bundle`` its
+    ``groups`` (by id) and their ``members``. Only the arrays listed in the
+    module docstring move; object keys are left as they are (``dumps`` sorts
+    them), and any other JSON value is copied unchanged.
 
     Raises:
         ValueError: If a collection holds an entry whose ordering members are
             missing or of the wrong type.
     """
     result = copy.deepcopy(value)
-    timeline = result.get("timeline") if isinstance(result, Mapping) else None
+    if not isinstance(result, Mapping):
+        return result
+    timeline = result.get("timeline")
     if isinstance(timeline, dict):
         _order_timeline(timeline)
+    timelines = result.get("timelines")
+    if isinstance(timelines, list):
+        for manifest in timelines:
+            if isinstance(manifest, dict):
+                _order_timeline(manifest)
+        result["timelines"] = _sorted(
+            timelines, lambda entry: _identifier(entry["id"]), "timelines"
+        )
+    group = result.get("group")
+    if isinstance(group, dict):
+        _order_group(group)
+    bundle = result.get("bundle")
+    if isinstance(bundle, dict) and isinstance(bundle.get("groups"), list):
+        for entry in bundle["groups"]:
+            if isinstance(entry, dict):
+                _order_group(entry)
+        bundle["groups"] = _sorted(
+            bundle["groups"], lambda entry: _identifier(entry["id"]), "groups"
+        )
     return result
 
 
 def dumps(value: Any) -> str:
-    """Return the standard text of a manifest, or of any JSON value.
+    """Return the standard text of a TimeSkeleton file, or of any JSON value.
 
     The value is put in :func:`canonical_order`, then written as UTF-8 text
     with the keys of every object sorted by code point, two-space indentation

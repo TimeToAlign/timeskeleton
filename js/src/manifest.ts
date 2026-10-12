@@ -1,15 +1,18 @@
 /**
  * Lossless reading, the canonical order and the standard writer of a
- * TimeSkeleton manifest.
+ * TimeSkeleton file.
  *
  * The standard writer sorts the keys of every object by Unicode code point, so
  * equal objects are equal text whatever order their keys were given in. Every
- * array of a manifest whose order carries no meaning has one canonical order:
- * `conversion_maps` by id; `regions` by start, then end, then id; flow-control
- * `breaks` and `markers` by coordinate, then id; `jumps` by from coordinate,
- * then to coordinate, then id. Coordinates compare by exact numeric value,
- * strings by Unicode code point; ids are unique within a manifest, so no two
- * entries tie. Readers accept any order; writers emit the canonical one.
+ * array of a file whose order carries no meaning has one canonical order: in
+ * every timeline manifest, `conversion_maps` by id; `regions` by start, then
+ * end, then id; flow-control `breaks` and `markers` by coordinate, then id;
+ * `jumps` by from coordinate, then to coordinate, then id; in a group or bundle
+ * file, `timelines` by id, a bundle's `groups` by id and every group's
+ * `members` by code point. Coordinates compare by exact numeric value, strings
+ * by Unicode code point; ids are unique within their scope, so no two entries
+ * tie. A `graphical.order` array is a display order and is never re-ordered.
+ * Readers accept any order; writers emit the canonical one.
  *
  * The standard writer emits text with every character unescaped except `"`,
  * `\` and the control characters, two-space indentation and a final newline.
@@ -358,7 +361,7 @@ export function compactJson(value: Lossless<Json>): string {
 }
 
 /**
- * Return the standard text of any JSON value.
+ * Return the standard text of a TimeSkeleton file, or of any JSON value.
  *
  * The value is put in `canonicalOrder`, then written with the keys of every
  * object sorted by code point, two-space indentation and a final newline, characters unescaped, every float spelled as
@@ -444,7 +447,8 @@ export function exactNumber(value: unknown): Rational | null {
   return null;
 }
 
-function exact(coordinate: unknown): Rational {
+/** The exact value of a coordinate dict. */
+export function exact(coordinate: unknown): Rational {
   const value = isJsonObject(coordinate) ? coordinate.value : undefined;
   if (Array.isArray(value) && value.length === 2) {
     const [numerator, denominator] = value.map(jsonInteger);
@@ -457,7 +461,8 @@ function exact(coordinate: unknown): Rational {
   return result;
 }
 
-function compareExact(left: unknown, right: unknown): number {
+/** Compare two coordinate dicts by exact value. */
+export function compareExact(left: unknown, right: unknown): number {
   const a = exact(left);
   const b = exact(right);
   const sign = a.denominator * b.denominator > 0n ? 1n : -1n;
@@ -509,13 +514,23 @@ function orderTimeline(manifest: JsonObject): void {
   if (Array.isArray(flow.markers)) flow.markers.sort(by(at("coordinate"), id));
 }
 
+/** Order a group's members by code point, in place. */
+function orderGroup(group: JsonObject): void {
+  if (Array.isArray(group.members)) {
+    group.members.sort((a: unknown, b: unknown) => compareCodePoints(text(a), text(b)));
+  }
+}
+
 /**
- * Return a deep copy of `value` with the arrays of its manifest ordered.
+ * Return a deep copy of `value` with the arrays of its file ordered.
  *
  * A top-level `timeline` orders the arrays of that timeline manifest and of
- * its children at every depth. Object keys are left as they are (`dumps` sorts
- * them), and any other JSON value is copied unchanged. Python's
- * `timeskeleton.canonical_order` gives the same order.
+ * its children at every depth. A top-level `timelines` array has every
+ * manifest in it ordered and is itself ordered by id; a `group` has its
+ * `members` ordered, and a `bundle` its `groups` (by id) and their `members`.
+ * Object keys are left as they are (`dumps` sorts them), and any other JSON
+ * value is copied unchanged. Python's `timeskeleton.canonical_order` gives the
+ * same order.
  *
  * @throws {TypeError} if a collection holds an entry whose ordering members are missing or of the wrong type.
  */
@@ -523,5 +538,19 @@ export function canonicalOrder<T>(value: T): T {
   const result = clone(value);
   const timeline = member(result, "timeline");
   if (isJsonObject(timeline)) orderTimeline(timeline);
+  const byId = (a: unknown, b: unknown) =>
+    compareCodePoints(text(member(a, "id")), text(member(b, "id")));
+  const timelines = member(result, "timelines");
+  if (Array.isArray(timelines)) {
+    for (const manifest of timelines) if (isJsonObject(manifest)) orderTimeline(manifest);
+    timelines.sort(byId);
+  }
+  const group = member(result, "group");
+  if (isJsonObject(group)) orderGroup(group);
+  const groups = member(member(result, "bundle"), "groups");
+  if (Array.isArray(groups)) {
+    for (const entry of groups) if (isJsonObject(entry)) orderGroup(entry);
+    groups.sort(byId);
+  }
   return result;
 }

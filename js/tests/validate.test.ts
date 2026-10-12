@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   declaredVersion,
+  FILE_KINDS,
   identityProblems,
   jsonPointer,
   parse,
@@ -30,14 +31,19 @@ function rejection(value: unknown): SchemaValidationError {
 
 describe("validate", () => {
   it.each(SUPPORTED_VERSIONS)("accepts every %s fixture", (version) => {
-    for (const file of fixtureFileNames(version)) {
-      expect(parse(fixtureText(file.slice(0, -5), version))).toBeDefined();
+    expect(fixtureFileNames(version)).not.toEqual([]);
+    for (const kind of FILE_KINDS) {
+      for (const file of fixtureFileNames(version, kind)) {
+        expect(parse(fixtureText(file.slice(0, -5), version, kind))).toBeDefined();
+      }
     }
   });
 
   it.each(SUPPORTED_VERSIONS)("accepts every %s fixture as JSON.parse reads it", (version) => {
-    for (const file of fixtureFileNames(version)) {
-      validate(JSON.parse(fixtureText(file.slice(0, -5), version)));
+    for (const kind of FILE_KINDS) {
+      for (const file of fixtureFileNames(version, kind)) {
+        validate(JSON.parse(fixtureText(file.slice(0, -5), version, kind)));
+      }
     }
   });
 
@@ -52,9 +58,9 @@ describe("validate", () => {
     expect(rejection(plainCase.manifest).path).toEqual(testCase.path);
   });
 
-  it("holds 55 rejection cases per version", () => {
+  it("holds 55, 55 and 93 rejection cases", () => {
     expect(SUPPORTED_VERSIONS.map((version) => rejectionFileNames(version).length)).toEqual([
-      55, 55,
+      55, 55, 93,
     ]);
   });
 
@@ -71,7 +77,7 @@ describe("validate", () => {
       expect(declared.get("root_missing_meta.json")).toBeNull();
       declared.delete("meta_schema_version_unknown.json");
       declared.delete("root_missing_meta.json");
-      expect(declared.size).toBe(53);
+      expect(declared.size).toBe(rejectionFileNames(version).length - 2);
       expect(new Set(declared.values())).toEqual(new Set([version]));
     },
   );

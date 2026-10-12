@@ -7,9 +7,13 @@ A timeskeleton release is one version carried by:
 * ``js/package.json`` (``version``),
 * ``SCHEMA_VERSION`` in ``python/src/timeskeleton/validate.py`` and in
   ``js/src/validate.ts``,
-* the schema file ``schema/timeskeleton-<version>.schema.json``, whose ``$id``
-  and ``meta.schema_version`` constant carry the version (the schema files of
-  older versions remain beside it),
+* the schema of the version, whose ``$id`` and ``meta.schema_version``
+  constant carry the version: the one file
+  ``schema/timeskeleton-<version>.schema.json`` up to 0.6.0, or from 0.7.0 on
+  the directory ``schema/<version>/`` with the documents ``core``,
+  ``timeline``, ``group`` and ``bundle`` (each ``<name>.schema.json``, each
+  ``$id`` naming the version, the constant in ``core``'s ``Meta``); the schemas
+  of older versions remain beside it,
 * a non-empty fixture directory ``fixtures/<version>/``.
 
 Usage::
@@ -55,20 +59,45 @@ def declarations() -> dict[str, str | None]:
     return found
 
 
+DOCUMENTS = ("core", "timeline", "group", "bundle")
+
+
+def _read(path: Path) -> dict:
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _const(meta: dict) -> str | None:
+    return meta.get("properties", {}).get("schema_version", {}).get("const")
+
+
 def schema_declarations(version: str) -> dict[str, str | None]:
     """Collect the declarations that depend on the agreed version."""
     found: dict[str, str | None] = {}
-    schema_files = sorted((REPOSITORY_ROOT / "schema").glob("timeskeleton-*.schema.json"))
-    expected = REPOSITORY_ROOT / "schema" / f"timeskeleton-{version}.schema.json"
-    found["schema file"] = version if expected in schema_files else None
-    if expected.is_file():
-        with expected.open(encoding="utf-8") as handle:
-            schema = json.load(handle)
+    single = REPOSITORY_ROOT / "schema" / f"timeskeleton-{version}.schema.json"
+    directory = REPOSITORY_ROOT / "schema" / version
+    if single.is_file():
+        schema = _read(single)
         schema_id = schema.get("$id", "")
+        found["schema file"] = version
         found["schema $id"] = version if f"/{version}/" in schema_id else schema_id
-        const = schema.get("properties", {}).get("meta", {})
-        const = const.get("properties", {}).get("schema_version", {}).get("const")
-        found["schema meta.schema_version const"] = const
+        meta = schema.get("properties", {}).get("meta", {})
+        found["schema meta.schema_version const"] = _const(meta)
+    elif directory.is_dir():
+        for name in DOCUMENTS:
+            path = directory / f"{name}.schema.json"
+            if not path.is_file():
+                found[f"schema document {name}"] = None
+                continue
+            schema_id = _read(path).get("$id", "")
+            found[f"schema document {name} $id"] = (
+                version if schema_id.endswith(f"/{version}/{name}.schema.json") else schema_id
+            )
+        core = directory / "core.schema.json"
+        meta = _read(core).get("$defs", {}).get("Meta", {}) if core.is_file() else {}
+        found["schema meta.schema_version const"] = _const(meta)
+    else:
+        found["schema file"] = None
     fixtures = REPOSITORY_ROOT / "fixtures" / version
     found["fixtures directory"] = version if any(fixtures.glob("*.json")) else None
     return found

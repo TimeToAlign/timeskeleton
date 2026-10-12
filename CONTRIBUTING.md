@@ -1,19 +1,25 @@
 # Contributing
 
-TimeSkeleton is schema-first. The current schema, 0.6.0, is the contract; the Python and
-TypeScript packages validate it, and timetoalign emits its manifest fixtures.
+TimeSkeleton is schema-first. The current schema, 0.7.0, is the contract; the Python and
+TypeScript packages validate it, and timetoalign emits its fixtures.
 
 ## Schema changes
 
-For a format change, add a new versioned file under `schema/`; do not alter a
-published schema. Update the supported-version and latest-version declarations
-in both packages. Every schema version from 0.5.0 onward remains validatable,
-and each later version has a pure, ordered migration in both packages, pinned
-by a before-and-after fixture pair. Add shared rejection fixtures, regenerate
-`js/src/generated/` with `pnpm generate`, and re-emit the manifest fixtures
-through timetoalign.
+For a format change, add a new version directory `schema/<version>/` holding
+the full document set, `core.schema.json`, `timeline.schema.json`,
+`group.schema.json` and `bundle.schema.json`, each with the `$id`
+`https://timetoalign.github.io/timeskeleton/<version>/<name>.schema.json`
+and every reference to another document relative; do not alter a published
+schema. Copy the documents a change does not concern, so that one version's
+documents are released together. Update the supported-version and
+latest-version declarations in both packages. Every schema version from
+0.5.0 onward remains validatable, and each later version has a pure, ordered
+migration in both packages, pinned by a before-and-after fixture pair. Add
+shared rejection fixtures, regenerate `js/src/generated/` with
+`pnpm generate`, and re-emit the fixtures through timetoalign.
 
-The manifest fixtures under `fixtures/<version>/` are generated artifacts.
+The timeline files under `fixtures/<version>/`, the group files under its
+`groups/` and the bundle files under its `bundles/` are generated artifacts.
 Use an environment containing the timetoalign revision represented by the
 schema:
 
@@ -21,8 +27,10 @@ schema:
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"
 ```
 
-Do not edit a manifest fixture by hand. The script refuses to write into the
-fixtures of a version whose `v<version>` tag exists. Rejection cases under
+`--kinds` followed by one or more of `timeline`, `group` and `bundle` emits
+those kinds alone and leaves the others as they are. Do not edit a fixture
+by hand. The script refuses to write into the fixtures of a version whose
+`v<version>` tag exists. Rejection cases under
 `fixtures/rejections/` and migration pairs under `fixtures/migrations/` are
 authored by hand.
 
@@ -112,10 +120,10 @@ A timeskeleton version is a schema version, so release-please does not compute
 it from the commits. The commit that adds a schema version updates every
 declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION`
 in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, and the
-self entry in `python/uv.lock`), adds
-`schema/timeskeleton-X.Y.Z.schema.json`, a non-empty
-`fixtures/X.Y.Z/` with its `drawings/`, and rejection fixtures, and passes
-`python3 scripts/check_versions.py`. A version after 0.5.0 also adds its
+self entry in `python/uv.lock`), adds the documents
+`schema/X.Y.Z/{core,timeline,group,bundle}.schema.json`, a non-empty
+`fixtures/X.Y.Z/` with its `drawings/`, `groups/` and `bundles/`, and
+rejection fixtures, and passes `python3 scripts/check_versions.py`. A version after 0.5.0 also adds its
 migration pair. The commit carries the footer:
 
 ```text

@@ -1,23 +1,29 @@
 # Test strategy for the `timeskeleton` Python package
 
-This suite proves the draft public contract of schema 0.6.0 and of the
-schema versions it still validates (0.5.0).
+This suite proves the draft public contract of schema 0.7.0, its three file
+kinds (timeline, group and bundle files), and of the schema versions it still
+validates (0.5.0 and 0.6.0, timeline files only).
 
 ## What the package promises
 
-1. Every bundled fixture of every supported version validates against the
-   schema of the version it declares.
-2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/` and
-   `fixtures/rejections/0.6.0/` at the exact stored path; all 110 cases fail,
-   including a manifest without its one required `timeline`. Every case of a
-   version's directory declares that version except two:
+1. Every bundled fixture of every supported version and every file kind
+   validates against the schema of the version and kind it declares.
+2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/`,
+   `fixtures/rejections/0.6.0/` and `fixtures/rejections/0.7.0/` at the exact
+   stored path; all 203 cases (55, 55 and 93) fail, including a manifest
+   without its one required `timeline`. Every case of a version's directory
+   declares that version except two:
    `meta_schema_version_unknown` declares the unknown version `"9.9.9"`, and
    `root_missing_meta` has no `meta` to declare one
    (`test_every_rejection_declares_its_version_except_two`).
 3. A manifest declaring any other version (`"0.3.0"`, `"0.1.0"`, `"0.4.0"`,
    `"1.0.0"`, each made from `bare.json`) is rejected through the same error,
-   a `SchemaValidationError` at `meta.schema_version`: it is checked against
-   the latest schema, whose version constant it fails. `UnsupportedVersionError`
+   a `SchemaValidationError` at `meta.schema_version`: it is refused for its
+   declaration alone, its `meta` checked against the latest version's `Meta`,
+   whose version constant it fails; a value without `meta` is refused at the
+   root (`root_missing_meta` of every directory), whatever else it holds, so
+   the 0.5.0 and 0.6.0 cases keep their paths under a later version's rules.
+   `UnsupportedVersionError`
    is raised by the version-taking accessors and by `migrate`, never by
    `validate`.
 4. Schema, fixture and font accessors resolve package data independently of
@@ -26,22 +32,26 @@ schema versions it still validates (0.5.0).
    and render them as JSON pointers.
 6. Every fixture and every rejection case is reproduced byte for byte by the
    standard writer.
-7. The wheel and the sdist ship `docs/drawing.md` and the root `LICENSE`, byte
-   for byte the repository's copies.
+7. The wheel and the sdist ship `docs/drawing.md`, the four 0.7.0 schema
+   documents and the root `LICENSE`, byte for byte the repository's copies.
 8. `migrate` rewrites a value of any supported version to the latest one
    (see "Versions and migration").
 
 ## Versions and migration
 
-`SCHEMA_VERSION` is `"0.6.0"` and `SUPPORTED_VERSIONS` is `("0.5.0", "0.6.0")`,
-oldest first, the last one the latest. 0.6.0 changes the drawings a version
-pins, not the manifest format. What proves the version handling:
+`SCHEMA_VERSION` is `"0.7.0"` and `SUPPORTED_VERSIONS` is `("0.5.0", "0.6.0",
+"0.7.0")`, oldest first, the last one the latest. 0.6.0 changes the drawings a
+version pins, not the manifest format; 0.7.0 adds the group and bundle files
+and leaves the timeline file as it was. What proves the version handling:
 
-- **One schema per version, the format unchanged.** `schema_path(version)`
-  names `timeskeleton-<version>.schema.json` for both versions; each schema's
-  `$id` contains `/<version>/` and its `meta.schema_version` constant is the
-  version. With `$id`, the top-level `description` and that constant removed,
-  the two parsed schemas are equal.
+- **One schema per version up to 0.6.0, the format unchanged.**
+  `schema_documents(version)` is `("timeline",)` for 0.5.0 and 0.6.0 and
+  `schema_path(version)` names `timeskeleton-<version>.schema.json`; each
+  schema's `$id` contains `/<version>/` and its `meta.schema_version` constant
+  is the version. With `$id`, the top-level `description` and that constant
+  removed, the two parsed schemas are equal. Asking either version for its
+  `group` document raises `ValueError` (`schema 0.6.0 has no 'group'
+  document`).
 - **The declared version selects the schema.** The schemas differ in their
   version constant, so a 0.5.0 value checked against the 0.6.0 schema fails at
   `meta.schema_version`. Every 0.5.0 fixture and every 0.6.0 fixture
@@ -50,38 +60,146 @@ pins, not the manifest format. What proves the version handling:
   is rejected at its stored path, never at `meta.schema_version` unless that
   path is stored.
 - **The 0.6.0 manifests are the 0.5.0 manifests.** Both directories hold the
-  same 23 file names, and each 0.6.0 manifest equals `migrate` of its 0.5.0
-  counterpart once both `meta.generator` members are removed (the generator
-  names the timetoalign revision that emitted the fixtures, the one member a
-  re-emission may change).
+  same 23 file names, and each 0.6.0 manifest and its 0.5.0 counterpart, both
+  migrated to the latest version, are equal once both `meta.generator`
+  members are removed (the generator names the timetoalign revision that
+  emitted the fixtures, the one member a re-emission may change).
 - **The 0.6.0 rejection cases are the 0.5.0 cases.** Both directories hold the
   same 55 file names, each pair with the same `path` and `reason`, and the
-  0.6.0 manifest equals `migrate` of the 0.5.0 manifest for every case
-  `migrate` accepts; the two cases it refuses (`meta_schema_version_unknown`,
+  two manifests are equal once both are migrated, for every case `migrate`
+  accepts, the 0.6.0 one declaring 0.6.0; the two cases it refuses (`meta_schema_version_unknown`,
   `root_missing_meta`) are byte for byte the same in both directories.
+- **The 0.7.0 timeline manifests are the 0.6.0 manifests**, as above (the
+  migration adds the flag), the
+  same 23 file names, each pair equal once migrated and without
+  `meta.generator`, except `corpus_score_ms3`: timetoalign now mints the ids
+  of store-built children and keeps the store label as their name, so its
+  children `notes` and `controls` are `clt_2` and `clt_3` named `notes` and
+  `controls`. The pair differs, and is equal once the 0.6.0 children are
+  renamed so.
+- **The 0.7.0 rejection cases hold the 0.6.0 cases.** The 55 file names of
+  the 0.6.0 directory are among the 93 of the 0.7.0 directory, each pair with
+  the same `path` and `reason` (except the reason of `root_missing_timeline`,
+  which now reads that a file holds exactly one of timeline, group and
+  bundle beside meta), the two manifests equal once migrated (the
+  0.7.0 one declaring 0.7.0), the two cases `migrate` refuses equal to the
+  0.6.0 ones with `is_segment_line: false` on their timeline. The moved timeline
+  document therefore rejects every 0.6.0 case at the same path.
 
 `migrate(value)` returns a copy rewritten to `SCHEMA_VERSION` by an ordered
 chain of steps, one per version after 0.5.0; 0.5.0 to 0.6.0 rewrites
-`meta.schema_version` and nothing else. It does not validate. What proves it:
+`meta.schema_version` and nothing else; 0.6.0 to 0.7.0 rewrites it and writes
+`is_segment_line: false` on every timeline (every 0.6.0 value is a timeline
+file, and 0.6.0 knows no segment lines). It does not validate. What proves
+it:
 
-- **The pinned pair.** `fixtures/migrations/0.5.0-to-0.6.0/before.json` is byte
-  for byte `fixtures/0.5.0/bare.json`, and `dumps(migrate(before))` is byte for
-  byte `after.json`; the migrated value validates.
-- **Only the declaration changes.** For every 0.5.0 fixture, `dumps` of its
-  migration is its file text with `"schema_version": "0.5.0"` replaced by
-  `"schema_version": "0.6.0"`, a single occurrence.
-- **The latest version is copied.** For every 0.6.0 fixture, `migrate`
-  returns a value equal to its input that is not the input object.
+- **The pinned pairs.** `fixtures/migrations/0.5.0-to-0.6.0/before.json` is
+  byte for byte `fixtures/0.5.0/bare.json` and
+  `fixtures/migrations/0.6.0-to-0.7.0/before.json` byte for byte
+  `fixtures/0.6.0/bare.json`; `dumps(migrate(before))` is byte for byte the
+  `after.json` of the last pair, which differs from its `before.json` in the
+  declared version and the root's `"is_segment_line": false`; the first
+  pair's `after.json` differs from its `before.json` in the declared version
+  only; the migrated value validates.
+- **Only the declaration and the flag change.** For every 0.5.0 and every
+  0.6.0 fixture, `migrate` gives its parsed value with the declaration
+  `"0.7.0"` and `is_segment_line: false` added to every timeline, compared as
+  text written by `dumps`.
+- **The latest version is copied.** For every 0.7.0 fixture of every kind,
+  `migrate` returns a value equal to its input that is not the input object.
 - **The input is never changed.** After migrating a 0.5.0 and a 0.6.0 value,
   each input equals a fresh parse of its file, and changing the result's
   `meta` and `timeline` leaves the input unchanged (nothing is shared).
 - **The chain reaches the latest version.** `bare.json` declaring each
-  supported version migrates to a value declaring `SCHEMA_VERSION`.
+  supported version migrates to a value declaring `SCHEMA_VERSION`, `"0.7.0"`.
 - **Refusals.** A value declaring `"9.9.9"` or `"0.4.0"`, a value without
   `meta`, and a value whose `schema_version` is the number 5 raise
   `UnsupportedVersionError` with `version` `"9.9.9"`, `"0.4.0"`, `None` and
   `None`, and the message for `"9.9.9"` is exactly
-  `unsupported schema_version '9.9.9'; this package supports 0.5.0, 0.6.0`.
+  `unsupported schema_version '9.9.9'; this package supports 0.5.0, 0.6.0, 0.7.0`.
+
+## File kinds and schema documents
+
+From 0.7.0 on a file is a timeline file `{meta, timeline, graphical?}`, a
+group file `{meta, timelines, group, graphical?}` or a bundle file `{meta,
+timelines, bundle, graphical?}`, and the version has four schema documents:
+`core` (the shared definitions), `timeline`, `group` and `bundle`. What proves
+the layout and the dispatch:
+
+- **Four documents, one version.** `SCHEMA_DOCUMENTS` and
+  `schema_documents("0.7.0")` are `("core", "timeline", "group", "bundle")`;
+  `schema_path("0.7.0", name)` is `schema/0.7.0/<name>.schema.json` and
+  `schema_path("0.7.0")` the timeline document; each document's `$id` is
+  `https://timetoalign.github.io/timeskeleton/0.7.0/<name>.schema.json`, so
+  the file lies at its `$id`'s path below `schema/`. Every `$ref` of every
+  document is either local (`#/$defs/<name>`, naming a definition of the same
+  document) or relative to another document of the version
+  (`<document>.schema.json#/$defs/<name>`, naming a definition of that
+  document); no reference is absolute. Definition names are unique across the
+  four documents. `core` holds exactly `Coordinate`,
+  `CoordinateNonnegative`, `Fraction`, `FractionNonnegative`,
+  `FractionPositive`, `Id`, `Meta`, `Number`, `NumberNonnegative`,
+  `NumberPositive`, `NumberType` and `TimeUnit`.
+- **The timeline definitions are 0.6.0's, moved, with one addition.** Rewriting
+  every reference into `core` as a local one and every `{"$ref": Id, …}` as the
+  inline id rule `{"type": "string", "pattern": …, …}` (the `children` keys'
+  as `{"pattern": …}`, a key being a string) turns the union of the
+  `core` and `timeline` definitions, without `Id` and `Meta`, and with the
+  `is_segment_line` member removed from `TimelineManifest`'s `properties` and
+  `required`, into exactly 0.6.0's `$defs`; that member is the one addition
+  ("Segment lines"); the timeline document's root holds the members `meta` (a
+  reference to `Meta`), `timeline` and `graphical` as 0.6.0's does, and
+  `Meta` is 0.6.0's `meta` with the constant `"0.7.0"` and the word "file" in
+  its descriptions. Thirty-two `$ref`s name `Id`: the twenty-six `id` members
+  of the timeline definitions, the `children` keys, a group's `id` and its
+  `members` items, `MemberOrder` items, a bundle's `id`, and the keys of a
+  bundle's `graphical.order`.
+- **The group and bundle documents, literally.** The group file's members are
+  `meta`, `timelines`, `group` and `graphical`, the first three required, no
+  other admitted; `timelines` items are `timeline.schema.json#/$defs/TimelineManifest`.
+  `Group` is closed over `id`, `name` (string or null), `meta` (object) and
+  `members` (an array of distinct ids), all required. `GroupGraphical` is
+  closed over `order`, a `MemberOrder` (an array of distinct ids). The bundle
+  file's members are `meta`, `timelines`, `bundle` and `graphical`, the first
+  three required; `Bundle` is closed over `id`, `name`, `meta`,
+  `support_policy` (`omit`, `clamp` or `extrapolate`) and `groups` (items
+  `group.schema.json#/$defs/Group`), all required; `BundleGraphical` is closed
+  over `order`, an object whose keys are ids and whose values are
+  `MemberOrder`s. No member names claims: the shared cases
+  `group_file_unknown_key` and `bundle_file_unknown_key` refuse a `claims`
+  member at the file root, `bundle_unknown_key` one inside `bundle` (at
+  `bundle`).
+- **The kind decides the document.** `file_kind` returns `"timeline"`,
+  `"group"` or `"bundle"` for a value holding exactly that one of the three
+  members, and `None` for none, for two, and for a value that is no object.
+  The test documents below validate, which they could not against another
+  kind's document (each document admits only its own members). A 0.7.0 value
+  with none of the three is rejected at the root with the message `exactly
+  one of 'timeline', 'group' or 'bundle' is required; found none`, and one
+  with `timeline` and `group` with `… found 'timeline', 'group'` (the shared
+  case `file_kinds_several`). A value declaring `"9.9.9"` is rejected at
+  `meta.schema_version` whether it holds a group or none of the three (its
+  declaration is checked alone). A 0.6.0 value holding
+  `timelines` and `group` instead of `timeline` is rejected at the root by the
+  0.6.0 schema, not with the kind message: 0.6.0 knows timeline files only.
+
+The tests build two valid documents from the 0.7.0 `bare` manifest (a
+timeline of 8 quarters without name, children or maps):
+
+- **the group document**: roots `piece` (with the child `second-half` at
+  offset 4) and `recording`; the group `group_1`, name `"Second half"`,
+  members `recording`, `second-half`; `graphical.order` `second-half`,
+  `recording`;
+- **the bundle document**: roots `annotations`, `page`, `performance`,
+  `recording` (with the child `excerpt` at offset 2) and `score`; the bundle
+  `bundle_1`, name `"Mixed"`, `support_policy` `omit`; groups `group_1`
+  (members `performance`, `score`) and `group_2` (members `excerpt`, `page`);
+  `graphical.order` `{group_1: [score, performance], group_2: [page,
+  excerpt]}`. `annotations` is ungrouped, and `recording` is ungrouped while
+  its child `excerpt` is a member.
+
+The shared rejection cases are built from the same two documents, each with
+one change.
 
 ## One path rule for both validators
 
@@ -129,12 +247,158 @@ it:
   repeating a break's id), `id_with_slash`, `id_empty`, `id_control_character_tab`,
   `children_key_control_character_newline`, `jump_target_dangling` and
   `markers_object` (markers as an object keyed by name).
-- **The schema states it literally.** `Region`, `Break`, `Jump` require `id`
+- **The schema states it literally** (the 0.6.0 schema; the 0.7.0 timeline
+  document holds the same definitions, "File kinds and schema documents").
+  `Region`, `Break`, `Jump` require `id`
   first; a region's `name` is a string or null; `Jump` holds `target` (string or null) instead of `target_name`;
   `Marker` is `{id, name, coordinate}` with a nullable `name`, closed; and
   `flow_control.markers` is an array of `Marker`. Twenty-six definitions carry
   an `id` member, every one with the pattern above. Every fixture has no
   identity problem.
+
+## Segment lines
+
+A segment line is a timeline containing only contiguous segments. From 0.7.0
+on every timeline manifest, at every depth, carries the required boolean
+`is_segment_line`, placed after `locked`, so `TimelineManifest` has fifteen
+required members. A segment line's `class` is its segments' class, one of the
+six; a nested segment line is one whose segments are segment lines
+themselves. The schema cannot say that the segments are contiguous or alike,
+so `identity_problems` checks every timeline whose `is_segment_line` is true,
+after the duplicate ids and the jump targets, the tree in identity order
+(a timeline, then its children by key). Its segments are visited in offset
+order, ties by key in code-point order; for each segment:
+
+- a `class` other than the segment line's, at the segment's
+  `timeline/class`: `segment '<key>' of segment line '<id>' is no <class>`;
+- an `is_segment_line` other than the first segment's, at the segment's
+  `timeline/is_segment_line`: `segment '<key>' of segment line '<id>' differs
+  from segment '<first key>' in is_segment_line`;
+- an offset other than the end of the segment before it (0 for the first),
+  at the segment's `offset`: `segment '<key>' of segment line '<id>' does not
+  start at 0` or `… does not start where the one before it ends`;
+
+and then, if the last segment does not end at the segment line's length (a
+segment line without segments ends at 0), one problem at its `length`: `the
+segments of segment line '<id>' do not end at its length`. A segment ends at
+its offset plus its length; offsets, lengths and ends compare by exact value
+(a float by its exact binary value), never through a float sum.
+
+What proves it, with documents built from the 0.7.0 `bare` manifest (8
+quarters, fraction coordinates):
+
+- **Valid segment lines.** `bare` with `is_segment_line: true` and segments
+  `a` (offset 0, length 3) and `b` (offset 3, length 5) has no problem; so has
+  a nested segment line whose two segments are segment lines with two
+  segments each; so has a segment line of length 0 without segments.
+- **Each rule, one problem**, with the path and the message above: a segment
+  of class `DiscreteLogicalTimeline`; the second segment a segment line while
+  the first is not; segments starting at 1 (the first), and at 4 after one
+  ending at 3 (a gap) and at 2 after one ending at 3 (an overlap), each at
+  the offending `offset`; segments ending at 7 on a length of 8, and a
+  segment line of length 8 without segments, at the `length`.
+- **Offset order, not key order.** Segments keyed `z` (offset 0) and `a`
+  (offset 3) are contiguous; with `a` at 4 the problem names `a`.
+- **Exact values.** On a seconds axis (float coordinates) segments at 0.5
+  (length 0.25) and 0.75 are contiguous, and segments at 0.1 (length 0.2) and
+  0.3 are not (`0.1 + 0.2` is not exactly `0.3` in binary): the third
+  segment's offset is reported, and the length, as the third segment's exact
+  end misses it too.
+- **Order and scope.** A document with a class problem, a flag problem, a gap
+  and a short end yields them in that order, followed by the problems of the
+  segments themselves (the offending segment, now a segment line without
+  segments, does not end at its length); a segment line among the
+  descendants is checked at its own path; a timeline with
+  `is_segment_line: false` is never checked, whatever its children.
+- **Shared rejections**: `segment_line_flag_missing` (at the timeline),
+  `segment_line_flag_not_boolean`, `segment_line_segment_class`,
+  `segment_line_segment_flag`, `segment_line_not_from_zero`,
+  `segment_line_gap`, `segment_line_short_of_length`, and
+  `group_root_segment_line_gap` (a segment line inside a group file's root,
+  at `timelines/<i>/…`). Both validators report the same paths.
+- **Migration.** `migrate` from 0.6.0 writes `is_segment_line: false` on every
+  timeline, the root and every descendant (the three levels of `nested`), and
+  on nothing else.
+
+## Identity in group and bundle files
+
+The schema cannot say that ids are unique across the timelines of a file,
+that a member names a timeline of the file, or that a display order is a
+permutation of the members, so `identity_problems` checks them on a
+schema-valid group or bundle file and `validate` raises its first problem.
+The problems come in this order, each one problem per finding:
+
+1. **Each root is its own scope.** The timeline-file rules apply to each root
+   of `timelines` in array order, located under `timelines/<i>`: a jump
+   target naming no marker of its timeline in root 1 is reported at
+   `timelines/1/flow_control/jumps/0/target` (`timelines_root_jump_target_dangling`).
+   Elements of different roots may share an id: a marker `m` in two roots is
+   no problem.
+2. **Timeline ids are unique across the file.** Visiting the roots in array
+   order and each tree in identity order (a timeline, then its children by
+   key), a timeline id equal to one of an earlier root is reported at its
+   occurrence, `duplicate id '<id>', first at <pointer>`: a second root
+   named `piece` at `timelines/1/id`, first at `#/timelines/0/id`
+   (`timelines_id_duplicate_across_roots`), and a child `excerpt` of root 4
+   repeating the child of root 3 at
+   `timelines/4/children/excerpt/timeline/id` (`timelines_child_id_duplicate_across_roots`).
+   A repetition within one root is that root's own problem (step 1) and is
+   reported once.
+3. **Group ids.** A group id equal to a timeline id is reported at the
+   group's `id` with `duplicate id`, first at the timeline: `group/id`
+   (`group_id_is_timeline_id`, `recording`) and `bundle/groups/1/id`
+   (`bundle_group_id_is_timeline_id`, the descendant `excerpt`, first at
+   `#/timelines/3/children/excerpt/timeline/id`); in a bundle, a group id
+   equal to an earlier group's, first at that group
+   (`bundle_group_id_duplicate`, at `bundle/groups/1/id`, first at
+   `#/bundle/groups/0/id`).
+4. **Members.** A member naming no timeline of the file is reported at the
+   member, `'<id>' names no timeline of this file` (`group_member_dangling`
+   at `group/members/0`; `bundle_member_dangling` at
+   `bundle/groups/0/members/2`); in a bundle, a member already named by an
+   earlier group, `duplicate member '<id>', first at <pointer>`
+   (`bundle_member_in_two_groups`, `score` at `bundle/groups/1/members/2`,
+   first at `#/bundle/groups/0/members/1`). A member nested in another
+   member of the same group (its descendant at any depth) or containing one
+   (its ancestor) is reported at the later of the two in array order: `member
+   '<id>' lies inside member '<earlier id>' of the same group` or `member
+   '<id>' contains member '<earlier id>' of the same group` (members share
+   their start and end, but a child sits at its offset inside its parent, so
+   both in one group would give two answers for one position). Only the first
+   earlier member it nests with is named; a dangling member is not checked
+   for nesting, a member of two groups is checked in each. Shared cases:
+   `group_members_nested` (members `piece`, `recording`, `second-half`: at
+   `group/members/2`, `member 'second-half' lies inside member 'piece' of the
+   same group`) and `bundle_members_nested` (group `group_2` with members
+   `excerpt`, `page`, `recording`: at `bundle/groups/1/members/2`, `member
+   'recording' contains member 'excerpt' of the same group`). A child in one
+   group and its root in another, or ungrouped, is no problem: the bundle
+   document's `excerpt` (in `group_2`) with its root `recording` ungrouped,
+   and with `recording` added to `group_1`, has no problem and validates.
+5. **Every root of a group file contains a member.** A root containing none
+   is reported at the root, `timeline '<id>' contains no member of the group`
+   (`group_root_without_member`, `timelines/2`). A bundle's roots need none.
+6. **Display orders are permutations.** In a group file, `graphical.order`;
+   in a bundle file, each key of `graphical.order` in code-point order. A key
+   naming no group is reported at the key, `'<key>' names no group of this
+   bundle` (`bundle_order_unknown_group`); each entry that is not a member at
+   the entry, `'<id>' is not a member of group '<group id>'`
+   (`group_order_not_member`, `graphical/order/1`); then each member missing
+   from the order at the order, `member '<id>' of group '<group id>' is
+   missing` (`group_order_missing_member`, `bundle_order_missing_member`). A
+   repeated entry is the schema's (`uniqueItems`, `group_order_repeated`). An
+   absent `graphical`, an absent `order` and a bundle order without an entry
+   for a group are no problem.
+
+What proves it: the two test documents have no problem; each rule above is
+one shared rejection case with exactly one problem, whose path both suites
+assert, and a unit test states every message above literally; and one bundle
+document carrying a finding of every step (a dangling target in root 0, a
+cross-root duplicate, a group id equal to a timeline id, a dangling member, a
+member of two groups, an unknown order key, a stranger in an order and a
+missing member) yields exactly the problems in the stated order, with their
+paths and messages. A group id equal to a timeline id still names its group
+for the display order, so it causes no further problem.
 
 ## The canonical order
 
@@ -143,11 +407,13 @@ The standard writer sorts the keys of every object by Unicode code point
 `children` in particular are written by key. Every array whose order carries
 no meaning has one order: `conversion_maps` by id; `regions` by start, then
 end, then id; flow-control `breaks` and `markers` by coordinate, then id;
-`jumps` by from coordinate, then to coordinate, then id. Coordinates compare
-by exact numeric value, never by their JSON spelling; strings by Unicode code
-point, never by UTF-16 code unit; ids are unique, so no entries tie. Nothing
-else moves. What proves it, asserted in both packages with the same expected
-values:
+`jumps` by from coordinate, then to coordinate, then id; in a group or bundle
+file, `timelines` by id, a bundle's `groups` by id and every group's
+`members`. Coordinates compare by exact numeric value, never by their JSON
+spelling; strings by Unicode code point, never by UTF-16 code unit; ids are
+unique, so no entries tie. Nothing else moves; in particular
+`graphical.order` keeps its order. What proves it, asserted in both packages
+with the same expected values:
 
 - **It is the library's order.** Every fixture is written by timetoalign
   through the fixture script, which fails unless the library's own output
@@ -174,9 +440,20 @@ values:
   JavaScript text of every break and jump entry of every fixture equals the
   text Python's `json.dumps(entry, sort_keys=True, separators=(",", ":"),
   ensure_ascii=False)` writes for the same file.
-- **Only the manifest's arrays move.** `canonical_order` returns a copy and
-  leaves its input unchanged; a value without a top-level `timeline` is
-  copied as it is.
+- **Group and bundle files.** The group document with its roots given as
+  `recording`, `piece` and its members as `second-half`, `recording` is put in
+  order `piece`, `recording` and `recording`, `second-half`, while
+  `graphical.order` stays `second-half`, `recording`, and the manifests inside
+  `timelines` are ordered as a timeline file's are (regions of `recording`
+  given out of order come back sorted). The bundle document with its groups
+  given as `group_2`, `group_1` and each group's members reversed comes back
+  with `group_1`, `group_2` and sorted members; its `graphical.order` entries
+  stay as given. Members `😀`, `ﬀ`, `b` are put in the order `b`, `ﬀ`, `😀`
+  (code point order, which UTF-16 order would invert). A member that is no
+  string (`5`) is refused (`cannot put members in canonical order`).
+- **Only the file's arrays move.** `canonical_order` returns a copy and
+  leaves its input unchanged; a value without a top-level `timeline`,
+  `timelines`, `group` or `bundle` is copied as it is.
 
 ## The standard writer and lossless reading
 
@@ -186,8 +463,9 @@ every float spelled as Python's `repr`, every integer without a decimal point)
 and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
-- **Every standard file round-trips.** Each of the 23 fixtures and 55
-  rejection cases of the latest version (78 files) is reproduced byte for byte by
+- **Every standard file round-trips.** Each of the 23 timeline, 3 group and
+  7 bundle fixtures and the 93 rejection cases of the latest version (126
+  files) is reproduced byte for byte by
   `dumps(json.loads(text))` in Python and by `dumps(parseJson(text))` in
   JavaScript. The JavaScript suite also reverses the keys of every object of
   every standard file, and the items of every array the canonical order sorts
@@ -226,12 +504,26 @@ offsets take no part. What proves it:
 
 - **No two fixtures share a signature.** The test computes every fixture's
   signature from its JSON file, with its own code rather than the fixture
-  script's, and requires 23 distinct signatures for the 23 fixtures. A fixture
-  that repeats another's combination, as each corpus performance timeline
-  repeated the audio or the sample-map fixture, fails it.
-- **The fixture set is stated literally.** The exact list of the 23 file
-  names; of the parangonar corpus only `corpus_parangonar_parangonada__score_dlt_1`
-  (a `DiscreteLogicalTimeline` with a `LinearMap`) remains.
+  script's, and requires 23 distinct signatures for the 23 timeline fixtures
+  of each version. A fixture that repeats another's combination, as each
+  corpus performance timeline repeated the audio or the sample-map fixture,
+  fails it.
+- **The fixture set is stated literally.** The exact list of the 23 timeline
+  file names, the same for 0.6.0 and 0.7.0; of the parangonar corpus only
+  `corpus_parangonar_parangonada__score_dlt_1` (a `DiscreteLogicalTimeline`
+  with a `LinearMap`) remains. The group and bundle fixtures of 0.7.0 are
+  emitted by the fixture script from timetoalign's `TimelineGroup.to_dict` and
+  `AlignmentBundle.to_dict`, and stated literally: the groups
+  `corpus_tilia`, `group_child_member`, `group_number_types`; the bundles
+  `bundle_mixed`, `corpus_ieee1599`, `corpus_listen_here`,
+  `corpus_matchfile`, `corpus_mpm`, `corpus_parangonada`, `corpus_tilia`;
+  `corpus_ieee1599` holds a nested segment line (an edition of pages of
+  accolades).
+  `fixture_paths("0.6.0", "group")` and `fixture_paths("0.6.0", "bundle")`
+  are empty. A group or bundle file's signature is the signatures of its
+  roots and the class and depth of the members of each group (a bundle's
+  also the number of its ungrouped roots); the test computes it with its own
+  code and requires 3 distinct group and 7 distinct bundle signatures.
 
 ## The graphical block
 
@@ -342,14 +634,16 @@ integer.
 
 ## Packaging
 
-`docs/drawing.md` is part of the contract, so both distributions carry it,
-and both carry the repository's MIT `LICENSE`.
+`docs/drawing.md` and the schema documents are part of the contract, so both
+distributions carry them, and both carry the repository's MIT `LICENSE`.
 The test builds the sdist and the wheel with `uv build` into a temporary
 directory twice, the wheel once from the checkout (`--sdist --wheel`) and once
 from the sdist (plain `uv build`, as the release does), and each time
-requires `timeskeleton/docs/drawing.md` in the wheel and
-`src/timeskeleton/docs/drawing.md` in the sdist, each byte for byte the
-repository's `docs/drawing.md`; it also requires
+requires `timeskeleton/docs/drawing.md` and
+`timeskeleton/schema/0.7.0/<name>.schema.json` for the four documents in the
+wheel and `src/timeskeleton/docs/drawing.md` and
+`src/timeskeleton/schema/0.7.0/<name>.schema.json` in the sdist, each byte for
+byte the repository's file; it also requires
 `timeskeleton-<version>.dist-info/licenses/LICENSE` in the wheel and `LICENSE`
 at the sdist root, each byte for byte the root `LICENSE` (the font's
 `fonts/LICENSE` does not count).

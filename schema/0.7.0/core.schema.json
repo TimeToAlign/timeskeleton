@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/core.schema.json",
+  "title": "TimeSkeleton core definitions",
+  "description": "The definitions shared by the TimeSkeleton 0.7.0 timeline, group and bundle documents: numbers following the BOPP core primitives (a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number), coordinates that name their unit and number type, the time units and number types of an axis, the id rule and the file metadata. This document validates no file by itself; the other documents refer to its definitions.",
+  "$defs": {
+    "Fraction": {
+      "type": "array",
+      "description": "Rational number encoded as numerator and non-zero denominator",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "description": "Numerator, signed integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+        }
+      ],
+      "items": false
+    },
+    "FractionNonnegative": {
+      "type": "array",
+      "description": "Non-negative rational number",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Numerator, non-negative integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+        }
+      ],
+      "items": false
+    },
+    "FractionPositive": {
+      "type": "array",
+      "description": "Strictly positive rational number",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Numerator, positive integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+        }
+      ],
+      "items": false
+    },
+    "Number": {
+      "description": "A bare JSON number or an exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/Fraction"
+        }
+      ]
+    },
+    "NumberNonnegative": {
+      "description": "A non-negative bare JSON number or a non-negative exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "$ref": "#/$defs/FractionNonnegative"
+        }
+      ]
+    },
+    "NumberPositive": {
+      "description": "A strictly positive bare JSON number or a strictly positive exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "$ref": "#/$defs/FractionPositive"
+        }
+      ]
+    },
+    "TimeUnit": {
+      "type": "string",
+      "description": "The unit of a timeline axis.",
+      "enum": [
+        "number",
+        "floating_measures",
+        "whole_note",
+        "quarters",
+        "ticks",
+        "milliseconds",
+        "seconds",
+        "minutes",
+        "samples",
+        "frames",
+        "pixels",
+        "meters",
+        "centimeters",
+        "millimeters",
+        "inches",
+        "points"
+      ]
+    },
+    "NumberType": {
+      "type": "string",
+      "description": "The number type of every coordinate on a timeline axis. It selects the representation of a coordinate's value: int is a JSON integer, float a JSON number, fraction a Fraction pair.",
+      "enum": [
+        "int",
+        "float",
+        "fraction"
+      ]
+    },
+    "Coordinate": {
+      "type": "object",
+      "description": "A position on a timeline axis: the axis unit, the number type, and the value in the representation that number type selects.",
+      "properties": {
+        "unit": {
+          "$ref": "#/$defs/TimeUnit"
+        },
+        "number_type": {
+          "$ref": "#/$defs/NumberType"
+        },
+        "value": {
+          "description": "The position, represented as selected by number_type."
+        }
+      },
+      "required": [
+        "unit",
+        "number_type",
+        "value"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "description": "An integer coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "int"
+            },
+            "value": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "description": "A float coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "float"
+            },
+            "value": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "description": "An exact fraction coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "fraction"
+            },
+            "value": {
+              "$ref": "#/$defs/Fraction"
+            }
+          }
+        }
+      ],
+      "discriminator": {
+        "propertyName": "number_type"
+      }
+    },
+    "CoordinateNonnegative": {
+      "type": "object",
+      "description": "A coordinate that cannot lie before the origin of its axis, such as a timeline length.",
+      "properties": {
+        "unit": {
+          "$ref": "#/$defs/TimeUnit"
+        },
+        "number_type": {
+          "$ref": "#/$defs/NumberType"
+        },
+        "value": {
+          "description": "The non-negative position, represented as selected by number_type."
+        }
+      },
+      "required": [
+        "unit",
+        "number_type",
+        "value"
+      ],
+      "additionalProperties": false,
+      "oneOf": [
+        {
+          "description": "A non-negative integer coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "int"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "description": "A non-negative float coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "float"
+            },
+            "value": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        {
+          "description": "A non-negative exact fraction coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "fraction"
+            },
+            "value": {
+              "$ref": "#/$defs/FractionNonnegative"
+            }
+          }
+        }
+      ],
+      "discriminator": {
+        "propertyName": "number_type"
+      }
+    },
+    "Id": {
+      "type": "string",
+      "pattern": "^[^/\\u0000-\\u001f]+$",
+      "description": "An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed."
+    },
+    "Meta": {
+      "type": "object",
+      "description": "File metadata.",
+      "properties": {
+        "schema_version": {
+          "const": "0.7.0",
+          "description": "The timeskeleton release this file conforms to."
+        },
+        "generator": {
+          "type": "string",
+          "description": "Free-form identification of the software that wrote the file."
+        }
+      },
+      "required": [
+        "schema_version"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

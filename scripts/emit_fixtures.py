@@ -1,18 +1,23 @@
 #!/usr/bin/env python
-"""Emit the manifest fixtures of the current schema through timetoalign.
+"""Emit the fixtures of the current schema through timetoalign.
 
-Every manifest is built with public constructors or a public loader, serialized
-with ``Timeline.to_dict()``, written with ``timeskeleton.dumps`` and
-round-tripped through ``Timeline.from_dict``; a manifest whose order differs
-from the library's fails the round trip. A manifest is emitted only when its
-structural signature differs from that of every manifest before it; the
-script names each manifest it skips on standard error. A styled manifest also carries a
-``graphical`` block composed in this script from ``GRAPHICAL``.
-The current schema version is ``timeskeleton.SCHEMA_VERSION``. The fixtures of
-a released version are frozen: the script refuses to write into
-``fixtures/<version>/`` once the tag ``v<version>`` exists. Map identifiers
-come from a per-process counter, so every run in a fresh interpreter emits the
-same manifests.
+Three file kinds are emitted into ``fixtures/<version>/``: timeline files
+directly in it, group files in its ``groups/`` and bundle files in its
+``bundles/`` directory. Every timeline is built with public constructors or a
+public loader and serialized with ``Timeline.to_dict()``; every group with
+``TimelineGroup.to_dict()`` and every bundle with ``AlignmentBundle.to_dict()``.
+Each file is wrapped with ``meta``, written with ``timeskeleton.dumps``, read
+back, validated and round-tripped through the matching ``from_dict``; a file
+whose order differs from the library's fails the round trip. A file is emitted
+only when its structural signature differs from that of every file of its kind
+before it; the script names each file it skips on standard error. A styled
+manifest also carries a ``graphical`` block composed in this script from
+``GRAPHICAL``. ``--kinds`` restricts the run to some file kinds; the others
+are left as they are. The current schema version is
+``timeskeleton.SCHEMA_VERSION``. The fixtures of a released version are
+frozen: the script refuses to write into ``fixtures/<version>/`` once the tag
+``v<version>`` exists. Map identifiers come from a per-process counter, so
+every run in a fresh interpreter emits the same files.
 """
 
 from __future__ import annotations
@@ -23,6 +28,8 @@ import json
 import re
 import subprocess
 import sys
+import tempfile
+from collections.abc import Callable
 from fractions import Fraction
 from importlib.metadata import version
 from pathlib import Path
@@ -30,6 +37,7 @@ from typing import Any
 
 import numpy as np
 from timetoalign import (
+    AlignmentBundle,
     ContinuousGraphicalTimeline,
     ContinuousLogicalTimeline,
     ContinuousPhysicalTimeline,
@@ -38,9 +46,17 @@ from timetoalign import (
     DiscretePhysicalTimeline,
     Ms3Loader,
     Timeline,
+    TimelineGroup,
 )
 from timetoalign.core import ActivationCondition, FlowControlElement
-from timetoalign.loader.alignment import ParangonadaLoader
+from timetoalign.loader.alignment import (
+    Ieee1599Loader,
+    ListenHereLoader,
+    MatchfileLoader,
+    MpmLoader,
+    ParangonadaLoader,
+)
+from timetoalign.loader.alignment.tilia import TiliaJsonLoader
 from timetoalign.loader.graphical.iiif import IIIFManifestLoader
 from timetoalign.loader.midi.score import ScoreMidiLoader
 from timetoalign.loader.physical.audio import AudioLoader
@@ -70,10 +86,12 @@ from timetoalign.maps import (
 from timetoalign.testdata import ensure_data
 from timetoalign.timelines.flowcontrol import Break, Jump, Marker
 
-from timeskeleton import SCHEMA_VERSION, dumps, validate
+from timeskeleton import FILE_KINDS, SCHEMA_VERSION, dumps, validate
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = REPOSITORY_ROOT / "fixtures" / SCHEMA_VERSION
+SUBDIRECTORY = {"timeline": None, "group": "groups", "bundle": "bundles"}
+"""Where each file kind lies below a version's fixture directory."""
 
 
 def with_children(
@@ -458,6 +476,137 @@ def corpus_manifests() -> dict[str, list[Timeline]]:
     }
 
 
+def group_constructions() -> dict[str, list[TimelineGroup]]:
+    """Build the groups constructed directly, one per group file.
+
+    ``group_number_types`` groups three timelines whose axes have different
+    number types (quarters as fractions, seconds as floats, pixels as
+    integers), listed in a display order that differs from their id order.
+    ``group_child_member`` groups the second half of a score, a child of the
+    score placed at its exact offset, with a whole performance.
+    """
+    score = ContinuousLogicalTimeline(
+        length=Fraction(12), unit="quarters", uid="score", name="Score"
+    )
+    performance = ContinuousPhysicalTimeline(
+        length=12.5, unit="seconds", uid="performance", name="Performance"
+    )
+    page = DiscreteGraphicalTimeline(
+        length=Fraction(1920), unit="pixels", uid="page", name="Page"
+    )
+    number_types = TimelineGroup(name="Edition", timelines=[score, page, performance])
+
+    piece = ContinuousLogicalTimeline(
+        length=Fraction(16), unit="quarters", uid="piece", name="Piece"
+    )
+    second_half = ContinuousLogicalTimeline(
+        length=Fraction(8), unit="quarters", uid="second-half", name="Second half"
+    )
+    piece.add_child(second_half, Fraction(8))
+    recording = ContinuousPhysicalTimeline(
+        length=10.0, unit="seconds", uid="recording", name="Recording"
+    )
+    child_member = TimelineGroup(name="Second half", timelines=[second_half, recording])
+    return {"group_number_types": [number_types], "group_child_member": [child_member]}
+
+
+def bundle_constructions() -> dict[str, list[AlignmentBundle]]:
+    """Build the bundle constructed directly.
+
+    ``bundle_mixed`` holds two groups, a score with its performance and a page
+    with an excerpt of a recording (a child of the recording, whose root
+    joins the bundle ungrouped), and one more ungrouped timeline.
+    """
+    score = ContinuousLogicalTimeline(
+        length=Fraction(12), unit="quarters", uid="score", name="Score"
+    )
+    performance = ContinuousPhysicalTimeline(
+        length=12.5, unit="seconds", uid="performance", name="Performance"
+    )
+    page = DiscreteGraphicalTimeline(
+        length=Fraction(1920), unit="pixels", uid="page", name="Page"
+    )
+    recording = DiscretePhysicalTimeline(
+        length=Fraction(441000), unit="samples", uid="recording", name="Recording"
+    )
+    excerpt = DiscretePhysicalTimeline(
+        length=Fraction(88200), unit="samples", uid="excerpt", name="Excerpt"
+    )
+    recording.add_child(excerpt, Fraction(44100))
+    annotations = ContinuousLogicalTimeline(
+        length=Fraction(12), unit="quarters", uid="annotations", name="Annotations"
+    )
+    bundle = AlignmentBundle(name="Mixed")
+    bundle.add_timeline(score, as_group="Performance")
+    bundle.add_timeline(performance, grouped_with=score.id)
+    bundle.add_timeline(page, as_group="Facsimile")
+    bundle.add_timeline(excerpt, grouped_with=page.id)
+    bundle.add_timeline(annotations)
+    return {"bundle_mixed": [bundle]}
+
+
+LISTEN_HERE: dict[str, Any] = {
+    "header": {"ref": "rec-ref.mp3", "createdBy": "Listen Here! v0.20.0"},
+    "body": {
+        "audio": {
+            "rec-a.mp3": {"times": [0.0, 0.02, 0.04], "peaks": [], "duration": 0.04},
+            "rec-ref.mp3": {"times": [0.0, 0.025, 0.05], "peaks": [], "duration": 0.05},
+        }
+    },
+}
+"""A Listen Here! export of two recordings on a three-column reference grid.
+
+No corpus holds a Listen Here! export, so the script writes this one to a
+temporary directory and loads it.
+"""
+
+
+TILIA = "bruckner5_scherzo/harnoncourt/Bruckner5_Scherzo.json"
+"""The TiLiA export, in the ``score`` corpus, whose group and bundle are emitted."""
+
+
+def corpus_groups() -> dict[str, list[TimelineGroup]]:
+    """Load the groups the loaders build from corpus specimens."""
+    tilia = ensure_data("score") / TILIA
+    return {"corpus_tilia": [TiliaJsonLoader.from_file(tilia).create_group()]}
+
+
+def corpus_bundles() -> dict[str, list[AlignmentBundle]]:
+    """Load the bundles the alignment loaders build from corpus specimens."""
+    parangonar = ensure_data("parangonar") / "Beethoven_Eroica_op35-cpjku"
+    vienna = ensure_data("vienna_1x22") / "Chopin_op10_no3_p01.match"
+    mpm = (
+        ensure_data("mpm_toolbox")
+        / "MPRproject_1971Curzon_VariationXIV"
+        / "Beethoven_op35_1971Curzon_Var14only.mpr"
+    )
+    ieee1599 = ensure_data("ieee1599") / "Khorus Music/khomus.xml"
+    tilia = ensure_data("score") / TILIA
+    with tempfile.TemporaryDirectory() as directory:
+        listen_here_path = Path(directory) / "alignment.json"
+        listen_here_path.write_text(json.dumps(LISTEN_HERE), encoding="utf-8")
+        listen_here = ListenHereLoader.from_file(listen_here_path).create_bundle()
+    builders: dict[str, Callable[[], AlignmentBundle]] = {
+        "corpus_parangonada": ParangonadaLoader.from_file(parangonar).create_bundle,
+        "corpus_matchfile": MatchfileLoader.from_file(vienna).create_bundle,
+        "corpus_mpm": MpmLoader.from_file(mpm).create_bundle,
+        "corpus_ieee1599": lambda: Ieee1599Loader.from_file(ieee1599).create_bundle(),
+        "corpus_listen_here": lambda: listen_here,
+        "corpus_tilia": TiliaJsonLoader.from_file(tilia).create_bundle,
+    }
+    return {name: [build()] for name, build in builders.items()}
+
+
+def build_groups() -> dict[str, list[TimelineGroup]]:
+    """Return group fixture names and groups, constructions before corpora."""
+    return {**group_constructions(), **corpus_groups()}
+
+
+def build_bundles() -> dict[str, list[AlignmentBundle]]:
+    """Return bundle fixture names and bundles, constructions before corpora."""
+    return {**bundle_constructions(), **corpus_bundles()}
+
+
 def build_manifests() -> dict[str, list[Timeline]]:
     """Return fixture names and top-level timelines in emission order.
 
@@ -527,16 +676,21 @@ def build_manifests() -> dict[str, list[Timeline]]:
     return manifests
 
 
+def wrap(content: dict[str, Any], generator: str) -> dict[str, Any]:
+    """Prefix a file's content with its ``meta``."""
+    return {
+        "meta": {"schema_version": SCHEMA_VERSION, "generator": generator},
+        **content,
+    }
+
+
 def manifest(
     timeline: Timeline,
     generator: str,
     graphical: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Wrap one timeline, and a graphical block if any, in a manifest."""
-    result: dict[str, Any] = {
-        "meta": {"schema_version": SCHEMA_VERSION, "generator": generator},
-        "timeline": timeline.to_dict(),
-    }
+    result = wrap({"timeline": timeline.to_dict()}, generator)
     if graphical is not None:
         result["graphical"] = copy.deepcopy(graphical)
     return result
@@ -547,8 +701,23 @@ def write(path: Path, data: dict[str, Any]) -> None:
     path.write_text(dumps(data), encoding="utf-8")
 
 
-def check_round_trip(path: Path) -> int:
-    """Confirm that a manifest validates and survives from_dict/to_dict.
+ROUND_TRIPS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+    "timeline": lambda data: {
+        "timeline": Timeline.from_dict(data["timeline"]).to_dict()
+    },
+    "group": lambda data: TimelineGroup.from_dict(data).to_dict(),
+    "bundle": lambda data: AlignmentBundle.from_dict(data).to_dict(),
+}
+"""Rebuild a file's content (without ``meta``) through the library, by kind.
+
+A timeline file's ``graphical`` block is composed in this script, so only its
+``timeline`` takes part; a group's or bundle's ``graphical.order`` is the
+library's own.
+"""
+
+
+def check_round_trip(path: Path, kind: str) -> int:
+    """Confirm that a file validates and survives from_dict/to_dict.
 
     Object keys carry no order (the file has them sorted), so both sides are
     compared with sorted keys; arrays are compared as they stand, so a library
@@ -557,12 +726,14 @@ def check_round_trip(path: Path) -> int:
     with path.open(encoding="utf-8") as handle:
         data = json.load(handle)
     validate(data)
-    timeline = data["timeline"]
-    rebuilt = Timeline.from_dict(timeline).to_dict()
-    if json.dumps(rebuilt, sort_keys=True) != json.dumps(timeline, sort_keys=True):
+    content = {key: value for key, value in data.items() if key != "meta"}
+    if kind == "timeline":
+        content = {"timeline": content["timeline"]}
+    rebuilt = ROUND_TRIPS[kind](content)
+    if json.dumps(rebuilt, sort_keys=True) != json.dumps(content, sort_keys=True):
         raise SystemExit(
-            f"{path.name}: timeline {timeline['id']!r} does not round-trip through "
-            f"timetoalign.\nexpected: {json.dumps(timeline, indent=2)}\n"
+            f"{path.name}: the {kind} file does not round-trip through "
+            f"timetoalign.\nexpected: {json.dumps(content, indent=2)}\n"
             f"got:      {json.dumps(rebuilt, indent=2)}"
         )
     return 1
@@ -591,18 +762,54 @@ def timeline_signature(timeline: dict[str, Any]) -> tuple[Any, ...]:
     )
 
 
-def signature(data: dict[str, Any]) -> tuple[Any, ...]:
-    """Return the structural signature of a manifest.
+def _timeline_trees(roots: list[dict[str, Any]]) -> dict[str, tuple[str, int]]:
+    """Return the class and depth of every timeline of the roots, by id."""
+    found: dict[str, tuple[str, int]] = {}
 
-    Two manifests with one signature exercise the same combination of
+    def visit(timeline: dict[str, Any], depth: int) -> None:
+        found[timeline["id"]] = (timeline["class"], depth)
+        for child in timeline["children"].values():
+            visit(child["timeline"], depth + 1)
+
+    for root in roots:
+        visit(root, 0)
+    return found
+
+
+def _members(group: dict[str, Any], trees: dict[str, tuple[str, int]]) -> tuple:
+    """Return the class and depth of each member of a group, sorted."""
+    return tuple(sorted(trees[member] for member in group["members"]))
+
+
+def signature(data: dict[str, Any]) -> tuple[Any, ...]:
+    """Return the structural signature of a file.
+
+    Two files of one kind with one signature exercise the same combination of
     timeline classes, conversion-map types and timeline components, so only
-    the first of them is emitted. A ``graphical`` block takes part as its
-    canonical JSON text.
+    the first of them is emitted. A timeline file's ``graphical`` block takes
+    part as its canonical JSON text. A group or bundle file contributes the
+    signatures of its roots, and the class and depth (0 for a root) of the
+    members of each of its groups; a bundle also the number of its ungrouped
+    roots.
     """
-    graphical = data.get("graphical")
+    if "timeline" in data:
+        graphical = data.get("graphical")
+        return (
+            timeline_signature(data["timeline"]),
+            None if graphical is None else json.dumps(graphical, sort_keys=True),
+        )
+    roots = data["timelines"]
+    trees = _timeline_trees(roots)
+    structure = tuple(sorted(timeline_signature(root) for root in roots))
+    if "group" in data:
+        return (structure, _members(data["group"], trees))
+    groups = data["bundle"]["groups"]
+    grouped = {member for group in groups for member in group["members"]}
+    ungrouped = sum(1 for root in roots if root["id"] not in grouped)
     return (
-        timeline_signature(data["timeline"]),
-        None if graphical is None else json.dumps(graphical, sort_keys=True),
+        structure,
+        tuple(sorted(_members(group, trees) for group in groups)),
+        ungrouped,
     )
 
 
@@ -611,8 +818,50 @@ def slug(identifier: str) -> str:
     return re.sub(r"[^A-Za-z0-9_-]", "_", identifier)
 
 
+def plan(kind: str, output: Path, generator: str) -> list[tuple[Path, dict[str, Any]]]:
+    """Return the files of one kind to write, one per new structural signature."""
+    directory = output if SUBDIRECTORY[kind] is None else output / SUBDIRECTORY[kind]
+    builders: dict[str, Callable[[], dict[str, list[Any]]]] = {
+        "timeline": build_manifests,
+        "group": build_groups,
+        "bundle": build_bundles,
+    }
+    planned: list[tuple[Path, dict[str, Any]]] = []
+    claimed: dict[Path, str] = {}
+    for name, objects in builders[kind]().items():
+        for item in objects:
+            filename = name if len(objects) == 1 else f"{name}__{slug(item.id)}"
+            path = directory / f"{filename}.json"
+            if path in claimed:
+                raise SystemExit(
+                    f"ids {claimed[path]!r} and {item.id!r} of {name!r} both produce "
+                    f"the file name {path.name}; nothing was written."
+                )
+            claimed[path] = item.id
+            if kind == "timeline":
+                graphical = GRAPHICAL.get(name, {}).get(item.id)
+                data = manifest(item, generator, graphical)
+            else:
+                data = wrap(item.to_dict(), generator)
+            planned.append((path, data))
+
+    emitted: list[tuple[Path, dict[str, Any]]] = []
+    first_of: dict[tuple[Any, ...], Path] = {}
+    for path, data in planned:
+        key = signature(data)
+        if key in first_of:
+            print(
+                f"skipped {kind} {path.stem}: same structure as {first_of[key].stem}",
+                file=sys.stderr,
+            )
+            continue
+        first_of[key] = path
+        emitted.append((path, data))
+    return emitted
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Parse arguments, emit all fixtures, and verify their round trips."""
+    """Parse arguments, emit the fixtures, and verify their round trips."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
         "--timetoalign-commit",
@@ -624,6 +873,13 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=FIXTURE_DIR,
         help=f"destination directory (default: fixtures/{SCHEMA_VERSION}/)",
+    )
+    parser.add_argument(
+        "--kinds",
+        nargs="+",
+        choices=FILE_KINDS,
+        default=list(FILE_KINDS),
+        help="the file kinds to emit (default: all); the others are left as they are",
     )
     args = parser.parse_args(argv)
     generator = f"timetoalign {version('timetoalign')} ({args.timetoalign_commit})"
@@ -640,50 +896,26 @@ def main(argv: list[str] | None = None) -> int:
             "Emit into another directory with --output."
         )
 
-    planned: list[tuple[Path, Timeline, str]] = []
-    claimed: dict[Path, str] = {}
-    for name, timelines in build_manifests().items():
-        for timeline in timelines:
-            filename = name if len(timelines) == 1 else f"{name}__{slug(timeline.id)}"
-            path = args.output / f"{filename}.json"
-            if path in claimed:
-                raise SystemExit(
-                    f"timeline ids {claimed[path]!r} and {timeline.id!r} of {name!r} "
-                    f"both produce the file name {path.name}; nothing was written."
-                )
-            claimed[path] = timeline.id
-            planned.append((path, timeline, name))
+    emitted = {kind: plan(kind, args.output, generator) for kind in args.kinds}
+    written: list[tuple[Path, str]] = []
+    for kind, files in emitted.items():
+        subdirectory = SUBDIRECTORY[kind]
+        directory = args.output if subdirectory is None else args.output / subdirectory
+        directory.mkdir(parents=True, exist_ok=True)
+        for stale in directory.glob("*.json"):
+            stale.unlink()
+        for path, data in files:
+            write(path, data)
+            written.append((path, kind))
 
-    emitted: list[tuple[Path, dict[str, Any]]] = []
-    first_of: dict[tuple[Any, ...], Path] = {}
-    for path, timeline, name in planned:
-        data = manifest(timeline, generator, GRAPHICAL.get(name, {}).get(timeline.id))
-        key = signature(data)
-        if key in first_of:
-            print(
-                f"skipped {path.stem}: same structure as {first_of[key].stem}",
-                file=sys.stderr,
-            )
-            continue
-        first_of[key] = path
-        emitted.append((path, data))
-
-    args.output.mkdir(parents=True, exist_ok=True)
-    for stale in args.output.glob("*.json"):
-        stale.unlink()
-    written: list[Path] = []
-    for path, data in emitted:
-        write(path, data)
-        written.append(path)
-
-    for path in written:
-        manifests = check_round_trip(path)
+    for path, kind in written:
+        count = check_round_trip(path, kind)
         display = (
             path.relative_to(REPOSITORY_ROOT)
             if path.is_relative_to(REPOSITORY_ROOT)
             else path
         )
-        print(f"{display}: {manifests} manifest(s) round-trip")
+        print(f"{display}: {count} {kind} file round-trips")
     print(f"generator: {generator}")
     return 0
 

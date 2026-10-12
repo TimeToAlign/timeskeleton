@@ -7,7 +7,7 @@
  * same chain.
  */
 
-import { clone } from "./manifest.js";
+import { clone, isJsonObject } from "./manifest.js";
 import { declaredVersion, SUPPORTED_VERSIONS, UnsupportedVersionError } from "./validate.js";
 
 type JsonObject = Record<string, unknown>;
@@ -27,7 +27,33 @@ function declare(version: string): (value: JsonObject) => JsonObject {
   };
 }
 
-const STEPS: readonly Step[] = [{ source: "0.5.0", target: "0.6.0", apply: declare("0.6.0") }];
+/**
+ * Write `is_segment_line: false` on a timeline and every descendant. `migrate`
+ * does not validate, so whatever is not a timeline object, or not a child
+ * entry holding one, is left as it is.
+ */
+function markPlain(timeline: unknown): void {
+  if (!isJsonObject(timeline)) return;
+  timeline.is_segment_line = false;
+  if (!isJsonObject(timeline.children)) return;
+  for (const child of Object.values(timeline.children)) {
+    if (isJsonObject(child)) markPlain(child.timeline);
+  }
+}
+
+/**
+ * 0.6.0 to 0.7.0: the declaration, and `is_segment_line: false` on every
+ * timeline (a 0.6.0 value is a timeline file and knows no segment lines).
+ */
+function toSegmentLines(value: JsonObject): JsonObject {
+  markPlain(value.timeline);
+  return declare("0.7.0")(value);
+}
+
+const STEPS: readonly Step[] = [
+  { source: "0.5.0", target: "0.6.0", apply: declare("0.6.0") },
+  { source: "0.6.0", target: "0.7.0", apply: toSegmentLines },
+];
 
 /**
  * Return a copy of `value` rewritten to the latest schema version.

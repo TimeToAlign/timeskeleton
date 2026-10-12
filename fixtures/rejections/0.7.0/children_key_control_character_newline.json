@@ -1,0 +1,80 @@
+{
+  "manifest": {
+    "meta": {
+      "generator": "timetoalign 1.2.0 (f0a58ce1)",
+      "schema_version": "0.7.0"
+    },
+    "timeline": {
+      "children": {
+        "child\nkey": {
+          "offset": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "timeline": {
+            "children": {},
+            "class": "ContinuousLogicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "child",
+            "is_segment_line": false,
+            "length": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                8,
+                1
+              ]
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "regions": [],
+            "unit": "quarters"
+          }
+        }
+      },
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "bare",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          8,
+          1
+        ]
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Bare",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  },
+  "path": [
+    "timeline",
+    "children"
+  ],
+  "reason": "A children key contains no control character."
+}

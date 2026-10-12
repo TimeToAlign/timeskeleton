@@ -5,6 +5,7 @@ import json
 import pytest
 
 from timeskeleton import (
+    FILE_KINDS,
     SUPPORTED_VERSIONS,
     SchemaValidationError,
     declared_version,
@@ -21,8 +22,9 @@ from timeskeleton import (
 def test_every_fixture_validates(version: str) -> None:
     paths = fixture_paths(version)
     assert paths
-    for path in paths:
-        validate(json.loads(path.read_text(encoding="utf-8")))
+    for kind in FILE_KINDS:
+        for path in fixture_paths(version, kind):
+            validate(json.loads(path.read_text(encoding="utf-8")))
 
 
 @pytest.mark.parametrize(
@@ -37,8 +39,9 @@ def test_shared_rejection_is_rejected_at_its_path(path) -> None:
     assert caught.value.path == tuple(case["path"])
 
 
-def test_the_rejection_cases_number_fifty_five_per_version() -> None:
-    assert [len(rejection_paths(version)) for version in SUPPORTED_VERSIONS] == [55, 55]
+def test_the_rejection_cases_number_fifty_five_and_ninety_three() -> None:
+    counts = [len(rejection_paths(version)) for version in SUPPORTED_VERSIONS]
+    assert counts == [55, 55, 93]
 
 
 @pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
@@ -52,7 +55,7 @@ def test_every_rejection_declares_its_version_except_two(version: str) -> None:
     }
     assert declared.pop("meta_schema_version_unknown") == "9.9.9"
     assert declared.pop("root_missing_meta") is None
-    assert len(declared) == 53
+    assert len(declared) == len(rejection_paths(version)) - 2
     assert set(declared.values()) == {version}
     assert exempt.isdisjoint(declared)
 

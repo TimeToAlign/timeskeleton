@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { SCHEMA_VERSION, SUPPORTED_VERSIONS, schema, schemas } from "../src/index.js";
+import {
+  SCHEMA_VERSION,
+  SUPPORTED_VERSIONS,
+  schema,
+  schemaDocuments,
+  schemas,
+} from "../src/index.js";
 import { fixtureFileNames, loadFixture, loadSchemaFile } from "./fixtures.js";
 
 const SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.6.0/timeskeleton.schema.json";
@@ -68,22 +74,36 @@ const MANIFEST_KEYS = [
   "metric_hierarchy",
 ];
 
+/** The 0.6.0 schema, whose definitions the 0.7.0 timeline and core documents hold. */
+const legacy = schemas["0.6.0"];
+
 describe("schema identity", () => {
   it("publishes the latest supported version", () => {
-    expect(SCHEMA_VERSION).toBe("0.6.0");
-    expect(SUPPORTED_VERSIONS).toEqual(["0.5.0", "0.6.0"]);
+    expect(SCHEMA_VERSION).toBe("0.7.0");
+    expect(SUPPORTED_VERSIONS).toEqual(["0.5.0", "0.6.0", "0.7.0"]);
     expect(SUPPORTED_VERSIONS.at(-1)).toBe(SCHEMA_VERSION);
   });
 
-  it("bundles the schema file at the repository root", () => {
-    expect(schema).toEqual(loadSchemaFile());
+  it("bundles the schema files at the repository root", () => {
+    expect(schema).toEqual(loadSchemaFile("0.7.0", "timeline"));
     expect(schemas).toEqual({
       "0.5.0": loadSchemaFile("0.5.0"),
       "0.6.0": loadSchemaFile("0.6.0"),
+      "0.7.0": loadSchemaFile("0.7.0", "timeline"),
+    });
+    expect(schemaDocuments).toEqual({
+      "0.5.0": { timeline: loadSchemaFile("0.5.0") },
+      "0.6.0": { timeline: loadSchemaFile("0.6.0") },
+      "0.7.0": {
+        core: loadSchemaFile("0.7.0", "core"),
+        timeline: loadSchemaFile("0.7.0", "timeline"),
+        group: loadSchemaFile("0.7.0", "group"),
+        bundle: loadSchemaFile("0.7.0", "bundle"),
+      },
     });
   });
 
-  it.each(SUPPORTED_VERSIONS)("declares %s in its schema", (version) => {
+  it.each(["0.5.0", "0.6.0"])("declares %s in its schema", (version) => {
     const versionSchema = loadSchemaFile(version) as {
       $id: string;
       properties: { meta: { properties: { schema_version: { const: string } } } };
@@ -108,16 +128,16 @@ describe("schema identity", () => {
   });
 
   it("carries the pinned $id, $schema and version constant", () => {
-    expect(schema.$id).toBe(SCHEMA_ID);
-    expect(schema.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
-    expect(schema.properties.meta.properties.schema_version).toEqual({
-      const: SCHEMA_VERSION,
+    expect(legacy.$id).toBe(SCHEMA_ID);
+    expect(legacy.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
+    expect(legacy.properties.meta.properties.schema_version).toEqual({
+      const: "0.6.0",
       description: "The timeskeleton release this manifest conforms to.",
     });
   });
 
   it("holds one timeline", () => {
-    const current = loadSchemaFile() as {
+    const current = loadSchemaFile("0.6.0") as {
       properties: Record<string, unknown>;
       required: string[];
       additionalProperties: boolean;
@@ -155,7 +175,7 @@ const CONVERSION_MAP_TYPES = [
 ];
 
 describe("the graphical block", () => {
-  const defs = schema.$defs as unknown as Record<string, Record<string, unknown>>;
+  const defs = legacy.$defs as unknown as Record<string, Record<string, unknown>>;
 
   it("holds named styles and ordered statements", () => {
     const graphical = defs.Graphical as {
@@ -244,13 +264,13 @@ describe("the graphical block", () => {
 
 describe("schema vocabulary", () => {
   it("enumerates the library's classes, units and number types", () => {
-    expect(schema.$defs.TimelineClass.enum).toEqual(TIMELINE_CLASSES);
-    expect(schema.$defs.TimeUnit.enum).toEqual(TIME_UNITS);
-    expect(schema.$defs.NumberType.enum).toEqual(NUMBER_TYPES);
+    expect(legacy.$defs.TimelineClass.enum).toEqual(TIMELINE_CLASSES);
+    expect(legacy.$defs.TimeUnit.enum).toEqual(TIME_UNITS);
+    expect(legacy.$defs.NumberType.enum).toEqual(NUMBER_TYPES);
   });
 
   it("closes the timeline manifest over fourteen keys", () => {
-    const manifest = schema.$defs.TimelineManifest;
+    const manifest = legacy.$defs.TimelineManifest;
     expect(manifest.required).toEqual(MANIFEST_KEYS);
     expect(Object.keys(manifest.properties)).toEqual(MANIFEST_KEYS);
     expect(manifest.additionalProperties).toBe(false);
@@ -260,7 +280,7 @@ describe("schema vocabulary", () => {
   });
 
   it("excludes empty ids, slashes and control characters from ids and child keys", () => {
-    const definitions = Object.values(schema.$defs) as Array<{
+    const definitions = Object.values(legacy.$defs) as Array<{
       properties?: Record<string, Record<string, unknown>>;
     }>;
     const definitionsWithId = definitions.filter((definition) => definition.properties?.id);
@@ -268,13 +288,13 @@ describe("schema vocabulary", () => {
     for (const definition of definitionsWithId) {
       expect(definition.properties?.id?.pattern).toBe(ID_PATTERN);
     }
-    expect(schema.$defs.TimelineManifest.properties.children.propertyNames).toEqual({
+    expect(legacy.$defs.TimelineManifest.properties.children.propertyNames).toEqual({
       pattern: ID_PATTERN,
     });
   });
 
   it("gives regions, breaks, jumps and markers an id", () => {
-    const defs = schema.$defs;
+    const defs = legacy.$defs;
     expect(defs.Region.required).toEqual(["id", "name", "start", "end", "meta"]);
     expect(defs.Region.properties.name.type).toEqual(["string", "null"]);
     expect(defs.Break.required).toEqual([
@@ -313,8 +333,8 @@ describe("schema vocabulary", () => {
   });
 
   it("defines a nonempty compressed measure-map row list", () => {
-    const measureMap = schema.$defs.MeasureMap;
-    const row = schema.$defs.MeasureMapRow;
+    const measureMap = legacy.$defs.MeasureMap;
+    const row = legacy.$defs.MeasureMapRow;
     expect(measureMap.type).toBe("array");
     expect(measureMap.items).toEqual({ $ref: "#/$defs/MeasureMapRow" });
     expect(measureMap.minItems).toBe(1);
@@ -331,7 +351,7 @@ describe("schema vocabulary", () => {
   });
 
   it("admits a measure map on a quarters timeline only", () => {
-    const manifest = schema.$defs.TimelineManifest;
+    const manifest = legacy.$defs.TimelineManifest;
     expect(manifest.if).toEqual({
       properties: { unit: { const: "quarters" } },
       required: ["unit"],
@@ -340,7 +360,7 @@ describe("schema vocabulary", () => {
   });
 
   it("states the metrical position map's meter map once", () => {
-    const positionMap = schema.$defs.MetricalPositionMap;
+    const positionMap = legacy.$defs.MetricalPositionMap;
     expect(positionMap.required).toEqual([
       "type",
       "id",
@@ -355,8 +375,8 @@ describe("schema vocabulary", () => {
 });
 
 describe("fixture set", () => {
-  it("contains exactly the 23 single manifests", () => {
-    expect(fixtureFileNames()).toEqual([
+  it.each(["0.6.0", "0.7.0"])("contains exactly the 23 single manifests (%s)", (version) => {
+    expect(fixtureFileNames(version)).toEqual([
       "bare.json",
       "contiguous.json",
       "continuous_graphical.json",
@@ -381,6 +401,25 @@ describe("fixture set", () => {
       "styled__score.json",
       "with_region.json",
     ]);
+  });
+
+  it("contains exactly the group and bundle files of 0.7.0", () => {
+    expect(fixtureFileNames("0.7.0", "group")).toEqual([
+      "corpus_tilia.json",
+      "group_child_member.json",
+      "group_number_types.json",
+    ]);
+    expect(fixtureFileNames("0.7.0", "bundle")).toEqual([
+      "bundle_mixed.json",
+      "corpus_ieee1599.json",
+      "corpus_listen_here.json",
+      "corpus_matchfile.json",
+      "corpus_mpm.json",
+      "corpus_parangonada.json",
+      "corpus_tilia.json",
+    ]);
+    expect(fixtureFileNames("0.6.0", "group")).toEqual([]);
+    expect(fixtureFileNames("0.6.0", "bundle")).toEqual([]);
   });
 
   it("pins the styled blocks", () => {

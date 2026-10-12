@@ -11,6 +11,7 @@ from timeskeleton import (
     UnsupportedVersionError,
     fixture_paths,
     load_schema,
+    schema_documents,
     schema_path,
 )
 
@@ -82,21 +83,24 @@ MANIFEST_KEYS = [
 
 
 def test_schema_version_is_the_latest_supported_version() -> None:
-    assert SCHEMA_VERSION == "0.6.0"
-    assert SUPPORTED_VERSIONS == ("0.5.0", "0.6.0")
+    assert SCHEMA_VERSION == "0.7.0"
+    assert SUPPORTED_VERSIONS == ("0.5.0", "0.6.0", "0.7.0")
     assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
 
 
 def test_schema_path_names_the_bundled_file() -> None:
-    path = schema_path()
-    assert path.is_file()
-    assert path.name == "timeskeleton-0.6.0.schema.json"
-    assert schema_path("0.6.0") == path
-    assert schema_path("0.5.0").name == "timeskeleton-0.5.0.schema.json"
-    assert schema_path("0.5.0").is_file()
+    for version in ["0.5.0", "0.6.0"]:
+        path = schema_path(version)
+        assert path.is_file()
+        assert path.name == f"timeskeleton-{version}.schema.json"
+        assert schema_documents(version) == ("timeline",)
+        with pytest.raises(
+            ValueError, match=f"schema {version} has no 'group' document"
+        ):
+            schema_path(version, "group")
 
 
-@pytest.mark.parametrize("version", SUPPORTED_VERSIONS)
+@pytest.mark.parametrize("version", ["0.5.0", "0.6.0"])
 def test_each_schema_declares_its_version(version: str) -> None:
     schema = load_schema(version)
     assert f"/{version}/" in schema["$id"]
@@ -116,18 +120,18 @@ def test_the_manifest_format_is_unchanged_since_0_5_0() -> None:
 
 
 def test_schema_identity() -> None:
-    schema = load_schema()
+    schema = load_schema("0.6.0")
     assert schema["$id"] == SCHEMA_ID
     assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     version = schema["properties"]["meta"]["properties"]["schema_version"]
     assert version == {
-        "const": SCHEMA_VERSION,
+        "const": "0.6.0",
         "description": "The timeskeleton release this manifest conforms to.",
     }
 
 
 def test_the_manifest_holds_exactly_one_timeline() -> None:
-    schema = load_schema()
+    schema = load_schema("0.6.0")
     assert list(schema["properties"]) == ["meta", "timeline", "graphical"]
     assert schema["properties"]["timeline"] == {"$ref": "#/$defs/TimelineManifest"}
     assert schema["properties"]["graphical"] == {"$ref": "#/$defs/Graphical"}
@@ -161,7 +165,7 @@ CONVERSION_MAP_TYPES = [
 
 
 def test_the_graphical_block_vocabulary() -> None:
-    defs = load_schema()["$defs"]
+    defs = load_schema("0.6.0")["$defs"]
     graphical = defs["Graphical"]
     assert graphical["properties"] == {
         "styles": {
@@ -254,14 +258,14 @@ def test_the_graphical_block_vocabulary() -> None:
 
 
 def test_enumerations_are_the_library_vocabulary() -> None:
-    defs = load_schema()["$defs"]
+    defs = load_schema("0.6.0")["$defs"]
     assert defs["TimelineClass"]["enum"] == TIMELINE_CLASSES
     assert defs["TimeUnit"]["enum"] == TIME_UNITS
     assert defs["NumberType"]["enum"] == NUMBER_TYPES
 
 
 def test_timeline_manifest_is_closed_over_fourteen_keys() -> None:
-    manifest = load_schema()["$defs"]["TimelineManifest"]
+    manifest = load_schema("0.6.0")["$defs"]["TimelineManifest"]
     assert manifest["required"] == MANIFEST_KEYS
     assert list(manifest["properties"]) == MANIFEST_KEYS
     assert manifest["additionalProperties"] is False
@@ -271,7 +275,7 @@ def test_timeline_manifest_is_closed_over_fourteen_keys() -> None:
 
 
 def test_ids_are_nonempty_without_slashes_or_control_characters() -> None:
-    defs = load_schema()["$defs"]
+    defs = load_schema("0.6.0")["$defs"]
     assert defs["TimelineManifest"]["properties"]["id"]["pattern"] == ID_PATTERN
     assert defs["TimelineManifest"]["properties"]["children"]["propertyNames"] == {
         "pattern": ID_PATTERN
@@ -289,7 +293,7 @@ def test_ids_are_nonempty_without_slashes_or_control_characters() -> None:
 
 
 def test_regions_and_flow_control_carry_ids() -> None:
-    defs = load_schema()["$defs"]
+    defs = load_schema("0.6.0")["$defs"]
     assert defs["Region"]["required"] == ["id", "name", "start", "end", "meta"]
     assert defs["Region"]["properties"]["name"]["type"] == ["string", "null"]
     assert defs["Break"]["required"] == [
@@ -328,8 +332,8 @@ def test_regions_and_flow_control_carry_ids() -> None:
 
 
 def test_measure_map_is_a_nonempty_compressed_row_list() -> None:
-    measure_map = load_schema()["$defs"]["MeasureMap"]
-    row = load_schema()["$defs"]["MeasureMapRow"]
+    measure_map = load_schema("0.6.0")["$defs"]["MeasureMap"]
+    row = load_schema("0.6.0")["$defs"]["MeasureMapRow"]
     assert measure_map["type"] == "array"
     assert measure_map["items"] == {"$ref": "#/$defs/MeasureMapRow"}
     assert measure_map["minItems"] == 1
@@ -347,7 +351,7 @@ def test_measure_map_is_a_nonempty_compressed_row_list() -> None:
 
 
 def test_measure_map_is_admitted_on_quarters_timelines_only() -> None:
-    manifest = load_schema()["$defs"]["TimelineManifest"]
+    manifest = load_schema("0.6.0")["$defs"]["TimelineManifest"]
     assert manifest["if"] == {
         "properties": {"unit": {"const": "quarters"}},
         "required": ["unit"],
@@ -356,7 +360,7 @@ def test_measure_map_is_admitted_on_quarters_timelines_only() -> None:
 
 
 def test_metrical_position_map_states_its_meter_map_once() -> None:
-    position_map = load_schema()["$defs"]["MetricalPositionMap"]
+    position_map = load_schema("0.6.0")["$defs"]["MetricalPositionMap"]
     assert position_map["required"] == [
         "type",
         "id",
@@ -369,8 +373,9 @@ def test_metrical_position_map_states_its_meter_map_once() -> None:
     assert position_map["additionalProperties"] is False
 
 
-def test_fixture_set_contains_exactly_the_0_5_0_manifests() -> None:
-    names = [path.name for path in fixture_paths()]
+@pytest.mark.parametrize("version", ["0.6.0", "0.7.0"])
+def test_fixture_set_contains_exactly_the_0_5_0_manifests(version: str) -> None:
+    names = [path.name for path in fixture_paths(version)]
     assert names == [
         "bare.json",
         "contiguous.json",
@@ -415,9 +420,10 @@ def _timeline_structure(timeline: dict) -> tuple:
     )
 
 
-def test_no_two_fixtures_share_a_structure() -> None:
+@pytest.mark.parametrize("version", ["0.6.0", "0.7.0"])
+def test_no_two_fixtures_share_a_structure(version: str) -> None:
     first_of: dict[tuple, str] = {}
-    for path in fixture_paths():
+    for path in fixture_paths(version):
         manifest = json.loads(path.read_text(encoding="utf-8"))
         graphical = manifest.get("graphical")
         structure = (
@@ -659,3 +665,60 @@ def test_unknown_version_is_refused(accessor) -> None:
     with pytest.raises(UnsupportedVersionError) as caught:
         accessor("9.9.9")
     assert caught.value.version == "9.9.9"
+
+
+GROUP_FIXTURES = [
+    "corpus_tilia.json",
+    "group_child_member.json",
+    "group_number_types.json",
+]
+BUNDLE_FIXTURES = [
+    "bundle_mixed.json",
+    "corpus_ieee1599.json",
+    "corpus_listen_here.json",
+    "corpus_matchfile.json",
+    "corpus_mpm.json",
+    "corpus_parangonada.json",
+    "corpus_tilia.json",
+]
+
+
+def test_the_group_and_bundle_fixture_sets() -> None:
+    assert [path.name for path in fixture_paths("0.7.0", "group")] == GROUP_FIXTURES
+    assert [path.name for path in fixture_paths("0.7.0", "bundle")] == BUNDLE_FIXTURES
+    assert fixture_paths("0.6.0", "group") == fixture_paths("0.6.0", "bundle") == []
+
+
+def _file_structure(data: dict) -> tuple:
+    """The structural signature of a group or bundle file, in this test's code."""
+    depth_of: dict[str, tuple[str, int]] = {}
+
+    def visit(timeline: dict, depth: int) -> None:
+        depth_of[timeline["id"]] = (timeline["class"], depth)
+        for child in timeline["children"].values():
+            visit(child["timeline"], depth + 1)
+
+    for root in data["timelines"]:
+        visit(root, 0)
+    roots = tuple(sorted(_timeline_structure(root) for root in data["timelines"]))
+
+    def members(group: dict) -> tuple:
+        return tuple(sorted(depth_of[member] for member in group["members"]))
+
+    if "group" in data:
+        return (roots, members(data["group"]))
+    groups = data["bundle"]["groups"]
+    grouped = {member for group in groups for member in group["members"]}
+    ungrouped = sum(root["id"] not in grouped for root in data["timelines"])
+    return (roots, tuple(sorted(members(group) for group in groups)), ungrouped)
+
+
+@pytest.mark.parametrize(("kind", "count"), [("group", 3), ("bundle", 7)])
+def test_no_two_group_or_bundle_fixtures_share_a_structure(
+    kind: str, count: int
+) -> None:
+    structures = {
+        _file_structure(json.loads(path.read_text(encoding="utf-8")))
+        for path in fixture_paths("0.7.0", kind)
+    }
+    assert len(structures) == count

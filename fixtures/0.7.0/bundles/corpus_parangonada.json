@@ -1,0 +1,482 @@
+{
+  "bundle": {
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "score:clt_1",
+          "score:dlt_1"
+        ],
+        "meta": {},
+        "name": "score"
+      },
+      {
+        "id": "group_2",
+        "members": [
+          "perf:1966_Szegedi:cpt_1",
+          "perf:1966_Szegedi:dpt_1"
+        ],
+        "meta": {},
+        "name": "perf:1966_Szegedi"
+      },
+      {
+        "id": "group_3",
+        "members": [
+          "perf:1970_Gould:cpt_1",
+          "perf:1970_Gould:dpt_1"
+        ],
+        "meta": {},
+        "name": "perf:1970_Gould"
+      },
+      {
+        "id": "group_4",
+        "members": [
+          "perf:1971_Curzon:cpt_1",
+          "perf:1971_Curzon:dpt_1"
+        ],
+        "meta": {},
+        "name": "perf:1971_Curzon"
+      },
+      {
+        "id": "group_5",
+        "members": [
+          "perf:1985_Brendel:cpt_1",
+          "perf:1985_Brendel:dpt_1"
+        ],
+        "meta": {},
+        "name": "perf:1985_Brendel"
+      },
+      {
+        "id": "group_6",
+        "members": [
+          "perf:2023_Hewitt:cpt_1",
+          "perf:2023_Hewitt:dpt_1"
+        ],
+        "meta": {},
+        "name": "perf:2023_Hewitt"
+      }
+    ],
+    "id": "bundle_1",
+    "meta": {},
+    "name": "Beethoven_Eroica_op35-cpjku",
+    "support_policy": "omit"
+  },
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "group_2": [
+        "perf:1966_Szegedi:cpt_1",
+        "perf:1966_Szegedi:dpt_1"
+      ],
+      "group_3": [
+        "perf:1970_Gould:cpt_1",
+        "perf:1970_Gould:dpt_1"
+      ],
+      "group_4": [
+        "perf:1971_Curzon:cpt_1",
+        "perf:1971_Curzon:dpt_1"
+      ],
+      "group_5": [
+        "perf:1985_Brendel:cpt_1",
+        "perf:1985_Brendel:dpt_1"
+      ],
+      "group_6": [
+        "perf:2023_Hewitt:cpt_1",
+        "perf:2023_Hewitt:dpt_1"
+      ]
+    }
+  },
+  "meta": {
+    "generator": "timetoalign 1.2.0 (d3a500d7)",
+    "schema_version": "0.7.0"
+  },
+  "timelines": [
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1966_Szegedi:cpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 73.06201814058957
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1966_Szegedi",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1966_Szegedi:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 3222035
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1966_Szegedi",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1970_Gould:cpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 122.89201814058957
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1970_Gould",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1970_Gould:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 5419538
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1970_Gould",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1971_Curzon:cpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 77.78290249433107
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1971_Curzon",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1971_Curzon:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 3430226
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1971_Curzon",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1985_Brendel:cpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 74.88201814058957
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1985_Brendel",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:1985_Brendel:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 3302297
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "1985_Brendel",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:2023_Hewitt:cpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 89.94301587301587
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "2023_Hewitt",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    },
+    {
+      "children": {},
+      "class": "DiscretePhysicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": "samples_to_seconds",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "perf:2023_Hewitt:dpt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "samples",
+        "value": 3966486
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "2023_Hewitt",
+      "number_type": "int",
+      "regions": [],
+      "unit": "samples"
+    },
+    {
+      "children": {},
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "score:clt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          64,
+          1
+        ]
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    },
+    {
+      "children": {},
+      "class": "DiscreteLogicalTimeline",
+      "conversion_maps": [
+        {
+          "id": "lmap_1",
+          "name": "ticks_to_quarters",
+          "offset": [
+            -1,
+            2
+          ],
+          "scalar": [
+            1,
+            32
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "LinearMap"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "score:dlt_1",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "int",
+        "unit": "ticks",
+        "value": 2064
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "number_type": "int",
+      "regions": [],
+      "unit": "ticks"
+    }
+  ]
+}

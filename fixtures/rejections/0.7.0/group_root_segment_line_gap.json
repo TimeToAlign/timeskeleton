@@ -1,0 +1,234 @@
+{
+  "manifest": {
+    "graphical": {
+      "order": [
+        "second-half",
+        "recording",
+        "sketch"
+      ]
+    },
+    "group": {
+      "id": "group_1",
+      "members": [
+        "recording",
+        "second-half",
+        "sketch"
+      ],
+      "meta": {},
+      "name": "Second half"
+    },
+    "meta": {
+      "schema_version": "0.7.0"
+    },
+    "timelines": [
+      {
+        "children": {
+          "second-half": {
+            "offset": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                4,
+                1
+              ]
+            },
+            "timeline": {
+              "children": {},
+              "class": "ContinuousLogicalTimeline",
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "second-half",
+              "is_segment_line": false,
+              "length": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  4,
+                  1
+                ]
+              },
+              "locked": false,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": null,
+              "number_type": "fraction",
+              "regions": [],
+              "unit": "quarters"
+            }
+          }
+        },
+        "class": "ContinuousLogicalTimeline",
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "piece",
+        "is_segment_line": false,
+        "length": {
+          "number_type": "fraction",
+          "unit": "quarters",
+          "value": [
+            8,
+            1
+          ]
+        },
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      },
+      {
+        "children": {},
+        "class": "ContinuousLogicalTimeline",
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "recording",
+        "is_segment_line": false,
+        "length": {
+          "number_type": "fraction",
+          "unit": "quarters",
+          "value": [
+            8,
+            1
+          ]
+        },
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      },
+      {
+        "children": {
+          "a": {
+            "offset": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                0,
+                1
+              ]
+            },
+            "timeline": {
+              "children": {},
+              "class": "ContinuousLogicalTimeline",
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "a",
+              "is_segment_line": false,
+              "length": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  3,
+                  1
+                ]
+              },
+              "locked": false,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": null,
+              "number_type": "fraction",
+              "regions": [],
+              "unit": "quarters"
+            }
+          },
+          "b": {
+            "offset": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                4,
+                1
+              ]
+            },
+            "timeline": {
+              "children": {},
+              "class": "ContinuousLogicalTimeline",
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "b",
+              "is_segment_line": false,
+              "length": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  4,
+                  1
+                ]
+              },
+              "locked": false,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": null,
+              "number_type": "fraction",
+              "regions": [],
+              "unit": "quarters"
+            }
+          }
+        },
+        "class": "ContinuousLogicalTimeline",
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "sketch",
+        "is_segment_line": true,
+        "length": {
+          "number_type": "fraction",
+          "unit": "quarters",
+          "value": [
+            8,
+            1
+          ]
+        },
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": "Bare",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ]
+  },
+  "path": [
+    "timelines",
+    2,
+    "children",
+    "b",
+    "offset"
+  ],
+  "reason": "Each root of a group file keeps the segment-line rules."
+}

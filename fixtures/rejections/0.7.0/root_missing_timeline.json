@@ -1,0 +1,10 @@
+{
+  "manifest": {
+    "meta": {
+      "generator": "timetoalign 1.2.0 (f0a58ce1)",
+      "schema_version": "0.7.0"
+    }
+  },
+  "path": [],
+  "reason": "A file holds exactly one of timeline, group and bundle beside meta; this one holds none."
+}
