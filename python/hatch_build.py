@@ -11,7 +11,10 @@ time:
   ``schema/``, ``fixtures/``, ``fonts/`` and ``docs/`` directories go into the
   sdist under ``src/timeskeleton/`` and into the wheel under ``timeskeleton/``,
   and the root ``README.md`` goes into the sdist. In an unpacked sdist those copies
-  are ordinary package files and need no forcing.
+  are ordinary package files and need no forcing. The root ``LICENSE`` goes
+  into the sdist root and into the wheel's ``.dist-info/licenses/``. In an
+  unpacked sdist it is the project's own ``LICENSE``, which hatchling's default
+  licence-file pattern already puts there.
 * ``ReadmeHook`` (metadata hook): fills the dynamic ``readme`` field from the
   root ``README.md`` in a checkout, or from the sdist's copy.
 
@@ -28,6 +31,7 @@ from hatchling.metadata.plugin.interface import MetadataHookInterface
 
 ASSETS = ("schema", "fixtures", "fonts", "docs")
 README = "README.md"
+LICENSE = "LICENSE"
 
 
 def _repository(project: Path) -> Path | None:
@@ -55,8 +59,13 @@ class AssetsHook(BuildHookInterface):
         prefix = "src/timeskeleton" if self.target_name == "sdist" else "timeskeleton"
         for name in ASSETS:
             force_include[str(repository / name)] = f"{prefix}/{name}"
-        if self.target_name == "sdist" and (repository / README).is_file():
-            force_include[str(repository / README)] = README
+        if self.target_name == "sdist":
+            for name in (README, LICENSE):
+                if (repository / name).is_file():
+                    force_include[str(repository / name)] = name
+        elif (repository / LICENSE).is_file():
+            dist_info = f"{self.metadata.core.name}-{self.metadata.version}.dist-info"
+            force_include[str(repository / LICENSE)] = f"{dist_info}/licenses/{LICENSE}"
 
 
 class ReadmeHook(MetadataHookInterface):

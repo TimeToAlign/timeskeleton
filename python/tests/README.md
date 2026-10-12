@@ -26,8 +26,8 @@ schema versions it still validates (0.5.0).
    and render them as JSON pointers.
 6. Every fixture and every rejection case is reproduced byte for byte by the
    standard writer.
-7. The wheel and the sdist ship `docs/drawing.md`, byte for byte the
-   repository's copy.
+7. The wheel and the sdist ship `docs/drawing.md` and the root `LICENSE`, byte
+   for byte the repository's copies.
 8. `migrate` rewrites a value of any supported version to the latest one
    (see "Versions and migration").
 
@@ -342,11 +342,17 @@ integer.
 
 ## Packaging
 
-`docs/drawing.md` is part of the contract, so both distributions carry it.
+`docs/drawing.md` is part of the contract, so both distributions carry it,
+and both carry the repository's MIT `LICENSE`.
 The test builds the sdist and the wheel with `uv build` into a temporary
-directory and requires `timeskeleton/docs/drawing.md` in the wheel and
+directory twice, the wheel once from the checkout (`--sdist --wheel`) and once
+from the sdist (plain `uv build`, as the release does), and each time
+requires `timeskeleton/docs/drawing.md` in the wheel and
 `src/timeskeleton/docs/drawing.md` in the sdist, each byte for byte the
-repository's `docs/drawing.md`.
+repository's `docs/drawing.md`; it also requires
+`timeskeleton-<version>.dist-info/licenses/LICENSE` in the wheel and `LICENSE`
+at the sdist root, each byte for byte the root `LICENSE` (the font's
+`fonts/LICENSE` does not count).
 
 ## Generated artifacts
 

@@ -41,6 +41,10 @@ schema versions it still validates (0.5.0).
 8. The npm package ships `docs/drawing.md`: after `scripts/copy-assets.ts`,
    `npm pack --dry-run --json` lists `docs/drawing.md`, the copy equals the
    repository's file byte for byte, and `package.json` exports `./docs/*`.
+9. The npm package ships the repository's MIT licence: after
+   `scripts/copy-assets.ts`, `npm pack --dry-run --json` lists `LICENSE` at
+   the package root (not only `fonts/LICENSE`), and the copy equals the root
+   `LICENSE` byte for byte.
 
 ## Versions and migration
 

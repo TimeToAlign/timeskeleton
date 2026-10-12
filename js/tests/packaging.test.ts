@@ -22,4 +22,18 @@ describe("the npm package", () => {
     const manifest = JSON.parse(readFileSync(resolve(packageDirectory, "package.json"), "utf8"));
     expect(manifest.exports["./docs/*"]).toBe("./docs/*");
   });
+
+  it("ships the repository's licence", () => {
+    execFileSync(process.execPath, ["scripts/copy-assets.ts"], { cwd: packageDirectory });
+    const [report] = JSON.parse(
+      execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], {
+        cwd: packageDirectory,
+        encoding: "utf8",
+      }),
+    ) as [{ files: { path: string }[] }];
+    expect(report.files.map((file) => file.path)).toContain("LICENSE");
+    expect(readFileSync(resolve(packageDirectory, "LICENSE"))).toEqual(
+      readFileSync(resolve(repositoryRoot, "LICENSE")),
+    );
+  });
 });
