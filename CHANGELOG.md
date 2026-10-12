@@ -2,6 +2,18 @@
 
 Release entries are written by release-please from the Conventional Commits since the previous release.
 
+## [0.6.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.5.0...v0.6.0) (2026-10-12)
+
+
+### Features
+
+* pad vertically stretched drawings and pin text rendering ([ec4ff22](https://github.com/TimeToAlign/timeskeleton/commit/ec4ff22f5a7ff73d9b6642be444def8ff417fad8))
+
+
+### Bug Fixes
+
+* ship the MIT licence in the npm and Python packages ([63a54b9](https://github.com/TimeToAlign/timeskeleton/commit/63a54b9c038408aefe252e072024a3f2b59d437e))
+
 ## [0.5.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.4.0...v0.5.0) (2026-10-11)
 
 
