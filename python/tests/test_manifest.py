@@ -62,9 +62,9 @@ def test_standard_files_round_trip_byte_for_byte(path) -> None:
     assert dumps(json.loads(text)) == text
 
 
-def test_the_standard_files_number_one_hundred_and_twenty_six() -> None:
-    assert [len(fixture_paths(kind=kind)) for kind in FILE_KINDS] == [23, 3, 7]
-    assert len(_standard_files()) == 23 + 3 + 7 + 93
+def test_the_standard_files_number_one_hundred_and_thirty_one() -> None:
+    assert [len(fixture_paths(kind=kind)) for kind in FILE_KINDS] == [29, 9, 9]
+    assert len(_standard_files()) == 29 + 9 + 9 + 100
 
 
 def test_non_ascii_text_is_written_unescaped() -> None:

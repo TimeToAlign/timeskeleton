@@ -375,8 +375,22 @@ describe("schema vocabulary", () => {
 });
 
 describe("fixture set", () => {
-  it.each(["0.6.0", "0.7.0"])("contains exactly the 23 single manifests (%s)", (version) => {
-    expect(fixtureFileNames(version)).toEqual([
+  it.each([
+    ["0.6.0", []],
+    [
+      "0.7.0",
+      [
+        "locked_root.json",
+        "segment_children.json",
+        "segment_line.json",
+        "segment_pages.json",
+        "segment_pages_accolades.json",
+        "segment_pages_locked.json",
+      ],
+    ],
+  ])("contains exactly the single manifests of %s", (version, added) => {
+    const names = [
+      ...added,
       "bare.json",
       "contiguous.json",
       "continuous_graphical.json",
@@ -400,17 +414,26 @@ describe("fixture set", () => {
       "styled__performance.json",
       "styled__score.json",
       "with_region.json",
-    ]);
+    ].sort();
+    expect(fixtureFileNames(version)).toEqual(names);
   });
 
   it("contains exactly the group and bundle files of 0.7.0", () => {
     expect(fixtureFileNames("0.7.0", "group")).toEqual([
       "corpus_tilia.json",
       "group_child_member.json",
+      "group_grandchild.json",
       "group_number_types.json",
+      "group_parent_both.json",
+      "group_parent_exact.json",
+      "group_parent_right.json",
+      "group_parents_mixed.json",
+      "group_styled.json",
     ]);
     expect(fixtureFileNames("0.7.0", "bundle")).toEqual([
       "bundle_mixed.json",
+      "bundle_shared_parent.json",
+      "bundle_ungrouped.json",
       "corpus_ieee1599.json",
       "corpus_listen_here.json",
       "corpus_matchfile.json",

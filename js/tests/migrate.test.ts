@@ -167,7 +167,18 @@ describe("migrate", () => {
     ["0.6.0", "0.7.0"],
   ])("finds the %s manifests in the %s manifests", (old, current) => {
     const names = fixtureFileNames(old);
-    expect(fixtureFileNames(current)).toEqual(names);
+    const added =
+      current === "0.7.0"
+        ? [
+            "locked_root.json",
+            "segment_children.json",
+            "segment_line.json",
+            "segment_pages.json",
+            "segment_pages_accolades.json",
+            "segment_pages_locked.json",
+          ]
+        : [];
+    expect(fixtureFileNames(current)).toEqual([...names, ...added].sort());
     expect(names).toHaveLength(23);
     for (const file of names) {
       const name = file.slice(0, -5);
@@ -183,7 +194,7 @@ describe("migrate", () => {
 
   it.each([
     ["0.5.0", "0.6.0", 55],
-    ["0.6.0", "0.7.0", 93],
+    ["0.6.0", "0.7.0", 100],
   ])("finds the %s rejection cases in the %s cases", (old, current, count) => {
     const names = rejectionFileNames(old);
     const later = rejectionFileNames(current);
@@ -199,6 +210,8 @@ describe("migrate", () => {
         expect(after.reason).toBe(
           "A file holds exactly one of timeline, group and bundle beside meta; this one holds none.",
         );
+      } else if (current === "0.7.0" && name === "statement_select_unknown_element.json") {
+        expect(after.reason).toBe("An element type is one of the fourteen types of the drawing.");
       } else expect(before.reason).toBe(after.reason);
       if (refused.includes(name) && current === "0.6.0") {
         expect(rejectionText(name, old)).toBe(rejectionText(name, current));

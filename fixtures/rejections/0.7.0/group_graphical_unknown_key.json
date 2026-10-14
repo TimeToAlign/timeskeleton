@@ -1,11 +1,11 @@
 {
   "manifest": {
     "graphical": {
+      "arrangement": {},
       "order": [
         "second-half",
         "recording"
-      ],
-      "styles": {}
+      ]
     },
     "group": {
       "id": "group_1",
@@ -120,5 +120,5 @@
   "path": [
     "graphical"
   ],
-  "reason": "A group file's graphical block holds the order alone."
+  "reason": "A group file's graphical block holds the order, styles and statements alone."
 }

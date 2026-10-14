@@ -14,14 +14,16 @@ These rules apply to every contributor, human or automated.
   timelines, bundle, graphical?}`; `core` holds the definitions they share,
   and the documents refer to each other by relative `$ref`.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
-  and SVG and TikZ writers; it is part of the contract, and both packages
-  ship it.
+  the box of groups, frames and cards, and SVG and TikZ writers; it is part
+  of the contract, and both packages ship it.
 - `fixtures/`: generated files under `fixtures/<version>/` (timeline files
   directly in it, group files in `groups/`, bundle files in `bundles/`),
   hand-authored rejection cases under `fixtures/rejections/<version>/`,
   hand-authored migration pairs under `fixtures/migrations/`, and the
   drawings (`inputs.json`, `figure.svg` and `figure.tex` per drawing;
-  seven `figure.svg` derived by hand, everything else emitted); see `fixtures/README.md`.
+  twelve `figure.svg` of 0.7.0 derived by hand, seven of 0.5.0 and of 0.6.0,
+  everything else emitted; each version's `drawings/README.md` gives the
+  arithmetic of its hand-derived figures); see `fixtures/README.md`.
 - `fonts/`: DejaVu Sans 2.37, its licence, and the advance-width metrics used
   by the drawing.
 - `python/`: the PyPI package, tests, lockfile, and build configuration.
@@ -49,8 +51,8 @@ These rules apply to every contributor, human or automated.
   only through `scripts/emit_fixtures.py`; never hand-edit them. The script refuses to
   overwrite the fixtures of a version whose `v<version>` tag exists. Emit
   the drawings under `fixtures/<version>/drawings/` only through
-  TimeLineEditor's `emit-drawings` script, which never rewrites the seven
-  hand-derived figures.
+  TimeLineEditor's `emit-drawings` script, which never rewrites the twelve
+  hand-derived figures but compares them with its own output.
 - `docs/drawing.md` pins the drawing. There is no drawing schema, and a drawing's JSON form is internal to
   an implementation. A rule a reader could not reproduce from the
   specification alone is a defect of the specification. This repository never

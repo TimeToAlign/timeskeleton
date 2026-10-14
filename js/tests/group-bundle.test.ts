@@ -1,10 +1,13 @@
 import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  type BundleGraphical,
   canonicalOrder,
   compactJson,
   dumps,
+  type GroupGraphical,
   identityProblems,
   type Json,
   type Lossless,
@@ -12,7 +15,14 @@ import {
   SchemaValidationError,
   validate,
 } from "../src/index.js";
-import { bundleDocument, groupDocument, repositoryRoot } from "./fixtures.js";
+import {
+  bundleDocument,
+  fixtureText,
+  groupDocument,
+  loadFixture,
+  loadSchemaFile,
+  repositoryRoot,
+} from "./fixtures.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -38,8 +48,52 @@ function jump(target: string): JsonObject {
   };
 }
 
+function rejection(value: unknown): SchemaValidationError {
+  try {
+    validate(value);
+  } catch (error) {
+    if (error instanceof SchemaValidationError) return error;
+    throw error;
+  }
+  throw new Error("value was accepted");
+}
+
 function marker(id: string): JsonObject {
   return { id, name: null, coordinate: at(1) };
+}
+
+const PART_WORDS = ["start", "end", "name", "label", "card"] as const;
+const KINDS = ["conversion_maps", "regions", "breaks", "jumps", "markers"] as const;
+type Kind = (typeof KINDS)[number];
+
+/** One element of the kind, carrying the id. */
+function element(kind: Kind, id: string): JsonObject {
+  let found: JsonObject;
+  if (kind === "conversion_maps") {
+    const timeline = loadFixture("conversion_maps__maps_quarters")
+      .timeline as unknown as JsonObject;
+    found = (timeline.conversion_maps as JsonObject[])[0] as JsonObject;
+  } else if (kind === "regions") {
+    found = { name: "theme", start: at(2), end: at(6), meta: {} };
+  } else if (kind === "breaks") {
+    const timeline = loadFixture("flow_control").timeline as unknown as JsonObject;
+    found = (flow(timeline).breaks as JsonObject[])[0] as JsonObject;
+  } else if (kind === "jumps") {
+    found = { ...jump("m"), target: null };
+  } else {
+    found = marker(id);
+  }
+  return { ...found, id };
+}
+
+/** Put the element in the timeline; the path of its id below the timeline. */
+function place(timeline: JsonObject, kind: Kind, entry: JsonObject): (string | number)[] {
+  if (kind === "conversion_maps" || kind === "regions") {
+    timeline[kind] = [entry];
+    return [kind, 0, "id"];
+  }
+  flow(timeline)[kind] = [entry];
+  return ["flow_control", kind, 0, "id"];
 }
 
 const roots = (value: JsonObject) => value.timelines as JsonObject[];
@@ -136,6 +190,41 @@ describe("identityProblems of group and bundle files", () => {
     expect(problemsOf(bundle)).toEqual([
       [["bundle", "groups", 0, "id"], 'duplicate id "score", first at #/timelines/4/id'],
       [["bundle", "groups", 1, "id"], 'duplicate id "score", first at #/timelines/4/id'],
+    ]);
+  });
+
+  it.each([
+    ["annotations", "#/timelines/0/id"],
+    ["excerpt", "#/timelines/3/children/excerpt/timeline/id"],
+    ["group_2", "#/bundle/groups/1/id"],
+  ])("keeps the bundle id %s apart from every timeline and group id", (id, first) => {
+    const value = bundleDocument();
+    (value.bundle as JsonObject).id = id;
+    const expected = [["bundle", "id"], `duplicate id ${JSON.stringify(id)}, first at ${first}`];
+    expect(problemsOf(value)).toEqual([expected]);
+    const error = rejection(value);
+    expect([error.path, error.detail]).toEqual(expected);
+  });
+
+  it("names the timeline before a group a bundle id repeats", () => {
+    const value = bundleDocument();
+    (value.bundle as JsonObject).id = "score";
+    (groups(value)[1] as JsonObject).id = "score";
+    graphical(value).order = { group_1: ["score", "performance"] };
+    expect(problemsOf(value)).toEqual([
+      [["bundle", "groups", 1, "id"], 'duplicate id "score", first at #/timelines/4/id'],
+      [["bundle", "id"], 'duplicate id "score", first at #/timelines/4/id'],
+    ]);
+  });
+
+  it("names the first group carrying a bundle id", () => {
+    const value = bundleDocument();
+    (value.bundle as JsonObject).id = "group_1";
+    (groups(value)[1] as JsonObject).id = "group_1";
+    delete orders(value).group_2;
+    expect(problemsOf(value)).toEqual([
+      [["bundle", "groups", 1, "id"], 'duplicate id "group_1", first at #/bundle/groups/0/id'],
+      [["bundle", "id"], 'duplicate id "group_1", first at #/bundle/groups/0/id'],
     ]);
   });
 
@@ -277,10 +366,63 @@ describe("identityProblems of group and bundle files", () => {
     ]);
   });
 
+  it.each(KINDS.flatMap((kind) => PART_WORDS.map((word) => [kind, word] as const)))(
+    "reserves the part words as the id of a %s element (%s)",
+    (kind, word) => {
+      for (const [value, index] of [
+        [groupDocument(), 1],
+        [bundleDocument(), 4],
+      ] as const) {
+        const path = place(roots(value)[index] as JsonObject, kind, element(kind, word));
+        expect(problemsOf(value)).toEqual([
+          [
+            ["timelines", index, ...path],
+            `id ${JSON.stringify(word)} is reserved in a group or bundle file`,
+          ],
+        ]);
+      }
+    },
+  );
+
+  it("reserves no other word, no timeline id and nothing in a timeline file", () => {
+    const value = groupDocument();
+    const recording = roots(value)[1] as JsonObject;
+    recording.regions = [element("regions", "starts")];
+    flow(recording).markers = [marker("Start")];
+    expect(problemsOf(value)).toEqual([]);
+    const bundle = bundleDocument();
+    const holder = roots(bundle)[3] as JsonObject;
+    const children = holder.children as JsonObject;
+    const entry = structuredClone(children.excerpt) as JsonObject;
+    (entry.timeline as JsonObject).id = "start";
+    (entry.timeline as JsonObject).children = {};
+    children.start = entry;
+    expect(problemsOf(bundle)).toEqual([]);
+    const timelineFile = loadFixture("bare") as unknown as JsonObject;
+    place(timelineFile.timeline as JsonObject, "regions", element("regions", "label"));
+    expect(problemsOf(timelineFile)).toEqual([]);
+    validate(timelineFile);
+  });
+
+  it("checks the part words after the rules of every root", () => {
+    const value = groupDocument();
+    (roots(value)[0] as JsonObject).regions = [element("regions", "end")];
+    flow(roots(value)[1] as JsonObject).jumps = [jump("nowhere")];
+    expect(problemsOf(value)).toEqual([
+      [
+        ["timelines", 1, "flow_control", "jumps", 0, "target"],
+        '"nowhere" names no marker of this timeline',
+      ],
+      [["timelines", 0, "regions", 0, "id"], 'id "end" is reserved in a group or bundle file'],
+    ]);
+  });
+
   it("lists the problems in the stated order", () => {
     const value = bundleDocument();
     flow(roots(value)[0] as JsonObject).jumps = [jump("nowhere")];
+    (roots(value)[0] as JsonObject).regions = [element("regions", "end")];
     (roots(value)[1] as JsonObject).id = "annotations";
+    (value.bundle as JsonObject).id = "group_2";
     const [first, second] = groups(value) as JsonObject[];
     (first as JsonObject).id = "recording";
     (first as JsonObject).members = ["performance", "score", "tempo"];
@@ -291,8 +433,10 @@ describe("identityProblems of group and bundle files", () => {
         ["timelines", 0, "flow_control", "jumps", 0, "target"],
         '"nowhere" names no marker of this timeline',
       ],
+      [["timelines", 0, "regions", 0, "id"], 'id "end" is reserved in a group or bundle file'],
       [["timelines", 1, "id"], 'duplicate id "annotations", first at #/timelines/0/id'],
       [["bundle", "groups", 0, "id"], 'duplicate id "recording", first at #/timelines/3/id'],
+      [["bundle", "id"], 'duplicate id "group_2", first at #/bundle/groups/1/id'],
       [["bundle", "groups", 0, "members", 2], '"tempo" names no timeline of this file'],
       [
         ["bundle", "groups", 1, "members", 1],
@@ -406,5 +550,118 @@ describe("the canonical order of group and bundle files", () => {
     const written = reversed.map((text) => dumps(parseJson(text)));
     expect(written).toEqual(JSON.parse(python.stdout) as string[]);
     expect(written).toEqual(documents.map((value) => dumps(value)));
+  });
+});
+
+// Typed as both blocks, so the type check proves that the generated types
+// take the styles and statements, and the new element types and members.
+const STYLED: GroupGraphical & BundleGraphical = {
+  styles: { frame: { stroke: "#7F00FF" } },
+  statements: [
+    { select: { element: "group" }, set: "frame" },
+    { select: { element: "boundary" }, set: { "stroke-width": 2 } },
+    { select: { element: "ancestor", ids: ["piece"] }, set: { opacity: 0.5 } },
+    { select: { element: "card", inside: "group" }, set: { shadow: "#C4B5FD" } },
+  ],
+};
+
+describe("the graphical block of group and bundle files", () => {
+  it("takes styles and statements beside the order", () => {
+    for (const value of [groupDocument(), bundleDocument()]) {
+      Object.assign(graphical(value), structuredClone(STYLED));
+      validate(value);
+    }
+  });
+
+  it.each(["group", "bundle"])("refuses an unknown member in a %s file", (kind) => {
+    const value = kind === "group" ? groupDocument() : bundleDocument();
+    graphical(value).arrangement = {};
+    expect(rejection(value).path).toEqual(["graphical"]);
+  });
+
+  it("takes a timeline file's declaration in a bundle style", () => {
+    const value = bundleDocument();
+    graphical(value).styles = { frame: { colour: "#7F00FF" } };
+    expect(rejection(value).path).toEqual(["graphical", "styles", "frame"]);
+  });
+
+  it("keeps the ten element types in 0.6.0", () => {
+    const value = loadFixture("bare", "0.6.0");
+    value.graphical = { statements: [{ select: { element: "group" }, set: { fill: "#7F00FF" } }] };
+    expect(rejection(value).path).toEqual(["graphical", "statements", 0, "select", "element"]);
+  });
+
+  it("emits group_styled as group_number_types with a block", () => {
+    const read = (name: string) => {
+      const value = parseJson(fixtureText(name, "0.7.0", "group")) as JsonObject;
+      delete (value.meta as JsonObject).generator;
+      return value;
+    };
+    const styled = read("group_styled");
+    const plain = read("group_number_types");
+    expect(dumps(styled.graphical as Json)).toBe(
+      dumps({
+        order: (plain.graphical as JsonObject).order as Json,
+        styles: { "frame-highlight": { stroke: "#7F00FF" } },
+        statements: [
+          { select: { element: "group" }, set: "frame-highlight" },
+          { select: { element: "name", ids: ["group_1/name"] }, set: { fill: "#7F00FF" } },
+          { select: { element: "card", inside: "group" }, set: { shadow: "#C4B5FD", rx: 2 } },
+        ],
+      } as unknown as Json),
+    );
+    styled.graphical = plain.graphical;
+    expect(dumps(styled as Json)).toBe(dumps(plain as Json));
+  });
+
+  it("adds card, inside and shadow to the definitions of 0.6.0", () => {
+    const old = loadSchemaFile("0.6.0").$defs as Record<string, JsonObject>;
+    const current = loadSchemaFile("0.7.0", "core").$defs as Record<string, JsonObject>;
+    expect(current.ElementType?.enum).toEqual([
+      ...((old.ElementType as JsonObject).enum as string[]),
+      "boundary",
+      "ancestor",
+      "group",
+      "card",
+    ]);
+    const selector = current.Selector?.properties as JsonObject;
+    expect(selector).toEqual({
+      ...(old.Selector?.properties as JsonObject),
+      inside: {
+        $ref: "#/$defs/ElementType",
+        description:
+          "An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree.",
+      },
+    });
+    expect(Object.keys(selector).at(-1)).toBe("inside");
+    expect(current.Selector?.additionalProperties).toBe(false);
+    const declaration = current.Declaration?.properties as JsonObject;
+    expect(declaration).toEqual({
+      ...(old.Declaration?.properties as JsonObject),
+      shadow: { $ref: "#/$defs/Paint" },
+    });
+    expect(Object.keys(declaration).at(-1)).toBe("shadow");
+  });
+
+  it.each([
+    [{ select: { element: "card" }, set: { rx: 5 } }],
+    [{ select: { inside: "ancestor" }, set: { opacity: 0.35 } }],
+    [{ select: { element: "card" }, set: { shadow: "#B8BEC8" } }],
+  ])("accepts the statement %j in 0.7.0", (statement) => {
+    const value = loadFixture("bare", "0.7.0");
+    value.graphical = { statements: [statement] };
+    validate(value);
+  });
+
+  it("accepts the defaults of the drawing specification as a block", () => {
+    const text = readFileSync(resolve(repositoryRoot, "docs", "drawing.md"), "utf8");
+    const section = text.split("\n## 4. Defaults\n")[1] ?? "";
+    const block = (section.split("```json\n")[1] ?? "").split("\n```")[0] ?? "";
+    const defaults = parseJson(block) as { styles: JsonObject; statements: unknown[] };
+    expect(Object.keys(defaults.styles)).toHaveLength(3);
+    expect(defaults.statements).toHaveLength(28);
+    const value = loadFixture("bare", "0.7.0");
+    value.graphical = defaults;
+    validate(value);
   });
 });

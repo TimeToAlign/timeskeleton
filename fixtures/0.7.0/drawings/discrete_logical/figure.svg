@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="521.3088" height="127.9766" viewBox="0 0 521.3088 127.9766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="489.3088" height="95.9766" rx="10" fill="#F3F4F6"/>
+<rect data-address="dlt_1/card" x="10" y="10" width="471.3088" height="77.9766" rx="5" fill="#B8BEC8"/>
+<rect data-address="dlt_1/card" x="8" y="8" width="471.3088" height="77.9766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="dlt_1" x1="50.8501" y1="51" x2="450.8501" y2="51" stroke="#00CC00" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="dlt_1" cx="50.8501" cy="51" r="3" fill="#00CC00"/>
+<polygon data-address="dlt_1" points="459.8501,51 450.8501,46.5 450.8501,55.5" fill="#00CC00"/>
+<line data-address="dlt_2" x1="53.3501" y1="37" x2="148.8501" y2="37" stroke="#00CC00" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="dlt_2" cx="53.3501" cy="37" r="3" fill="#00CC00"/>
+<polygon data-address="dlt_2" points="148.8501,37 153.3501,33.4 157.8501,37 153.3501,40.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="dlt_3" x1="56.6834" y1="23" x2="132.1834" y2="23" stroke="#00CC00" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="dlt_3" cx="56.6834" cy="23" r="3" fill="#00CC00"/>
+<polygon data-address="dlt_3" points="132.1834,23 136.6834,19.4 141.1834,23 136.6834,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="dlt_1/start" points="50.8501,52.5 47.8501,65.5 53.8501,65.5" fill="#000000"/>
+<polygon data-address="dlt_1/end" points="450.8501,52.5 447.8501,65.5 453.8501,65.5" fill="#000000"/>
+<text data-address="dlt_3/name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">dlt_3</text>
+<text data-address="dlt_2/name" x="16" y="40.8081" text-anchor="start" font-size="11" fill="#000000">dlt_2</text>
+<text data-address="dlt_1/name" x="16" y="54.8081" text-anchor="start" font-size="11" fill="#000000">dlt_1</text>
+<text data-address="dlt_1/start/label" x="50.8501" y="75.854" text-anchor="middle" font-size="9" fill="#000000">0 ticks</text>
+<text data-address="dlt_1/end/label" x="450.8501" y="75.854" text-anchor="middle" font-size="9" fill="#000000">480 ticks</text>
+</g>
+</svg>

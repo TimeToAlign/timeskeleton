@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="525.2571" height="145.9297" viewBox="0 0 525.2571 145.9297" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="493.2571" height="113.9297" rx="10" fill="#F3F4F6"/>
+<rect data-address="pages/card" x="10" y="10" width="475.2571" height="95.9297" rx="5" fill="#B8BEC8"/>
+<rect data-address="pages/card" x="8" y="8" width="475.2571" height="95.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="pages" x1="56.855" y1="68.9531" x2="456.855" y2="68.9531" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="pages" cx="56.855" cy="68.9531" r="3" fill="#FF0000"/>
+<polygon data-address="pages" points="465.855,68.9531 456.855,64.4531 456.855,73.4531" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<line data-address="page_1" x1="56.855" y1="36.4766" x2="152.355" y2="36.4766" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="page_1" cx="56.855" cy="36.4766" r="3" fill="#FF0000"/>
+<polygon data-address="page_1" points="152.355,36.4766 156.855,32.8766 161.355,36.4766 156.855,40.0766" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<line data-address="page_2" x1="156.855" y1="36.4766" x2="252.355" y2="36.4766" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="page_2" cx="156.855" cy="36.4766" r="3" fill="#FF0000"/>
+<polygon data-address="page_2" points="252.355,36.4766 256.855,32.8766 261.355,36.4766 256.855,40.0766" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<line data-address="page_3" x1="256.855" y1="36.4766" x2="352.355" y2="36.4766" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="page_3" cx="256.855" cy="36.4766" r="3" fill="#FF0000"/>
+<polygon data-address="page_3" points="352.355,36.4766 356.855,32.8766 361.355,36.4766 356.855,40.0766" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<line data-address="page_4" x1="356.855" y1="36.4766" x2="452.355" y2="36.4766" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="page_4" cx="356.855" cy="36.4766" r="3" fill="#FF0000"/>
+<polygon data-address="page_4" points="452.355,36.4766 456.855,32.8766 461.355,36.4766 456.855,40.0766" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<line data-address="page_1_accolade_2/start" x1="79.66" y1="28.4766" x2="79.66" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_1_accolade_3/start" x1="105.3156" y1="28.4766" x2="105.3156" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_1_accolade_4/start" x1="131.0853" y1="28.4766" x2="131.0853" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_2/start" x1="156.855" y1="60.9531" x2="156.855" y2="76.9531" stroke="#000000" stroke-width="1"/>
+<line data-address="page_2_accolade_2/start" x1="179.66" y1="28.4766" x2="179.66" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_2_accolade_3/start" x1="205.3156" y1="28.4766" x2="205.3156" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_2_accolade_4/start" x1="231.0853" y1="28.4766" x2="231.0853" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_3/start" x1="256.855" y1="60.9531" x2="256.855" y2="76.9531" stroke="#000000" stroke-width="1"/>
+<line data-address="page_3_accolade_2/start" x1="279.66" y1="28.4766" x2="279.66" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_3_accolade_3/start" x1="305.3156" y1="28.4766" x2="305.3156" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_3_accolade_4/start" x1="331.0853" y1="28.4766" x2="331.0853" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_4/start" x1="356.855" y1="60.9531" x2="356.855" y2="76.9531" stroke="#000000" stroke-width="1"/>
+<line data-address="page_4_accolade_2/start" x1="379.66" y1="28.4766" x2="379.66" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_4_accolade_3/start" x1="405.3156" y1="28.4766" x2="405.3156" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_4_accolade_4/start" x1="431.0853" y1="28.4766" x2="431.0853" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<polygon data-address="pages/start" points="56.855,70.4531 53.855,83.4531 59.855,83.4531" fill="#000000"/>
+<polygon data-address="pages/end" points="456.855,70.4531 453.855,83.4531 459.855,83.4531" fill="#000000"/>
+<text data-address="pages/name" x="16" y="72.7612" text-anchor="start" font-size="11" fill="#000000">Pages</text>
+<text data-address="pages/start/label" x="56.855" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
+<text data-address="pages/end/label" x="456.855" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">7016 px</text>
+<text data-address="page_1/label" x="106.855" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">Page 1</text>
+<text data-address="page_1_accolade_1/label" x="68.2575" y="24.354" text-anchor="middle" font-size="9" fill="#000000">1</text>
+<text data-address="page_1_accolade_2/label" x="92.4878" y="24.354" text-anchor="middle" font-size="9" fill="#000000">2</text>
+<text data-address="page_1_accolade_3/label" x="118.2005" y="24.354" text-anchor="middle" font-size="9" fill="#000000">3</text>
+<text data-address="page_1_accolade_4/label" x="143.9701" y="24.354" text-anchor="middle" font-size="9" fill="#000000">4</text>
+<text data-address="page_2/label" x="206.855" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">Page 2</text>
+<text data-address="page_2_accolade_1/label" x="168.2575" y="24.354" text-anchor="middle" font-size="9" fill="#000000">1</text>
+<text data-address="page_2_accolade_2/label" x="192.4878" y="24.354" text-anchor="middle" font-size="9" fill="#000000">2</text>
+<text data-address="page_2_accolade_3/label" x="218.2005" y="24.354" text-anchor="middle" font-size="9" fill="#000000">3</text>
+<text data-address="page_2_accolade_4/label" x="243.9701" y="24.354" text-anchor="middle" font-size="9" fill="#000000">4</text>
+<text data-address="page_3/label" x="306.855" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">Page 3</text>
+<text data-address="page_3_accolade_1/label" x="268.2575" y="24.354" text-anchor="middle" font-size="9" fill="#000000">1</text>
+<text data-address="page_3_accolade_2/label" x="292.4878" y="24.354" text-anchor="middle" font-size="9" fill="#000000">2</text>
+<text data-address="page_3_accolade_3/label" x="318.2005" y="24.354" text-anchor="middle" font-size="9" fill="#000000">3</text>
+<text data-address="page_3_accolade_4/label" x="343.9701" y="24.354" text-anchor="middle" font-size="9" fill="#000000">4</text>
+<text data-address="page_4/label" x="406.855" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">Page 4</text>
+<text data-address="page_4_accolade_1/label" x="368.2575" y="24.354" text-anchor="middle" font-size="9" fill="#000000">1</text>
+<text data-address="page_4_accolade_2/label" x="392.4878" y="24.354" text-anchor="middle" font-size="9" fill="#000000">2</text>
+<text data-address="page_4_accolade_3/label" x="418.2005" y="24.354" text-anchor="middle" font-size="9" fill="#000000">3</text>
+<text data-address="page_4_accolade_4/label" x="443.9701" y="24.354" text-anchor="middle" font-size="9" fill="#000000">4</text>
+</g>
+</svg>

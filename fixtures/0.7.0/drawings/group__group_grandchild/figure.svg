@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="591.7036" height="256.1133" viewBox="0 0 591.7036 256.1133" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="559.7036" height="224.1133" rx="10" fill="#F3F4F6"/>
+<rect data-address="group_1" x="8" y="8" width="543.7036" height="208.1133" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-address="group_1/name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Theme</text>
+<rect data-address="theme/card" x="18" y="34.8047" width="527.7036" height="117.9297" rx="5" fill="#B8BEC8"/>
+<rect data-address="theme/card" x="16" y="32.8047" width="527.7036" height="117.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="score" x1="99.7036" y1="67.7812" x2="523.7036" y2="67.7812" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-address="score" points="96.7036,63.2812 92.2036,67.7812 96.7036,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="score" points="92.2036,63.2812 87.7036,67.7812 92.2036,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="score" points="526.7036,63.2812 531.2036,67.7812 526.7036,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="score" points="531.2036,63.2812 535.7036,67.7812 531.2036,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-address="movement" x1="99.7036" y1="101.7578" x2="507.2036" y2="101.7578" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-address="movement" points="96.7036,97.2578 92.2036,101.7578 96.7036,106.2578" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="movement" points="92.2036,97.2578 87.7036,101.7578 92.2036,106.2578" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polygon data-address="movement" points="507.2036,101.7578 511.7036,98.1578 516.2036,101.7578 511.7036,105.3578" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<line data-address="theme" x1="111.7036" y1="115.7578" x2="507.2036" y2="115.7578" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="theme" cx="111.7036" cy="115.7578" r="3" fill="#00CC00"/>
+<polygon data-address="theme" points="507.2036,115.7578 511.7036,112.1578 516.2036,115.7578 511.7036,119.3578" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="theme/start" points="111.7036,66.2812 108.7036,53.2812 114.7036,53.2812" fill="#000000" opacity="0.35"/>
+<polygon data-address="theme/end" points="511.7036,66.2812 508.7036,53.2812 514.7036,53.2812" fill="#000000" opacity="0.35"/>
+<polygon data-address="theme/start" points="111.7036,100.2578 108.7036,87.2578 114.7036,87.2578" fill="#000000" opacity="0.35"/>
+<polygon data-address="theme/end" points="511.7036,100.2578 508.7036,87.2578 514.7036,87.2578" fill="#000000" opacity="0.35"/>
+<polygon data-address="theme/start" points="111.7036,117.2578 108.7036,130.2578 114.7036,130.2578" fill="#000000"/>
+<polygon data-address="theme/end" points="511.7036,117.2578 508.7036,130.2578 514.7036,130.2578" fill="#000000"/>
+<text data-address="score/name" x="24" y="70.897" text-anchor="start" font-size="9" fill="#6B7280">Score</text>
+<text data-address="movement/name" x="24" y="104.8735" text-anchor="start" font-size="9" fill="#6B7280">Movement</text>
+<text data-address="theme/name" x="24" y="119.5659" text-anchor="start" font-size="11" fill="#000000">Theme</text>
+<text data-address="theme/start/label" x="111.7036" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">24 ♩</text>
+<text data-address="theme/end/label" x="511.7036" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">32 ♩</text>
+<text data-address="theme/start/label" x="111.7036" y="83.1353" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">8 ♩</text>
+<text data-address="theme/end/label" x="511.7036" y="83.1353" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">16 ♩</text>
+<text data-address="theme/start/label" x="111.7036" y="140.6118" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="theme/end/label" x="511.7036" y="140.6118" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
+<rect data-address="recording/card" x="18" y="160.7344" width="527.7036" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-address="recording/card" x="16" y="158.7344" width="527.7036" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="recording" x1="111.7036" y1="173.1367" x2="511.7036" y2="173.1367" stroke="#0050EF" stroke-width="3"/>
+<circle data-address="recording" cx="111.7036" cy="173.1367" r="3" fill="#0050EF"/>
+<polygon data-address="recording" points="520.7036,173.1367 511.7036,168.6367 511.7036,177.6367" fill="#0050EF"/>
+<polygon data-address="recording/start" points="111.7036,174.6367 108.7036,187.6367 114.7036,187.6367" fill="#000000"/>
+<polygon data-address="recording/end" points="511.7036,174.6367 508.7036,187.6367 514.7036,187.6367" fill="#000000"/>
+<text data-address="recording/name" x="24" y="176.9448" text-anchor="start" font-size="11" fill="#000000">Recording</text>
+<text data-address="recording/start/label" x="111.7036" y="197.9907" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-address="recording/end/label" x="511.7036" y="197.9907" text-anchor="middle" font-size="9" fill="#000000">12.0 s</text>
+</g>
+</svg>

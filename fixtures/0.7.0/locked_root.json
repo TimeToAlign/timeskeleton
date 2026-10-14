@@ -1,0 +1,73 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (98a6bb36)",
+    "schema_version": "0.7.0"
+  },
+  "timeline": {
+    "children": {
+      "coda": {
+        "offset": {
+          "number_type": "fraction",
+          "unit": "quarters",
+          "value": [
+            12,
+            1
+          ]
+        },
+        "timeline": {
+          "children": {},
+          "class": "ContinuousLogicalTimeline",
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "coda",
+          "is_segment_line": false,
+          "length": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              4,
+              1
+            ]
+          },
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Coda",
+          "number_type": "fraction",
+          "regions": [],
+          "unit": "quarters"
+        }
+      }
+    },
+    "class": "ContinuousLogicalTimeline",
+    "conversion_maps": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": []
+    },
+    "id": "score",
+    "is_segment_line": false,
+    "length": {
+      "number_type": "fraction",
+      "unit": "quarters",
+      "value": [
+        16,
+        1
+      ]
+    },
+    "locked": true,
+    "measure_map": null,
+    "meta": {},
+    "metric_hierarchy": null,
+    "name": "Score",
+    "number_type": "fraction",
+    "regions": [],
+    "unit": "quarters"
+  }
+}

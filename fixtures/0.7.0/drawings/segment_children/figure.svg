@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="544.1873" height="156.9297" viewBox="0 0 544.1873 156.9297" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="512.1873" height="124.9297" rx="10" fill="#F3F4F6"/>
+<rect data-address="piece/card" x="10" y="10" width="494.1873" height="106.9297" rx="5" fill="#B8BEC8"/>
+<rect data-address="piece/card" x="8" y="8" width="494.1873" height="106.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="piece" x1="84.9082" y1="79.9531" x2="484.9082" y2="79.9531" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="piece" cx="84.9082" cy="79.9531" r="3" fill="#00CC00"/>
+<polygon data-address="piece" points="493.9082,79.9531 484.9082,75.4531 484.9082,84.4531" fill="#00CC00"/>
+<line data-address="intro" x1="109.9082" y1="64.9531" x2="180.4082" y2="64.9531" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="intro" cx="109.9082" cy="64.9531" r="3" fill="#00CC00"/>
+<polygon data-address="intro" points="180.4082,64.9531 184.9082,61.3531 189.4082,64.9531 184.9082,68.5531" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="theme" x1="159.9082" y1="36.4766" x2="305.4082" y2="36.4766" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="theme" cx="159.9082" cy="36.4766" r="3" fill="#00CC00"/>
+<polygon data-address="theme" points="305.4082,36.4766 309.9082,32.8766 314.4082,36.4766 309.9082,40.0766" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="coda" x1="359.9082" y1="64.9531" x2="455.4082" y2="64.9531" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="coda" cx="359.9082" cy="64.9531" r="3" fill="#00CC00"/>
+<polygon data-address="coda" points="455.4082,64.9531 459.9082,61.3531 464.4082,64.9531 459.9082,68.5531" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="i2/start" x1="147.4082" y1="56.9531" x2="147.4082" y2="72.9531" stroke="#000000" stroke-width="1"/>
+<line data-address="t2/start" x1="209.9082" y1="28.4766" x2="209.9082" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="t3/start" x1="259.9082" y1="28.4766" x2="259.9082" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="c2/start" x1="422.4082" y1="56.9531" x2="422.4082" y2="72.9531" stroke="#000000" stroke-width="1"/>
+<polygon data-address="piece/start" points="84.9082,81.4531 81.9082,94.4531 87.9082,94.4531" fill="#000000"/>
+<polygon data-address="piece/end" points="484.9082,81.4531 481.9082,94.4531 487.9082,94.4531" fill="#000000"/>
+<text data-address="theme/name" x="16" y="40.2847" text-anchor="start" font-size="11" fill="#000000">Theme</text>
+<text data-address="intro/name" x="16" y="68.7612" text-anchor="start" font-size="11" fill="#000000">Intro, Coda</text>
+<text data-address="piece/name" x="16" y="83.7612" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<text data-address="piece/start/label" x="84.9082" y="104.8071" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="piece/end/label" x="484.9082" y="104.8071" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
+<text data-address="i1/label" x="128.6582" y="52.8306" text-anchor="middle" font-size="9" fill="#000000">i1</text>
+<text data-address="i2/label" x="166.1582" y="52.8306" text-anchor="middle" font-size="9" fill="#000000">i2</text>
+<text data-address="t1/label" x="184.9082" y="24.354" text-anchor="middle" font-size="9" fill="#000000">t1</text>
+<text data-address="t2/label" x="234.9082" y="24.354" text-anchor="middle" font-size="9" fill="#000000">t2</text>
+<text data-address="t3/label" x="284.9082" y="24.354" text-anchor="middle" font-size="9" fill="#000000">t3</text>
+<text data-address="c1/label" x="391.1582" y="52.8306" text-anchor="middle" font-size="9" fill="#000000">c1</text>
+<text data-address="c2/label" x="441.1582" y="52.8306" text-anchor="middle" font-size="9" fill="#000000">c2</text>
+</g>
+</svg>

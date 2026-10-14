@@ -206,3 +206,45 @@ def test_a_timeline_that_is_no_segment_line_is_never_checked(load_fixture) -> No
     manifest = _segment_line(load_fixture, {"a": (1, 2), "b": (5, 1)})
     manifest["timeline"]["is_segment_line"] = False
     assert identity_problems(manifest) == []
+
+
+SEGMENT_LINE = [
+    # (id, name, is_segment_line, locked, absolute start, length)
+    ("form", "Form", True, False, 0, 32),
+    ("a", "A", True, True, 0, 8),
+    ("a1", None, False, True, 0, 8),
+    ("b", "B", True, True, 8, 12),
+    ("b1", "b1", False, True, 8, 6),
+    ("b2", "b2", False, True, 14, 6),
+    ("c", "C", True, True, 20, 12),
+    ("c1", None, False, True, 20, 12),
+]
+
+
+def test_the_segment_line_fixture(load_fixture) -> None:
+    manifest = load_fixture("segment_line")
+    found = []
+
+    def visit(timeline: dict, start: int) -> None:
+        assert timeline["class"] == "ContinuousLogicalTimeline"
+        assert timeline["number_type"] == "fraction"
+        assert timeline["length"] == _at(timeline["length"]["value"][0])
+        found.append(
+            (
+                timeline["id"],
+                timeline["name"],
+                timeline["is_segment_line"],
+                timeline["locked"],
+                start,
+                timeline["length"]["value"][0],
+            )
+        )
+        for child in timeline["children"].values():
+            offset = child["offset"]
+            assert offset == _at(offset["value"][0])
+            visit(child["timeline"], start + offset["value"][0])
+
+    visit(manifest["timeline"], 0)
+    assert found == SEGMENT_LINE
+    assert identity_problems(manifest) == []
+    validate(manifest)

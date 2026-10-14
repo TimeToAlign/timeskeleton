@@ -1,0 +1,418 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (98a6bb36)",
+    "schema_version": "0.7.0"
+  },
+  "timeline": {
+    "children": {
+      "coda": {
+        "offset": {
+          "number_type": "fraction",
+          "unit": "quarters",
+          "value": [
+            22,
+            1
+          ]
+        },
+        "timeline": {
+          "children": {
+            "c1": {
+              "offset": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  0,
+                  1
+                ]
+              },
+              "timeline": {
+                "children": {},
+                "class": "ContinuousLogicalTimeline",
+                "conversion_maps": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": []
+                },
+                "id": "c1",
+                "is_segment_line": false,
+                "length": {
+                  "number_type": "fraction",
+                  "unit": "quarters",
+                  "value": [
+                    5,
+                    1
+                  ]
+                },
+                "locked": true,
+                "measure_map": null,
+                "meta": {},
+                "metric_hierarchy": null,
+                "name": "c1",
+                "number_type": "fraction",
+                "regions": [],
+                "unit": "quarters"
+              }
+            },
+            "c2": {
+              "offset": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  5,
+                  1
+                ]
+              },
+              "timeline": {
+                "children": {},
+                "class": "ContinuousLogicalTimeline",
+                "conversion_maps": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": []
+                },
+                "id": "c2",
+                "is_segment_line": false,
+                "length": {
+                  "number_type": "fraction",
+                  "unit": "quarters",
+                  "value": [
+                    3,
+                    1
+                  ]
+                },
+                "locked": true,
+                "measure_map": null,
+                "meta": {},
+                "metric_hierarchy": null,
+                "name": "c2",
+                "number_type": "fraction",
+                "regions": [],
+                "unit": "quarters"
+              }
+            }
+          },
+          "class": "ContinuousLogicalTimeline",
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "coda",
+          "is_segment_line": true,
+          "length": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              8,
+              1
+            ]
+          },
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Coda",
+          "number_type": "fraction",
+          "regions": [],
+          "unit": "quarters"
+        }
+      },
+      "intro": {
+        "offset": {
+          "number_type": "fraction",
+          "unit": "quarters",
+          "value": [
+            2,
+            1
+          ]
+        },
+        "timeline": {
+          "children": {
+            "i1": {
+              "offset": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  0,
+                  1
+                ]
+              },
+              "timeline": {
+                "children": {},
+                "class": "ContinuousLogicalTimeline",
+                "conversion_maps": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": []
+                },
+                "id": "i1",
+                "is_segment_line": false,
+                "length": {
+                  "number_type": "fraction",
+                  "unit": "quarters",
+                  "value": [
+                    3,
+                    1
+                  ]
+                },
+                "locked": true,
+                "measure_map": null,
+                "meta": {},
+                "metric_hierarchy": null,
+                "name": "i1",
+                "number_type": "fraction",
+                "regions": [],
+                "unit": "quarters"
+              }
+            },
+            "i2": {
+              "offset": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  3,
+                  1
+                ]
+              },
+              "timeline": {
+                "children": {},
+                "class": "ContinuousLogicalTimeline",
+                "conversion_maps": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": []
+                },
+                "id": "i2",
+                "is_segment_line": false,
+                "length": {
+                  "number_type": "fraction",
+                  "unit": "quarters",
+                  "value": [
+                    3,
+                    1
+                  ]
+                },
+                "locked": true,
+                "measure_map": null,
+                "meta": {},
+                "metric_hierarchy": null,
+                "name": "i2",
+                "number_type": "fraction",
+                "regions": [],
+                "unit": "quarters"
+              }
+            }
+          },
+          "class": "ContinuousLogicalTimeline",
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "intro",
+          "is_segment_line": true,
+          "length": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              6,
+              1
+            ]
+          },
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Intro",
+          "number_type": "fraction",
+          "regions": [],
+          "unit": "quarters"
+        }
+      },
+      "theme": {
+        "offset": {
+          "number_type": "fraction",
+          "unit": "quarters",
+          "value": [
+            6,
+            1
+          ]
+        },
+        "timeline": {
+          "children": {
+            "t1": {
+              "offset": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  0,
+                  1
+                ]
+              },
+              "timeline": {
+                "children": {},
+                "class": "ContinuousLogicalTimeline",
+                "conversion_maps": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": []
+                },
+                "id": "t1",
+                "is_segment_line": false,
+                "length": {
+                  "number_type": "fraction",
+                  "unit": "quarters",
+                  "value": [
+                    4,
+                    1
+                  ]
+                },
+                "locked": true,
+                "measure_map": null,
+                "meta": {},
+                "metric_hierarchy": null,
+                "name": "t1",
+                "number_type": "fraction",
+                "regions": [],
+                "unit": "quarters"
+              }
+            },
+            "t2": {
+              "offset": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  4,
+                  1
+                ]
+              },
+              "timeline": {
+                "children": {},
+                "class": "ContinuousLogicalTimeline",
+                "conversion_maps": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": []
+                },
+                "id": "t2",
+                "is_segment_line": false,
+                "length": {
+                  "number_type": "fraction",
+                  "unit": "quarters",
+                  "value": [
+                    4,
+                    1
+                  ]
+                },
+                "locked": true,
+                "measure_map": null,
+                "meta": {},
+                "metric_hierarchy": null,
+                "name": "t2",
+                "number_type": "fraction",
+                "regions": [],
+                "unit": "quarters"
+              }
+            },
+            "t3": {
+              "offset": {
+                "number_type": "fraction",
+                "unit": "quarters",
+                "value": [
+                  8,
+                  1
+                ]
+              },
+              "timeline": {
+                "children": {},
+                "class": "ContinuousLogicalTimeline",
+                "conversion_maps": [],
+                "flow_control": {
+                  "breaks": [],
+                  "jumps": [],
+                  "markers": []
+                },
+                "id": "t3",
+                "is_segment_line": false,
+                "length": {
+                  "number_type": "fraction",
+                  "unit": "quarters",
+                  "value": [
+                    4,
+                    1
+                  ]
+                },
+                "locked": true,
+                "measure_map": null,
+                "meta": {},
+                "metric_hierarchy": null,
+                "name": "t3",
+                "number_type": "fraction",
+                "regions": [],
+                "unit": "quarters"
+              }
+            }
+          },
+          "class": "ContinuousLogicalTimeline",
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "theme",
+          "is_segment_line": true,
+          "length": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              12,
+              1
+            ]
+          },
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Theme",
+          "number_type": "fraction",
+          "regions": [],
+          "unit": "quarters"
+        }
+      }
+    },
+    "class": "ContinuousLogicalTimeline",
+    "conversion_maps": [],
+    "flow_control": {
+      "breaks": [],
+      "jumps": [],
+      "markers": []
+    },
+    "id": "piece",
+    "is_segment_line": false,
+    "length": {
+      "number_type": "fraction",
+      "unit": "quarters",
+      "value": [
+        32,
+        1
+      ]
+    },
+    "locked": false,
+    "measure_map": null,
+    "meta": {},
+    "metric_hierarchy": null,
+    "name": "Piece",
+    "number_type": "fraction",
+    "regions": [],
+    "unit": "quarters"
+  }
+}

@@ -4525,7 +4525,7 @@ export const schemaDocuments = {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/core.schema.json",
       "title": "TimeSkeleton core definitions",
-      "description": "The definitions shared by the TimeSkeleton 0.7.0 timeline, group and bundle documents: numbers following the BOPP core primitives (a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number), coordinates that name their unit and number type, the time units and number types of an axis, the id rule and the file metadata. This document validates no file by itself; the other documents refer to its definitions.",
+      "description": "The definitions shared by the TimeSkeleton 0.7.0 timeline, group and bundle documents: numbers following the BOPP core primitives (a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number), coordinates that name their unit and number type, the time units and number types of an axis, the id rule, the file metadata, and the graphical block's vocabulary (named styles, statements, selectors, element types, paints and declarations). This document validates no file by itself; the other documents refer to its definitions.",
       "$defs": {
         "Fraction": {
           "type": "array",
@@ -4791,6 +4791,220 @@ export const schemaDocuments = {
             "schema_version"
           ],
           "additionalProperties": false
+        },
+        "Graphical": {
+          "type": "object",
+          "description": "How the manifest is drawn (`docs/drawing.md`): named styles and an ordered list of statements. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements. An absent block draws every element with the other style layers alone.",
+          "properties": {
+            "styles": {
+              "type": "object",
+              "description": "Declarations by style name.",
+              "additionalProperties": {
+                "$ref": "#/$defs/Declaration"
+              }
+            },
+            "statements": {
+              "type": "array",
+              "description": "Statements in order; of two statements of equal rank the later one decides.",
+              "items": {
+                "$ref": "#/$defs/Statement"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "Statement": {
+          "type": "object",
+          "description": "One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.",
+          "properties": {
+            "select": {
+              "$ref": "#/$defs/Selector"
+            },
+            "set": {
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/Declaration"
+                },
+                {
+                  "type": "string",
+                  "description": "The name of a style of the same block's `styles`."
+                }
+              ]
+            }
+          },
+          "required": [
+            "select",
+            "set"
+          ],
+          "additionalProperties": false
+        },
+        "Selector": {
+          "type": "object",
+          "description": "An element matches when it matches every member present. The empty selector matches every element.",
+          "properties": {
+            "element": {
+              "$ref": "#/$defs/ElementType"
+            },
+            "ids": {
+              "type": "array",
+              "description": "Element addresses; the element's address must be one of them.",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            },
+            "domain": {
+              "type": "string",
+              "enum": [
+                "graphical",
+                "logical",
+                "physical"
+              ],
+              "description": "The domain of the element: what its time measures (graphical space, musical time, physical time)."
+            },
+            "modality": {
+              "type": "string",
+              "enum": [
+                "continuous",
+                "discrete"
+              ],
+              "description": "Whether the element is continuous or discrete."
+            },
+            "class": {
+              "type": "string",
+              "enum": [
+                "ContinuousLogicalTimeline",
+                "ContinuousPhysicalTimeline",
+                "ContinuousGraphicalTimeline",
+                "DiscreteLogicalTimeline",
+                "DiscretePhysicalTimeline",
+                "DiscreteGraphicalTimeline",
+                "BeatInMeasureMap",
+                "ChainMap",
+                "CombinationMap",
+                "ConstantMap",
+                "FloorMap",
+                "InterpolationMap",
+                "IntervalToConstantMap",
+                "LinearMap",
+                "MetricMap",
+                "MetricalPositionMap",
+                "PiecewiseMap",
+                "QuartersToFloatingMeasures",
+                "QuartersToMeasureNumber",
+                "QuartersToTicks",
+                "RotationMap",
+                "SamplesToSeconds",
+                "ScalarMap",
+                "SecondsToSamples",
+                "ShiftMap",
+                "TableMap",
+                "TicksToQuarters"
+              ],
+              "description": "The class of the element: its timeline's class, or a conversion map's type."
+            },
+            "within": {
+              "type": "string",
+              "description": "A timeline id: the element must belong to that timeline or to one of its descendants."
+            },
+            "inside": {
+              "$ref": "#/$defs/ElementType",
+              "description": "An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree."
+            }
+          },
+          "additionalProperties": false
+        },
+        "ElementType": {
+          "type": "string",
+          "description": "The type of a drawn element: the box's background, the root timeline's line (in a group or bundle file, a member's line or an ungrouped root's line), a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at the root's start or end, a name in the name column (or the title of a group or bundle), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
+          "enum": [
+            "block",
+            "timeline",
+            "child",
+            "map",
+            "region",
+            "break",
+            "jump",
+            "wedge",
+            "name",
+            "label",
+            "boundary",
+            "ancestor",
+            "group",
+            "card"
+          ]
+        },
+        "Paint": {
+          "type": "string",
+          "description": "A colour as #RRGGBB with upper-case hexadecimal digits, or none.",
+          "pattern": "^(#[0-9A-F]{6}|none)$"
+        },
+        "Declaration": {
+          "type": "object",
+          "description": "Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.",
+          "properties": {
+            "stroke": {
+              "$ref": "#/$defs/Paint"
+            },
+            "stroke-width": {
+              "type": "number",
+              "minimum": 0
+            },
+            "stroke-dasharray": {
+              "type": "string",
+              "description": "none, or non-negative decimal numbers separated by single spaces.",
+              "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
+            },
+            "fill": {
+              "$ref": "#/$defs/Paint"
+            },
+            "opacity": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "font-size": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "rx": {
+              "type": "number",
+              "minimum": 0
+            },
+            "display": {
+              "type": "string",
+              "enum": [
+                "inline",
+                "none"
+              ]
+            },
+            "side": {
+              "type": "string",
+              "enum": [
+                "above",
+                "below"
+              ]
+            },
+            "content": {
+              "type": "string"
+            },
+            "max-width": {
+              "oneOf": [
+                {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                {
+                  "const": "none"
+                }
+              ]
+            },
+            "shadow": {
+              "$ref": "#/$defs/Paint"
+            }
+          },
+          "additionalProperties": false
         }
       }
     },
@@ -4798,7 +5012,7 @@ export const schemaDocuments = {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/timeline.schema.json",
       "title": "TimeSkeleton timeline file",
-      "description": "A TimeSkeleton 0.7.0 timeline file: one manifest holding exactly one timeline, with its axis, children at exact offsets (or, in a segment line, contiguous segments), conversion maps, regions, flow control, compressed Measure Map standard rows, opaque metric hierarchy and optional graphical block. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Every timeline, conversion map, region, break, jump and marker carries an id, unique within the manifest across all of these kinds; a jump's target is the id of a marker of its own timeline. Object keys carry no order and are written sorted by code point. Arrays whose order carries no meaning have one canonical order: conversion maps by id; regions by start, end, id; breaks and markers by coordinate, then id; jumps by from and to coordinate, then id. Readers accept any order. The graphical block holds named styles and an ordered list of statements, each selecting drawn elements and setting presentation properties named as in SVG; `docs/drawing.md` specifies how a manifest is drawn, and a manifest without the block is drawn with the other style layers alone. The definitions shared with the group and bundle files (numbers, coordinates, units, number types, the id rule and the file metadata) live in core.schema.json; the group and bundle documents refer to this document's TimelineManifest.",
+      "description": "A TimeSkeleton 0.7.0 timeline file: one manifest holding exactly one timeline, with its axis, children at exact offsets (or, in a segment line, contiguous segments), conversion maps, regions, flow control, compressed Measure Map standard rows, opaque metric hierarchy and optional graphical block. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Every timeline, conversion map, region, break, jump and marker carries an id, unique within the manifest across all of these kinds; a jump's target is the id of a marker of its own timeline. Object keys carry no order and are written sorted by code point. Arrays whose order carries no meaning have one canonical order: conversion maps by id; regions by start, end, id; breaks and markers by coordinate, then id; jumps by from and to coordinate, then id. Readers accept any order. The graphical block holds named styles and an ordered list of statements, each selecting drawn elements and setting presentation properties named as in SVG; `docs/drawing.md` specifies how a manifest is drawn, and a manifest without the block is drawn with the other style layers alone. The definitions shared with the group and bundle files (numbers, coordinates, units, number types, the id rule, the file metadata and the graphical block) live in core.schema.json; the group and bundle documents refer to this document's TimelineManifest.",
       "type": "object",
       "properties": {
         "meta": {
@@ -4808,7 +5022,7 @@ export const schemaDocuments = {
           "$ref": "#/$defs/TimelineManifest"
         },
         "graphical": {
-          "$ref": "#/$defs/Graphical"
+          "$ref": "core.schema.json#/$defs/Graphical"
         }
       },
       "required": [
@@ -6568,209 +6782,6 @@ export const schemaDocuments = {
           },
           "minItems": 1,
           "description": "Compressed rows from the Measure Map standard. A row equal to its predecessor's default successor is omitted as a whole."
-        },
-        "Graphical": {
-          "type": "object",
-          "description": "How the manifest is drawn (`docs/drawing.md`): named styles and an ordered list of statements. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements. An absent block draws every element with the other style layers alone.",
-          "properties": {
-            "styles": {
-              "type": "object",
-              "description": "Declarations by style name.",
-              "additionalProperties": {
-                "$ref": "#/$defs/Declaration"
-              }
-            },
-            "statements": {
-              "type": "array",
-              "description": "Statements in order; of two statements of equal rank the later one decides.",
-              "items": {
-                "$ref": "#/$defs/Statement"
-              }
-            }
-          },
-          "additionalProperties": false
-        },
-        "Statement": {
-          "type": "object",
-          "description": "One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.",
-          "properties": {
-            "select": {
-              "$ref": "#/$defs/Selector"
-            },
-            "set": {
-              "oneOf": [
-                {
-                  "$ref": "#/$defs/Declaration"
-                },
-                {
-                  "type": "string",
-                  "description": "The name of a style of the same block's `styles`."
-                }
-              ]
-            }
-          },
-          "required": [
-            "select",
-            "set"
-          ],
-          "additionalProperties": false
-        },
-        "Selector": {
-          "type": "object",
-          "description": "An element matches when it matches every member present. The empty selector matches every element.",
-          "properties": {
-            "element": {
-              "$ref": "#/$defs/ElementType"
-            },
-            "ids": {
-              "type": "array",
-              "description": "Element addresses; the element's address must be one of them.",
-              "items": {
-                "type": "string"
-              },
-              "minItems": 1,
-              "uniqueItems": true
-            },
-            "domain": {
-              "type": "string",
-              "enum": [
-                "graphical",
-                "logical",
-                "physical"
-              ],
-              "description": "The domain of the element: what its time measures (graphical space, musical time, physical time)."
-            },
-            "modality": {
-              "type": "string",
-              "enum": [
-                "continuous",
-                "discrete"
-              ],
-              "description": "Whether the element is continuous or discrete."
-            },
-            "class": {
-              "type": "string",
-              "enum": [
-                "ContinuousLogicalTimeline",
-                "ContinuousPhysicalTimeline",
-                "ContinuousGraphicalTimeline",
-                "DiscreteLogicalTimeline",
-                "DiscretePhysicalTimeline",
-                "DiscreteGraphicalTimeline",
-                "BeatInMeasureMap",
-                "ChainMap",
-                "CombinationMap",
-                "ConstantMap",
-                "FloorMap",
-                "InterpolationMap",
-                "IntervalToConstantMap",
-                "LinearMap",
-                "MetricMap",
-                "MetricalPositionMap",
-                "PiecewiseMap",
-                "QuartersToFloatingMeasures",
-                "QuartersToMeasureNumber",
-                "QuartersToTicks",
-                "RotationMap",
-                "SamplesToSeconds",
-                "ScalarMap",
-                "SecondsToSamples",
-                "ShiftMap",
-                "TableMap",
-                "TicksToQuarters"
-              ],
-              "description": "The class of the element: its timeline's class, or a conversion map's type."
-            },
-            "within": {
-              "type": "string",
-              "description": "A timeline id: the element must belong to that timeline or to one of its descendants."
-            }
-          },
-          "additionalProperties": false
-        },
-        "ElementType": {
-          "type": "string",
-          "description": "The type of a drawn element: the box's background, the root timeline's line, a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at the root's start or end, a name in the name column, or any other text label.",
-          "enum": [
-            "block",
-            "timeline",
-            "child",
-            "map",
-            "region",
-            "break",
-            "jump",
-            "wedge",
-            "name",
-            "label"
-          ]
-        },
-        "Paint": {
-          "type": "string",
-          "description": "A colour as #RRGGBB with upper-case hexadecimal digits, or none.",
-          "pattern": "^(#[0-9A-F]{6}|none)$"
-        },
-        "Declaration": {
-          "type": "object",
-          "description": "Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.",
-          "properties": {
-            "stroke": {
-              "$ref": "#/$defs/Paint"
-            },
-            "stroke-width": {
-              "type": "number",
-              "minimum": 0
-            },
-            "stroke-dasharray": {
-              "type": "string",
-              "description": "none, or non-negative decimal numbers separated by single spaces.",
-              "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
-            },
-            "fill": {
-              "$ref": "#/$defs/Paint"
-            },
-            "opacity": {
-              "type": "number",
-              "minimum": 0,
-              "maximum": 1
-            },
-            "font-size": {
-              "type": "number",
-              "exclusiveMinimum": 0
-            },
-            "rx": {
-              "type": "number",
-              "minimum": 0
-            },
-            "display": {
-              "type": "string",
-              "enum": [
-                "inline",
-                "none"
-              ]
-            },
-            "side": {
-              "type": "string",
-              "enum": [
-                "above",
-                "below"
-              ]
-            },
-            "content": {
-              "type": "string"
-            },
-            "max-width": {
-              "oneOf": [
-                {
-                  "type": "number",
-                  "exclusiveMinimum": 0
-                },
-                {
-                  "const": "none"
-                }
-              ]
-            }
-          },
-          "additionalProperties": false
         }
       }
     },
@@ -6851,11 +6862,17 @@ export const schemaDocuments = {
         },
         "GroupGraphical": {
           "type": "object",
-          "description": "The presentation of the group file.",
+          "description": "The presentation of the group file: the display order of its members, and named styles and statements with exactly the meaning they have in a timeline file's graphical block (`docs/drawing.md`, sections 2 and 8).",
           "properties": {
             "order": {
               "$ref": "#/$defs/MemberOrder",
               "description": "The display order of the group's members, a permutation of group.members. Without it, the members are displayed in the order of group.members."
+            },
+            "styles": {
+              "$ref": "core.schema.json#/$defs/Graphical/properties/styles"
+            },
+            "statements": {
+              "$ref": "core.schema.json#/$defs/Graphical/properties/statements"
             }
           },
           "additionalProperties": false
@@ -6940,7 +6957,7 @@ export const schemaDocuments = {
         },
         "BundleGraphical": {
           "type": "object",
-          "description": "The presentation of the bundle file.",
+          "description": "The presentation of the bundle file: the display order of each group's members, and named styles and statements with exactly the meaning they have in a timeline file's graphical block (`docs/drawing.md`, sections 2 and 8).",
           "properties": {
             "order": {
               "type": "object",
@@ -6951,6 +6968,12 @@ export const schemaDocuments = {
               "additionalProperties": {
                 "$ref": "group.schema.json#/$defs/MemberOrder"
               }
+            },
+            "styles": {
+              "$ref": "core.schema.json#/$defs/Graphical/properties/styles"
+            },
+            "statements": {
+              "$ref": "core.schema.json#/$defs/Graphical/properties/statements"
             }
           },
           "additionalProperties": false

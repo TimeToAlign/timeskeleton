@@ -1,0 +1,51 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts0050EF}{HTML}{0050EF}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{ts6B7280}{HTML}{6B7280}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsD1D5DB}{HTML}{D1D5DB}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (558.4141,190.1367);
+\path[rounded corners=6pt,fill=tsFFFFFF,draw=tsD1D5DB,line width=1pt] (8,8) rectangle (550.4141,182.1367);
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,163.9263) {Second half};
+\path[rounded corners=5pt,fill=tsB8BEC8] (18,71.3789) rectangle (544.4141,155.332);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (16,73.3789) rectangle (542.4141,157.332);
+\path[draw=ts00CC00,line width=3pt,opacity=0.35] (108.6196,122.3555) -- (520.6196,122.3555);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (105.6196,126.8555) -- (101.1196,122.3555) -- (105.6196,117.8555);
+\path[draw=ts00CC00,line width=1.5pt,opacity=0.35] (101.1196,126.8555) -- (96.6196,122.3555) -- (101.1196,117.8555);
+\path[fill=ts00CC00,opacity=0.35] (529.6196,122.3555) -- (520.6196,126.8555) -- (520.6196,117.8555) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (120.6196,108.3555) -- (516.1196,108.3555);
+\path[fill=ts00CC00] (120.6196,108.3555) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (516.1196,108.3555) -- (520.6196,111.9555) -- (525.1196,108.3555) -- (520.6196,104.7555) -- cycle;
+\path[fill=ts000000,opacity=0.35] (120.6196,123.8555) -- (117.6196,136.8555) -- (123.6196,136.8555) -- cycle;
+\path[fill=ts000000,opacity=0.35] (520.6196,123.8555) -- (517.6196,136.8555) -- (523.6196,136.8555) -- cycle;
+\path[fill=ts000000] (120.6196,106.8555) -- (117.6196,93.8555) -- (123.6196,93.8555) -- cycle;
+\path[fill=ts000000] (520.6196,106.8555) -- (517.6196,93.8555) -- (523.6196,93.8555) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts6B7280] at (24,119.2397) {Piece};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,104.5474) {Second half};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000,opacity=0.35] at (120.6196,140.978) {8 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000,opacity=0.35] at (520.6196,140.978) {16 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (120.6196,83.5015) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (520.6196,83.5015) {8 ♩};
+\path[rounded corners=5pt,fill=tsB8BEC8] (18,14) rectangle (544.4141,63.3789);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (16,16) rectangle (542.4141,65.3789);
+\path[draw=ts0050EF,line width=3pt] (120.6196,50.9766) -- (520.6196,50.9766);
+\path[fill=ts0050EF] (120.6196,50.9766) circle[radius=3];
+\path[fill=ts0050EF] (529.6196,50.9766) -- (520.6196,55.4766) -- (520.6196,46.4766) -- cycle;
+\path[fill=ts000000] (120.6196,49.4766) -- (117.6196,36.4766) -- (123.6196,36.4766) -- cycle;
+\path[fill=ts000000] (520.6196,49.4766) -- (517.6196,36.4766) -- (523.6196,36.4766) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (24,47.1685) {Recording};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (120.6196,26.1226) {0.0 s};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (520.6196,26.1226) {10.0 s};
+\end{scope}
+\end{tikzpicture}
+\end{document}

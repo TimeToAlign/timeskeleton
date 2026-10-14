@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="525.2571" height="113.4531" viewBox="0 0 525.2571 113.4531" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="493.2571" height="81.4531" rx="10" fill="#F3F4F6"/>
+<rect data-address="pages/card" x="10" y="10" width="475.2571" height="63.4531" rx="5" fill="#B8BEC8"/>
+<rect data-address="pages/card" x="8" y="8" width="475.2571" height="63.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="pages" x1="56.855" y1="36.4766" x2="456.855" y2="36.4766" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="pages" cx="56.855" cy="36.4766" r="3" fill="#FF0000"/>
+<polygon data-address="pages" points="465.855,36.4766 456.855,31.9766 456.855,40.9766" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<line data-address="page_2/start" x1="156.855" y1="28.4766" x2="156.855" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_3/start" x1="256.855" y1="28.4766" x2="256.855" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="page_4/start" x1="356.855" y1="28.4766" x2="356.855" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<polygon data-address="pages/start" points="56.855,37.9766 53.855,50.9766 59.855,50.9766" fill="#000000"/>
+<polygon data-address="pages/end" points="456.855,37.9766 453.855,50.9766 459.855,50.9766" fill="#000000"/>
+<text data-address="pages/name" x="16" y="40.2847" text-anchor="start" font-size="11" fill="#000000">Pages</text>
+<text data-address="pages/start/label" x="56.855" y="61.3306" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
+<text data-address="pages/end/label" x="456.855" y="61.3306" text-anchor="middle" font-size="9" fill="#000000">7016 px</text>
+<text data-address="page_1/label" x="106.855" y="24.354" text-anchor="middle" font-size="9" fill="#000000">Page 1</text>
+<text data-address="page_2/label" x="206.855" y="24.354" text-anchor="middle" font-size="9" fill="#000000">Page 2</text>
+<text data-address="page_3/label" x="306.855" y="24.354" text-anchor="middle" font-size="9" fill="#000000">Page 3</text>
+<text data-address="page_4/label" x="406.855" y="24.354" text-anchor="middle" font-size="9" fill="#000000">Page 4</text>
+</g>
+</svg>

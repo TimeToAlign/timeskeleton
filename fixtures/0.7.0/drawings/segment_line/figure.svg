@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="511.574" height="145.9297" viewBox="0 0 511.574 145.9297" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="479.574" height="113.9297" rx="10" fill="#F3F4F6"/>
+<rect data-address="form/card" x="10" y="10" width="461.574" height="95.9297" rx="5" fill="#B8BEC8"/>
+<rect data-address="form/card" x="8" y="8" width="461.574" height="95.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="form" x1="52.2949" y1="68.9531" x2="452.2949" y2="68.9531" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="form" cx="52.2949" cy="68.9531" r="3" fill="#00CC00"/>
+<polygon data-address="form" points="461.2949,68.9531 452.2949,64.4531 452.2949,73.4531" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="a" x1="52.2949" y1="36.4766" x2="147.7949" y2="36.4766" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="a" cx="52.2949" cy="36.4766" r="3" fill="#00CC00"/>
+<polygon data-address="a" points="147.7949,36.4766 152.2949,32.8766 156.7949,36.4766 152.2949,40.0766" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="b" x1="152.2949" y1="36.4766" x2="297.7949" y2="36.4766" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="b" cx="152.2949" cy="36.4766" r="3" fill="#00CC00"/>
+<polygon data-address="b" points="297.7949,36.4766 302.2949,32.8766 306.7949,36.4766 302.2949,40.0766" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="c" x1="302.2949" y1="36.4766" x2="447.7949" y2="36.4766" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="c" cx="302.2949" cy="36.4766" r="3" fill="#00CC00"/>
+<polygon data-address="c" points="447.7949,36.4766 452.2949,32.8766 456.7949,36.4766 452.2949,40.0766" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="b/start" x1="152.2949" y1="60.9531" x2="152.2949" y2="76.9531" stroke="#000000" stroke-width="1"/>
+<line data-address="b2/start" x1="227.2949" y1="28.4766" x2="227.2949" y2="44.4766" stroke="#000000" stroke-width="1"/>
+<line data-address="c/start" x1="302.2949" y1="60.9531" x2="302.2949" y2="76.9531" stroke="#000000" stroke-width="1"/>
+<polygon data-address="form/start" points="52.2949,70.4531 49.2949,83.4531 55.2949,83.4531" fill="#000000"/>
+<polygon data-address="form/end" points="452.2949,70.4531 449.2949,83.4531 455.2949,83.4531" fill="#000000"/>
+<text data-address="form/name" x="16" y="72.7612" text-anchor="start" font-size="11" fill="#000000">Form</text>
+<text data-address="form/start/label" x="52.2949" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="form/end/label" x="452.2949" y="93.8071" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
+<text data-address="a/label" x="102.2949" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">A</text>
+<text data-address="b/label" x="227.2949" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">B</text>
+<text data-address="b1/label" x="189.7949" y="24.354" text-anchor="middle" font-size="9" fill="#000000">b1</text>
+<text data-address="b2/label" x="264.7949" y="24.354" text-anchor="middle" font-size="9" fill="#000000">b2</text>
+<text data-address="c/label" x="377.2949" y="56.8306" text-anchor="middle" font-size="9" fill="#000000">C</text>
+</g>
+</svg>

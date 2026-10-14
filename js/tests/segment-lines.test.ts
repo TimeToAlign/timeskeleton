@@ -224,3 +224,46 @@ describe("segment lines", () => {
     expect(problemsOf(manifest)).toEqual([]);
   });
 });
+
+describe("the segment_line fixture", () => {
+  // [id, name, is_segment_line, locked, absolute start, length]
+  const expected = [
+    ["form", "Form", true, false, 0, 32],
+    ["a", "A", true, true, 0, 8],
+    ["a1", null, false, true, 0, 8],
+    ["b", "B", true, true, 8, 12],
+    ["b1", "b1", false, true, 8, 6],
+    ["b2", "b2", false, true, 14, 6],
+    ["c", "C", true, true, 20, 12],
+    ["c1", null, false, true, 20, 12],
+  ];
+
+  it("is the nested form of three sections", () => {
+    const manifest = loadFixture("segment_line");
+    const found: unknown[] = [];
+    const visit = (timeline: JsonObject, start: number): void => {
+      expect(timeline.class).toBe("ContinuousLogicalTimeline");
+      expect(timeline.number_type).toBe("fraction");
+      const length = Number(((timeline.length as JsonObject).value as number[])[0]);
+      expect(timeline.length).toEqual(at(length));
+      found.push([
+        timeline.id,
+        timeline.name,
+        timeline.is_segment_line,
+        timeline.locked,
+        start,
+        length,
+      ]);
+      for (const child of Object.values(timeline.children as JsonObject)) {
+        const entry = child as JsonObject;
+        const offset = Number(((entry.offset as JsonObject).value as number[])[0]);
+        expect(entry.offset).toEqual(at(offset));
+        visit(entry.timeline as JsonObject, start + offset);
+      }
+    };
+    visit(root(manifest), 0);
+    expect(found).toEqual(expected);
+    expect(problemsOf(manifest)).toEqual([]);
+    validate(manifest);
+  });
+});

@@ -37,7 +37,8 @@ authored by hand.
 ## The drawing specification
 
 `docs/drawing.md` specifies the `graphical` block, arithmetic, default
-styles, font, layout, and SVG and TikZ writers. A drawing is derived and has no
+styles, font, layout, SVG and TikZ writers, and the box that draws groups and
+bundles with their frames, cards and ancestor lines. A drawing is derived and has no
 schema or exchanged JSON form. The specification pins the drawing. A rule a reader could not reproduce from the
 specification alone is a defect of the specification.
 

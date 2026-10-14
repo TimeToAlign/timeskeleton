@@ -76,7 +76,7 @@
     },
     "BundleGraphical": {
       "type": "object",
-      "description": "The presentation of the bundle file.",
+      "description": "The presentation of the bundle file: the display order of each group's members, and named styles and statements with exactly the meaning they have in a timeline file's graphical block (`docs/drawing.md`, sections 2 and 8).",
       "properties": {
         "order": {
           "type": "object",
@@ -87,6 +87,12 @@
           "additionalProperties": {
             "$ref": "group.schema.json#/$defs/MemberOrder"
           }
+        },
+        "styles": {
+          "$ref": "core.schema.json#/$defs/Graphical/properties/styles"
+        },
+        "statements": {
+          "$ref": "core.schema.json#/$defs/Graphical/properties/statements"
         }
       },
       "additionalProperties": false

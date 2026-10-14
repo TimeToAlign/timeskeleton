@@ -77,11 +77,11 @@ function standardFiles(): [string, string][] {
 }
 
 describe("the standard writer", () => {
-  it("round-trips all 126 standard files", () => {
+  it("round-trips all 132 standard files", () => {
     expect(FILE_KINDS.map((kind) => fixtureFileNames(SCHEMA_VERSION, kind).length)).toEqual([
-      23, 3, 7,
+      29, 9, 9,
     ]);
-    expect(standardFiles().length).toBe(23 + 3 + 7 + 93);
+    expect(standardFiles().length).toBe(29 + 9 + 9 + 100);
   });
 
   it.each(standardFiles())("round-trips %s byte for byte", (_name, text) => {

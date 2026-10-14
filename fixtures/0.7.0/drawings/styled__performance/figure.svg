@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="558.0859" height="113.9766" viewBox="0 0 558.0859 113.9766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="526.0859" height="81.9766" rx="10" fill="#F3F4F6"/>
+<rect data-address="performance/card" x="10" y="10" width="508.0859" height="63.9766" rx="5" fill="#B8BEC8"/>
+<rect data-address="performance/card" x="8" y="8" width="508.0859" height="63.9766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="performance" x1="94.2915" y1="37" x2="494.2915" y2="37" stroke="#0050EF" stroke-width="3"/>
+<circle data-address="performance" cx="94.2915" cy="37" r="3" fill="#0050EF"/>
+<polygon data-address="performance" points="503.2915,37 494.2915,32.5 494.2915,41.5" fill="#0050EF"/>
+<line data-address="excerpt" x1="134.2915" y1="23" x2="289.7915" y2="23" stroke="#0050EF" stroke-width="3"/>
+<circle data-address="excerpt" cx="134.2915" cy="23" r="3" fill="#0050EF"/>
+<polygon data-address="excerpt" points="289.7915,23 294.2915,19.4 298.7915,23 294.2915,26.6" fill="none" stroke="#0050EF" stroke-width="1.5"/>
+<polygon data-address="performance/start" points="94.2915,38.5 91.2915,51.5 97.2915,51.5" fill="#7F00FF"/>
+<polygon data-address="performance/end" points="494.2915,38.5 491.2915,51.5 497.2915,51.5" fill="#7F00FF"/>
+<text data-address="excerpt/name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#404040">excerpt</text>
+<text data-address="performance/name" x="16" y="40.8081" text-anchor="start" font-size="11" fill="#404040">Performance</text>
+<text data-address="performance/start/label" x="94.2915" y="61.854" text-anchor="middle" font-size="9" fill="#404040">0.0 s</text>
+<text data-address="performance/end/label" x="494.2915" y="61.854" text-anchor="middle" font-size="9" fill="#404040">10.0 s</text>
+</g>
+</svg>

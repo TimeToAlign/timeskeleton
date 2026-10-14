@@ -23,20 +23,31 @@ ID = "core.schema.json#/$defs/Id"
 CORE = [
     "Coordinate",
     "CoordinateNonnegative",
+    "Declaration",
+    "ElementType",
     "Fraction",
     "FractionNonnegative",
     "FractionPositive",
+    "Graphical",
     "Id",
     "Meta",
     "Number",
     "NumberNonnegative",
     "NumberPositive",
     "NumberType",
+    "Paint",
+    "Selector",
+    "Statement",
     "TimeUnit",
 ]
 REFERENCE = re.compile(
-    r"^(?:(core|timeline|group|bundle)\.schema\.json)?#/\$defs/(\w+)$"
+    r"^(?:(core|timeline|group|bundle)\.schema\.json)?#/\$defs/(\w+)"
+    r"(?:/properties/(\w+))?$"
 )
+GRAPHICAL_MEMBERS = {
+    "styles": {"$ref": "core.schema.json#/$defs/Graphical/properties/styles"},
+    "statements": {"$ref": "core.schema.json#/$defs/Graphical/properties/statements"},
+}
 
 
 def _references(value: Any) -> list[str]:
@@ -74,6 +85,9 @@ def test_every_reference_is_local_or_relative_and_resolves() -> None:
             assert match is not None, (name, reference)
             target = match.group(1) or name
             assert match.group(2) in definitions[target], (name, reference)
+            if match.group(3) is not None:
+                members = definitions[target][match.group(2)]["properties"]
+                assert match.group(3) in members, (name, reference)
 
 
 def test_definition_names_are_unique_across_the_documents() -> None:
@@ -119,12 +133,21 @@ def test_the_timeline_definitions_are_those_of_0_6_0_moved() -> None:
     manifest = moved["TimelineManifest"]
     del manifest["properties"]["is_segment_line"]
     manifest["required"].remove("is_segment_line")
+    element_type = moved["ElementType"]
+    assert element_type["enum"][-4:] == ["boundary", "ancestor", "group", "card"]
+    del element_type["enum"][-4:]
+    element_type["description"] = old["$defs"]["ElementType"]["description"]
+    del moved["Selector"]["properties"]["inside"]
+    del moved["Declaration"]["properties"]["shadow"]
     assert moved == old["$defs"]
     assert timeline["properties"] == {
         "meta": {"$ref": "core.schema.json#/$defs/Meta"},
         "timeline": old["properties"]["timeline"],
-        "graphical": old["properties"]["graphical"],
+        "graphical": {"$ref": "core.schema.json#/$defs/Graphical"},
     }
+    assert (
+        _inline(timeline["properties"]["graphical"]) == old["properties"]["graphical"]
+    )
     assert (old["title"], timeline["title"]) == (
         "TimeSkeleton manifest",
         "TimeSkeleton timeline file",
@@ -183,8 +206,10 @@ def test_the_group_document() -> None:
         True,
     )
     graphical = schema["$defs"]["GroupGraphical"]
-    assert list(graphical["properties"]) == ["order"]
+    assert list(graphical["properties"]) == ["order", "styles", "statements"]
     assert graphical["properties"]["order"]["$ref"] == "#/$defs/MemberOrder"
+    for member, reference in GRAPHICAL_MEMBERS.items():
+        assert graphical["properties"][member] == reference
     assert graphical["additionalProperties"] is False
     assert "required" not in graphical
 
@@ -217,7 +242,12 @@ def test_the_bundle_document() -> None:
     assert order["additionalProperties"] == {
         "$ref": "group.schema.json#/$defs/MemberOrder"
     }
-    assert schema["$defs"]["BundleGraphical"]["additionalProperties"] is False
+    graphical = schema["$defs"]["BundleGraphical"]
+    assert list(graphical["properties"]) == ["order", "styles", "statements"]
+    for member, reference in GRAPHICAL_MEMBERS.items():
+        assert graphical["properties"][member] == reference
+    assert graphical["additionalProperties"] is False
+    assert "required" not in graphical
 
 
 @pytest.mark.parametrize(

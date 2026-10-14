@@ -39,9 +39,9 @@ def test_shared_rejection_is_rejected_at_its_path(path) -> None:
     assert caught.value.path == tuple(case["path"])
 
 
-def test_the_rejection_cases_number_fifty_five_and_ninety_three() -> None:
+def test_the_rejection_cases_number_fifty_five_and_ninety_seven() -> None:
     counts = [len(rejection_paths(version)) for version in SUPPORTED_VERSIONS]
-    assert counts == [55, 55, 93]
+    assert counts == [55, 55, 100]
 
 
 @pytest.mark.parametrize("version", SUPPORTED_VERSIONS)

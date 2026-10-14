@@ -11,8 +11,8 @@ validates (0.5.0 and 0.6.0, timeline files only).
    and validated by `parse` and as `JSON.parse` reads it.
 2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/`,
    `fixtures/rejections/0.6.0/` and `fixtures/rejections/0.7.0/` at the exact
-   stored path, in both readings; all 203 cases fail, including a manifest
-   without its one required `timeline`; `parse` rejects the 93 cases of the
+   stored path, in both readings; all 210 cases fail, including a manifest
+   without its one required `timeline`; `parse` rejects the 100 cases of the
    latest version. Every case
    of a version's directory declares that version except two:
    `meta_schema_version_unknown` declares the unknown version `"9.9.9"`, and
@@ -46,11 +46,27 @@ validates (0.5.0 and 0.6.0, timeline files only).
    since both suites read the same files. Exact validation
    cases accept every boundary stated there and reject values outside them at
    the property path. Timeline names with control characters still validate.
-7. The timeline fixture set of 0.6.0 and of 0.7.0 is the exact list of 23
-   file names the Python suite states, and the group (3) and bundle (7)
-   fixture sets of 0.7.0 are the exact lists it states; the Python suite
-   alone proves that no two fixtures of a kind share a structural signature,
-   since both suites read the same files.
+   From 0.7.0 the graphical definitions lie in `core`, `ElementType` adds
+   `boundary`, `ancestor`, `group` and `card` after the ten, `Selector` adds
+   `inside` and `Declaration` adds `shadow`, each last, and a group or bundle
+   file's `graphical` takes `styles` and `statements` beside `order`; this
+   suite asserts the Python suite's cases ("The graphical block", "Group and
+   bundle files"): the 0.7.0 definitions as 0.6.0's with those additions,
+   the three statements naming `card`, `inside` and `shadow` validating in
+   `bare.json`, the defaults block of `docs/drawing.md` section 4 (read
+   from the file; three styles, 28 statements) validating as the
+   `graphical` member of `bare.json`, the group and bundle documents with the same block
+   validating, `arrangement` refused at `graphical`, `colour` in a bundle
+   style refused at `graphical/styles/frame`, `group` refused as a 0.6.0
+   element, and `group_styled.json` equal to `group_number_types.json`
+   (without `meta.generator`) but for its stated `styles` and `statements`.
+   `GroupGraphical` and `BundleGraphical` are exported from the package root
+   and type `styles` and `statements`.
+7. The timeline fixture sets of 0.6.0 (23) and of 0.7.0 (29, the same with
+   `locked_root.json`, `segment_children.json`, `segment_line.json`,
+   `segment_pages.json`, `segment_pages_accolades.json` and
+   `segment_pages_locked.json`) are the exact lists of file names the Python suite states, and the group (9) and bundle (9)
+   fixture sets of 0.7.0 are the exact lists it states.
 8. The npm package ships `docs/drawing.md` and the four 0.7.0 schema
    documents: after `scripts/copy-assets.ts`, `npm pack --dry-run --json`
    lists `docs/drawing.md` and `schema/0.7.0/<name>.schema.json` for `core`,
@@ -68,14 +84,15 @@ The rules and their proofs are stated in the Python suite's README
 expected values: `SCHEMA_VERSION` `"0.7.0"` and `SUPPORTED_VERSIONS`
 `["0.5.0", "0.6.0", "0.7.0"]`; the 0.5.0 and 0.6.0 schemas equal once `$id`,
 the top-level `description` and the version constant are removed; the 0.6.0
-manifests equal to the 0.5.0 ones and the 0.7.0 timeline manifests to the
-0.6.0 ones, once migrated and without `meta.generator` (`corpus_score_ms3`
+manifests equal to the 0.5.0 ones and the 0.7.0 timeline manifests other
+than the six it adds (`locked_root.json` and the five segment-line files)
+to the 0.6.0 ones, once migrated and without `meta.generator` (`corpus_score_ms3`
 once its store-built children `notes`, `controls` are renamed `clt_2`, `clt_3`
 with the store names as names); the 0.6.0 rejection
 cases equal to the 0.5.0 cases and the 0.7.0 directory holding the 0.6.0
 cases, their manifests equal once migrated (the two cases `migrate` refuses
-equal to the 0.6.0 ones with `is_segment_line: false` on their timeline; the reason of
-`root_missing_timeline` restated for 0.7.0); both pinned pairs (`before.json`
+equal to the 0.6.0 ones with `is_segment_line: false` on their timeline; the reasons of
+`root_missing_timeline` and `statement_select_unknown_element` restated for 0.7.0); both pinned pairs (`before.json`
 byte for byte the source version's `bare.json`, the first `after.json` the
 same text with the target version, the second also with the root's
 `"is_segment_line": false`, `dumps(migrate(parseJson(before)))` byte for byte
@@ -104,11 +121,15 @@ The rules and their proofs are stated in the Python suite's README ("File
 kinds and schema documents"); this suite asserts the same cases on the
 bundled `schemaDocuments["0.7.0"]`: four documents, each `$id` the base plus
 `<name>.schema.json`; every reference local or relative to another document
-of the version and naming an existing definition; definition names unique,
-`core` holding the twelve shared definitions; the union of the `core` and
-`timeline` definitions, references made local, the id rule written inline
-and `is_segment_line` removed from `TimelineManifest`, equal to 0.6.0's
-definitions, the root members and `Meta` as stated there; thirty-two references to `Id` (27, 3 and 2 in the timeline, group and
+of the version and naming an existing definition (and, where it continues
+with `/properties/<member>`, a member that definition declares); definition
+names unique, `core` holding the eighteen shared definitions (the twelve of
+numbers, coordinates, units, ids and metadata, and the six of the graphical
+block); the union of the `core` and `timeline` definitions, references made
+local, the id rule written inline, `is_segment_line` removed from
+`TimelineManifest`, `ElementType`'s four new values and description
+reverted and `inside` and `shadow` removed from `Selector` and
+`Declaration`, equal to 0.6.0's definitions, the root members and `Meta` as stated there; thirty-two references to `Id` (27, 3 and 2 in the timeline, group and
 bundle documents); the group and bundle documents literally; `FILE_KINDS`
 and `fileKind` on the same ten values; the two test documents (built from
 the 0.7.0 `bare` manifest as the Python suite builds them) validating, also
@@ -131,7 +152,10 @@ one before it ends`, `the segments of segment line "bare" do not end at its
 length`). Exact values are compared as rationals (`exact`, the coordinate
 reader of the canonical order), never as JavaScript numbers summed, so
 `0.1 + 0.2` does not meet `0.3` here either. `TimelineManifest` requires
-`is_segment_line`, and the shared rejection cases pin the paths.
+`is_segment_line`, and the shared rejection cases pin the paths. The
+`segment_line.json` fixture is pinned as in Python: every timeline's id,
+name, flag, lock, absolute start and length, each segment's offset, and no
+problem.
 
 ## Identity in group and bundle files
 
@@ -143,12 +167,18 @@ cases with each message quoted as JSON (`duplicate id "piece", first at
 #/timelines/0/id`, `"tempo" names no timeline of this file`, `duplicate
 member "score", first at …`, `timeline "recording" contains no member of the
 group`, `member "second-half" lies inside member "piece" of the same group`,
-`member "recording" contains member "excerpt" of the same group`, `"piece" is
+`member "recording" contains member "excerpt" of the same group`, `duplicate
+id "group_2", first at #/bundle/groups/1/id` at `["bundle", "id"]`, `"piece" is
 not a member of group "group_1"`, `member "recording" of group "group_1" is
-missing`, `"group_9" names no group of this bundle`). No member of a group
+missing`, `"group_9" names no group of this bundle`, `id "label" is reserved in
+a group or bundle file`, the part words `start`, `end`, `name`, `label`
+and `card` refused as the id of a map, region, break, jump or marker of a group or
+bundle file, after the rules of every root). No member of a group
 lies inside or contains another member of the same group, but a parent and
-its child in different groups of one bundle are no problem. The
-93 shared 0.7.0 rejection cases pin the paths of both validators for every
+its child in different groups of one bundle are no problem. The bundle id
+differs from every timeline and group id, reported after the group ids and
+before the members, naming the timeline before a group. The
+100 shared 0.7.0 rejection cases pin the paths of both validators for every
 rule.
 
 ## Identity
@@ -227,8 +257,8 @@ every float spelled as Python's `repr`, every integer without a decimal point)
 and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
-- **Every standard file round-trips.** Each of the 23 timeline, 3 group and
-  7 bundle fixtures and the 93 rejection cases of the latest version (126
+- **Every standard file round-trips.** Each of the 29 timeline, 9 group and
+  9 bundle fixtures and the 100 rejection cases of the latest version (147
   files) is reproduced byte for byte by `dumps(parseJson(text))`. `corpus_score_ms3` carries `→` and float-axis
   fixtures carry `6.0`, so neither the escaping nor the float spelling can be
   wrong without a failure.

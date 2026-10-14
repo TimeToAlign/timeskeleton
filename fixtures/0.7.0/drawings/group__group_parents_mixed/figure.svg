@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600.0864" height="406.043" viewBox="0 0 600.0864 406.043" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="568.0864" height="374.043" rx="10" fill="#F3F4F6"/>
+<rect data-address="group_1" x="8" y="8" width="552.0864" height="358.043" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<text data-address="group_1/name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Exposition</text>
+<rect data-address="exposition/card" x="18" y="34.8047" width="536.0864" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-address="exposition/card" x="16" y="32.8047" width="536.0864" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="sonata" x1="101.0303" y1="67.7812" x2="513.0303" y2="67.7812" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
+<polyline data-address="sonata" points="98.0303,63.2812 93.5303,67.7812 98.0303,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="sonata" points="93.5303,63.2812 89.0303,67.7812 93.5303,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
+<circle data-address="sonata" cx="513.0303" cy="67.7812" r="3" fill="#00CC00" opacity="0.35"/>
+<line data-address="exposition" x1="113.0303" y1="81.7812" x2="508.5303" y2="81.7812" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="exposition" cx="113.0303" cy="81.7812" r="3" fill="#00CC00"/>
+<polygon data-address="exposition" points="508.5303,81.7812 513.0303,78.1813 517.5303,81.7812 513.0303,85.3812" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="exposition/start" points="113.0303,66.2812 110.0303,53.2812 116.0303,53.2812" fill="#000000" opacity="0.35"/>
+<polygon data-address="exposition/end" points="513.0303,66.2812 510.0303,53.2812 516.0303,53.2812" fill="#000000" opacity="0.35"/>
+<polygon data-address="exposition/start" points="113.0303,83.2812 110.0303,96.2812 116.0303,96.2812" fill="#000000"/>
+<polygon data-address="exposition/end" points="513.0303,83.2812 510.0303,96.2812 516.0303,96.2812" fill="#000000"/>
+<text data-address="sonata/name" x="24" y="70.897" text-anchor="start" font-size="9" fill="#6B7280">Sonata</text>
+<text data-address="exposition/name" x="24" y="85.5894" text-anchor="start" font-size="11" fill="#000000">Exposition</text>
+<text data-address="exposition/start/label" x="113.0303" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">16 ♩</text>
+<text data-address="exposition/end/label" x="513.0303" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">48 ♩</text>
+<text data-address="exposition/start/label" x="113.0303" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="exposition/end/label" x="513.0303" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
+<rect data-address="take/card" x="18" y="126.7578" width="536.0864" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-address="take/card" x="16" y="124.7578" width="536.0864" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="session" x1="101.0303" y1="159.7344" x2="525.0303" y2="159.7344" stroke="#0050EF" stroke-width="3" opacity="0.35"/>
+<polyline data-address="session" points="98.0303,155.2344 93.5303,159.7344 98.0303,164.2344" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="session" points="93.5303,155.2344 89.0303,159.7344 93.5303,164.2344" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="session" points="528.0303,155.2344 532.5303,159.7344 528.0303,164.2344" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="session" points="532.5303,155.2344 537.0303,159.7344 532.5303,164.2344" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
+<line data-address="take" x1="113.0303" y1="173.7344" x2="508.5303" y2="173.7344" stroke="#0050EF" stroke-width="3"/>
+<circle data-address="take" cx="113.0303" cy="173.7344" r="3" fill="#0050EF"/>
+<polygon data-address="take" points="508.5303,173.7344 513.0303,170.1344 517.5303,173.7344 513.0303,177.3344" fill="none" stroke="#0050EF" stroke-width="1.5"/>
+<polygon data-address="take/start" points="113.0303,158.2344 110.0303,145.2344 116.0303,145.2344" fill="#000000" opacity="0.35"/>
+<polygon data-address="take/end" points="513.0303,158.2344 510.0303,145.2344 516.0303,145.2344" fill="#000000" opacity="0.35"/>
+<polygon data-address="take/start" points="113.0303,175.2344 110.0303,188.2344 116.0303,188.2344" fill="#000000"/>
+<polygon data-address="take/end" points="513.0303,175.2344 510.0303,188.2344 516.0303,188.2344" fill="#000000"/>
+<text data-address="session/name" x="24" y="162.8501" text-anchor="start" font-size="9" fill="#6B7280">Session</text>
+<text data-address="take/name" x="24" y="177.5425" text-anchor="start" font-size="11" fill="#000000">Take</text>
+<text data-address="take/start/label" x="113.0303" y="141.1118" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">30.0 s</text>
+<text data-address="take/end/label" x="513.0303" y="141.1118" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">55.5 s</text>
+<text data-address="take/start/label" x="113.0303" y="198.5884" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-address="take/end/label" x="513.0303" y="198.5884" text-anchor="middle" font-size="9" fill="#000000">25.5 s</text>
+<rect data-address="system/card" x="18" y="218.7109" width="536.0864" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-address="system/card" x="16" y="216.7109" width="536.0864" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="page" x1="113.0303" y1="251.6875" x2="525.0303" y2="251.6875" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3" opacity="0.35"/>
+<circle data-address="page" cx="113.0303" cy="251.6875" r="3" fill="#FF0000" opacity="0.35"/>
+<polyline data-address="page" points="528.0303,247.1875 532.5303,251.6875 528.0303,256.1875" fill="none" stroke="#FF0000" stroke-width="1.5" opacity="0.35"/>
+<polyline data-address="page" points="532.5303,247.1875 537.0303,251.6875 532.5303,256.1875" fill="none" stroke="#FF0000" stroke-width="1.5" opacity="0.35"/>
+<line data-address="system" x1="113.0303" y1="265.6875" x2="508.5303" y2="265.6875" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="system" cx="113.0303" cy="265.6875" r="3" fill="#FF0000"/>
+<polygon data-address="system" points="508.5303,265.6875 513.0303,262.0875 517.5303,265.6875 513.0303,269.2875" fill="none" stroke="#FF0000" stroke-width="1.5"/>
+<polygon data-address="system/start" points="113.0303,250.1875 110.0303,237.1875 116.0303,237.1875" fill="#000000" opacity="0.35"/>
+<polygon data-address="system/end" points="513.0303,250.1875 510.0303,237.1875 516.0303,237.1875" fill="#000000" opacity="0.35"/>
+<polygon data-address="system/start" points="113.0303,267.1875 110.0303,280.1875 116.0303,280.1875" fill="#000000"/>
+<polygon data-address="system/end" points="513.0303,267.1875 510.0303,280.1875 516.0303,280.1875" fill="#000000"/>
+<text data-address="page/name" x="24" y="254.8032" text-anchor="start" font-size="9" fill="#6B7280">Page</text>
+<text data-address="system/name" x="24" y="269.4956" text-anchor="start" font-size="11" fill="#000000">System</text>
+<text data-address="system/start/label" x="113.0303" y="233.0649" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">0 px</text>
+<text data-address="system/end/label" x="513.0303" y="233.0649" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">600 px</text>
+<text data-address="system/start/label" x="113.0303" y="290.5415" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
+<text data-address="system/end/label" x="513.0303" y="290.5415" text-anchor="middle" font-size="9" fill="#000000">600 px</text>
+<rect data-address="audio/card" x="18" y="310.6641" width="536.0864" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-address="audio/card" x="16" y="308.6641" width="536.0864" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="audio" x1="113.0303" y1="323.0664" x2="513.0303" y2="323.0664" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="audio" cx="113.0303" cy="323.0664" r="3" fill="#0050EF"/>
+<polygon data-address="audio" points="522.0303,323.0664 513.0303,318.5664 513.0303,327.5664" fill="#0050EF"/>
+<polygon data-address="audio/start" points="113.0303,324.5664 110.0303,337.5664 116.0303,337.5664" fill="#000000"/>
+<polygon data-address="audio/end" points="513.0303,324.5664 510.0303,337.5664 516.0303,337.5664" fill="#000000"/>
+<text data-address="audio/name" x="24" y="326.8745" text-anchor="start" font-size="11" fill="#000000">Audio</text>
+<text data-address="audio/start/label" x="113.0303" y="347.9204" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
+<text data-address="audio/end/label" x="513.0303" y="347.9204" text-anchor="middle" font-size="9" fill="#000000">1323000 smp</text>
+</g>
+</svg>

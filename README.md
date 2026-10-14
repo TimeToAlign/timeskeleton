@@ -12,7 +12,7 @@ kinds (timeline, group and bundle files) that locate a violation under one
 shared path rule, a canonical order, standard writers that produce the same
 bytes in Python and TypeScript, a lossless JSON reader for TypeScript,
 generated TypeScript types, migrations from 0.5.0 to 0.6.0 and from 0.6.0 to
-0.7.0, and shared fixtures. It also specifies how a timeline manifest is
+0.7.0, and shared fixtures. It also specifies how a file of each kind is
 drawn, and both packages ship that specification.
 
 ## The files
@@ -27,7 +27,7 @@ file is self-contained. Versions 0.5.0 and 0.6.0 know the timeline file only.
   output: its axis (`class`, `unit`, `number_type`, and `length`), child
   timelines at exact offsets, conversion maps, regions, flow control, measure
   map, and metric hierarchy. The optional `graphical` block styles its
-  drawing ([Drawing a timeline manifest](#drawing-a-timeline-manifest)).
+  drawing ([Drawing a manifest](#drawing-a-manifest)).
   From 0.7.0 on every timeline, at every depth, also carries the boolean
   `is_segment_line`. A segment line is a timeline containing only contiguous
   segments. It is written with one of the six classes, its segments' class,
@@ -35,6 +35,9 @@ file is self-contained. Versions 0.5.0 and 0.6.0 know the timeline file only.
   from 0 in offset order to its length, all of one class, all with one
   `is_segment_line` value. Segments that are segment lines themselves make a
   nested segment line. Every other timeline has `is_segment_line: false`.
+  A segment, like every child, is written with `locked: true`: its
+  embedding locks it. The segment line itself is locked or not as any
+  other timeline.
 - **Group file** `{meta, timelines, group, graphical?}`, one timeline group
   with the timelines it names. A group is an array of member timelines that
   share the same graphical start and end: every member's 0 coincides with
@@ -56,11 +59,13 @@ file is self-contained. Versions 0.5.0 and 0.6.0 know the timeline file only.
   are the bundle's ungrouped timelines. A 0.7.0 bundle file carries no
   MatchClaims.
 
-A group or bundle file's `graphical` block holds one member, `order`: the
-display order of a group's members, a permutation of them. In a group file
-it is an array; in a bundle file it is an object mapping a group id to such
-an array. Writers never reorder it. Without it, a group's members are
-displayed in the order of `members`.
+A group or bundle file's `graphical` block holds the display order `order`
+and, with the same meaning as in a timeline file, named `styles` and
+ordered `statements` ([Drawing a manifest](#drawing-a-manifest)). `order`
+is the display order of a group's members, a permutation of them. In a
+group file it is an array; in a bundle file it is an object mapping a group
+id to such an array. Writers never reorder it. Without it, a group's
+members are displayed in the order of `members`.
 
 A timeline manifest describes one timeline and all its descendants. No file
 says where or how often an application places its object. Event tables
@@ -96,13 +101,22 @@ timeline, or `null`.
 Ids are unique within nested scopes. Each timeline manifest is one scope: an
 id is unique within it across all the element kinds above. In a group or
 bundle file, each root of `timelines` is such a scope; timeline ids, of roots
-and descendants alike, are moreover unique across the file, and group ids are
-unique among the groups and differ from every timeline id.
+and descendants alike, are moreover unique across the file, group ids are
+unique among the groups and differ from every timeline id, and a bundle's id
+differs from every timeline id and every group id of its file.
+
+In a group or bundle file, a conversion map, region, break, jump or marker
+is addressed through the root that holds it (`score/region_1`), and the
+parts of an element follow its address: `…/start`, `…/end`, `…/name`,
+`…/label`, and a timeline's card `…/card`. Such an element therefore may not
+carry `start`, `end`, `name`, `label` or `card` as its id. A timeline may,
+since its parts are addressed by its own id, and a timeline file reserves
+none of these words.
 
 The JSON Schema cannot express these rules, nor that a member names a
 timeline of the file, nor that no member of a group lies inside another, nor
-that a segment line's segments are contiguous and alike, so both validators
-check them after the schema. Members share their start and end, but a child
+that a segment line's segments are contiguous and alike, nor the reserved
+words, so both validators check them after the schema. Members share their start and end, but a child
 sits at its offset inside its parent, so a timeline and its descendant in one
 group would give two answers for one position; in different groups of a
 bundle they are allowed. Each finding is one
@@ -116,8 +130,10 @@ problem, located by a path into the file:
 | A segment's `is_segment_line` differs from the first segment's | the segment's `timeline/is_segment_line` | `segment '<key>' of segment line '<id>' differs from segment '<first key>' in is_segment_line` |
 | A segment does not start where the one before it ends, or the first at 0 | the segment's `offset` | `segment '<key>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
+| In a group or bundle file, a map, region, break, jump or marker id is `start`, `end`, `name`, `label` or `card` | the `id` | `id '<id>' is reserved in a group or bundle file` |
 | A timeline id repeats one of an earlier root | the later occurrence | `duplicate id '<id>', first at <pointer>` |
 | A group id equals a timeline id, or, in a bundle, an earlier group's id | the group's `id` | `duplicate id '<id>', first at <pointer>` |
+| A bundle id equals a timeline id or a group id | `bundle/id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group |
 | A member names no timeline of the file | the member | `'<id>' names no timeline of this file` |
 | In a bundle, a member is already a member of an earlier group | the later member | `duplicate member '<id>', first at <pointer>` |
 | A member lies inside an earlier member of its group, or contains one | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
@@ -132,10 +148,12 @@ children in code-point order of their keys); duplicates come first, then
 dangling targets, then segment lines, whose segments are visited in offset
 order (ties by key in code-point order) and compared by exact value. In a
 group or bundle file, the problems come in this order: each root's own
-problems, roots in array order; then repeated timeline ids, group ids, members
+problems, roots in array order; then reserved words, root by root in
+identity order; repeated timeline ids, group ids, the bundle id, members
 (member by member: dangling, repeated, nested), roots without a member, and
 the display orders (a bundle's in code-point order of their keys). `<pointer>`
-is a JSON pointer in URI fragment form, such as `#/timelines/0/id`. The
+is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as
+Python's `json_pointer(path)` and npm's `jsonPointer(path)` render a path. The
 messages above quote ids as Python does; the TypeScript package quotes them as
 JSON (`duplicate id "piece", first at #/timelines/0/id`). A repeated entry
 within one display order or within one group's `members` is refused by the
@@ -148,10 +166,10 @@ kind and one for what they share:
 
 | Document | Holds |
 | --- | --- |
-| `core.schema.json` | the shared definitions: `Fraction` and its variants, the number and coordinate forms, `TimeUnit`, `NumberType`, the id rule `Id` and the file metadata `Meta` |
+| `core.schema.json` | the shared definitions: `Fraction` and its variants, the number and coordinate forms, `TimeUnit`, `NumberType`, the id rule `Id`, the file metadata `Meta`, and the vocabulary of the `graphical` block: `Graphical`, `Statement`, `Selector`, `ElementType`, `Paint` and `Declaration` |
 | `timeline.schema.json` | the timeline definitions and the timeline file |
-| `group.schema.json` | `Group`, the display order `MemberOrder` and the group file |
-| `bundle.schema.json` | the bundle file |
+| `group.schema.json` | `Group`, the display order `MemberOrder`, the group file's `GroupGraphical` and the group file |
+| `bundle.schema.json` | `Bundle`, the bundle file's `BundleGraphical` and the bundle file |
 
 Each identifier is
 `https://timetoalign.github.io/timeskeleton/0.7.0/<name>.schema.json`, so a
@@ -167,9 +185,9 @@ The schema is the source of truth for timetoalign and TimeLineEditor.
 timetoalign's hand-written serialization is tested for schema conformance and
 fixture round trips. TypeScript types are generated in this repository.
 
-## Drawing a timeline manifest
+## Drawing a manifest
 
-The optional `graphical` block of a timeline file contains named
+The optional `graphical` block of a file of any kind contains named
 declarations in `styles` and an ordered list of `statements`:
 
 ```json
@@ -189,6 +207,34 @@ name in `set`. Statement order matters. The complete selectors, presentation
 properties, cascade, defaults, element addresses, layout, and writer profiles
 are defined by the
 [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md).
+
+Every file is drawn as a bundle: a bundle file as itself, a group file as an
+anonymous bundle holding its group, and a timeline file as an anonymous
+bundle holding its timeline. Each group is a frame, and each member and each
+ungrouped root lies in its own card; a member that is a child timeline is
+drawn with the faded lines of its ancestors. The element types are `block`,
+`card`, `timeline`, `child`, `boundary` (a segment's start on its segment
+line), `ancestor`, `group` (a frame), `map`, `region`, `break`, `jump`,
+`wedge`, `name` and `label`. Besides `element`, a selector may name `ids`,
+`domain`, `modality`, `class`, `within` (a timeline and its descendants)
+and `inside` (an element type that holds the element at any depth); the
+property `shadow` colours a card's offset shadow. The group fixture
+`group_styled` frames its group in violet, fills the group's title violet,
+and gives every card in a frame a light violet shadow:
+
+```json
+"graphical": {
+  "order": ["score", "page", "performance"],
+  "statements": [
+    {"select": {"element": "group"}, "set": "frame-highlight"},
+    {"select": {"element": "name", "ids": ["group_1/name"]}, "set": {"fill": "#7F00FF"}},
+    {"select": {"element": "card", "inside": "group"}, "set": {"rx": 2, "shadow": "#C4B5FD"}}
+  ],
+  "styles": {
+    "frame-highlight": {"stroke": "#7F00FF"}
+  }
+}
+```
 
 A statement may name a style missing from its block's `styles`. Python's
 `complete_styles(graphical)` and npm's `completeStyles(graphical)` return a
@@ -371,7 +417,8 @@ function load(text: string): string {
   and `schema` the latest one. The generated types include
   `TimeSkeletonManifest`, `TimeSkeletonGroupFile`, `TimeSkeletonBundleFile`,
   `TimelineManifest`, `Group`, `Bundle`, `Meta`, `Id`, `MemberOrder`,
-  `Graphical`, `Statement`, `Selector`, and `Declaration`.
+  `Graphical`, `GroupGraphical`, `BundleGraphical`, `Statement`,
+  `Selector`, `ElementType`, `Paint`, and `Declaration`.
 
 A number read by `parseJson` is a `JsonNumber`:
 
@@ -395,8 +442,10 @@ a pure, ordered migration from the version before it in both packages,
 pinned by a before-and-after fixture pair under `fixtures/migrations/`.
 0.6.0 keeps the manifest format of 0.5.0 and revises the drawing
 specification; its migration rewrites `meta.schema_version` alone. 0.7.0 adds
-the group and bundle files, splits the schema into four documents, and adds
-`is_segment_line` to every timeline; its migration also writes
+the group and bundle files, splits the schema into four documents, adds
+`is_segment_line` to every timeline, and adds to the `graphical` block the
+element types `boundary`, `ancestor`, `group` and `card`, the selector
+member `inside` and the property `shadow`; its migration also writes
 `is_segment_line: false` on every timeline of a 0.6.0 file.
 
 A timeskeleton release is a schema-version event: one `vX.Y.Z` tag publishes
@@ -409,7 +458,10 @@ The [fixture guide](fixtures/README.md) describes the generated timeline,
 group and bundle files and the drawings of each version, the hand-authored
 rejection cases, and the migration pairs. The files of every kind are emitted
 only by `scripts/emit_fixtures.py` using timetoalign and record its version
-and commit in `meta.generator`. Do not edit them by hand.
+and commit in `meta.generator`. Do not edit them by hand. Version 0.7.0 has
+29 timeline files, 9 group files and 9 bundle files, 46 drawings, twelve of
+whose figures are derived by hand from the drawing specification, and 100
+rejection cases.
 
 ## Development
 

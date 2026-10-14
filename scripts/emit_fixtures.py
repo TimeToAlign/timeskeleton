@@ -8,12 +8,11 @@ public loader and serialized with ``Timeline.to_dict()``; every group with
 ``TimelineGroup.to_dict()`` and every bundle with ``AlignmentBundle.to_dict()``.
 Each file is wrapped with ``meta``, written with ``timeskeleton.dumps``, read
 back, validated and round-tripped through the matching ``from_dict``; a file
-whose order differs from the library's fails the round trip. A file is emitted
-only when its structural signature differs from that of every file of its kind
-before it; the script names each file it skips on standard error. A styled
-manifest also carries a ``graphical`` block composed in this script from
-``GRAPHICAL``. ``--kinds`` restricts the run to some file kinds; the others
-are left as they are. The current schema version is
+whose order differs from the library's fails the round trip. Every builder
+entry emits exactly the files it builds. A styled file also carries
+``graphical`` styles and statements composed in this script from
+``GRAPHICAL``. ``--kinds`` restricts the run to some file kinds; the others are
+left as they are. The current schema version is
 ``timeskeleton.SCHEMA_VERSION``. The fixtures of a released version are
 frozen: the script refuses to write into ``fixtures/<version>/`` once the tag
 ``v<version>`` exists. Map identifiers come from a per-process counter, so
@@ -84,6 +83,7 @@ from timetoalign.maps import (
     TicksToQuarters,
 )
 from timetoalign.testdata import ensure_data
+from timetoalign.timelines import SegmentLine
 from timetoalign.timelines.flowcontrol import Break, Jump, Marker
 
 from timeskeleton import FILE_KINDS, SCHEMA_VERSION, dumps, validate
@@ -317,6 +317,146 @@ def styled_timelines() -> list[Timeline]:
     return [score, performance]
 
 
+def segment_line_timeline() -> Timeline:
+    """Build a nested segment line of quarters: a form of three sections.
+
+    The root ``form`` (32 quarters) holds the segments ``a`` (8), ``b`` (12)
+    and ``c`` (12), each a segment line itself: ``a`` holds ``a1`` and ``c``
+    holds ``c1``, both without a name, and ``b`` holds ``b1`` and ``b2`` (6
+    each). The absolute spans are a 0-8, b 8-20 (b1 8-14, b2 14-20) and c
+    20-32. Quarters take their default number type, fraction.
+    """
+    line = SegmentLine[ContinuousLogicalTimeline]
+
+    def section(uid: str, name: str, *segments: Timeline) -> Timeline:
+        result = line(length=0, unit="quarters", uid=uid, name=name)
+        for segment in segments:
+            result.append_segment(segment)
+        return result
+
+    def segment(uid: str, length: int, name: str | None = None) -> Timeline:
+        return ContinuousLogicalTimeline(
+            length=length, unit="quarters", uid=uid, name=name
+        )
+
+    return section(
+        "form",
+        "Form",
+        section("a", "A", segment("a1", 8)),
+        section("b", "B", segment("b1", 6, "b1"), segment("b2", 6, "b2")),
+        section("c", "C", segment("c1", 12)),
+    )
+
+
+def locked_root_timeline() -> Timeline:
+    """Build a root of quarters locked at construction, holding one child.
+
+    The root ``score`` ("Score", 16 quarters, ``locked=True``) holds the child
+    ``coda`` ("Coda", 4 quarters) at offset 12, ending at the root's end.
+    """
+    score = ContinuousLogicalTimeline(
+        length=16, unit="quarters", uid="score", name="Score", locked=True
+    )
+    score.add_child(
+        ContinuousLogicalTimeline(length=4, unit="quarters", uid="coda", name="Coda"),
+        12,
+    )
+    return score
+
+
+def pages_timeline(count: int = 4) -> Timeline:
+    """Build an unlocked segment line of pixel pages.
+
+    The root ``pages`` ("Pages") holds the segments ``page_1`` ("Page 1") to
+    ``page_<count>`` ("Page <count>"), each 1754 pixels, so the line is
+    ``1754 * count`` pixels long.
+    """
+    pages = SegmentLine[DiscreteGraphicalTimeline](
+        length=Fraction(0), unit="pixels", uid="pages", name="Pages"
+    )
+    for number in range(1, count + 1):
+        pages.append_segment(
+            DiscreteGraphicalTimeline(
+                length=Fraction(1754),
+                unit="pixels",
+                uid=f"page_{number}",
+                name=f"Page {number}",
+            )
+        )
+    return pages
+
+
+def locked_pages_timeline() -> Timeline:
+    """Build the segment line of ``pages_timeline`` and lock it once built.
+
+    The four pages of 1754 pixels each make the locked line 7016 pixels long.
+    """
+    pages = pages_timeline()
+    pages.lock()
+    return pages
+
+
+def accolade_pages_timeline() -> Timeline:
+    """Build an unlocked segment line of pixel pages, each a line of accolades.
+
+    The root ``pages`` ("Pages", 7016 pixels) holds the segments ``page_1``
+    ("Page 1") to ``page_4`` ("Page 4"), each a segment line of 1754 pixels
+    whose segments are the accolades ``page_<N>_accolade_1`` to
+    ``page_<N>_accolade_4``, named "1" to "4", of 400, 450, 452 and 452 pixels.
+    """
+    line = SegmentLine[DiscreteGraphicalTimeline]
+    pages = line(length=Fraction(0), unit="pixels", uid="pages", name="Pages")
+    for number in range(1, 5):
+        page = line(
+            length=Fraction(0),
+            unit="pixels",
+            uid=f"page_{number}",
+            name=f"Page {number}",
+        )
+        for accolade, length in enumerate((400, 450, 452, 452), start=1):
+            page.append_segment(
+                DiscreteGraphicalTimeline(
+                    length=Fraction(length),
+                    unit="pixels",
+                    uid=f"page_{number}_accolade_{accolade}",
+                    name=str(accolade),
+                )
+            )
+        pages.append_segment(page)
+    return pages
+
+
+def segment_children_timeline() -> Timeline:
+    """Build an unlocked root of quarters whose three children are segment lines.
+
+    The root ``piece`` ("Piece", 32 quarters) holds ``intro`` ("Intro") at
+    offset 2 with the segments ``i1`` and ``i2`` (3 each), ``theme``
+    ("Theme") at offset 6 with ``t1``, ``t2`` and ``t3`` (4 each), and
+    ``coda`` ("Coda") at offset 22 with ``c1`` (5) and ``c2`` (3); each
+    segment is named as its id. The absolute spans are intro 2-8, theme 6-18
+    and coda 22-30, so intro and theme overlap.
+    """
+    piece = ContinuousLogicalTimeline(
+        length=32, unit="quarters", uid="piece", name="Piece"
+    )
+    for uid, name, offset, segments in (
+        ("intro", "Intro", 2, (("i1", 3), ("i2", 3))),
+        ("theme", "Theme", 6, (("t1", 4), ("t2", 4), ("t3", 4))),
+        ("coda", "Coda", 22, (("c1", 5), ("c2", 3))),
+    ):
+        child = SegmentLine[ContinuousLogicalTimeline](
+            length=0, unit="quarters", uid=uid, name=name
+        )
+        for segment_id, length in segments:
+            child.append_segment(
+                ContinuousLogicalTimeline(
+                    length=length, unit="quarters", uid=segment_id, name=segment_id
+                )
+            )
+        piece.add_child(child, offset)
+    return piece
+
+
 _GREY = {"stroke": "#404040", "fill": "#404040"}
 _SHARED_STATEMENTS: list[dict[str, Any]] = [
     {"select": {"element": "label"}, "set": _GREY},
@@ -410,8 +550,34 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             ]
         },
     },
+    "group_styled": {
+        "group_1": {
+            "styles": {"frame-highlight": {"stroke": "#7F00FF"}},
+            "statements": [
+                {"select": {"element": "group"}, "set": "frame-highlight"},
+                {
+                    "select": {"element": "name", "ids": ["group_1/name"]},
+                    "set": {"fill": "#7F00FF"},
+                },
+                {
+                    "select": {"element": "card", "inside": "group"},
+                    "set": {"shadow": "#C4B5FD", "rx": 2},
+                },
+            ],
+        },
+    },
 }
-"""The ``graphical`` block of each styled manifest, by fixture name and root id.
+"""The ``graphical`` styles and statements of each styled file, by fixture name
+and the id of its root (a timeline file) or of its group (a group file).
+
+A timeline file's whole ``graphical`` block comes from this table. A group's or
+bundle's entry becomes its ``styling``, which the library writes beside its own
+``graphical.order``.
+
+``group_styled`` gives every group frame the named style ``frame-highlight``
+(a violet stroke), fills the group's title, ``group_1/name``, violet, and
+gives every card held by a group frame a light violet shadow and a corner
+radius of 2.
 
 In ``styled__score`` every drawn element and every text takes its own colour
 under the cascade of ``docs/drawing.md`` (statements numbered from 0 in the
@@ -442,7 +608,11 @@ the child ``a``.
 
 
 def corpus_manifests() -> dict[str, list[Timeline]]:
-    """Load the smallest selected corpus specimens through public loaders."""
+    """Load the smallest selected corpus specimens through public loaders.
+
+    Of the Parangonada timelines only the discrete score ``score:dlt_1`` is
+    emitted.
+    """
     score = ensure_data("score")
     midi = ensure_data("midi")
     audio = ensure_data("audio")
@@ -459,11 +629,13 @@ def corpus_manifests() -> dict[str, list[Timeline]]:
     audio_timeline = (
         AudioLoader().load(audio / "hard_techno/Bass Kick.mp3").create_timeline()
     )
-    parangonada_timelines = (
-        ParangonadaLoader()
+    (parangonada_score,) = [
+        timeline
+        for timeline in ParangonadaLoader()
         .load(parangonar / "Beethoven_Eroica_op35-cpjku")
         .create_timelines()
-    )
+        if timeline.id == "score:dlt_1"
+    ]
     graphical_timeline = (
         IIIFManifestLoader().load(supra / "image/ifff_manifest.json").create_timeline()
     )
@@ -471,19 +643,16 @@ def corpus_manifests() -> dict[str, list[Timeline]]:
         "corpus_score_ms3": [score_timeline],
         "corpus_midi_score_midi": [midi_timeline],
         "corpus_audio_audio": [audio_timeline],
-        "corpus_parangonar_parangonada": parangonada_timelines,
+        "corpus_parangonar_parangonada__score_dlt_1": [parangonada_score],
         "corpus_supra_iiif": [graphical_timeline],
     }
 
 
-def group_constructions() -> dict[str, list[TimelineGroup]]:
-    """Build the groups constructed directly, one per group file.
+def number_types_group() -> TimelineGroup:
+    """Build a group of three timelines whose axes have different number types.
 
-    ``group_number_types`` groups three timelines whose axes have different
-    number types (quarters as fractions, seconds as floats, pixels as
-    integers), listed in a display order that differs from their id order.
-    ``group_child_member`` groups the second half of a score, a child of the
-    score placed at its exact offset, with a whole performance.
+    Quarters as fractions, seconds as floats and pixels as integers, listed in
+    a display order that differs from their id order.
     """
     score = ContinuousLogicalTimeline(
         length=Fraction(12), unit="quarters", uid="score", name="Score"
@@ -494,8 +663,18 @@ def group_constructions() -> dict[str, list[TimelineGroup]]:
     page = DiscreteGraphicalTimeline(
         length=Fraction(1920), unit="pixels", uid="page", name="Page"
     )
-    number_types = TimelineGroup(name="Edition", timelines=[score, page, performance])
+    return TimelineGroup(name="Edition", timelines=[score, page, performance])
 
+
+def group_constructions() -> dict[str, list[TimelineGroup]]:
+    """Build the groups constructed directly, one per group file.
+
+    ``group_number_types`` and ``group_styled`` are two groups built by
+    ``number_types_group``; ``group_styled`` also carries the styles and
+    statements of ``GRAPHICAL``. ``group_child_member`` groups the second half
+    of a score, a child of the score placed at its exact offset, with a whole
+    performance.
+    """
     piece = ContinuousLogicalTimeline(
         length=Fraction(16), unit="quarters", uid="piece", name="Piece"
     )
@@ -507,7 +686,11 @@ def group_constructions() -> dict[str, list[TimelineGroup]]:
         length=10.0, unit="seconds", uid="recording", name="Recording"
     )
     child_member = TimelineGroup(name="Second half", timelines=[second_half, recording])
-    return {"group_number_types": [number_types], "group_child_member": [child_member]}
+    return {
+        "group_number_types": [number_types_group()],
+        "group_child_member": [child_member],
+        "group_styled": [number_types_group()],
+    }
 
 
 def bundle_constructions() -> dict[str, list[AlignmentBundle]]:
@@ -543,6 +726,199 @@ def bundle_constructions() -> dict[str, list[AlignmentBundle]]:
     bundle.add_timeline(excerpt, grouped_with=page.id)
     bundle.add_timeline(annotations)
     return {"bundle_mixed": [bundle]}
+
+
+def _timeline(cls: type[Timeline], uid: str, name: str, length: Any) -> Timeline:
+    """Build an unlocked timeline of ``cls`` in its domain's usual unit."""
+    unit = {
+        ContinuousLogicalTimeline: "quarters",
+        ContinuousPhysicalTimeline: "seconds",
+        DiscreteLogicalTimeline: "ticks",
+        DiscretePhysicalTimeline: "samples",
+        DiscreteGraphicalTimeline: "pixels",
+    }[cls]
+    return cls(length=length, unit=unit, uid=uid, name=name)
+
+
+def _holding(parent: Timeline, child: Timeline, offset: Any) -> Timeline:
+    """Add ``child`` to ``parent`` at ``offset`` and return the child."""
+    parent.add_child(child, offset)
+    return child
+
+
+def _piece_member_group(uid: str, name: str, length: int, offset: int) -> TimelineGroup:
+    """Build a group of a child of a piece and a whole recording.
+
+    The piece ``piece`` ("Piece", 16 quarters) holds the child ``uid``
+    (``name``, ``length`` quarters) at ``offset``; the group, named as the
+    child, lists the child and then the root ``recording`` ("Recording", 10.0
+    seconds), as ``group_child_member`` does with the piece's second half.
+    """
+    piece = _timeline(ContinuousLogicalTimeline, "piece", "Piece", Fraction(16))
+    child = _holding(
+        piece,
+        _timeline(ContinuousLogicalTimeline, uid, name, Fraction(length)),
+        Fraction(offset),
+    )
+    recording = _timeline(ContinuousPhysicalTimeline, "recording", "Recording", 10.0)
+    return TimelineGroup(name=name, timelines=[child, recording])
+
+
+def group_parent_right() -> TimelineGroup:
+    """Build the group of the piece's first half, ``first-half`` (8 at 0).
+
+    The piece runs on to the right of the child member only.
+    """
+    return _piece_member_group("first-half", "First half", 8, 0)
+
+
+def group_parent_both() -> TimelineGroup:
+    """Build the group of the piece's middle, ``middle`` (8 at 4).
+
+    The piece runs on to both sides of the child member.
+    """
+    return _piece_member_group("middle", "Middle", 8, 4)
+
+
+def group_parent_exact() -> TimelineGroup:
+    """Build the group of the whole piece as its child, ``whole`` (16 at 0).
+
+    The piece coincides with the child member.
+    """
+    return _piece_member_group("whole", "Whole", 16, 0)
+
+
+def group_parents_mixed() -> TimelineGroup:
+    """Build a group of three child members of different parents and one root.
+
+    The sonata ``sonata`` ("Sonata", 48 quarters, ``locked=True``) holds the
+    exposition ``exposition`` ("Exposition", 32 quarters) at 16; the session
+    ``session`` ("Session", 90.0 seconds) holds the take ``take`` ("Take",
+    25.5 seconds) at 30.0; the page ``page`` ("Page", 1754 pixels) holds the
+    system ``system`` ("System", 600 pixels) at 0. The group "Exposition"
+    lists ``exposition``, ``take``, ``system`` and the root ``audio``
+    ("Audio", 1323000 samples).
+    """
+    sonata = ContinuousLogicalTimeline(
+        length=Fraction(48), unit="quarters", uid="sonata", name="Sonata", locked=True
+    )
+    exposition = _holding(
+        sonata,
+        _timeline(ContinuousLogicalTimeline, "exposition", "Exposition", Fraction(32)),
+        Fraction(16),
+    )
+    session = _timeline(ContinuousPhysicalTimeline, "session", "Session", 90.0)
+    take = _holding(
+        session, _timeline(ContinuousPhysicalTimeline, "take", "Take", 25.5), 30.0
+    )
+    page = _timeline(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
+    system = _holding(
+        page,
+        _timeline(DiscreteGraphicalTimeline, "system", "System", Fraction(600)),
+        Fraction(0),
+    )
+    audio = _timeline(DiscretePhysicalTimeline, "audio", "Audio", Fraction(1323000))
+    return TimelineGroup(name="Exposition", timelines=[exposition, take, system, audio])
+
+
+def group_grandchild() -> TimelineGroup:
+    """Build a group of a grandchild of quarters and a root in seconds.
+
+    The score ``score`` ("Score", 64 quarters) holds the movement
+    ``movement`` ("Movement", 16 quarters) at 16, which holds the theme
+    ``theme`` ("Theme", 8 quarters) at 8; the group "Theme" lists ``theme``
+    and the root ``recording`` ("Recording", 12.0 seconds).
+    """
+    score = _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(64))
+    movement = _holding(
+        score,
+        _timeline(ContinuousLogicalTimeline, "movement", "Movement", Fraction(16)),
+        Fraction(16),
+    )
+    theme = _holding(
+        movement,
+        _timeline(ContinuousLogicalTimeline, "theme", "Theme", Fraction(8)),
+        Fraction(8),
+    )
+    recording = _timeline(ContinuousPhysicalTimeline, "recording", "Recording", 12.0)
+    return TimelineGroup(name="Theme", timelines=[theme, recording])
+
+
+def parent_groups() -> dict[str, list[TimelineGroup]]:
+    """Return the groups whose members include children, one per group file."""
+    builders: dict[str, Callable[[], TimelineGroup]] = {
+        "group_parent_right": group_parent_right,
+        "group_parent_both": group_parent_both,
+        "group_parent_exact": group_parent_exact,
+        "group_parents_mixed": group_parents_mixed,
+        "group_grandchild": group_grandchild,
+    }
+    return {name: [build()] for name, build in builders.items()}
+
+
+def bundle_shared_parent() -> AlignmentBundle:
+    """Build a bundle whose two groups hold two children of one root.
+
+    The score ``score`` ("Score", 32 quarters) holds the exposition
+    ``exposition`` ("Exposition", 12 quarters) at 0 and the recapitulation
+    ``recapitulation`` ("Recapitulation", 12 quarters) at 20. The bundle
+    "Sonata" groups ``exposition`` with the take ``take_1`` ("Take 1", 30.0
+    seconds) as "Exposition" and ``recapitulation`` with the take ``take_2``
+    ("Take 2", 28.5 seconds) as "Recapitulation"; the page ``page`` ("Page",
+    1754 pixels) is ungrouped, and so is ``score``, which joins as the root
+    of the two children.
+    """
+    score = _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(32))
+    exposition = _holding(
+        score,
+        _timeline(ContinuousLogicalTimeline, "exposition", "Exposition", Fraction(12)),
+        Fraction(0),
+    )
+    recapitulation = _holding(
+        score,
+        _timeline(
+            ContinuousLogicalTimeline, "recapitulation", "Recapitulation", Fraction(12)
+        ),
+        Fraction(20),
+    )
+    take_1 = _timeline(ContinuousPhysicalTimeline, "take_1", "Take 1", 30.0)
+    take_2 = _timeline(ContinuousPhysicalTimeline, "take_2", "Take 2", 28.5)
+    page = _timeline(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
+    bundle = AlignmentBundle(name="Sonata")
+    bundle.add_timeline(exposition, as_group="Exposition")
+    bundle.add_timeline(take_1, grouped_with="exposition")
+    bundle.add_timeline(recapitulation, as_group="Recapitulation")
+    bundle.add_timeline(take_2, grouped_with="recapitulation")
+    bundle.add_timeline(page)
+    return bundle
+
+
+def bundle_ungrouped() -> AlignmentBundle:
+    """Build a bundle of three ungrouped roots, one of them a segment line.
+
+    The bundle "Sketches" holds the score ``score`` ("Score", 16 quarters),
+    the recording ``recording`` ("Recording", 441000 samples) and the
+    segment line ``pages`` of ``pages_timeline`` with three pages (5262
+    pixels), in that order, and no group.
+    """
+    bundle = AlignmentBundle(name="Sketches")
+    bundle.add_timeline(
+        _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(16))
+    )
+    bundle.add_timeline(
+        _timeline(DiscretePhysicalTimeline, "recording", "Recording", Fraction(441000))
+    )
+    bundle.add_timeline(pages_timeline(3))
+    return bundle
+
+
+def parent_bundles() -> dict[str, list[AlignmentBundle]]:
+    """Return the bundles of children and of ungrouped roots, one per bundle file."""
+    builders: dict[str, Callable[[], AlignmentBundle]] = {
+        "bundle_shared_parent": bundle_shared_parent,
+        "bundle_ungrouped": bundle_ungrouped,
+    }
+    return {name: [build()] for name, build in builders.items()}
 
 
 LISTEN_HERE: dict[str, Any] = {
@@ -599,20 +975,18 @@ def corpus_bundles() -> dict[str, list[AlignmentBundle]]:
 
 def build_groups() -> dict[str, list[TimelineGroup]]:
     """Return group fixture names and groups, constructions before corpora."""
-    return {**group_constructions(), **corpus_groups()}
+    return {**group_constructions(), **parent_groups(), **corpus_groups()}
 
 
 def build_bundles() -> dict[str, list[AlignmentBundle]]:
     """Return bundle fixture names and bundles, constructions before corpora."""
-    return {**bundle_constructions(), **corpus_bundles()}
+    return {**bundle_constructions(), **parent_bundles(), **corpus_bundles()}
 
 
 def build_manifests() -> dict[str, list[Timeline]]:
     """Return fixture names and top-level timelines in emission order.
 
-    The synthetic manifests come first and the corpus manifests last, so that a
-    synthetic manifest wins over a corpus manifest of the same structural
-    signature (see ``signature``).
+    The synthetic manifests come first and the corpus manifests last.
     """
     manifests: dict[str, list[Timeline]] = {}
     manifests["continuous_logical"] = [
@@ -672,6 +1046,12 @@ def build_manifests() -> dict[str, list[Timeline]]:
     manifests["flow_control"] = [flow_control_timeline()]
     manifests.update(drawing_manifests())
     manifests["styled"] = styled_timelines()
+    manifests["segment_line"] = [segment_line_timeline()]
+    manifests["locked_root"] = [locked_root_timeline()]
+    manifests["segment_pages"] = [pages_timeline()]
+    manifests["segment_pages_locked"] = [locked_pages_timeline()]
+    manifests["segment_pages_accolades"] = [accolade_pages_timeline()]
+    manifests["segment_children"] = [segment_children_timeline()]
     manifests.update(corpus_manifests())
     return manifests
 
@@ -711,8 +1091,8 @@ ROUND_TRIPS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
 """Rebuild a file's content (without ``meta``) through the library, by kind.
 
 A timeline file's ``graphical`` block is composed in this script, so only its
-``timeline`` takes part; a group's or bundle's ``graphical.order`` is the
-library's own.
+``timeline`` takes part; a group or bundle file takes part whole, its
+``graphical`` included.
 """
 
 
@@ -739,87 +1119,13 @@ def check_round_trip(path: Path, kind: str) -> int:
     return 1
 
 
-def timeline_signature(timeline: dict[str, Any]) -> tuple[Any, ...]:
-    """Return the structure of one timeline dict and of its descendants.
-
-    Values, ids, names, units, lengths and offsets are left out; the class, the
-    lock, the conversion-map types and the numbers of regions, breaks, jumps
-    and markers remain, with the children's signatures in canonical order.
-    """
-    flow_control = timeline["flow_control"]
-    return (
-        timeline["class"],
-        timeline["locked"],
-        tuple(conversion_map["type"] for conversion_map in timeline["conversion_maps"]),
-        len(timeline["regions"]),
-        len(flow_control["breaks"]),
-        len(flow_control["jumps"]),
-        len(flow_control["markers"]),
-        tuple(
-            timeline_signature(child["timeline"])
-            for child in timeline["children"].values()
-        ),
-    )
-
-
-def _timeline_trees(roots: list[dict[str, Any]]) -> dict[str, tuple[str, int]]:
-    """Return the class and depth of every timeline of the roots, by id."""
-    found: dict[str, tuple[str, int]] = {}
-
-    def visit(timeline: dict[str, Any], depth: int) -> None:
-        found[timeline["id"]] = (timeline["class"], depth)
-        for child in timeline["children"].values():
-            visit(child["timeline"], depth + 1)
-
-    for root in roots:
-        visit(root, 0)
-    return found
-
-
-def _members(group: dict[str, Any], trees: dict[str, tuple[str, int]]) -> tuple:
-    """Return the class and depth of each member of a group, sorted."""
-    return tuple(sorted(trees[member] for member in group["members"]))
-
-
-def signature(data: dict[str, Any]) -> tuple[Any, ...]:
-    """Return the structural signature of a file.
-
-    Two files of one kind with one signature exercise the same combination of
-    timeline classes, conversion-map types and timeline components, so only
-    the first of them is emitted. A timeline file's ``graphical`` block takes
-    part as its canonical JSON text. A group or bundle file contributes the
-    signatures of its roots, and the class and depth (0 for a root) of the
-    members of each of its groups; a bundle also the number of its ungrouped
-    roots.
-    """
-    if "timeline" in data:
-        graphical = data.get("graphical")
-        return (
-            timeline_signature(data["timeline"]),
-            None if graphical is None else json.dumps(graphical, sort_keys=True),
-        )
-    roots = data["timelines"]
-    trees = _timeline_trees(roots)
-    structure = tuple(sorted(timeline_signature(root) for root in roots))
-    if "group" in data:
-        return (structure, _members(data["group"], trees))
-    groups = data["bundle"]["groups"]
-    grouped = {member for group in groups for member in group["members"]}
-    ungrouped = sum(1 for root in roots if root["id"] not in grouped)
-    return (
-        structure,
-        tuple(sorted(_members(group, trees) for group in groups)),
-        ungrouped,
-    )
-
-
 def slug(identifier: str) -> str:
     """Return a fixture-safe spelling of a timeline id."""
     return re.sub(r"[^A-Za-z0-9_-]", "_", identifier)
 
 
 def plan(kind: str, output: Path, generator: str) -> list[tuple[Path, dict[str, Any]]]:
-    """Return the files of one kind to write, one per new structural signature."""
+    """Return the files of one kind to write, one per object of every builder entry."""
     directory = output if SUBDIRECTORY[kind] is None else output / SUBDIRECTORY[kind]
     builders: dict[str, Callable[[], dict[str, list[Any]]]] = {
         "timeline": build_manifests,
@@ -838,26 +1144,15 @@ def plan(kind: str, output: Path, generator: str) -> list[tuple[Path, dict[str, 
                     f"the file name {path.name}; nothing was written."
                 )
             claimed[path] = item.id
+            graphical = GRAPHICAL.get(name, {}).get(item.id)
             if kind == "timeline":
-                graphical = GRAPHICAL.get(name, {}).get(item.id)
                 data = manifest(item, generator, graphical)
             else:
+                if graphical is not None:
+                    item.styling = copy.deepcopy(graphical)
                 data = wrap(item.to_dict(), generator)
             planned.append((path, data))
-
-    emitted: list[tuple[Path, dict[str, Any]]] = []
-    first_of: dict[tuple[Any, ...], Path] = {}
-    for path, data in planned:
-        key = signature(data)
-        if key in first_of:
-            print(
-                f"skipped {kind} {path.stem}: same structure as {first_of[key].stem}",
-                file=sys.stderr,
-            )
-            continue
-        first_of[key] = path
-        emitted.append((path, data))
-    return emitted
+    return planned
 
 
 def main(argv: list[str] | None = None) -> int:

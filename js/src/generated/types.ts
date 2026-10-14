@@ -319,13 +319,30 @@ export type FractionPositive = [number, number];
  */
 export type Paint = string;
 /**
- * The type of a drawn element: the box's background, the root timeline's line, a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at the root's start or end, a name in the name column, or any other text label.
+ * The type of a drawn element: the box's background, the root timeline's line (in a group or bundle file, a member's line or an ungrouped root's line), a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at the root's start or end, a name in the name column (or the title of a group or bundle), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
  *
  * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
  * via the `definition` "ElementType".
  */
 export type ElementType =
-  "block" | "timeline" | "child" | "map" | "region" | "break" | "jump" | "wedge" | "name" | "label";
+  | "block"
+  | "timeline"
+  | "child"
+  | "map"
+  | "region"
+  | "break"
+  | "jump"
+  | "wedge"
+  | "name"
+  | "label"
+  | "boundary"
+  | "ancestor"
+  | "group"
+  | "card";
+/**
+ * Statements in order; of two statements of equal rank the later one decides.
+ */
+export type Statements = Statement[];
 /**
  * A non-negative bare JSON number or a non-negative exact Fraction pair.
  *
@@ -362,7 +379,7 @@ export type MemberOrder = Id[];
 export type MemberOrder1 = Id[];
 
 /**
- * A TimeSkeleton 0.7.0 timeline file: one manifest holding exactly one timeline, with its axis, children at exact offsets (or, in a segment line, contiguous segments), conversion maps, regions, flow control, compressed Measure Map standard rows, opaque metric hierarchy and optional graphical block. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Every timeline, conversion map, region, break, jump and marker carries an id, unique within the manifest across all of these kinds; a jump's target is the id of a marker of its own timeline. Object keys carry no order and are written sorted by code point. Arrays whose order carries no meaning have one canonical order: conversion maps by id; regions by start, end, id; breaks and markers by coordinate, then id; jumps by from and to coordinate, then id. Readers accept any order. The graphical block holds named styles and an ordered list of statements, each selecting drawn elements and setting presentation properties named as in SVG; `docs/drawing.md` specifies how a manifest is drawn, and a manifest without the block is drawn with the other style layers alone. The definitions shared with the group and bundle files (numbers, coordinates, units, number types, the id rule and the file metadata) live in core.schema.json; the group and bundle documents refer to this document's TimelineManifest.
+ * A TimeSkeleton 0.7.0 timeline file: one manifest holding exactly one timeline, with its axis, children at exact offsets (or, in a segment line, contiguous segments), conversion maps, regions, flow control, compressed Measure Map standard rows, opaque metric hierarchy and optional graphical block. Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers, an integer is a JSON integer and a float is a JSON number; every coordinate names its unit and its number type, which selects the representation of its value. Every timeline, conversion map, region, break, jump and marker carries an id, unique within the manifest across all of these kinds; a jump's target is the id of a marker of its own timeline. Object keys carry no order and are written sorted by code point. Arrays whose order carries no meaning have one canonical order: conversion maps by id; regions by start, end, id; breaks and markers by coordinate, then id; jumps by from and to coordinate, then id. Readers accept any order. The graphical block holds named styles and an ordered list of statements, each selecting drawn elements and setting presentation properties named as in SVG; `docs/drawing.md` specifies how a manifest is drawn, and a manifest without the block is drawn with the other style layers alone. The definitions shared with the group and bundle files (numbers, coordinates, units, number types, the id rule, the file metadata and the graphical block) live in core.schema.json; the group and bundle documents refer to this document's TimelineManifest.
  */
 export interface TimeSkeletonManifest {
   meta: Meta;
@@ -825,16 +842,14 @@ export interface Marker {
  * via the `definition` "Graphical".
  */
 export interface Graphical {
-  /**
-   * Declarations by style name.
-   */
-  styles?: {
-    [k: string]: Declaration;
-  };
-  /**
-   * Statements in order; of two statements of equal rank the later one decides.
-   */
-  statements?: Statement[];
+  styles?: Styles;
+  statements?: Statements;
+}
+/**
+ * Declarations by style name.
+ */
+export interface Styles {
+  [k: string]: Declaration;
 }
 /**
  * Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.
@@ -857,6 +872,7 @@ export interface Declaration {
   side?: "above" | "below";
   content?: string;
   "max-width"?: number | "none";
+  shadow?: Paint;
 }
 /**
  * One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.
@@ -925,6 +941,24 @@ export interface Selector {
    * A timeline id: the element must belong to that timeline or to one of its descendants.
    */
   within?: string;
+  /**
+   * The type of a drawn element: the box's background, the root timeline's line (in a group or bundle file, a member's line or an ungrouped root's line), a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at the root's start or end, a name in the name column (or the title of a group or bundle), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
+   */
+  inside?:
+    | "block"
+    | "timeline"
+    | "child"
+    | "map"
+    | "region"
+    | "break"
+    | "jump"
+    | "wedge"
+    | "name"
+    | "label"
+    | "boundary"
+    | "ancestor"
+    | "group"
+    | "card";
 }
 export interface CoordinateNonnegative2 {
   unit: TimeUnit;
@@ -963,13 +997,15 @@ export interface Group {
   members: Id[];
 }
 /**
- * The presentation of the group file.
+ * The presentation of the group file: the display order of its members, and named styles and statements with exactly the meaning they have in a timeline file's graphical block (`docs/drawing.md`, sections 2 and 8).
  *
  * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
  * via the `definition` "GroupGraphical".
  */
 export interface GroupGraphical {
   order?: MemberOrder1;
+  styles?: Styles;
+  statements?: Statements;
 }
 /**
  * A TimeSkeleton 0.7.0 group file: one timeline group and the timelines it names, self-contained. A group is an array of member timelines that share, by definition, the same graphical start and end: every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly. When only part of a timeline takes part, the member is a child of that timeline, placed at its exact offset; a member is never placed partially. The group names its members by id; each id names a timeline of the file's timelines array, a root or a descendant at any depth, and every root contains at least one member. Timeline ids, roots and descendants alike, are unique across the file, and the group id differs from every timeline id; every other id is unique within its own timeline manifest, as in a timeline file. The timelines and the members are sorted by id in code-point order, and readers accept any order; the members' display order is presentation and lives in graphical.order. Object keys carry no order and are written sorted by code point.
@@ -1017,7 +1053,7 @@ export interface Bundle {
   groups: Group[];
 }
 /**
- * The presentation of the bundle file.
+ * The presentation of the bundle file: the display order of each group's members, and named styles and statements with exactly the meaning they have in a timeline file's graphical block (`docs/drawing.md`, sections 2 and 8).
  *
  * This interface was referenced by `TimeSkeletonManifest`'s JSON-Schema
  * via the `definition` "BundleGraphical".
@@ -1029,6 +1065,8 @@ export interface BundleGraphical {
   order?: {
     [k: string]: MemberOrder;
   };
+  styles?: Styles;
+  statements?: Statements;
 }
 /**
  * A TimeSkeleton 0.7.0 bundle file: one alignment bundle with all its timelines and its groups, self-contained. The file holds one timelines array with every root timeline of the bundle, so every timeline occurs exactly once; each group, as defined by the group document, names its members by id in that array, a root or a descendant at any depth. A timeline is a member of at most one group; a child may belong to one group while its root belongs to another or to none. The roots no group names are the bundle's ungrouped timelines. Timeline ids, roots and descendants alike, are unique across the file; group ids are unique among the groups and differ from every timeline id; every other id is unique within its own timeline manifest, as in a timeline file. The timelines and the groups are sorted by id and each group's members by code point, and readers accept any order; the members' display order of each group is presentation and lives in graphical.order. Object keys carry no order and are written sorted by code point.

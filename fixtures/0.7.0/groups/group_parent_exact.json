@@ -1,0 +1,115 @@
+{
+  "graphical": {
+    "order": [
+      "whole",
+      "recording"
+    ]
+  },
+  "group": {
+    "id": "group_1",
+    "members": [
+      "recording",
+      "whole"
+    ],
+    "meta": {},
+    "name": "Whole"
+  },
+  "meta": {
+    "generator": "timetoalign 1.2.0 (98a6bb36)",
+    "schema_version": "0.7.0"
+  },
+  "timelines": [
+    {
+      "children": {
+        "whole": {
+          "offset": {
+            "number_type": "fraction",
+            "unit": "quarters",
+            "value": [
+              0,
+              1
+            ]
+          },
+          "timeline": {
+            "children": {},
+            "class": "ContinuousLogicalTimeline",
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "whole",
+            "is_segment_line": false,
+            "length": {
+              "number_type": "fraction",
+              "unit": "quarters",
+              "value": [
+                16,
+                1
+              ]
+            },
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": "Whole",
+            "number_type": "fraction",
+            "regions": [],
+            "unit": "quarters"
+          }
+        }
+      },
+      "class": "ContinuousLogicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "piece",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "fraction",
+        "unit": "quarters",
+        "value": [
+          16,
+          1
+        ]
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Piece",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    },
+    {
+      "children": {},
+      "class": "ContinuousPhysicalTimeline",
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "recording",
+      "is_segment_line": false,
+      "length": {
+        "number_type": "float",
+        "unit": "seconds",
+        "value": 10.0
+      },
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Recording",
+      "number_type": "float",
+      "regions": [],
+      "unit": "seconds"
+    }
+  ]
+}

@@ -502,19 +502,43 @@ def _timeline_ids(
         )
 
 
+_PART_WORDS = ("start", "end", "name", "label", "card")
+"""The part words, which no element other than a timeline may carry as its id
+in a group or bundle file."""
+
+
+def _part_word_problems(
+    timeline: Mapping[str, Any], path: tuple[str | int, ...]
+) -> Iterable[SchemaValidationError]:
+    """Yield a problem for each element id of a tree that is a part word.
+
+    Timeline ids are exempt; the other elements are visited in identity order.
+    """
+    timelines = {at for _, at in _timeline_ids(timeline, path)}
+    for identifier, at in _element_ids(timeline, path):
+        if identifier in _PART_WORDS and at not in timelines:
+            yield SchemaValidationError(
+                at, f"id {identifier!r} is reserved in a group or bundle file"
+            )
+
+
 def _file_timelines(
     roots: list[Mapping[str, Any]], problems: list[SchemaValidationError]
 ) -> dict[str, tuple[str | int, ...]]:
     """Return the first path of every timeline id of a file's roots.
 
-    Each root is its own id scope under the rules of a timeline file. A
-    timeline id is moreover unique across the file: each one that repeats a
-    timeline id of an earlier root is one problem, located at its later
-    occurrence (a repetition within one root is that root's problem).
+    Each root is its own id scope under the rules of a timeline file. Then,
+    root by root, each element id other than a timeline id that is a part
+    word is one problem at that id. A timeline id is moreover unique across
+    the file: each one that repeats a timeline id of an earlier root is one
+    problem, located at its later occurrence (a repetition within one root is
+    that root's problem).
     """
     first: dict[str, tuple[str | int, ...]] = {}
     for index, root in enumerate(roots):
         problems.extend(_timeline_problems(root, ("timelines", index)))
+    for index, root in enumerate(roots):
+        problems.extend(_part_word_problems(root, ("timelines", index)))
     for index, root in enumerate(roots):
         seen: dict[str, tuple[str | int, ...]] = {}
         for identifier, path in _timeline_ids(root, ("timelines", index)):
@@ -671,6 +695,15 @@ def _bundle_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
             earlier = ("bundle", "groups", first_group[identifier], "id")
             problems.append(_duplicate(identifier, path, earlier))
         first_group.setdefault(identifier, index)
+    identifier = value["bundle"]["id"]
+    if identifier in timelines:
+        earlier = timelines[identifier]
+    elif identifier in first_group:
+        earlier = ("bundle", "groups", first_group[identifier], "id")
+    else:
+        earlier = None
+    if earlier is not None:
+        problems.append(_duplicate(identifier, ("bundle", "id"), earlier))
     ancestors = _ancestors(value["timelines"])
     first_member: dict[str, tuple[str | int, ...]] = {}
     for group_index, group in enumerate(groups):
@@ -708,18 +741,25 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
 
     1. each root of ``timelines``, in array order, is its own scope under the
        timeline-file rules, its problems located under ``timelines/<i>``;
-    2. a timeline id (of a root or a descendant) repeating a timeline id of an
+    2. root by root, in identity order, a conversion-map, region, break, jump
+       or marker id that is a part word (``start``, ``end``, ``name``,
+       ``label`` or ``card``, which follow an element's address as its
+       parts): at that ``id``, ``id '<word>' is reserved in a group or bundle
+       file``;
+    3. a timeline id (of a root or a descendant) repeating a timeline id of an
        earlier root: at the later occurrence, ``duplicate id``;
-    3. a group id equal to a timeline id (at the group's ``id``, first at the
+    4. a group id equal to a timeline id (at the group's ``id``, first at the
        timeline), or, in a bundle, to the id of an earlier group (first at
        that group);
-    4. member by member: a member naming no timeline of the file, at the
+    5. in a bundle, a bundle id equal to a timeline id or to a group id (at
+       ``bundle/id``, first at the timeline, else at the first such group);
+    6. member by member: a member naming no timeline of the file, at the
        member; in a bundle, a member already named by an earlier group, at the
        later member, ``duplicate member``; a member nested with an earlier
        member of the same group (inside it or containing it), at the later
        member;
-    5. in a group file, a root containing no member, at the root;
-    6. ``graphical.order`` (a group file's array, or each entry of a bundle's
+    7. in a group file, a root containing no member, at the root;
+    8. ``graphical.order`` (a group file's array, or each entry of a bundle's
        object in code-point order of its keys): a key naming no group, at the
        key; each entry that is not a member of the group, at the entry; then
        each member missing from the order, at the order.

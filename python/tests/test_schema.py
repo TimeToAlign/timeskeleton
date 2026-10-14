@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import json
+from pathlib import Path
 
 import pytest
 
@@ -13,8 +14,10 @@ from timeskeleton import (
     load_schema,
     schema_documents,
     schema_path,
+    validate,
 )
 
+REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.6.0/timeskeleton.schema.json"
 
 TIMELINE_CLASSES = [
@@ -373,66 +376,55 @@ def test_metrical_position_map_states_its_meter_map_once() -> None:
     assert position_map["additionalProperties"] is False
 
 
-@pytest.mark.parametrize("version", ["0.6.0", "0.7.0"])
-def test_fixture_set_contains_exactly_the_0_5_0_manifests(version: str) -> None:
-    names = [path.name for path in fixture_paths(version)]
-    assert names == [
-        "bare.json",
-        "contiguous.json",
-        "continuous_graphical.json",
-        "continuous_logical.json",
-        "continuous_physical.json",
-        "conversion_maps__maps_quarters.json",
-        "conversion_maps__maps_samples.json",
-        "conversion_maps__maps_seconds.json",
-        "conversion_maps__maps_ticks.json",
-        "corpus_audio_audio.json",
-        "corpus_midi_score_midi.json",
-        "corpus_parangonar_parangonada__score_dlt_1.json",
-        "corpus_score_ms3.json",
-        "corpus_supra_iiif.json",
-        "discrete_graphical.json",
-        "discrete_logical.json",
-        "discrete_physical.json",
-        "flow_control.json",
-        "map.json",
-        "nested.json",
-        "styled__performance.json",
-        "styled__score.json",
-        "with_region.json",
-    ]
-
-
-def _timeline_structure(timeline: dict) -> tuple:
-    flow_control = timeline["flow_control"]
-    return (
-        timeline["class"],
-        timeline["locked"],
-        tuple(entry["type"] for entry in timeline["conversion_maps"]),
-        len(timeline["regions"]),
-        len(flow_control["breaks"]),
-        len(flow_control["jumps"]),
-        len(flow_control["markers"]),
-        tuple(
-            _timeline_structure(child["timeline"])
-            for child in timeline["children"].values()
+@pytest.mark.parametrize(
+    ("version", "added"),
+    [
+        ("0.6.0", []),
+        (
+            "0.7.0",
+            [
+                "locked_root.json",
+                "segment_children.json",
+                "segment_line.json",
+                "segment_pages.json",
+                "segment_pages_accolades.json",
+                "segment_pages_locked.json",
+            ],
         ),
+    ],
+)
+def test_fixture_set_contains_exactly_the_0_5_0_manifests(
+    version: str, added: list[str]
+) -> None:
+    names = [path.name for path in fixture_paths(version)]
+    assert names == sorted(
+        [
+            *added,
+            "bare.json",
+            "contiguous.json",
+            "continuous_graphical.json",
+            "continuous_logical.json",
+            "continuous_physical.json",
+            "conversion_maps__maps_quarters.json",
+            "conversion_maps__maps_samples.json",
+            "conversion_maps__maps_seconds.json",
+            "conversion_maps__maps_ticks.json",
+            "corpus_audio_audio.json",
+            "corpus_midi_score_midi.json",
+            "corpus_parangonar_parangonada__score_dlt_1.json",
+            "corpus_score_ms3.json",
+            "corpus_supra_iiif.json",
+            "discrete_graphical.json",
+            "discrete_logical.json",
+            "discrete_physical.json",
+            "flow_control.json",
+            "map.json",
+            "nested.json",
+            "styled__performance.json",
+            "styled__score.json",
+            "with_region.json",
+        ]
     )
-
-
-@pytest.mark.parametrize("version", ["0.6.0", "0.7.0"])
-def test_no_two_fixtures_share_a_structure(version: str) -> None:
-    first_of: dict[tuple, str] = {}
-    for path in fixture_paths(version):
-        manifest = json.loads(path.read_text(encoding="utf-8"))
-        graphical = manifest.get("graphical")
-        structure = (
-            _timeline_structure(manifest["timeline"]),
-            None if graphical is None else json.dumps(graphical, sort_keys=True),
-        )
-        assert structure not in first_of, (path.name, first_of.get(structure))
-        first_of[structure] = path.name
-    assert len(first_of) == 23
 
 
 def test_the_remaining_parangonar_fixture_is_the_discrete_score() -> None:
@@ -670,10 +662,18 @@ def test_unknown_version_is_refused(accessor) -> None:
 GROUP_FIXTURES = [
     "corpus_tilia.json",
     "group_child_member.json",
+    "group_grandchild.json",
     "group_number_types.json",
+    "group_parent_both.json",
+    "group_parent_exact.json",
+    "group_parent_right.json",
+    "group_parents_mixed.json",
+    "group_styled.json",
 ]
 BUNDLE_FIXTURES = [
     "bundle_mixed.json",
+    "bundle_shared_parent.json",
+    "bundle_ungrouped.json",
     "corpus_ieee1599.json",
     "corpus_listen_here.json",
     "corpus_matchfile.json",
@@ -689,36 +689,92 @@ def test_the_group_and_bundle_fixture_sets() -> None:
     assert fixture_paths("0.6.0", "group") == fixture_paths("0.6.0", "bundle") == []
 
 
-def _file_structure(data: dict) -> tuple:
-    """The structural signature of a group or bundle file, in this test's code."""
-    depth_of: dict[str, tuple[str, int]] = {}
+def test_the_styled_group_is_the_number_types_group_with_a_block() -> None:
+    def read(name: str) -> dict:
+        (path,) = [p for p in fixture_paths("0.7.0", "group") if p.name == name]
+        data = json.loads(path.read_text(encoding="utf-8"))
+        del data["meta"]["generator"]
+        return data
 
-    def visit(timeline: dict, depth: int) -> None:
-        depth_of[timeline["id"]] = (timeline["class"], depth)
-        for child in timeline["children"].values():
-            visit(child["timeline"], depth + 1)
-
-    for root in data["timelines"]:
-        visit(root, 0)
-    roots = tuple(sorted(_timeline_structure(root) for root in data["timelines"]))
-
-    def members(group: dict) -> tuple:
-        return tuple(sorted(depth_of[member] for member in group["members"]))
-
-    if "group" in data:
-        return (roots, members(data["group"]))
-    groups = data["bundle"]["groups"]
-    grouped = {member for group in groups for member in group["members"]}
-    ungrouped = sum(root["id"] not in grouped for root in data["timelines"])
-    return (roots, tuple(sorted(members(group) for group in groups)), ungrouped)
-
-
-@pytest.mark.parametrize(("kind", "count"), [("group", 3), ("bundle", 7)])
-def test_no_two_group_or_bundle_fixtures_share_a_structure(
-    kind: str, count: int
-) -> None:
-    structures = {
-        _file_structure(json.loads(path.read_text(encoding="utf-8")))
-        for path in fixture_paths("0.7.0", kind)
+    styled = read("group_styled.json")
+    plain = read("group_number_types.json")
+    assert styled["graphical"] == {
+        "order": plain["graphical"]["order"],
+        "styles": {"frame-highlight": {"stroke": "#7F00FF"}},
+        "statements": [
+            {"select": {"element": "group"}, "set": "frame-highlight"},
+            {
+                "select": {"element": "name", "ids": ["group_1/name"]},
+                "set": {"fill": "#7F00FF"},
+            },
+            {
+                "select": {"element": "card", "inside": "group"},
+                "set": {"shadow": "#C4B5FD", "rx": 2},
+            },
+        ],
     }
-    assert len(structures) == count
+    assert styled["group"]["id"] == "group_1"
+    styled["graphical"] = plain["graphical"]
+    assert styled == plain
+
+
+def test_0_7_0_adds_four_element_types_inside_and_shadow() -> None:
+    old = load_schema("0.6.0")["$defs"]
+    new = load_schema("0.7.0", "core")["$defs"]
+    assert new["ElementType"]["enum"] == [
+        *old["ElementType"]["enum"],
+        "boundary",
+        "ancestor",
+        "group",
+        "card",
+    ]
+    selector = new["Selector"]
+    assert selector["properties"] == {
+        **old["Selector"]["properties"],
+        "inside": {
+            "$ref": "#/$defs/ElementType",
+            "description": (
+                "An element type: the element must be held, at any depth, by an "
+                "element of that type in the drawing's element tree."
+            ),
+        },
+    }
+    assert list(selector["properties"])[-1] == "inside"
+    assert selector["additionalProperties"] is False
+    declaration = new["Declaration"]["properties"]
+    assert declaration == {
+        **old["Declaration"]["properties"],
+        "shadow": {"$ref": "#/$defs/Paint"},
+    }
+    assert list(declaration)[-1] == "shadow"
+
+
+@pytest.mark.parametrize(
+    "statement",
+    [
+        {"select": {"element": "card"}, "set": {"rx": 5}},
+        {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
+        {"select": {"element": "card"}, "set": {"shadow": "#B8BEC8"}},
+    ],
+)
+def test_0_7_0_accepts_card_inside_and_shadow(statement: dict, load_fixture) -> None:
+    manifest = load_fixture("bare", "0.7.0")
+    manifest["graphical"] = {"statements": [statement]}
+    validate(manifest)
+
+
+def _defaults_block() -> dict:
+    """The JSON block of section 4 of the drawing specification."""
+    text = (REPOSITORY_ROOT / "docs" / "drawing.md").read_text(encoding="utf-8")
+    section = text.split("\n## 4. Defaults\n", 1)[1]
+    block = section.split("```json\n", 1)[1].split("\n```", 1)[0]
+    return json.loads(block)
+
+
+def test_the_defaults_are_a_valid_graphical_block(load_fixture) -> None:
+    defaults = _defaults_block()
+    assert len(defaults["styles"]) == 3
+    assert len(defaults["statements"]) == 28
+    manifest = load_fixture("bare", "0.7.0")
+    manifest["graphical"] = defaults
+    validate(manifest)

@@ -460,10 +460,37 @@ function* timelineIds(
 }
 
 /**
+ * The part words, which no element other than a timeline may carry as its id
+ * in a group or bundle file.
+ */
+const PART_WORDS: ReadonlySet<string> = new Set(["start", "end", "name", "label", "card"]);
+
+/**
+ * A problem for each element id of a tree that is a part word. Timeline ids
+ * are exempt; the other elements are visited in identity order.
+ */
+function* partWordProblems(
+  timeline: TimelineManifest,
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  const timelines = new Set([...timelineIds(timeline, path)].map(([, at]) => jsonPointer(at)));
+  for (const [id, at] of elementIds(timeline, path)) {
+    if (PART_WORDS.has(id) && !timelines.has(jsonPointer(at))) {
+      yield new SchemaValidationError(
+        at,
+        `id ${JSON.stringify(id)} is reserved in a group or bundle file`,
+      );
+    }
+  }
+}
+
+/**
  * The first path of every timeline id of a file's roots. Each root is its own
- * id scope under the rules of a timeline file; a timeline id that repeats a
- * timeline id of an earlier root is one problem at its later occurrence (a
- * repetition within one root is that root's problem).
+ * id scope under the rules of a timeline file. Then, root by root, each
+ * element id other than a timeline id that is a part word is one problem at
+ * that id. A timeline id that repeats a timeline id of an earlier root is one
+ * problem at its later occurrence (a repetition within one root is that
+ * root's problem).
  */
 function fileTimelines(
   roots: readonly TimelineManifest[],
@@ -472,6 +499,9 @@ function fileTimelines(
   const first = new Map<string, PathSegment[]>();
   for (const [index, root] of roots.entries()) {
     problems.push(...timelineProblems(root, ["timelines", index]));
+  }
+  for (const [index, root] of roots.entries()) {
+    problems.push(...partWordProblems(root, ["timelines", index]));
   }
   for (const [index, root] of roots.entries()) {
     const seen = new Map<string, PathSegment[]>();
@@ -633,6 +663,12 @@ function bundleProblems(file: TimeSkeletonBundleFile): SchemaValidationError[] {
     }
     if (earlier === undefined) firstGroup.set(group.id, index);
   }
+  const bundleId = file.bundle.id;
+  const groupIndex = firstGroup.get(bundleId);
+  const first =
+    timelines.get(bundleId) ??
+    (groupIndex === undefined ? undefined : ["bundle", "groups", groupIndex, "id"]);
+  if (first !== undefined) problems.push(duplicate(bundleId, ["bundle", "id"], first));
   const ancestors = ancestorsOf(file.timelines);
   const firstMember = new Map<string, PathSegment[]>();
   for (const [groupIndex, group] of groups.entries()) {
@@ -671,17 +707,23 @@ function bundleProblems(file: TimeSkeletonBundleFile): SchemaValidationError[] {
  * **Group and bundle files**, in this order:
  * 1. each root of `timelines`, in array order, is its own scope under the
  *    timeline-file rules, its problems located under `timelines/<i>`;
- * 2. a timeline id (of a root or a descendant) repeating a timeline id of an
+ * 2. root by root, in identity order, a conversion-map, region, break, jump or
+ *    marker id that is a part word (`start`, `end`, `name`, `label` or `card`,
+ *    which follow an element's address as its parts): at that `id`,
+ *    `id "<word>" is reserved in a group or bundle file`;
+ * 3. a timeline id (of a root or a descendant) repeating a timeline id of an
  *    earlier root: at the later occurrence, `duplicate id`;
- * 3. a group id equal to a timeline id (at the group's `id`, first at the
+ * 4. a group id equal to a timeline id (at the group's `id`, first at the
  *    timeline), or, in a bundle, to the id of an earlier group (first at that
  *    group);
- * 4. member by member: a member naming no timeline of the file, at the
+ * 5. in a bundle, a bundle id equal to a timeline id or to a group id (at
+ *    `bundle/id`, first at the timeline, else at the first such group);
+ * 6. member by member: a member naming no timeline of the file, at the
  *    member; in a bundle, a member already named by an earlier group, at the
  *    later member, `duplicate member`; a member nested with an earlier member
  *    of the same group (inside it or containing it), at the later member;
- * 5. in a group file, a root containing no member, at the root;
- * 6. `graphical.order` (a group file's array, or each entry of a bundle's
+ * 7. in a group file, a root containing no member, at the root;
+ * 8. `graphical.order` (a group file's array, or each entry of a bundle's
  *    object in code-point order of its keys): a key naming no group, at the
  *    key; each entry that is not a member of the group, at the entry; then
  *    each member missing from the order, at the order.

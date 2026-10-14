@@ -58,9 +58,9 @@ describe("validate", () => {
     expect(rejection(plainCase.manifest).path).toEqual(testCase.path);
   });
 
-  it("holds 55, 55 and 93 rejection cases", () => {
+  it("holds 55, 55 and 100 rejection cases", () => {
     expect(SUPPORTED_VERSIONS.map((version) => rejectionFileNames(version).length)).toEqual([
-      55, 55, 93,
+      55, 55, 100,
     ]);
   });
 

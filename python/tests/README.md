@@ -10,7 +10,7 @@ validates (0.5.0 and 0.6.0, timeline files only).
    validates against the schema of the version and kind it declares.
 2. `validate` rejects every shared case in `fixtures/rejections/0.5.0/`,
    `fixtures/rejections/0.6.0/` and `fixtures/rejections/0.7.0/` at the exact
-   stored path; all 203 cases (55, 55 and 93) fail, including a manifest
+   stored path; all 210 cases (55, 55 and 100) fail, including a manifest
    without its one required `timeline`. Every case of a version's directory
    declares that version except two:
    `meta_schema_version_unknown` declares the unknown version `"9.9.9"`, and
@@ -69,19 +69,24 @@ and leaves the timeline file as it was. What proves the version handling:
   two manifests are equal once both are migrated, for every case `migrate`
   accepts, the 0.6.0 one declaring 0.6.0; the two cases it refuses (`meta_schema_version_unknown`,
   `root_missing_meta`) are byte for byte the same in both directories.
-- **The 0.7.0 timeline manifests are the 0.6.0 manifests**, as above (the
-  migration adds the flag), the
-  same 23 file names, each pair equal once migrated and without
+- **The 0.7.0 timeline manifests hold the 0.6.0 manifests**, as above (the
+  migration adds the flag): the 23 file names of 0.6.0 are those of 0.7.0
+  without the six files 0.7.0 adds: `segment_line.json`,
+  `segment_children.json`, `segment_pages.json`,
+  `segment_pages_accolades.json` and `segment_pages_locked.json`, segment
+  lines 0.6.0 cannot state, and `locked_root.json`, a root locked at
+  construction; each pair equal once migrated and without
   `meta.generator`, except `corpus_score_ms3`: timetoalign now mints the ids
   of store-built children and keeps the store label as their name, so its
   children `notes` and `controls` are `clt_2` and `clt_3` named `notes` and
   `controls`. The pair differs, and is equal once the 0.6.0 children are
   renamed so.
 - **The 0.7.0 rejection cases hold the 0.6.0 cases.** The 55 file names of
-  the 0.6.0 directory are among the 93 of the 0.7.0 directory, each pair with
-  the same `path` and `reason` (except the reason of `root_missing_timeline`,
-  which now reads that a file holds exactly one of timeline, group and
-  bundle beside meta), the two manifests equal once migrated (the
+  the 0.6.0 directory are among the 100 of the 0.7.0 directory, each pair with
+  the same `path` and `reason` (except two reasons: `root_missing_timeline`
+  now reads that a file holds exactly one of timeline, group and bundle
+  beside meta, and `statement_select_unknown_element` counts fourteen element
+  types instead of ten), the two manifests equal once migrated (the
   0.7.0 one declaring 0.7.0), the two cases `migrate` refuses equal to the
   0.6.0 ones with `is_segment_line: false` on their timeline. The moved timeline
   document therefore rejects every 0.6.0 case at the same path.
@@ -135,20 +140,28 @@ the layout and the dispatch:
   document is either local (`#/$defs/<name>`, naming a definition of the same
   document) or relative to another document of the version
   (`<document>.schema.json#/$defs/<name>`, naming a definition of that
-  document); no reference is absolute. Definition names are unique across the
-  four documents. `core` holds exactly `Coordinate`,
-  `CoordinateNonnegative`, `Fraction`, `FractionNonnegative`,
-  `FractionPositive`, `Id`, `Meta`, `Number`, `NumberNonnegative`,
-  `NumberPositive`, `NumberType` and `TimeUnit`.
-- **The timeline definitions are 0.6.0's, moved, with one addition.** Rewriting
+  document), and may continue with `/properties/<member>`, naming a member
+  that definition declares; no reference is absolute. Definition names are
+  unique across the four documents. `core` holds exactly `Coordinate`,
+  `CoordinateNonnegative`, `Declaration`, `ElementType`, `Fraction`,
+  `FractionNonnegative`, `FractionPositive`, `Graphical`, `Id`, `Meta`,
+  `Number`, `NumberNonnegative`, `NumberPositive`, `NumberType`, `Paint`,
+  `Selector`, `Statement` and `TimeUnit`: the graphical vocabulary is shared
+  by the three file kinds, so the timeline document holds none of it.
+- **The timeline definitions are 0.6.0's, moved, with three additions.** Rewriting
   every reference into `core` as a local one and every `{"$ref": Id, …}` as the
   inline id rule `{"type": "string", "pattern": …, …}` (the `children` keys'
   as `{"pattern": …}`, a key being a string) turns the union of the
   `core` and `timeline` definitions, without `Id` and `Meta`, and with the
   `is_segment_line` member removed from `TimelineManifest`'s `properties` and
-  `required`, into exactly 0.6.0's `$defs`; that member is the one addition
-  ("Segment lines"); the timeline document's root holds the members `meta` (a
-  reference to `Meta`), `timeline` and `graphical` as 0.6.0's does, and
+  `required`, with `ElementType`'s last four values (`boundary`,
+  `ancestor`, `group`, `card`) and its description reverted, and with the
+  `Selector` member `inside` and the `Declaration` member `shadow` removed,
+  into exactly 0.6.0's `$defs`; that member, those four element types and
+  the two graphical members are the three additions ("Segment lines", "The
+  graphical block"); the timeline document's root
+  holds the members `meta` (a reference to `Meta`), `timeline` and
+  `graphical` (a reference to `core`'s `Graphical`) as 0.6.0's does, and
   `Meta` is 0.6.0's `meta` with the constant `"0.7.0"` and the word "file" in
   its descriptions. Thirty-two `$ref`s name `Id`: the twenty-six `id` members
   of the timeline definitions, the `children` keys, a group's `id` and its
@@ -159,13 +172,17 @@ the layout and the dispatch:
   other admitted; `timelines` items are `timeline.schema.json#/$defs/TimelineManifest`.
   `Group` is closed over `id`, `name` (string or null), `meta` (object) and
   `members` (an array of distinct ids), all required. `GroupGraphical` is
-  closed over `order`, a `MemberOrder` (an array of distinct ids). The bundle
+  closed over `order`, a `MemberOrder` (an array of distinct ids), `styles`
+  and `statements`, none required; `styles` and `statements` are exactly the
+  references `core.schema.json#/$defs/Graphical/properties/styles` and
+  `…/statements`, so they are `Graphical`'s members, never a copy. The bundle
   file's members are `meta`, `timelines`, `bundle` and `graphical`, the first
   three required; `Bundle` is closed over `id`, `name`, `meta`,
   `support_policy` (`omit`, `clamp` or `extrapolate`) and `groups` (items
   `group.schema.json#/$defs/Group`), all required; `BundleGraphical` is closed
   over `order`, an object whose keys are ids and whose values are
-  `MemberOrder`s. No member names claims: the shared cases
+  `MemberOrder`s, and the same two references `styles` and `statements`. No
+  member names claims: the shared cases
   `group_file_unknown_key` and `bundle_file_unknown_key` refuse a `claims`
   member at the file root, `bundle_unknown_key` one inside `bundle` (at
   `bundle`).
@@ -316,6 +333,19 @@ quarters, fraction coordinates):
   `segment_line_gap`, `segment_line_short_of_length`, and
   `group_root_segment_line_gap` (a segment line inside a group file's root,
   at `timelines/<i>/…`). Both validators report the same paths.
+- **The fixture.** `segment_line.json`, emitted from timetoalign's
+  `SegmentLine`, is a nested segment line of `ContinuousLogicalTimeline`
+  segments in quarters, every coordinate a fraction (the library's default
+  number type for quarters). Visited in identity order, its timelines are,
+  as (id, name, `is_segment_line`, `locked`, absolute start, length):
+  (`form`, `Form`, true, false, 0, 32), (`a`, `A`, true, true, 0, 8),
+  (`a1`, null, false, true, 0, 8), (`b`, `B`, true, true, 8, 12), (`b1`,
+  `b1`, false, true, 8, 6), (`b2`, `b2`, false, true, 14, 6), (`c`, `C`,
+  true, true, 20, 12), (`c1`, null, false, true, 20, 12); every segment's
+  offset in its line is its absolute start minus its line's, and the file
+  has no problem. Every segment of `form` is a segment line, so the flag
+  is one value per segment line; `a1` and `c1` have no name, so they draw
+  no segment label.
 - **Migration.** `migrate` from 0.6.0 writes `is_segment_line: false` on every
   timeline, the root and every descendant (the three levels of `nested`), and
   on nothing else.
@@ -334,7 +364,23 @@ The problems come in this order, each one problem per finding:
    `timelines/1/flow_control/jumps/0/target` (`timelines_root_jump_target_dangling`).
    Elements of different roots may share an id: a marker `m` in two roots is
    no problem.
-2. **Timeline ids are unique across the file.** Visiting the roots in array
+2. **Part words are reserved.** In a group or bundle file an element that
+   is no timeline (a conversion map, region, break, jump or marker) is
+   addressed by its root's id and its own id joined by `/`, and its parts
+   follow as `…/start`, `…/end`, `…/name` and `…/label`, and a timeline's
+   card as `…/card`; so such an element may not carry one of those five
+   words as its id, or `score/start` would name both. Visiting the roots in array order and each tree in identity
+   order, each such id is one problem at that `id`, `id '<id>' is reserved
+   in a group or bundle file`: a region `label` of root 1 at
+   `timelines/1/regions/0/id` (`group_region_id_reserved`), and a region
+   `card` of root 1 of a bundle file at the same path
+   (`bundle_region_id_card`). Each of the five kinds is refused under each
+   of the five words, in a group and in a bundle file; `starts` and `Start` are no part words. A timeline id
+   may be one of the words (a timeline's parts are addressed by its own id),
+   and a timeline file reserves none of them. The check follows the rules of
+   every root (step 1), so a dangling target in root 1 comes before a
+   reserved id in root 0.
+3. **Timeline ids are unique across the file.** Visiting the roots in array
    order and each tree in identity order (a timeline, then its children by
    key), a timeline id equal to one of an earlier root is reported at its
    occurrence, `duplicate id '<id>', first at <pointer>`: a second root
@@ -344,7 +390,7 @@ The problems come in this order, each one problem per finding:
    `timelines/4/children/excerpt/timeline/id` (`timelines_child_id_duplicate_across_roots`).
    A repetition within one root is that root's own problem (step 1) and is
    reported once.
-3. **Group ids.** A group id equal to a timeline id is reported at the
+4. **Group ids.** A group id equal to a timeline id is reported at the
    group's `id` with `duplicate id`, first at the timeline: `group/id`
    (`group_id_is_timeline_id`, `recording`) and `bundle/groups/1/id`
    (`bundle_group_id_is_timeline_id`, the descendant `excerpt`, first at
@@ -352,7 +398,16 @@ The problems come in this order, each one problem per finding:
    equal to an earlier group's, first at that group
    (`bundle_group_id_duplicate`, at `bundle/groups/1/id`, first at
    `#/bundle/groups/0/id`).
-4. **Members.** A member naming no timeline of the file is reported at the
+5. **The bundle id.** In a bundle file, a bundle id equal to a timeline id
+   (of a root or a descendant) or to a group id is one problem at
+   `bundle/id`, `duplicate id '<id>', first at <pointer>`, the pointer naming
+   the timeline, else the first group carrying that id:
+   `bundle_id_is_timeline_id` (the descendant `excerpt`, first at
+   `#/timelines/3/children/excerpt/timeline/id`) and `bundle_id_is_group_id`
+   (`group_2`, first at `#/bundle/groups/1/id`). A bundle id equal to both a
+   timeline id and a group id is one problem, first at the timeline (the
+   group id repeating the timeline id is step 4's own problem).
+6. **Members.** A member naming no timeline of the file is reported at the
    member, `'<id>' names no timeline of this file` (`group_member_dangling`
    at `group/members/0`; `bundle_member_dangling` at
    `bundle/groups/0/members/2`); in a bundle, a member already named by an
@@ -375,10 +430,10 @@ The problems come in this order, each one problem per finding:
    group and its root in another, or ungrouped, is no problem: the bundle
    document's `excerpt` (in `group_2`) with its root `recording` ungrouped,
    and with `recording` added to `group_1`, has no problem and validates.
-5. **Every root of a group file contains a member.** A root containing none
+7. **Every root of a group file contains a member.** A root containing none
    is reported at the root, `timeline '<id>' contains no member of the group`
    (`group_root_without_member`, `timelines/2`). A bundle's roots need none.
-6. **Display orders are permutations.** In a group file, `graphical.order`;
+8. **Display orders are permutations.** In a group file, `graphical.order`;
    in a bundle file, each key of `graphical.order` in code-point order. A key
    naming no group is reported at the key, `'<key>' names no group of this
    bundle` (`bundle_order_unknown_group`); each entry that is not a member at
@@ -394,8 +449,9 @@ What proves it: the two test documents have no problem; each rule above is
 one shared rejection case with exactly one problem, whose path both suites
 assert, and a unit test states every message above literally; and one bundle
 document carrying a finding of every step (a dangling target in root 0, a
-cross-root duplicate, a group id equal to a timeline id, a dangling member, a
-member of two groups, an unknown order key, a stranger in an order and a
+region of root 0 whose id is the part word `end`, a
+cross-root duplicate, a group id equal to a timeline id, a bundle id equal
+to a group id, a dangling member, a member of two groups, an unknown order key, a stranger in an order and a
 missing member) yields exactly the problems in the stated order, with their
 paths and messages. A group id equal to a timeline id still names its group
 for the display order, so it causes no further problem.
@@ -463,8 +519,8 @@ every float spelled as Python's `repr`, every integer without a decimal point)
 and `canonical_order` / `canonicalOrder`. They must write the same value as
 the same bytes. What proves it:
 
-- **Every standard file round-trips.** Each of the 23 timeline, 3 group and
-  7 bundle fixtures and the 93 rejection cases of the latest version (126
+- **Every standard file round-trips.** Each of the 29 timeline, 9 group and
+  9 bundle fixtures and the 100 rejection cases of the latest version (147
   files) is reproduced byte for byte by
   `dumps(json.loads(text))` in Python and by `dumps(parseJson(text))` in
   JavaScript. The JavaScript suite also reverses the keys of every object of
@@ -491,51 +547,45 @@ the same bytes. What proves it:
   one); a collection whose ordering members are missing is refused rather
   than written in some order (two regions without `start`).
 
-## One fixture per structure
+## The fixture set
 
-A fixture earns its place by a combination of structure no other fixture
-has. The **structural signature** of a manifest is its timeline tree, where
-each timeline contributes its `class`, its `locked`, the `type` of each of
-its conversion maps in canonical order, the numbers of its `regions` and of
-its flow-control `breaks`, `jumps` and `markers`, and the signatures of its
-children in canonical order; plus the manifest's `graphical` block as
-canonical JSON, or its absence. Values, ids, names, units, lengths and
-offsets take no part. What proves it:
+Fixtures are designed, not filtered: every entry of the fixture script's
+builders emits exactly the files it builds. What proves the set:
 
-- **No two fixtures share a signature.** The test computes every fixture's
-  signature from its JSON file, with its own code rather than the fixture
-  script's, and requires 23 distinct signatures for the 23 timeline fixtures
-  of each version. A fixture that repeats another's combination, as each
-  corpus performance timeline repeated the audio or the sample-map fixture,
-  fails it.
 - **The fixture set is stated literally.** The exact list of the 23 timeline
-  file names, the same for 0.6.0 and 0.7.0; of the parangonar corpus only
+  file names of 0.6.0, and for 0.7.0 the same list with `locked_root.json`,
+  `segment_children.json`, `segment_line.json`, `segment_pages.json`,
+  `segment_pages_accolades.json` and `segment_pages_locked.json`;
+  of the parangonar corpus the fixture script selects only
   `corpus_parangonar_parangonada__score_dlt_1` (a `DiscreteLogicalTimeline`
-  with a `LinearMap`) remains. The group and bundle fixtures of 0.7.0 are
+  with a `LinearMap`), by its id `score:dlt_1`. The group and bundle fixtures of 0.7.0 are
   emitted by the fixture script from timetoalign's `TimelineGroup.to_dict` and
   `AlignmentBundle.to_dict`, and stated literally: the groups
-  `corpus_tilia`, `group_child_member`, `group_number_types`; the bundles
-  `bundle_mixed`, `corpus_ieee1599`, `corpus_listen_here`,
+  `corpus_tilia`, `group_child_member`, `group_grandchild`,
+  `group_number_types`, `group_parent_both`, `group_parent_exact`,
+  `group_parent_right`, `group_parents_mixed`, `group_styled`; the bundles
+  `bundle_mixed`, `bundle_shared_parent`, `bundle_ungrouped`, `corpus_ieee1599`, `corpus_listen_here`,
   `corpus_matchfile`, `corpus_mpm`, `corpus_parangonada`, `corpus_tilia`;
   `corpus_ieee1599` holds a nested segment line (an edition of pages of
   accolades).
   `fixture_paths("0.6.0", "group")` and `fixture_paths("0.6.0", "bundle")`
-  are empty. A group or bundle file's signature is the signatures of its
-  roots and the class and depth of the members of each group (a bundle's
-  also the number of its ungrouped roots); the test computes it with its own
-  code and requires 3 distinct group and 7 distinct bundle signatures.
+  are empty.
 
 ## The graphical block
 
 The optional `graphical` block is the one of `docs/drawing.md` section 2:
 `{"styles": {name: declaration}, "statements": [statement, ...]}`, both
 optional; a statement `{"select", "set"}` whose `set` is a declaration or a
-style name; the selector closed over `element` (the ten element types),
+style name; the selector closed over `element` (the ten element types of
+0.5.0 and 0.6.0; from 0.7.0 fourteen, the ten followed by `boundary`,
+`ancestor`, `group` and `card`),
 `ids` (a non-empty list of unique addresses), `domain`, `modality`, `class`
 (the six timeline classes and the 21 conversion-map types the schema
-defines) and `within`; the declaration closed over the eleven presentation
-properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
-`font-size`, `rx`, `display`, `side`, `content` and `max-width`. What proves it:
+defines), `within` and, from 0.7.0, `inside` (an element type); the
+declaration closed over the eleven presentation properties `stroke`,
+`stroke-width`, `stroke-dasharray`, `fill`, `opacity`, `font-size`, `rx`,
+`display`, `side`, `content` and `max-width`, and from 0.7.0 also `shadow`
+(a paint). What proves it:
 
 - **The vocabulary is stated literally.** The members, enumerations,
   patterns and bounds of `Graphical`, `Statement`, `Selector`, `ElementType`,
@@ -543,8 +593,23 @@ properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
   followed by every `type` constant of a conversion-map definition. The
   manifest's members are `meta`, `timeline` and `graphical`, the first two
   required, no other admitted.
+- **0.7.0 adds four element types, `inside` and `shadow`.** The 0.7.0
+  `ElementType` enumeration is 0.6.0's followed by `boundary`, `ancestor`,
+  `group` and `card`; its `Selector` is 0.6.0's with the member `inside`
+  (`{"$ref": "#/$defs/ElementType"}` and a description) added last, still
+  closed; its `Declaration` is 0.6.0's with `shadow` (`{"$ref":
+  "#/$defs/Paint"}`) added last. Each is accepted through one valid
+  statement in the `graphical` block of `bare.json`: `{"select":
+  {"element": "card"}, "set": {"rx": 5}}`, `{"select": {"inside":
+  "ancestor"}, "set": {"opacity": 0.35}}` and `{"select": {"element":
+  "card"}, "set": {"shadow": "#B8BEC8"}}`.
+- **The defaults are a valid block.** The JSON block of `docs/drawing.md`
+  section 4, read from the specification (the first `json` fence after the
+  heading `## 4. Defaults`; three styles and 28 statements), validates as
+  the `graphical` member of the 0.7.0 `bare.json`, so every default
+  statement uses the vocabulary of the schema.
 - **The styled fixtures.** `styled__score.json` and
-  `styled__performance.json` are the only manifests carrying a block,
+  `styled__performance.json` are the only timeline files carrying a block,
   composed by the fixture script; their
   styles and statements are stated literally in the test (twenty-one and five
   statements). They exercise a named style, a statement naming it, a `class`
@@ -573,7 +638,36 @@ properties `stroke`, `stroke-width`, `stroke-dasharray`, `fill`, `opacity`,
   (the `stroke-dasharray`), `opacity` 1.5 (the `opacity`) and a `set` that is
   the number 5 (the `set`); plus a removed `projection` element and
   `show-projections` property, zero `max-width`, non-string `content`, an id
-  holding a tab and a `children` key holding a newline.
+  holding a tab and a `children` key holding a newline. The 0.7.0 directory
+  adds two, each one change to `styled__score.json`: a selector
+  `{"inside": "segment"}`, refused at its `select/inside`
+  (`statement_select_inside_unknown_element`), and a statement setting the
+  lower-case `shadow` `#b8bec8` on the element `card`, refused at its
+  `set/shadow` (`statement_set_shadow_lower_case`).
+- **Group and bundle files (0.7.0).** A group file's and a bundle file's
+  `graphical` holds `styles` and `statements` beside `order`, with the
+  timeline file's vocabulary: the group document with the style `frame`
+  `{"stroke": "#7F00FF"}` and the statements `{"select": {"element":
+  "group"}, "set": "frame"}`, `{"select": {"element": "boundary"}, "set":
+  {"stroke-width": 2}}` and `{"select": {"element": "ancestor", "ids":
+  ["piece"]}, "set": {"opacity": 0.5}}` validates, and so does the bundle
+  document with the same block beside its `order`; so the three new element
+  types validate inside a group file's statement. An unknown member
+  `arrangement` beside `order` is refused at `graphical` in either file
+  (`group_graphical_unknown_key`); a group file's statement naming the
+  element `segment` is refused at its `select/element`
+  (`group_statement_select_unknown_element`), which shows that the shared
+  rejection machinery reaches a group file's statements; an unknown
+  property `colour` in a bundle file's named style is refused at the style,
+  `graphical/styles/frame`. The 0.6.0 schema keeps its
+  ten element types: a 0.6.0 statement naming `group` is refused at its
+  `element`. `group_styled.json` is `group_number_types.json` (without
+  `meta.generator`) plus exactly the `styles` `{"frame-highlight":
+  {"stroke": "#7F00FF"}}` and the statements `{"select": {"element":
+  "group"}, "set": "frame-highlight"}` and `{"select": {"element": "name",
+  "ids": ["group_1/name"]}, "set": {"fill": "#7F00FF"}}` and `{"select":
+  {"element": "card", "inside": "group"}, "set": {"shadow": "#C4B5FD", "rx":
+  2}}`, its `order` unchanged.
 - **Property bounds.** Exact validation tests accept `stroke-width` and `rx`
   at zero, `opacity` at both endpoints, positive `font-size` and `max-width`,
   `content` text and both forms of `stroke-dasharray`; they reject a negative

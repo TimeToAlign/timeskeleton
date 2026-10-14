@@ -20,18 +20,29 @@ const NAMES = ["core", "timeline", "group", "bundle"] as const;
 const CORE = [
   "Coordinate",
   "CoordinateNonnegative",
+  "Declaration",
+  "ElementType",
   "Fraction",
   "FractionNonnegative",
   "FractionPositive",
+  "Graphical",
   "Id",
   "Meta",
   "Number",
   "NumberNonnegative",
   "NumberPositive",
   "NumberType",
+  "Paint",
+  "Selector",
+  "Statement",
   "TimeUnit",
 ];
-const REFERENCE = /^(?:(core|timeline|group|bundle)\.schema\.json)?#\/\$defs\/(\w+)$/;
+const REFERENCE =
+  /^(?:(core|timeline|group|bundle)\.schema\.json)?#\/\$defs\/(\w+)(?:\/properties\/(\w+))?$/;
+const GRAPHICAL_MEMBERS = {
+  styles: { $ref: "core.schema.json#/$defs/Graphical/properties/styles" },
+  statements: { $ref: "core.schema.json#/$defs/Graphical/properties/statements" },
+};
 
 const documents = schemaDocuments["0.7.0"] as unknown as Record<string, JsonObject>;
 
@@ -95,6 +106,12 @@ describe("the 0.7.0 schema documents", () => {
         expect(match, `${name}: ${reference}`).not.toBeNull();
         const target = match?.[1] ?? name;
         expect(Object.keys(definitionsOf(target)), reference).toContain(match?.[2]);
+        if (match?.[3] !== undefined) {
+          const definition = definitionsOf(target)[match[2] as string] as {
+            properties: JsonObject;
+          };
+          expect(Object.keys(definition.properties), reference).toContain(match[3]);
+        }
       }
     }
   });
@@ -115,6 +132,14 @@ describe("the 0.7.0 schema documents", () => {
     const manifest = moved.TimelineManifest as { properties: JsonObject; required: string[] };
     delete manifest.properties.is_segment_line;
     manifest.required = manifest.required.filter((key) => key !== "is_segment_line");
+    const elementType = moved.ElementType as { enum: string[]; description: string };
+    expect(elementType.enum.slice(-4)).toEqual(["boundary", "ancestor", "group", "card"]);
+    elementType.enum = elementType.enum.slice(0, -4);
+    elementType.description = (
+      (legacy.$defs as JsonObject).ElementType as { description: string }
+    ).description;
+    delete ((moved.Selector as JsonObject).properties as JsonObject).inside;
+    delete ((moved.Declaration as JsonObject).properties as JsonObject).shadow;
     expect(moved).toEqual(legacy.$defs);
     const timeline = documents.timeline as JsonObject;
     expect([legacy.title, timeline.title]).toEqual([
@@ -125,8 +150,11 @@ describe("the 0.7.0 schema documents", () => {
     expect(timeline.properties).toEqual({
       meta: { $ref: "core.schema.json#/$defs/Meta" },
       timeline: legacyProperties.timeline,
-      graphical: legacyProperties.graphical,
+      graphical: { $ref: "core.schema.json#/$defs/Graphical" },
     });
+    expect(inline((timeline.properties as JsonObject).graphical)).toEqual(
+      legacyProperties.graphical,
+    );
     const meta = structuredClone(legacyProperties.meta) as {
       description: string;
       properties: { schema_version: JsonObject; generator: JsonObject };
@@ -175,7 +203,9 @@ describe("the 0.7.0 schema documents", () => {
     const order = group.$defs.MemberOrder as JsonObject;
     expect([order.type, order.items, order.uniqueItems]).toEqual(["array", { $ref: ID }, true]);
     const graphical = group.$defs.GroupGraphical as JsonObject & { properties: JsonObject };
-    expect(Object.keys(graphical.properties)).toEqual(["order"]);
+    expect(Object.keys(graphical.properties)).toEqual(["order", "styles", "statements"]);
+    expect(graphical.properties.styles).toEqual(GRAPHICAL_MEMBERS.styles);
+    expect(graphical.properties.statements).toEqual(GRAPHICAL_MEMBERS.statements);
     expect(graphical.additionalProperties).toBe(false);
   });
 
@@ -200,6 +230,11 @@ describe("the 0.7.0 schema documents", () => {
     const order = bundle.$defs.BundleGraphical?.properties.order as JsonObject;
     expect(order.propertyNames).toEqual({ $ref: ID });
     expect(order.additionalProperties).toEqual({ $ref: "group.schema.json#/$defs/MemberOrder" });
+    const graphical = bundle.$defs.BundleGraphical as JsonObject & { properties: JsonObject };
+    expect(Object.keys(graphical.properties)).toEqual(["order", "styles", "statements"]);
+    expect(graphical.properties.styles).toEqual(GRAPHICAL_MEMBERS.styles);
+    expect(graphical.properties.statements).toEqual(GRAPHICAL_MEMBERS.statements);
+    expect(graphical.additionalProperties).toBe(false);
   });
 });
 

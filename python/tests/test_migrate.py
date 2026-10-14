@@ -154,8 +154,20 @@ def _with_minted_children(value: dict) -> dict:
 def test_the_manifests_of_a_version_are_those_of_the_one_before(old, new) -> None:
     before = {path.name: path for path in fixture_paths(old)}
     after = {path.name: path for path in fixture_paths(new)}
-    assert sorted(before) == sorted(after)
-    assert len(after) == 23
+    added = (
+        [
+            "locked_root.json",
+            "segment_children.json",
+            "segment_line.json",
+            "segment_pages.json",
+            "segment_pages_accolades.json",
+            "segment_pages_locked.json",
+        ]
+        if new == "0.7.0"
+        else []
+    )
+    assert sorted(after) == sorted([*before, *added])
+    assert len(before) == 23
     for name, path in before.items():
         expected = _without_generator(migrate(_read(path)))
         if (new, name) == ("0.7.0", "corpus_score_ms3.json"):
@@ -165,7 +177,7 @@ def test_the_manifests_of_a_version_are_those_of_the_one_before(old, new) -> Non
 
 
 @pytest.mark.parametrize(
-    ("old", "new", "count"), [("0.5.0", "0.6.0", 55), ("0.6.0", "0.7.0", 93)]
+    ("old", "new", "count"), [("0.5.0", "0.6.0", 55), ("0.6.0", "0.7.0", 100)]
 )
 def test_the_rejection_cases_hold_those_of_the_version_before(old, new, count) -> None:
     before = {path.name: path for path in rejection_paths(old)}
@@ -181,6 +193,10 @@ def test_the_rejection_cases_hold_those_of_the_version_before(old, new, count) -
             assert later["reason"] == (
                 "A file holds exactly one of timeline, group and bundle beside meta; "
                 "this one holds none."
+            )
+        elif (new, name) == ("0.7.0", "statement_select_unknown_element.json"):
+            assert later["reason"] == (
+                "An element type is one of the fourteen types of the drawing."
             )
         else:
             assert earlier["reason"] == later["reason"]

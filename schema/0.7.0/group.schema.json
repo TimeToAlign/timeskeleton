@@ -75,11 +75,17 @@
     },
     "GroupGraphical": {
       "type": "object",
-      "description": "The presentation of the group file.",
+      "description": "The presentation of the group file: the display order of its members, and named styles and statements with exactly the meaning they have in a timeline file's graphical block (`docs/drawing.md`, sections 2 and 8).",
       "properties": {
         "order": {
           "$ref": "#/$defs/MemberOrder",
           "description": "The display order of the group's members, a permutation of group.members. Without it, the members are displayed in the order of group.members."
+        },
+        "styles": {
+          "$ref": "core.schema.json#/$defs/Graphical/properties/styles"
+        },
+        "statements": {
+          "$ref": "core.schema.json#/$defs/Graphical/properties/statements"
         }
       },
       "additionalProperties": false

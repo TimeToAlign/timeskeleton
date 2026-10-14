@@ -1,0 +1,16 @@
+{
+  "layers": [],
+  "manifest": "segment_children.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "order": [
+      "children",
+      "regions",
+      "flow"
+    ],
+    "spacing": 1,
+    "width": null
+  },
+  "scale": 1
+}
