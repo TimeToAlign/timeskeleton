@@ -2,6 +2,20 @@
 
 Release entries are written by release-please from the Conventional Commits since the previous release.
 
+## [0.7.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.6.0...v0.7.0) (2026-10-15)
+
+
+### ⚠ BREAKING CHANGES
+
+* validate asserts and parse returns the union TimeSkeletonFile instead of TimeSkeletonManifest; schema_path and load_schema take a document name; a value declaring no supported schema version is refused on its meta alone; timeline manifests require is_segment_line.
+
+### Features
+
+* accept a negative child offset, never lock a segment, end unknown length in three chevrons ([0d09322](https://github.com/TimeToAlign/timeskeleton/commit/0d0932217a8d0d0bee939ce23b5a9d71c7af3ddb))
+* describe timeline groups and alignment bundles as their own files ([18127fa](https://github.com/TimeToAlign/timeskeleton/commit/18127fa3f71137795345826adc6a284d8c723e71))
+* draw groups and bundles, with cards, ancestor lines and segment lines ([2dfbe2f](https://github.com/TimeToAlign/timeskeleton/commit/2dfbe2fc1a9b0a68df134ee663b9586082d2910f))
+* one manifest shape with complete and minimal forms, open objects and unknown length ([36d0bd3](https://github.com/TimeToAlign/timeskeleton/commit/36d0bd3fce43e0f1efcaef17fb11b7b9f4e695c9))
+
 ## [0.6.0](https://github.com/TimeToAlign/timeskeleton/compare/v0.5.0...v0.6.0) (2026-10-12)
 
 
