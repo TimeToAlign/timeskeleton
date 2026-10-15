@@ -1,0 +1,83 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score",
+        "page",
+        "performance"
+      ]
+    },
+    "statements": [
+      {
+        "select": {
+          "element": "group"
+        },
+        "set": "frame-highlight"
+      },
+      {
+        "select": {
+          "element": "name",
+          "ids": [
+            "group_1/name"
+          ]
+        },
+        "set": {
+          "fill": "#7F00FF"
+        }
+      },
+      {
+        "select": {
+          "element": "card",
+          "inside": "group"
+        },
+        "set": {
+          "rx": 2,
+          "shadow": "#C4B5FD"
+        }
+      }
+    ],
+    "styles": {
+      "frame-highlight": {
+        "stroke": "#7F00FF"
+      }
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "page",
+        "performance",
+        "score"
+      ],
+      "name": "Edition"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "page",
+      "length": 1920,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "id": "performance",
+      "length": 12.5,
+      "name": "Performance",
+      "unit": "seconds"
+    },
+    {
+      "id": "score",
+      "length": [
+        12,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

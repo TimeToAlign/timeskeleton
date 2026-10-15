@@ -1,29 +1,34 @@
 {
   "graphical": {
-    "order": [
-      "score",
-      "page",
-      "performance"
-    ]
+    "order": {
+      "group_1": [
+        "score",
+        "page",
+        "performance"
+      ]
+    },
+    "statements": [],
+    "styles": {}
   },
-  "group": {
-    "id": "group_1",
-    "members": [
-      "page",
-      "performance",
-      "score"
-    ],
-    "meta": {},
-    "name": "Edition"
-  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "page",
+        "performance",
+        "score"
+      ],
+      "meta": {},
+      "name": "Edition"
+    }
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": null,
   "timelines": [
     {
-      "children": {},
-      "class": "DiscreteGraphicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -32,11 +37,7 @@
       },
       "id": "page",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 1920
-      },
+      "length": 1920,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -47,8 +48,7 @@
       "unit": "pixels"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -57,11 +57,7 @@
       },
       "id": "performance",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 12.5
-      },
+      "length": 12.5,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -72,8 +68,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -82,14 +77,10 @@
       },
       "id": "score",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          12,
-          1
-        ]
-      },
+      "length": [
+        12,
+        1
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -99,5 +90,6 @@
       "regions": [],
       "unit": "quarters"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

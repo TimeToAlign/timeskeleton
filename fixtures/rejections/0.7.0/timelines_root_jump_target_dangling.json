@@ -1,66 +1,59 @@
 {
   "manifest": {
     "graphical": {
-      "order": [
-        "second-half",
-        "recording"
-      ]
+      "order": {
+        "group_1": [
+          "second-half",
+          "recording"
+        ]
+      },
+      "statements": [],
+      "styles": {}
     },
-    "group": {
-      "id": "group_1",
-      "members": [
-        "recording",
-        "second-half"
-      ],
-      "meta": {},
-      "name": "Second half"
-    },
-    "meta": {
-      "schema_version": "0.7.0"
-    },
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "recording",
+          "second-half"
+        ],
+        "meta": {},
+        "name": "Second half"
+      }
+    ],
+    "meta": {},
+    "name": null,
     "timelines": [
       {
-        "children": {
-          "second-half": {
-            "offset": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                4,
-                1
-              ]
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
             },
-            "timeline": {
-              "children": {},
-              "class": "ContinuousLogicalTimeline",
-              "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
-              "id": "second-half",
-              "is_segment_line": false,
-              "length": {
-                "number_type": "fraction",
-                "unit": "quarters",
-                "value": [
-                  4,
-                  1
-                ]
-              },
-              "locked": false,
-              "measure_map": null,
-              "meta": {},
-              "metric_hierarchy": null,
-              "name": null,
-              "number_type": "fraction",
-              "regions": [],
-              "unit": "quarters"
-            }
+            "id": "second-half",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              4,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
           }
-        },
-        "class": "ContinuousLogicalTimeline",
+        ],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -69,14 +62,10 @@
         },
         "id": "piece",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -87,8 +76,7 @@
         "unit": "quarters"
       },
       {
-        "children": {},
-        "class": "ContinuousLogicalTimeline",
+        "children": [],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -96,41 +84,29 @@
             {
               "condition": "always",
               "control_type": "repeat_end",
-              "from_coordinate": {
-                "number_type": "fraction",
-                "unit": "quarters",
-                "value": [
-                  4,
-                  1
-                ]
-              },
+              "from_coordinate": [
+                4,
+                1
+              ],
               "id": "jump_1",
               "label": null,
               "meta": {},
               "repeat_count": 1,
               "target": "nowhere",
-              "to_coordinate": {
-                "number_type": "fraction",
-                "unit": "quarters",
-                "value": [
-                  0,
-                  1
-                ]
-              }
+              "to_coordinate": [
+                0,
+                1
+              ]
             }
           ],
           "markers": []
         },
         "id": "recording",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -140,7 +116,8 @@
         "regions": [],
         "unit": "quarters"
       }
-    ]
+    ],
+    "timeskeleton": "0.7.0"
   },
   "path": [
     "timelines",

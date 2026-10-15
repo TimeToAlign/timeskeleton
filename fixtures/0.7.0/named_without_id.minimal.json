@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "Sketch",
+  "timelines": [
+    {
+      "id": "score",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

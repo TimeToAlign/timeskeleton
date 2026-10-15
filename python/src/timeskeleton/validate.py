@@ -1,71 +1,59 @@
-"""The TimeSkeleton schemas and their validators.
+"""The TimeSkeleton schema and its validator.
 
-Versions 0.5.0 and 0.6.0 have one schema document each,
-``schema/timeskeleton-<version>.schema.json``, for the one file kind they
-know, the timeline file. From 0.7.0 on a version has four documents under
-``schema/<version>/``: ``core`` (the shared definitions), ``timeline``,
-``group`` and ``bundle``, one per file kind, referring to each other by
-relative ``$ref``. A value is checked against the document of its version and
-kind, then for the identity rules the schema cannot express. The schema files,
-the fixtures, the font and the drawing specification live at the repository
-root and are bundled into the wheel under ``timeskeleton/schema``,
-``timeskeleton/fixtures``, ``timeskeleton/fonts`` and ``timeskeleton/docs``.
-The resource helpers below find them in either place, so the package works
-from an installed wheel and from a source checkout alike.
+The schema is one document, ``schema/<version>/timeskeleton.schema.json``. A
+value is checked for its version marker, then against the schema, then for
+the representation of its own-axis values and for the identity rules the
+schema cannot express. Every object of the schema is open: a key it does not
+declare is kept and reported by :func:`unknown_keys`, never refused.
+
+The schema file, the fixtures, the font and the drawing specification live at
+the repository root and are bundled into the wheel under
+``timeskeleton/schema``, ``timeskeleton/fixtures``, ``timeskeleton/fonts``
+and ``timeskeleton/docs``. The resource helpers below find them in either
+place, so the package works from an installed wheel and from a source
+checkout alike.
 """
 
 from __future__ import annotations
 
 import json
-from collections.abc import Iterable, Mapping
+from collections import defaultdict
+from collections.abc import Iterable, Iterator, Mapping
 from fractions import Fraction
 from functools import cache
 from importlib.resources import files
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft202012Validator
+from jsonschema import Draft202012Validator, validators
 from jsonschema.exceptions import ValidationError
-from referencing import Registry, Resource
 
-from .manifest import _exact
+from .manifest import _exact, spell
 
 SCHEMA_VERSION = "0.7.0"
-"""The latest schema version bundled by this package."""
+"""The schema version this package reads and writes, the only one it supports."""
 
-SUPPORTED_VERSIONS: tuple[str, ...] = ("0.5.0", "0.6.0", "0.7.0")
-"""Every bundled schema version, oldest first."""
-
-FILE_KINDS: tuple[str, ...] = ("timeline", "group", "bundle")
-"""The file kinds, each named by the top-level member that holds its content.
-
-A file of version 0.7.0 or later holds exactly one of these members beside
-``meta``; versions 0.5.0 and 0.6.0 know the timeline file only.
-"""
-
-SCHEMA_DOCUMENTS: tuple[str, ...] = ("core", "timeline", "group", "bundle")
-"""The schema documents of a version from 0.7.0 on: the shared ``core`` and
-one document per file kind."""
+_Path = tuple[str | int, ...]
 
 
 class UnsupportedVersionError(ValueError):
-    """Raised when a value declares a schema version this release does not know.
+    """Raised when a manifest's version marker names another version.
 
     Attributes:
-        version: The declared version, or ``None`` when the value carries no
-            string ``meta.schema_version``.
+        version: The value of the manifest's ``timeskeleton`` member.
     """
 
     def __init__(self, version: object) -> None:
         self.version = version
-        supported = ", ".join(SUPPORTED_VERSIONS)
         super().__init__(
-            f"unsupported schema_version {version!r}; this package supports {supported}"
+            f"unsupported TimeSkeleton version {version!r}; this package reads "
+            f"{SCHEMA_VERSION} only"
         )
 
 
 class SchemaValidationError(ValueError):
-    """Raised when a value violates its schema.
+    """Raised when a value violates the schema or a rule checked after it.
 
     Attributes:
         path: The location of the offending value as a tuple of object keys and
@@ -73,7 +61,7 @@ class SchemaValidationError(ValueError):
         message: The validator's description of the violation.
     """
 
-    def __init__(self, path: tuple[str | int, ...], message: str) -> None:
+    def __init__(self, path: _Path, message: str) -> None:
         self.path = path
         self.message = message
         super().__init__(f"{json_pointer(path)}: {message}")
@@ -93,176 +81,87 @@ def _data_root() -> Path:
     return Path(__file__).resolve().parents[3]
 
 
-def _require_supported(version: str) -> None:
-    if version not in SUPPORTED_VERSIONS:
-        raise UnsupportedVersionError(version)
-
-
-def _single_document(version: str) -> Path:
-    """Return the path a version with one schema document keeps it at."""
-    return _data_root() / "schema" / f"timeskeleton-{version}.schema.json"
-
-
-def schema_documents(version: str = SCHEMA_VERSION) -> tuple[str, ...]:
-    """Return the names of the schema documents of ``version``.
-
-    A version with one document (0.5.0, 0.6.0) has ``("timeline",)``; a later
-    version has :data:`SCHEMA_DOCUMENTS`.
-
-    Raises:
-        UnsupportedVersionError: If no schema of that version is bundled.
-    """
-    _require_supported(version)
-    return ("timeline",) if _single_document(version).is_file() else SCHEMA_DOCUMENTS
-
-
-def schema_path(version: str = SCHEMA_VERSION, document: str = "timeline") -> Path:
-    """Return the path of one schema document of ``version``.
-
-    Args:
-        version: A supported schema version.
-        document: One of :func:`schema_documents` of that version; the
-            timeline document by default, which for 0.5.0 and 0.6.0 is the
-            version's one schema file.
-
-    Raises:
-        UnsupportedVersionError: If no schema of that version is bundled.
-        ValueError: If the version has no document of that name.
-    """
-    if document not in schema_documents(version):
-        raise ValueError(f"schema {version} has no {document!r} document")
-    if _single_document(version).is_file():
-        return _single_document(version)
-    return _data_root() / "schema" / version / f"{document}.schema.json"
+def schema_path() -> Path:
+    """Return the path of the schema document."""
+    return _data_root() / "schema" / SCHEMA_VERSION / "timeskeleton.schema.json"
 
 
 @cache
-def load_schema(
-    version: str = SCHEMA_VERSION, document: str = "timeline"
-) -> dict[str, Any]:
-    """Return one parsed schema document of ``version``.
+def load_schema() -> dict[str, Any]:
+    """Return the parsed schema document.
 
     The result is cached and shared; treat it as read-only.
-
-    Raises:
-        UnsupportedVersionError: If no schema of that version is bundled.
-        ValueError: If the version has no document of that name.
     """
-    with schema_path(version, document).open(encoding="utf-8") as handle:
+    with schema_path().open(encoding="utf-8") as handle:
         return json.load(handle)
 
 
-def fixture_paths(version: str = SCHEMA_VERSION, kind: str = "timeline") -> list[Path]:
-    """Return the bundled fixtures of one file kind for ``version``, sorted by name.
+def fixture_paths() -> list[Path]:
+    """Return every bundled manifest fixture, sorted by its path.
 
-    Timeline files lie directly in ``fixtures/<version>/``, group files in its
-    ``groups/`` and bundle files in its ``bundles/`` directory. A version
-    before 0.7.0 has timeline files only.
-
-    Raises:
-        UnsupportedVersionError: If no fixtures of that version are bundled.
-        ValueError: If ``kind`` is not one of :data:`FILE_KINDS`.
+    The manifests lie in ``fixtures/<version>/`` and its subdirectories; the
+    drawings under ``drawings/`` are no manifests and are left out.
     """
-    _require_supported(version)
-    if kind not in FILE_KINDS:
-        raise ValueError(f"unknown file kind {kind!r}; the kinds are {FILE_KINDS}")
-    directory = _data_root() / "fixtures" / version
-    if kind != "timeline":
-        directory = directory / f"{kind}s"
-    return sorted(directory.glob("*.json"))
-
-
-def rejection_paths(version: str = SCHEMA_VERSION) -> list[Path]:
-    """Return the shared rejection cases for ``version``, sorted by name."""
-    _require_supported(version)
-    return sorted((_data_root() / "fixtures" / "rejections" / version).glob("*.json"))
-
-
-@cache
-def _registry(version: str) -> Registry:
-    """Return a registry holding every schema document of ``version``."""
-    resources = []
-    for name in schema_documents(version):
-        schema = load_schema(version, name)
-        Draft202012Validator.check_schema(schema)
-        resources.append((schema["$id"], Resource.from_contents(schema)))
-    return Registry().with_resources(resources)
-
-
-@cache
-def _validator(version: str, document: str) -> Draft202012Validator:
-    """Return the validator of one document, with every document of its version."""
-    return Draft202012Validator(
-        load_schema(version, document), registry=_registry(version)
+    directory = _data_root() / "fixtures" / SCHEMA_VERSION
+    return sorted(
+        path
+        for path in directory.rglob("*.json")
+        if "drawings" not in path.relative_to(directory).parts
     )
 
 
-@cache
-def _declaration_validator() -> Draft202012Validator:
-    """Return a validator of ``meta`` alone, as the latest version states it."""
-    meta = f"{load_schema(SCHEMA_VERSION, 'core')['$id']}#/$defs/Meta"
-    schema = {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "required": ["meta"],
-        "properties": {"meta": {"$ref": meta}},
-    }
-    return Draft202012Validator(schema, registry=_registry(SCHEMA_VERSION))
+def rejection_paths() -> list[Path]:
+    """Return the shared rejection cases, sorted by name."""
+    directory = _data_root() / "fixtures" / "rejections" / SCHEMA_VERSION
+    return sorted(directory.glob("*.json"))
+
+
+def warning_paths() -> list[Path]:
+    """Return the shared warning cases, sorted by name."""
+    directory = _data_root() / "fixtures" / "warnings" / SCHEMA_VERSION
+    return sorted(directory.glob("*.json"))
+
+
+def _unknown_key(
+    validator: Any, value: Any, instance: Any, schema: Any
+) -> Iterator[Any]:
+    """Fail on every value the schema marks as held by an undeclared key."""
+    if value is True:
+        yield ValidationError("unknown key")
+
+
+# The schema marks every object's undeclared keys with `x-unknown-key`, a
+# keyword every other validator ignores. This validator fails there, so that
+# each object holding unknown keys fails its `unevaluatedProperties`.
+_MarkingValidator = validators.extend(
+    Draft202012Validator, {"x-unknown-key": _unknown_key}
+)
 
 
 @cache
-def _definitions(version: str) -> dict[str, Any]:
-    """Return the ``$defs`` of every document of ``version`` by name.
-
-    Definition names are unique across the documents of a version, so a
-    reference ``#/$defs/<name>`` resolves by its name alone.
-    """
-    definitions: dict[str, Any] = {}
-    for name in schema_documents(version):
-        definitions.update(load_schema(version, name).get("$defs", {}))
-    return definitions
+def _validator() -> Draft202012Validator:
+    schema = load_schema()
+    Draft202012Validator.check_schema(schema)
+    return Draft202012Validator(schema)
 
 
-def declared_version(value: object) -> str | None:
-    """Return ``meta.schema_version`` if present as a string, else ``None``."""
-    if not isinstance(value, Mapping):
-        return None
-    meta = value.get("meta")
-    if not isinstance(meta, Mapping):
-        return None
-    version = meta.get("schema_version")
-    return version if isinstance(version, str) else None
+@cache
+def _marking_validator() -> Any:
+    return _MarkingValidator(load_schema())
 
 
-def file_kind(value: object) -> str | None:
-    """Return the kind of a file: the one member of :data:`FILE_KINDS` it holds.
-
-    Returns ``None`` for a value that holds none or several of them, or is no
-    object.
-    """
-    if not isinstance(value, Mapping):
-        return None
-    present = [kind for kind in FILE_KINDS if kind in value]
-    return present[0] if len(present) == 1 else None
-
-
-def _branch_tag(
-    candidate: Mapping[str, Any], definitions: Mapping[str, Any], tag: str
-) -> Any:
+def _branch_tag(candidate: Mapping[str, Any], tag: str) -> Any:
     """Return the ``const`` a ``oneOf`` candidate requires of the tag property.
 
-    A candidate is either inline or a local ``#/$defs/<name>`` reference,
-    which is resolved by name among the version's definitions.
+    A candidate is either inline or a local ``#/$defs/<name>`` reference.
     """
     reference = candidate.get("$ref")
     if isinstance(reference, str) and reference.startswith("#/$defs/"):
-        candidate = definitions[reference.removeprefix("#/$defs/")]
+        candidate = load_schema()["$defs"][reference.removeprefix("#/$defs/")]
     return candidate.get("properties", {}).get(tag, {}).get("const")
 
 
-def _candidate_leaves(
-    error: ValidationError, definitions: Mapping[str, Any]
-) -> Iterable[ValidationError]:
+def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
     """Yield the diagnostic leaves beneath one validator error, left to right.
 
     A failed ``oneOf``, ``anyOf`` or ``$ref`` holds its sub-errors in
@@ -283,8 +182,7 @@ def _candidate_leaves(
             (
                 index
                 for index, candidate in enumerate(error.schema["oneOf"])
-                if value is not None
-                and _branch_tag(candidate, definitions, tag) == value
+                if value is not None and _branch_tag(candidate, tag) == value
             ),
             None,
         )
@@ -299,12 +197,10 @@ def _candidate_leaves(
         yield error
         return
     for child in children:
-        yield from _candidate_leaves(child, definitions)
+        yield from _candidate_leaves(child)
 
 
-def _select(
-    errors: Iterable[ValidationError], definitions: Mapping[str, Any]
-) -> ValidationError | None:
+def _select(errors: Iterable[ValidationError]) -> ValidationError | None:
     """Pick the error to report under the shared path rule.
 
     The rule, shared with the TypeScript validator: among the diagnostic
@@ -314,249 +210,469 @@ def _select(
     """
     best: ValidationError | None = None
     for error in errors:
-        for leaf in _candidate_leaves(error, definitions):
+        for leaf in _candidate_leaves(error):
             if best is None or len(leaf.absolute_path) > len(best.absolute_path):
                 best = leaf
     return best
 
 
-def _kind_problem(value: Mapping[str, Any]) -> SchemaValidationError:
-    """Return the problem of a value holding none or several file kinds."""
-    present = [kind for kind in FILE_KINDS if kind in value]
-    found = ", ".join(repr(kind) for kind in present) if present else "none"
-    return SchemaValidationError(
-        (),
-        f"exactly one of 'timeline', 'group' or 'bundle' is required; found {found}",
-    )
-
-
-def validate(value: Mapping[str, Any]) -> None:
-    """Check ``value`` against the schema of the version and kind it declares.
-
-    A value whose ``meta.schema_version`` is one of ``SUPPORTED_VERSIONS`` is
-    checked against that version's schema; from 0.7.0 on, against the
-    document of its kind (:func:`file_kind`), and a value holding none or
-    several of ``timeline``, ``group`` and ``bundle`` is rejected at the root.
-    Any other value is refused for its declaration alone: its ``meta`` is
-    checked against the latest version's, which rejects it at
-    ``meta.schema_version``, or at the root when it has no ``meta``.
-
-    A value the schema accepts is then checked for the identity rules the
-    schema cannot express (:func:`identity_problems`).
-
-    Raises:
-        SchemaValidationError: On the first violation found, with the path to
-            the offending value.
-    """
-    version = declared_version(value)
-    if version not in SUPPORTED_VERSIONS:
-        validator = _declaration_validator()
-        target = SCHEMA_VERSION
-    elif schema_documents(version) == ("timeline",):
-        validator, target = _validator(version, "timeline"), version
-    elif (kind := file_kind(value)) is not None:
-        validator, target = _validator(version, kind), version
-    else:
-        raise _kind_problem(value)
-    error = _select(validator.iter_errors(value), _definitions(target))
+def _check(value: Any) -> None:
+    """Check a value through every rule; see :func:`validate`."""
+    if not isinstance(value, Mapping) or "timeskeleton" not in value:
+        raise SchemaValidationError((), "not a TimeSkeleton manifest")
+    if value["timeskeleton"] != SCHEMA_VERSION:
+        raise UnsupportedVersionError(value["timeskeleton"])
+    error = _select(_validator().iter_errors(value))
     if error is not None:
         raise SchemaValidationError(tuple(error.absolute_path), error.message)
+    for problem in _representation_problems(value):
+        raise problem
     problems = identity_problems(value)
     if problems:
         raise problems[0]
 
 
+def validate(value: Mapping[str, Any]) -> None:
+    """Check that ``value`` is a TimeSkeleton manifest.
+
+    The version marker is read first: a value that is no object or has no
+    ``timeskeleton`` member is refused at the root, and a marker other than
+    :data:`SCHEMA_VERSION` raises :class:`UnsupportedVersionError`. The value
+    is then checked against the schema, then for the representation of every
+    own-axis value (its timeline's number type selects an int, a float or a
+    fraction pair), then for the identity rules
+    (:func:`identity_problems`). Unknown keys are no violation;
+    :func:`unknown_keys` reports them.
+
+    Raises:
+        SchemaValidationError: On the first violation found, with the path to
+            the offending value.
+        UnsupportedVersionError: For a version marker other than
+            :data:`SCHEMA_VERSION`.
+    """
+    _check(value)
+
+
+def _key_failures_only(error: ValidationError) -> bool:
+    """Whether an error consists of unknown-key failures alone."""
+    if error.validator == "unevaluatedProperties":
+        return True
+    if error.validator in ("oneOf", "anyOf") and error.context:
+        return any(
+            all(_key_failures_only(child) for child in branch)
+            for branch in _branches(error)
+        )
+    return False
+
+
+def _branches(error: ValidationError) -> Iterable[list[ValidationError]]:
+    grouped: dict[Any, list[ValidationError]] = defaultdict(list)
+    for child in error.context or ():
+        grouped[child.relative_schema_path[0]].append(child)
+    return grouped.values()
+
+
+def _keys(errors: Iterable[ValidationError]) -> Iterator[tuple[_Path, str]]:
+    """Yield the object path and key of every unknown key the errors locate.
+
+    An object holding unknown keys fails its ``unevaluatedProperties``; every
+    object that carries it declares in its own ``properties`` every key the
+    schema evaluates on it, so the unknown keys are the others. A ``oneOf``
+    or ``anyOf`` that failed only because one of its branches met unknown keys
+    holds those failures in that branch's context; a branch failing for any
+    other reason is not the one the instance matches.
+    """
+    for error in errors:
+        if error.validator == "unevaluatedProperties":
+            declared = error.schema["properties"]
+            path = tuple(error.absolute_path)
+            for key in error.instance:
+                if key not in declared:
+                    yield path, key
+        elif error.validator in ("oneOf", "anyOf"):
+            for branch in _branches(error):
+                if all(_key_failures_only(child) for child in branch):
+                    yield from _keys(branch)
+
+
+def unknown_keys(value: Mapping[str, Any]) -> list[dict[str, Any]]:
+    """Return the keys of a manifest that the schema does not declare.
+
+    Every object of the schema is open, so an undeclared key, a misspelt
+    optional one included, is kept rather than refused; this lists them, each
+    as ``{"path": [...], "key": ...}``, the path of its object (keys and
+    indices) and the key, sorted by path (indices by number, keys by code
+    point, an object before its descendants) and then by key. The JavaScript
+    package's ``unknownKeys`` gives the same list. The value of an unknown key
+    is not looked into.
+
+    Raises:
+        SchemaValidationError: If the value is no valid manifest (see
+            :func:`validate`).
+        UnsupportedVersionError: For a version marker other than
+            :data:`SCHEMA_VERSION`.
+    """
+    _check(value)
+    found = set(_keys(_marking_validator().iter_errors(value)))
+    return [
+        {"path": list(path), "key": key}
+        for path, key in sorted(found, key=lambda entry: (entry[0], entry[1]))
+    ]
+
+
+# -- the values of a manifest ---------------------------------------------------
+
+_UNIT_NUMBER_TYPES = {
+    "number": "float",
+    "floating_measures": "float",
+    "whole_note": "fraction",
+    "quarters": "fraction",
+    "ticks": "int",
+    "milliseconds": "float",
+    "seconds": "float",
+    "minutes": "float",
+    "samples": "int",
+    "frames": "int",
+    "pixels": "int",
+    "meters": "float",
+    "centimeters": "float",
+    "millimeters": "float",
+    "inches": "float",
+    "points": "float",
+}
+"""The default number type of each unit."""
+
+
+def number_type_of(timeline: Mapping[str, Any]) -> str:
+    """Return the number type of a timeline's axis: its own, or its unit's default."""
+    return timeline.get("number_type") or _UNIT_NUMBER_TYPES[timeline["unit"]]
+
+
+def _entries(owner: Any, key: str) -> list[Any]:
+    """Return the objects of an array member, or none where it is absent."""
+    value = owner.get(key) if isinstance(owner, Mapping) else None
+    return value if isinstance(value, list) else []
+
+
+# -- representation ------------------------------------------------------------
+
+_ARTICLES = {"int": "an int", "float": "a float", "fraction": "a fraction"}
+
+
+def _written_as(value: Any) -> str:
+    if isinstance(value, list):
+        return "fraction"
+    return "int" if isinstance(value, int) else "float"
+
+
+def _represents(value: Any, number_type: str) -> bool:
+    if number_type == "fraction":
+        return isinstance(value, list)
+    if isinstance(value, list):
+        return False
+    if number_type == "float":
+        return not isinstance(value, int) or _rewritten(value, "float") is not None
+    return isinstance(value, int) or value.is_integer()
+
+
+def _rewritten(value: Any, number_type: str) -> str | None:
+    """Return the value written as ``number_type`` with exactly its value.
+
+    Spelled as in a manifest, or ``None`` when no such representation exists.
+    """
+    exact = _exact(value)
+    if number_type == "fraction":
+        return spell([exact.numerator, exact.denominator])
+    if number_type == "int":
+        return spell(exact.numerator) if exact.denominator == 1 else None
+    try:
+        double = exact.numerator / exact.denominator
+    except OverflowError:
+        return None
+    return spell(double) if Fraction(double) == exact else None
+
+
+def _representation_problem(
+    key: str, owner: Mapping[str, Any], path: _Path, number_type: str
+) -> Iterator[SchemaValidationError]:
+    """Yield the problem of an own-axis value its axis does not select.
+
+    The message names the key, the value, the id of the object holding it,
+    the representation found and the one the axis selects, and ends with the
+    value rewritten where an exact rewriting exists.
+    """
+    value = owner.get(key)
+    if value is None or _represents(value, number_type):
+        return
+    fix = _rewritten(value, number_type) or _ARTICLES[number_type]
+    yield SchemaValidationError(
+        (*path, key),
+        f"{key} {spell(value)} of '{owner['id']}' is {_ARTICLES[_written_as(value)]} "
+        f"on {_ARTICLES[number_type]} axis: write {fix}",
+    )
+
+
+def _timeline_representation(
+    timeline: Mapping[str, Any], path: _Path, offset_type: str | None
+) -> Iterator[SchemaValidationError]:
+    """Yield the representation problems of a timeline tree.
+
+    Its offset (on its parent's axis, a root's on its own), its length, its
+    regions' starts and ends, its breaks', jumps' and markers' coordinates,
+    then its children's trees in array order.
+    """
+    own = number_type_of(timeline)
+    yield from _representation_problem("offset", timeline, path, offset_type or own)
+    yield from _representation_problem("length", timeline, path, own)
+    for index, region in enumerate(_entries(timeline, "regions")):
+        for key in ("start", "end"):
+            yield from _representation_problem(
+                key, region, (*path, "regions", index), own
+            )
+    flow = timeline.get("flow_control") or {}
+    for member, keys in (
+        ("breaks", ("coordinate",)),
+        ("jumps", ("from_coordinate", "to_coordinate")),
+        ("markers", ("coordinate",)),
+    ):
+        for index, entry in enumerate(_entries(flow, member)):
+            for key in keys:
+                yield from _representation_problem(
+                    key, entry, (*path, "flow_control", member, index), own
+                )
+    for index, child in enumerate(_entries(timeline, "children")):
+        yield from _timeline_representation(child, (*path, "children", index), own)
+
+
+def _representation_problems(
+    manifest: Mapping[str, Any],
+) -> Iterator[SchemaValidationError]:
+    for index, root in enumerate(_entries(manifest, "timelines")):
+        yield from _timeline_representation(root, ("timelines", index), None)
+
+
+# -- identity ------------------------------------------------------------------
+
+
 def _element_ids(
-    timeline: Mapping[str, Any], path: tuple[str | int, ...]
-) -> Iterable[tuple[str, tuple[str | int, ...]]]:
+    timeline: Mapping[str, Any], path: _Path
+) -> Iterator[tuple[str, _Path]]:
     """Yield every id of a timeline tree with its path, in identity order.
 
     A timeline contributes its own id, then the ids of its conversion maps,
     regions, breaks, jumps and markers in array order, then its children's
-    trees in code-point order of their keys.
+    trees in array order.
     """
     yield timeline["id"], (*path, "id")
     for member in ("conversion_maps", "regions"):
-        for index, entry in enumerate(timeline[member]):
+        for index, entry in enumerate(_entries(timeline, member)):
             yield entry["id"], (*path, member, index, "id")
-    flow = timeline["flow_control"]
+    flow = timeline.get("flow_control")
     for member in ("breaks", "jumps", "markers"):
-        for index, entry in enumerate(flow[member]):
+        for index, entry in enumerate(_entries(flow, member)):
             yield entry["id"], (*path, "flow_control", member, index, "id")
-    for key in sorted(timeline["children"]):
-        yield from _element_ids(
-            timeline["children"][key]["timeline"], (*path, "children", key, "timeline")
-        )
+    for index, child in enumerate(_entries(timeline, "children")):
+        yield from _element_ids(child, (*path, "children", index))
+
+
+def _timeline_ids(
+    timeline: Mapping[str, Any], path: _Path
+) -> Iterator[tuple[str, _Path]]:
+    """Yield the id of every timeline of a tree with its path, in identity order."""
+    yield timeline["id"], (*path, "id")
+    for index, child in enumerate(_entries(timeline, "children")):
+        yield from _timeline_ids(child, (*path, "children", index))
 
 
 def _dangling_targets(
-    timeline: Mapping[str, Any], path: tuple[str | int, ...]
-) -> Iterable[SchemaValidationError]:
+    timeline: Mapping[str, Any], path: _Path
+) -> Iterator[SchemaValidationError]:
     """Yield a problem for each jump whose target names no marker of its timeline."""
-    flow = timeline["flow_control"]
-    markers = {marker["id"] for marker in flow["markers"]}
-    for index, jump in enumerate(flow["jumps"]):
-        if jump["target"] is not None and jump["target"] not in markers:
+    flow = timeline.get("flow_control")
+    markers = {marker["id"] for marker in _entries(flow, "markers")}
+    for index, jump in enumerate(_entries(flow, "jumps")):
+        target = jump.get("target")
+        if target is not None and target not in markers:
             yield SchemaValidationError(
                 (*path, "flow_control", "jumps", index, "target"),
-                f"{jump['target']!r} names no marker of this timeline",
+                f"{target!r} names no marker of this timeline",
             )
-    for key in sorted(timeline["children"]):
-        yield from _dangling_targets(
-            timeline["children"][key]["timeline"], (*path, "children", key, "timeline")
-        )
+    for index, child in enumerate(_entries(timeline, "children")):
+        yield from _dangling_targets(child, (*path, "children", index))
 
 
-def _timeline_problems(
-    timeline: Mapping[str, Any], path: tuple[str | int, ...]
-) -> list[SchemaValidationError]:
-    """Return the identity problems of one timeline manifest, its own id scope."""
-    problems: list[SchemaValidationError] = []
-    first: dict[str, tuple[str | int, ...]] = {}
-    for identifier, at in _element_ids(timeline, path):
-        if identifier in first:
-            problems.append(_duplicate(identifier, at, first[identifier]))
-        else:
-            first[identifier] = at
-    problems.extend(_dangling_targets(timeline, path))
-    problems.extend(_segment_problems(timeline, path))
-    return problems
-
-
-def _segment_problems(
-    timeline: Mapping[str, Any], path: tuple[str | int, ...]
-) -> Iterable[SchemaValidationError]:
-    """Yield the problems of every segment line of a timeline tree.
-
-    A timeline with ``is_segment_line`` true holds only its segments, which
-    are visited in offset order (ties by key in code-point order): a segment
-    of another class than the segment line, at its ``class``; a segment whose
-    ``is_segment_line`` differs from the first segment's, at that member; a
-    segment that does not start where the one before it ends (the first at
-    0), at its ``offset``; then, if the last segment does not end at the
-    segment line's length, one problem at the ``length``. Coordinates
-    compare by exact value. The tree is visited in identity order.
-    """
-    if timeline.get("is_segment_line") is True:
-        children = timeline["children"]
-        keys = sorted(children, key=lambda key: (_exact(children[key]["offset"]), key))
-        end = Fraction(0)
-        flag = None
-        for index, key in enumerate(keys):
-            child = children[key]
-            segment = child["timeline"]
-            at = (*path, "children", key)
-            if segment["class"] != timeline["class"]:
-                yield SchemaValidationError(
-                    (*at, "timeline", "class"),
-                    f"segment {key!r} of segment line {timeline['id']!r} is no "
-                    f"{timeline['class']}",
-                )
-            if index == 0:
-                flag = segment["is_segment_line"]
-            elif segment["is_segment_line"] != flag:
-                yield SchemaValidationError(
-                    (*at, "timeline", "is_segment_line"),
-                    f"segment {key!r} of segment line {timeline['id']!r} differs "
-                    f"from segment {keys[0]!r} in is_segment_line",
-                )
-            if _exact(child["offset"]) != end:
-                yield SchemaValidationError(
-                    (*at, "offset"),
-                    f"segment {key!r} of segment line {timeline['id']!r} does not "
-                    + (
-                        "start at 0"
-                        if index == 0
-                        else "start where the one before it ends"
-                    ),
-                )
-            end = _exact(child["offset"]) + _exact(segment["length"])
-        if end != _exact(timeline["length"]):
-            yield SchemaValidationError(
-                (*path, "length"),
-                f"the segments of segment line {timeline['id']!r} do not end at "
-                "its length",
-            )
-    for key in sorted(timeline["children"]):
-        yield from _segment_problems(
-            timeline["children"][key]["timeline"], (*path, "children", key, "timeline")
-        )
-
-
-def _duplicate(
-    identifier: str, path: tuple[str | int, ...], first: tuple[str | int, ...]
-) -> SchemaValidationError:
+def _duplicate(identifier: str, path: _Path, first: _Path) -> SchemaValidationError:
     return SchemaValidationError(
         path, f"duplicate id {identifier!r}, first at {json_pointer(first)}"
     )
 
 
-def _timeline_ids(
-    timeline: Mapping[str, Any], path: tuple[str | int, ...]
-) -> Iterable[tuple[str, tuple[str | int, ...]]]:
-    """Yield the id of every timeline of a tree with its path, in identity order."""
-    yield timeline["id"], (*path, "id")
-    for key in sorted(timeline["children"]):
-        yield from _timeline_ids(
-            timeline["children"][key]["timeline"], (*path, "children", key, "timeline")
-        )
+def _offset_order(children: list[Any]) -> list[int]:
+    """Return the indices of children in offset order, ties by id by code point."""
+    return sorted(
+        range(len(children)),
+        key=lambda index: (_exact(children[index]["offset"]), children[index]["id"]),
+    )
+
+
+def _child_ends(timeline: Mapping[str, Any]) -> list[Fraction | None]:
+    """Return where each child of a timeline ends on its axis, ``None`` where unknown.
+
+    A child of the timeline's unit ends at its offset plus its known length; a
+    segment of unknown length ends where its successor in offset order starts.
+    """
+    children = _entries(timeline, "children")
+    ends: list[Fraction | None] = [
+        _exact(child["offset"]) + _exact(child["length"])
+        if child.get("length") is not None and child["unit"] == timeline["unit"]
+        else None
+        for child in children
+    ]
+    if timeline.get("is_segment_line") is True:
+        order = _offset_order(children)
+        for index, successor in pairwise(order):
+            if children[index].get("length") is None:
+                ends[index] = _exact(children[successor]["offset"])
+    return ends
+
+
+def _child_problems(
+    timeline: Mapping[str, Any], path: _Path
+) -> Iterator[SchemaValidationError]:
+    """Yield a problem for each child that does not sit on its parent's axis.
+
+    Child by child in array order, each followed by its own children: a unit
+    other than its parent's, at its ``unit``; a negative offset, at its
+    ``offset``; where the parent's length is known, an offset beyond it, at
+    the ``offset``, or else an end beyond it where the child's end is known
+    (see ``_child_ends``), at the child's ``length``. The end is spelled as
+    the parent's number type writes it, as a fraction pair where that type
+    cannot write it exactly. Values compare exactly.
+    """
+    length = timeline.get("length")
+    ends = _child_ends(timeline)
+    for index, child in enumerate(_entries(timeline, "children")):
+        at = (*path, "children", index)
+        offset = _exact(child["offset"])
+        if child["unit"] != timeline["unit"]:
+            yield SchemaValidationError(
+                (*at, "unit"),
+                f"child '{child['id']}' has unit '{child['unit']}', its parent "
+                f"'{timeline['id']}' has '{timeline['unit']}'",
+            )
+        if offset < 0:
+            yield SchemaValidationError(
+                (*at, "offset"),
+                f"offset {spell(child['offset'])} of '{child['id']}' is negative",
+            )
+        end = ends[index]
+        if length is not None and offset > _exact(length):
+            yield SchemaValidationError(
+                (*at, "offset"),
+                f"offset {spell(child['offset'])} of '{child['id']}' is beyond the "
+                f"length {spell(length)} of its parent '{timeline['id']}'",
+            )
+        elif length is not None and end is not None and end > _exact(length):
+            pair = [end.numerator, end.denominator]
+            yield SchemaValidationError(
+                (*at, "length"),
+                f"child '{child['id']}' ends at "
+                f"{_rewritten(pair, number_type_of(timeline)) or spell(pair)}, beyond "
+                f"the length {spell(length)} of its parent '{timeline['id']}'",
+            )
+        yield from _child_problems(child, at)
+
+
+def _root_problems(root: Mapping[str, Any], path: _Path) -> list[SchemaValidationError]:
+    """Return the problems of one root, its own scope.
+
+    Duplicate ids within its tree, then jump targets, then children off their
+    parent's axis or beyond its length, then segment lines.
+    """
+    problems: list[SchemaValidationError] = []
+    first: dict[str, _Path] = {}
+    for identifier, at in _element_ids(root, path):
+        if identifier in first:
+            problems.append(_duplicate(identifier, at, first[identifier]))
+        else:
+            first[identifier] = at
+    problems.extend(_dangling_targets(root, path))
+    problems.extend(_child_problems(root, path))
+    problems.extend(_segment_problems(root, path))
+    return problems
+
+
+def _segment_problems(
+    timeline: Mapping[str, Any], path: _Path
+) -> Iterator[SchemaValidationError]:
+    """Yield the problems of every segment line of a timeline tree.
+
+    A timeline with ``is_segment_line`` true holds only its segments, visited
+    in offset order (ties by id in code-point order): a segment whose
+    ``is_segment_line`` differs from the first segment's, at that member (at
+    the segment where it is absent); a segment that does not start where the
+    one before it ends (the first at 0), at its ``offset``; then, if the last
+    segment does not end at the segment line's length, one problem at
+    the ``length``. A segment of unknown length ends where its successor
+    starts, so the successor's offset is not checked, and the end is not
+    checked where the last segment's length or the segment line's is not
+    known. Values compare exactly; the tree is visited in identity order.
+    """
+    children = _entries(timeline, "children")
+    if timeline.get("is_segment_line") is True:
+        order = _offset_order(children)
+        end: Fraction | None = Fraction(0)
+        flag = False
+        first_id = ""
+        for position, index in enumerate(order):
+            segment = children[index]
+            at = (*path, "children", index)
+            name = f"segment {segment['id']!r} of segment line {timeline['id']!r}"
+            segment_flag = segment.get("is_segment_line") is True
+            if position == 0:
+                flag, first_id = segment_flag, segment["id"]
+            elif segment_flag != flag:
+                yield SchemaValidationError(
+                    (*at, "is_segment_line") if "is_segment_line" in segment else at,
+                    f"{name} differs from segment {first_id!r} in is_segment_line",
+                )
+            offset = _exact(segment["offset"])
+            if end is not None and offset != end:
+                yield SchemaValidationError(
+                    (*at, "offset"),
+                    f"{name} does not "
+                    + (
+                        "start at 0"
+                        if position == 0
+                        else "start where the one before it ends"
+                    ),
+                )
+            length = segment.get("length")
+            end = None if length is None else offset + _exact(length)
+        length = timeline.get("length")
+        if end is not None and length is not None and end != _exact(length):
+            yield SchemaValidationError(
+                (*path, "length"),
+                f"the segments of segment line {timeline['id']!r} do not end at its "
+                "length",
+            )
+    for index, child in enumerate(children):
+        yield from _segment_problems(child, (*path, "children", index))
 
 
 _PART_WORDS = ("start", "end", "name", "label", "card")
-"""The part words, which no element other than a timeline may carry as its id
-in a group or bundle file."""
+"""The part words, which follow an element's address as its parts and so are no id."""
 
 
-def _part_word_problems(
-    timeline: Mapping[str, Any], path: tuple[str | int, ...]
-) -> Iterable[SchemaValidationError]:
-    """Yield a problem for each element id of a tree that is a part word.
-
-    Timeline ids are exempt; the other elements are visited in identity order.
-    """
-    timelines = {at for _, at in _timeline_ids(timeline, path)}
-    for identifier, at in _element_ids(timeline, path):
-        if identifier in _PART_WORDS and at not in timelines:
-            yield SchemaValidationError(
-                at, f"id {identifier!r} is reserved in a group or bundle file"
-            )
-
-
-def _file_timelines(
-    roots: list[Mapping[str, Any]], problems: list[SchemaValidationError]
-) -> dict[str, tuple[str | int, ...]]:
-    """Return the first path of every timeline id of a file's roots.
-
-    Each root is its own id scope under the rules of a timeline file. Then,
-    root by root, each element id other than a timeline id that is a part
-    word is one problem at that id. A timeline id is moreover unique across
-    the file: each one that repeats a timeline id of an earlier root is one
-    problem, located at its later occurrence (a repetition within one root is
-    that root's problem).
-    """
-    first: dict[str, tuple[str | int, ...]] = {}
-    for index, root in enumerate(roots):
-        problems.extend(_timeline_problems(root, ("timelines", index)))
-    for index, root in enumerate(roots):
-        problems.extend(_part_word_problems(root, ("timelines", index)))
-    for index, root in enumerate(roots):
-        seen: dict[str, tuple[str | int, ...]] = {}
-        for identifier, path in _timeline_ids(root, ("timelines", index)):
-            if identifier in seen:
-                continue
-            seen[identifier] = path
-            if identifier in first:
-                problems.append(_duplicate(identifier, path, first[identifier]))
-        for identifier, path in seen.items():
-            first.setdefault(identifier, path)
-    return first
+def _reserved(identifier: str, path: _Path) -> SchemaValidationError:
+    return SchemaValidationError(
+        path, f"id {identifier!r} is reserved for the parts of an address"
+    )
 
 
 def _order_problems(
-    group: Mapping[str, Any],
-    order: list[str],
-    path: tuple[str | int, ...],
-) -> Iterable[SchemaValidationError]:
+    group: Mapping[str, Any], order: list[str], path: _Path
+) -> Iterator[SchemaValidationError]:
     """Yield the problems of a display order that is no permutation of members.
 
     Each entry that is not a member is one problem at the entry; then each
@@ -586,187 +702,155 @@ def _ancestors(roots: list[Mapping[str, Any]]) -> dict[str, tuple[str, ...]]:
 
     def visit(timeline: Mapping[str, Any], above: tuple[str, ...]) -> None:
         found.setdefault(timeline["id"], above)
-        for key in sorted(timeline["children"]):
-            visit(timeline["children"][key]["timeline"], (timeline["id"], *above))
+        for child in _entries(timeline, "children"):
+            visit(child, (timeline["id"], *above))
 
     for root in roots:
         visit(root, ())
     return found
 
 
-def _nesting(
-    member: str,
-    earlier: list[str],
-    ancestors: Mapping[str, tuple[str, ...]],
-    path: tuple[str | int, ...],
-) -> SchemaValidationError | None:
-    """Return the problem of a member nested with an earlier member of its group.
-
-    A member inside an earlier member (its descendant) or containing one (its
-    ancestor) is one problem at the member; the first such earlier member is
-    named.
-    """
-    for other in earlier:
-        if other in ancestors[member]:
-            relation = "lies inside"
-        elif member in ancestors.get(other, ()):
-            relation = "contains"
-        else:
-            continue
-        return SchemaValidationError(
-            path, f"member {member!r} {relation} member {other!r} of the same group"
-        )
-    return None
-
-
 def _member_problems(
     group: Mapping[str, Any],
-    path: tuple[str | int, ...],
+    path: _Path,
     ancestors: Mapping[str, tuple[str, ...]],
-    first_member: dict[str, tuple[str | int, ...]] | None,
-) -> Iterable[SchemaValidationError]:
+    first_member: dict[str, _Path],
+) -> Iterator[SchemaValidationError]:
     """Yield the problems of a group's members, member by member.
 
-    A member naming no timeline of the file is one problem and is not checked
-    further. In a bundle (``first_member`` given) a member named by an earlier
-    group is one problem; then, in either file, a member nested with an
-    earlier member of the same group is one.
+    A member naming no timeline of the manifest is one problem and is not
+    checked further; a member named by an earlier group is one; then a member
+    nested with an earlier member of the same group (inside it or containing
+    it) is one, naming the first such earlier member.
     """
     checked: list[str] = []
     for index, member in enumerate(group["members"]):
         at = (*path, index)
         if member not in ancestors:
             yield SchemaValidationError(
-                at, f"{member!r} names no timeline of this file"
+                at, f"{member!r} names no timeline of this manifest"
             )
             continue
-        if first_member is not None:
-            if member in first_member:
-                earlier = json_pointer(first_member[member])
-                yield SchemaValidationError(
-                    at, f"duplicate member {member!r}, first at {earlier}"
-                )
+        if member in first_member:
+            earlier = json_pointer(first_member[member])
+            yield SchemaValidationError(
+                at, f"duplicate member {member!r}, first at {earlier}"
+            )
+        else:
+            first_member[member] = at
+        for other in checked:
+            if other in ancestors[member]:
+                relation = "lies inside"
+            elif member in ancestors.get(other, ()):
+                relation = "contains"
             else:
-                first_member[member] = at
-        problem = _nesting(member, checked, ancestors, at)
-        if problem is not None:
-            yield problem
+                continue
+            yield SchemaValidationError(
+                at, f"member {member!r} {relation} member {other!r} of the same group"
+            )
+            break
         checked.append(member)
 
 
-def _group_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
+def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
+    """Return the violations of the identity rules in a schema-valid manifest.
+
+    In this order, one problem per finding:
+
+    1. root by root, in array order, each root's tree is its own scope: every
+       id of a timeline, conversion map, region, break, jump and marker of the
+       tree is unique within it, each repeated id one problem at its later
+       occurrence in identity order (a timeline, then its maps, regions,
+       breaks, jumps and markers, then its children in array order),
+       ``duplicate id '<id>', first at <pointer>``; then each jump whose
+       non-null ``target`` names no marker of its own timeline, at the target;
+       then each child whose ``unit`` is not its parent's, ``child '<id>' has
+       unit '<u>', its parent '<pid>' has '<pu>'``, whose ``offset`` is
+       negative, ``offset <v> of '<id>' is negative``, whose ``offset`` is
+       beyond its parent's known length, ``offset <v> of '<id>' is beyond the
+       length <pl> of its parent '<pid>'``, or which ends beyond it, ``child
+       '<id>' ends at <e>, beyond the length <pl> of its parent '<pid>'``
+       (see ``_child_problems``); then the segment lines (see
+       ``_segment_problems``);
+    2. every id that is a part word (``start``, ``end``, ``name``, ``label``,
+       ``card``), which follow an address as its parts: the manifest's ``id``,
+       then root by root every id of the tree in identity order, then each
+       group's id;
+    3. a timeline id (of a root or a descendant) repeating a timeline id of an
+       earlier root, at the later occurrence;
+    4. a group id equal to a timeline id (first at the timeline) or to the id
+       of an earlier group (first at that group), at the group's ``id``;
+    5. the manifest's ``id`` equal to a timeline id or a group id, at ``id``,
+       first at the timeline, else at the first such group;
+    6. group by group, member by member: a member naming no timeline of the
+       manifest; a member already named by an earlier group, ``duplicate
+       member``; a member nested with an earlier member of the same group
+       (inside it or containing it), each at the member;
+    7. each key of ``graphical.order`` in code-point order: a key naming no
+       group, at the key; each entry that is not a member of the group, at the
+       entry; then each member missing from the order, at the order.
+
+    A key with a default may be absent; its default applies.
+    """
     problems: list[SchemaValidationError] = []
-    roots = value["timelines"]
-    timelines = _file_timelines(roots, problems)
-    group = value["group"]
-    if group["id"] in timelines:
-        problems.append(
-            _duplicate(group["id"], ("group", "id"), timelines[group["id"]])
-        )
-    problems.extend(
-        _member_problems(group, ("group", "members"), _ancestors(roots), None)
-    )
-    members = set(group["members"])
+    roots = _entries(value, "timelines")
+    groups = _entries(value, "groups")
     for index, root in enumerate(roots):
-        if members.isdisjoint(identifier for identifier, _ in _timeline_ids(root, ())):
-            problems.append(
-                SchemaValidationError(
-                    ("timelines", index),
-                    f"timeline {root['id']!r} contains no member of the group",
-                )
-            )
-    order = value.get("graphical", {}).get("order")
-    if order is not None:
-        problems.extend(_order_problems(group, order, ("graphical", "order")))
-    return problems
-
-
-def _bundle_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
-    problems: list[SchemaValidationError] = []
-    timelines = _file_timelines(value["timelines"], problems)
-    groups = value["bundle"]["groups"]
+        problems.extend(_root_problems(root, ("timelines", index)))
+    manifest_id = value.get("id")
+    if manifest_id in _PART_WORDS:
+        problems.append(_reserved(manifest_id, ("id",)))
+    for index, root in enumerate(roots):
+        for identifier, at in _element_ids(root, ("timelines", index)):
+            if identifier in _PART_WORDS:
+                problems.append(_reserved(identifier, at))
+    for index, group in enumerate(groups):
+        if group["id"] in _PART_WORDS:
+            problems.append(_reserved(group["id"], ("groups", index, "id")))
+    timelines: dict[str, _Path] = {}
+    for index, root in enumerate(roots):
+        seen: dict[str, _Path] = {}
+        for identifier, path in _timeline_ids(root, ("timelines", index)):
+            if identifier in seen:
+                continue
+            seen[identifier] = path
+            if identifier in timelines:
+                problems.append(_duplicate(identifier, path, timelines[identifier]))
+        for identifier, path in seen.items():
+            timelines.setdefault(identifier, path)
     first_group: dict[str, int] = {}
     for index, group in enumerate(groups):
-        path = ("bundle", "groups", index, "id")
         identifier = group["id"]
+        path = ("groups", index, "id")
         if identifier in timelines:
             problems.append(_duplicate(identifier, path, timelines[identifier]))
         elif identifier in first_group:
-            earlier = ("bundle", "groups", first_group[identifier], "id")
+            earlier = ("groups", first_group[identifier], "id")
             problems.append(_duplicate(identifier, path, earlier))
         first_group.setdefault(identifier, index)
-    identifier = value["bundle"]["id"]
-    if identifier in timelines:
-        earlier = timelines[identifier]
-    elif identifier in first_group:
-        earlier = ("bundle", "groups", first_group[identifier], "id")
-    else:
-        earlier = None
-    if earlier is not None:
-        problems.append(_duplicate(identifier, ("bundle", "id"), earlier))
-    ancestors = _ancestors(value["timelines"])
-    first_member: dict[str, tuple[str | int, ...]] = {}
-    for group_index, group in enumerate(groups):
-        path = ("bundle", "groups", group_index, "members")
-        problems.extend(_member_problems(group, path, ancestors, first_member))
-    orders = value.get("graphical", {}).get("order", {})
+    if manifest_id is not None:
+        if manifest_id in timelines:
+            problems.append(_duplicate(manifest_id, ("id",), timelines[manifest_id]))
+        elif manifest_id in first_group:
+            earlier = ("groups", first_group[manifest_id], "id")
+            problems.append(_duplicate(manifest_id, ("id",), earlier))
+    ancestors = _ancestors(roots)
+    first_member: dict[str, _Path] = {}
+    for index, group in enumerate(groups):
+        problems.extend(
+            _member_problems(
+                group, ("groups", index, "members"), ancestors, first_member
+            )
+        )
+    orders = (value.get("graphical") or {}).get("order") or {}
     for key in sorted(orders):
         path = ("graphical", "order", key)
         if key not in first_group:
             problems.append(
-                SchemaValidationError(path, f"{key!r} names no group of this bundle")
+                SchemaValidationError(path, f"{key!r} names no group of this manifest")
             )
         else:
             problems.extend(
                 _order_problems(groups[first_group[key]], orders[key], path)
             )
     return problems
-
-
-def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
-    """Return the violations of the identity rules in a schema-valid file.
-
-    **Timeline file.** Every id of the manifest (timelines, conversion maps,
-    regions, breaks, jumps and markers) is unique within it across all kinds:
-    each repeated id is one problem, located at its second occurrence in
-    identity order (a timeline, then its maps, regions, breaks, jumps and
-    markers, then its children by key). A jump's non-null ``target`` names a
-    marker of the same timeline; each one that does not is one problem,
-    located at the ``target``. A segment line's segments are contiguous from 0
-    to its length, of its class, with one ``is_segment_line`` value (see
-    ``_segment_problems``). The duplicate problems come first, then the
-    targets, then the segment lines.
-
-    **Group and bundle files**, in this order:
-
-    1. each root of ``timelines``, in array order, is its own scope under the
-       timeline-file rules, its problems located under ``timelines/<i>``;
-    2. root by root, in identity order, a conversion-map, region, break, jump
-       or marker id that is a part word (``start``, ``end``, ``name``,
-       ``label`` or ``card``, which follow an element's address as its
-       parts): at that ``id``, ``id '<word>' is reserved in a group or bundle
-       file``;
-    3. a timeline id (of a root or a descendant) repeating a timeline id of an
-       earlier root: at the later occurrence, ``duplicate id``;
-    4. a group id equal to a timeline id (at the group's ``id``, first at the
-       timeline), or, in a bundle, to the id of an earlier group (first at
-       that group);
-    5. in a bundle, a bundle id equal to a timeline id or to a group id (at
-       ``bundle/id``, first at the timeline, else at the first such group);
-    6. member by member: a member naming no timeline of the file, at the
-       member; in a bundle, a member already named by an earlier group, at the
-       later member, ``duplicate member``; a member nested with an earlier
-       member of the same group (inside it or containing it), at the later
-       member;
-    7. in a group file, a root containing no member, at the root;
-    8. ``graphical.order`` (a group file's array, or each entry of a bundle's
-       object in code-point order of its keys): a key naming no group, at the
-       key; each entry that is not a member of the group, at the entry; then
-       each member missing from the order, at the order.
-    """
-    kind = file_kind(value)
-    if kind == "group":
-        return _group_problems(value)
-    if kind == "bundle":
-        return _bundle_problems(value)
-    return _timeline_problems(value["timeline"], ("timeline",))

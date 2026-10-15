@@ -1,35 +1,30 @@
 {
-  "bundle": {
-    "groups": [
-      {
-        "id": "group_1",
-        "members": [
-          "score:clt_1"
-        ],
-        "meta": {},
-        "name": "score"
-      }
-    ],
-    "id": "bundle_1",
-    "meta": {},
-    "name": null,
-    "support_policy": "omit"
-  },
   "graphical": {
     "order": {
       "group_1": [
         "score:clt_1"
       ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "score:clt_1"
+      ],
+      "meta": {},
+      "name": "score"
     }
-  },
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": null,
   "timelines": [
     {
-      "children": {},
-      "class": "DiscreteLogicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "id": "ticks_to_seconds:Chopin_op10_no3_p01",
@@ -47,11 +42,7 @@
       },
       "id": "perf:Chopin_op10_no3_p01:dlt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "ticks",
-        "value": 79900
-      },
+      "length": 79900,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -62,8 +53,7 @@
       "unit": "ticks"
     },
     {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "id": "quarters_to_divs",
@@ -92,14 +82,10 @@
       },
       "id": "score:clt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          83,
-          2
-        ]
-      },
+      "length": [
+        83,
+        2
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -109,5 +95,6 @@
       "regions": [],
       "unit": "quarters"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

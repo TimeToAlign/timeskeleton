@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "dlt_1",
+      "length": 6959,
+      "unit": "ticks"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

@@ -1,0 +1,189 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "id": "page_1_accolade_1",
+              "length": 400,
+              "locked": true,
+              "name": "1",
+              "offset": 0,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_1_accolade_2",
+              "length": 450,
+              "locked": true,
+              "name": "2",
+              "offset": 400,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_1_accolade_3",
+              "length": 452,
+              "locked": true,
+              "name": "3",
+              "offset": 850,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_1_accolade_4",
+              "length": 452,
+              "locked": true,
+              "name": "4",
+              "offset": 1302,
+              "unit": "pixels"
+            }
+          ],
+          "id": "page_1",
+          "is_segment_line": true,
+          "length": 1754,
+          "locked": true,
+          "name": "Page 1",
+          "offset": 0,
+          "unit": "pixels"
+        },
+        {
+          "children": [
+            {
+              "id": "page_2_accolade_1",
+              "length": 400,
+              "locked": true,
+              "name": "1",
+              "offset": 0,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_2_accolade_2",
+              "length": 450,
+              "locked": true,
+              "name": "2",
+              "offset": 400,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_2_accolade_3",
+              "length": 452,
+              "locked": true,
+              "name": "3",
+              "offset": 850,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_2_accolade_4",
+              "length": 452,
+              "locked": true,
+              "name": "4",
+              "offset": 1302,
+              "unit": "pixels"
+            }
+          ],
+          "id": "page_2",
+          "is_segment_line": true,
+          "length": 1754,
+          "locked": true,
+          "name": "Page 2",
+          "offset": 1754,
+          "unit": "pixels"
+        },
+        {
+          "children": [
+            {
+              "id": "page_3_accolade_1",
+              "length": 400,
+              "locked": true,
+              "name": "1",
+              "offset": 0,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_3_accolade_2",
+              "length": 450,
+              "locked": true,
+              "name": "2",
+              "offset": 400,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_3_accolade_3",
+              "length": 452,
+              "locked": true,
+              "name": "3",
+              "offset": 850,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_3_accolade_4",
+              "length": 452,
+              "locked": true,
+              "name": "4",
+              "offset": 1302,
+              "unit": "pixels"
+            }
+          ],
+          "id": "page_3",
+          "is_segment_line": true,
+          "length": 1754,
+          "locked": true,
+          "name": "Page 3",
+          "offset": 3508,
+          "unit": "pixels"
+        },
+        {
+          "children": [
+            {
+              "id": "page_4_accolade_1",
+              "length": 400,
+              "locked": true,
+              "name": "1",
+              "offset": 0,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_4_accolade_2",
+              "length": 450,
+              "locked": true,
+              "name": "2",
+              "offset": 400,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_4_accolade_3",
+              "length": 452,
+              "locked": true,
+              "name": "3",
+              "offset": 850,
+              "unit": "pixels"
+            },
+            {
+              "id": "page_4_accolade_4",
+              "length": 452,
+              "locked": true,
+              "name": "4",
+              "offset": 1302,
+              "unit": "pixels"
+            }
+          ],
+          "id": "page_4",
+          "is_segment_line": true,
+          "length": 1754,
+          "locked": true,
+          "name": "Page 4",
+          "offset": 5262,
+          "unit": "pixels"
+        }
+      ],
+      "id": "pages",
+      "is_segment_line": true,
+      "length": 7016,
+      "name": "Pages",
+      "unit": "pixels"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

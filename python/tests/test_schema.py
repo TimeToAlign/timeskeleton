@@ -1,24 +1,13 @@
 from __future__ import annotations
 
-import copy
-import json
+from collections.abc import Iterator
 from pathlib import Path
+from typing import Any
 
-import pytest
-
-from timeskeleton import (
-    SCHEMA_VERSION,
-    SUPPORTED_VERSIONS,
-    UnsupportedVersionError,
-    fixture_paths,
-    load_schema,
-    schema_documents,
-    schema_path,
-    validate,
-)
+from timeskeleton import DEFAULTS, SCHEMA_VERSION, load_schema, schema_path
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
-SCHEMA_ID = "https://timetoalign.github.io/timeskeleton/0.6.0/timeskeleton.schema.json"
+UNKNOWN = {"x-unknown-key": True}
 
 TIMELINE_CLASSES = [
     "ContinuousLogicalTimeline",
@@ -28,120 +17,6 @@ TIMELINE_CLASSES = [
     "DiscretePhysicalTimeline",
     "DiscreteGraphicalTimeline",
 ]
-
-TIME_UNITS = [
-    "number",
-    "floating_measures",
-    "whole_note",
-    "quarters",
-    "ticks",
-    "milliseconds",
-    "seconds",
-    "minutes",
-    "samples",
-    "frames",
-    "pixels",
-    "meters",
-    "centimeters",
-    "millimeters",
-    "inches",
-    "points",
-]
-
-NUMBER_TYPES = ["int", "float", "fraction"]
-ID_PATTERN = r"^[^/\u0000-\u001f]+$"
-
-MEASURE_MAP_ROW_KEYS = [
-    "ID",
-    "count",
-    "qstamp",
-    "number",
-    "name",
-    "time_signature",
-    "nominal_length",
-    "actual_length",
-    "start_repeat",
-    "end_repeat",
-    "next",
-    "volta",
-    "offset_within_measure",
-]
-
-MANIFEST_KEYS = [
-    "id",
-    "name",
-    "class",
-    "unit",
-    "number_type",
-    "length",
-    "locked",
-    "meta",
-    "children",
-    "conversion_maps",
-    "regions",
-    "flow_control",
-    "measure_map",
-    "metric_hierarchy",
-]
-
-
-def test_schema_version_is_the_latest_supported_version() -> None:
-    assert SCHEMA_VERSION == "0.7.0"
-    assert SUPPORTED_VERSIONS == ("0.5.0", "0.6.0", "0.7.0")
-    assert SUPPORTED_VERSIONS[-1] == SCHEMA_VERSION
-
-
-def test_schema_path_names_the_bundled_file() -> None:
-    for version in ["0.5.0", "0.6.0"]:
-        path = schema_path(version)
-        assert path.is_file()
-        assert path.name == f"timeskeleton-{version}.schema.json"
-        assert schema_documents(version) == ("timeline",)
-        with pytest.raises(
-            ValueError, match=f"schema {version} has no 'group' document"
-        ):
-            schema_path(version, "group")
-
-
-@pytest.mark.parametrize("version", ["0.5.0", "0.6.0"])
-def test_each_schema_declares_its_version(version: str) -> None:
-    schema = load_schema(version)
-    assert f"/{version}/" in schema["$id"]
-    assert schema["properties"]["meta"]["properties"]["schema_version"]["const"] == (
-        version
-    )
-
-
-def test_the_manifest_format_is_unchanged_since_0_5_0() -> None:
-    def without_version(version: str) -> dict:
-        schema = copy.deepcopy(load_schema(version))
-        del schema["$id"], schema["description"]
-        del schema["properties"]["meta"]["properties"]["schema_version"]["const"]
-        return schema
-
-    assert without_version("0.5.0") == without_version("0.6.0")
-
-
-def test_schema_identity() -> None:
-    schema = load_schema("0.6.0")
-    assert schema["$id"] == SCHEMA_ID
-    assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
-    version = schema["properties"]["meta"]["properties"]["schema_version"]
-    assert version == {
-        "const": "0.6.0",
-        "description": "The timeskeleton release this manifest conforms to.",
-    }
-
-
-def test_the_manifest_holds_exactly_one_timeline() -> None:
-    schema = load_schema("0.6.0")
-    assert list(schema["properties"]) == ["meta", "timeline", "graphical"]
-    assert schema["properties"]["timeline"] == {"$ref": "#/$defs/TimelineManifest"}
-    assert schema["properties"]["graphical"] == {"$ref": "#/$defs/Graphical"}
-    assert schema["required"] == ["meta", "timeline"]
-    assert schema["additionalProperties"] is False
-
-
 CONVERSION_MAP_TYPES = [
     "BeatInMeasureMap",
     "ChainMap",
@@ -165,33 +40,268 @@ CONVERSION_MAP_TYPES = [
     "TableMap",
     "TicksToQuarters",
 ]
+TIME_UNITS = [
+    "number",
+    "floating_measures",
+    "whole_note",
+    "quarters",
+    "ticks",
+    "milliseconds",
+    "seconds",
+    "minutes",
+    "samples",
+    "frames",
+    "pixels",
+    "meters",
+    "centimeters",
+    "millimeters",
+    "inches",
+    "points",
+]
+PUBLIC = [
+    "TimeSkeleton",
+    "Timeline",
+    "Group",
+    "Graphical",
+    "ConversionMap",
+    "Coordinate",
+    "Number",
+    "Fraction",
+    "TimeUnit",
+    "NumberType",
+    "Id",
+    "MeasureMapRow",
+]
 
 
-def test_the_graphical_block_vocabulary() -> None:
-    defs = load_schema("0.6.0")["$defs"]
-    graphical = defs["Graphical"]
-    assert graphical["properties"] == {
-        "styles": {
-            "type": "object",
-            "description": graphical["properties"]["styles"]["description"],
-            "additionalProperties": {"$ref": "#/$defs/Declaration"},
-        },
-        "statements": {
-            "type": "array",
-            "description": graphical["properties"]["statements"]["description"],
-            "items": {"$ref": "#/$defs/Statement"},
-        },
+def _defs() -> dict[str, Any]:
+    return load_schema()["$defs"]
+
+
+def _nodes(node: Any, inside: bool = False) -> Iterator[tuple[dict, bool]]:
+    """Yield every schema node and whether it lies in a branch or an arm."""
+    if isinstance(node, list):
+        for item in node:
+            yield from _nodes(item, inside)
+    elif isinstance(node, dict):
+        yield node, inside
+        for key, value in node.items():
+            if key in ("oneOf", "anyOf", "if", "then", "else"):
+                yield from _nodes(value, True)
+            elif key in ("properties", "$defs"):
+                for child in value.values():
+                    yield from _nodes(child, False)
+            elif key not in ("default", "const", "enum"):
+                yield from _nodes(value, inside)
+
+
+def test_one_document_with_one_root() -> None:
+    schema = load_schema()
+    assert SCHEMA_VERSION == "0.7.0"
+    assert (
+        schema_path()
+        == REPOSITORY_ROOT / "schema" / "0.7.0" / "timeskeleton.schema.json"
+    )
+    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema").iterdir()) == ["0.7.0"]
+    assert sorted(p.name for p in (REPOSITORY_ROOT / "schema" / "0.7.0").iterdir()) == [
+        "timeskeleton.schema.json"
+    ]
+    assert schema["$id"] == (
+        "https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json"
+    )
+    assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert schema["$ref"] == "#/$defs/TimeSkeleton"
+
+
+def test_references_are_local_and_resolve_without_anchors() -> None:
+    defs = _defs()
+    references = [node["$ref"] for node, _ in _nodes(load_schema()) if "$ref" in node]
+    assert references
+    for reference in references:
+        assert reference.startswith("#/$defs/")
+        assert reference.removeprefix("#/$defs/") in defs
+    assert not [node for node, _ in _nodes(load_schema()) if "$anchor" in node]
+
+
+def test_the_public_definitions() -> None:
+    defs = _defs()
+    assert set(PUBLIC) <= set(defs)
+    for gone in (
+        "Meta",
+        "TimelineClass",
+        "TimelineManifest",
+        "Bundle",
+        "GroupGraphical",
+        "BundleGraphical",
+        "CoordinateNonnegative",
+    ):
+        assert gone not in defs
+
+
+def test_the_manifest() -> None:
+    manifest = _defs()["TimeSkeleton"]
+    assert list(manifest["properties"]) == [
+        "$schema",
+        "timeskeleton",
+        "id",
+        "name",
+        "meta",
+        "timelines",
+        "groups",
+        "graphical",
+    ]
+    assert manifest["required"] == ["timeskeleton", "timelines"]
+    assert manifest["properties"]["timeskeleton"]["const"] == "0.7.0"
+    assert manifest["properties"]["$schema"]["type"] == "string"
+    assert manifest["properties"]["timelines"]["items"] == {"$ref": "#/$defs/Timeline"}
+
+
+def test_the_timeline() -> None:
+    timeline = _defs()["Timeline"]
+    properties = timeline["properties"]
+    assert list(properties) == [
+        "id",
+        "name",
+        "unit",
+        "number_type",
+        "length",
+        "offset",
+        "locked",
+        "is_segment_line",
+        "meta",
+        "children",
+        "conversion_maps",
+        "regions",
+        "flow_control",
+        "measure_map",
+        "metric_hierarchy",
+    ]
+    assert timeline["required"] == ["id", "unit", "length"]
+    assert properties["length"]["anyOf"] == [
+        {"$ref": "#/$defs/NumberNonnegative"},
+        {"type": "null"},
+    ]
+    assert properties["offset"]["$ref"] == "#/$defs/Number"
+    assert properties["children"]["items"] == {
+        "$ref": "#/$defs/Timeline",
+        "required": ["offset"],
     }
+    assert (
+        properties["locked"]["description"] == "Whether the timeline's length is fixed."
+    )
+    defs = _defs()
+    for definition, keys in (
+        ("Region", ["start", "end"]),
+        ("Break", ["coordinate"]),
+        ("Jump", ["from_coordinate", "to_coordinate"]),
+        ("Marker", ["coordinate"]),
+    ):
+        for key in keys:
+            assert defs[definition]["properties"][key] == {"$ref": "#/$defs/Number"}
+
+
+def test_groups_and_the_graphical_block() -> None:
+    defs = _defs()
+    assert list(defs["Group"]["properties"]) == ["id", "name", "meta", "members"]
+    assert defs["Group"]["required"] == ["id", "members"]
+    graphical = defs["Graphical"]
+    assert list(graphical["properties"]) == ["styles", "statements", "order"]
     assert "required" not in graphical
-    assert graphical["additionalProperties"] is False
-    statement = defs["Statement"]
-    assert statement["required"] == ["select", "set"]
-    assert statement["additionalProperties"] is False
-    assert statement["properties"]["select"] == {"$ref": "#/$defs/Selector"}
-    assert [
-        {key: value for key, value in branch.items() if key != "description"}
-        for branch in statement["properties"]["set"]["oneOf"]
-    ] == [{"$ref": "#/$defs/Declaration"}, {"type": "string"}]
+    order = graphical["properties"]["order"]
+    assert order["propertyNames"] == {"$ref": "#/$defs/Id"}
+    assert order["additionalProperties"] == {"$ref": "#/$defs/MemberOrder"}
+    assert not [node for node, _ in _nodes(load_schema()) if "support_policy" in node]
+    for name in CONVERSION_MAP_TYPES:
+        definition = defs[name]
+        assert definition["properties"]["type"]["const"] == name
+        assert "name" in definition["properties"]
+        assert "name" not in definition["required"]
+        assert set(definition["required"]) == set(definition["properties"]) - {"name"}
+
+
+def test_objects_are_open_and_mark_their_unknown_keys() -> None:
+    nodes = list(_nodes(load_schema()))
+    assert not [node for node, _ in nodes if node.get("additionalProperties") is False]
+    marked = 0
+    for node, inside in nodes:
+        is_object = node.get("type") == "object" and "properties" in node
+        if inside:
+            assert "unevaluatedProperties" not in node
+        elif is_object:
+            assert node["unevaluatedProperties"] == UNKNOWN
+            marked += 1
+        else:
+            assert "unevaluatedProperties" not in node
+    assert marked == len(CONVERSION_MAP_TYPES) + 14
+
+
+def test_free_objects_say_so() -> None:
+    defs = _defs()
+    free = [
+        defs["TimeSkeleton"]["properties"]["meta"],
+        defs["Timeline"]["properties"]["meta"],
+        defs["Timeline"]["properties"]["metric_hierarchy"],
+        defs["Region"]["properties"]["meta"],
+        defs["Break"]["properties"]["meta"],
+        defs["Jump"]["properties"]["meta"],
+        defs["Group"]["properties"]["meta"],
+    ]
+    for node in free:
+        assert node["additionalProperties"] is True
+        assert "properties" not in node
+
+
+def test_every_marked_object_declares_what_its_branches_declare() -> None:
+    for node, inside in _nodes(load_schema()):
+        if inside or "unevaluatedProperties" not in node:
+            continue
+        declared = set(node["properties"])
+        assert "patternProperties" not in node
+        for key in ("oneOf", "anyOf"):
+            for branch in node.get(key, []):
+                assert set(branch.get("properties", {})) <= declared
+        for key in ("if", "then", "else"):
+            assert set(node.get(key, {}).get("properties", {})) <= declared
+
+
+def test_the_defaults_are_the_table() -> None:
+    defs = _defs()
+    kinds = {
+        "manifest": ["TimeSkeleton"],
+        "timeline": ["Timeline"],
+        "flow_control": ["FlowControl"],
+        "region": ["Region"],
+        "break": ["Break"],
+        "jump": ["Jump"],
+        "marker": ["Marker"],
+        "conversion_map": CONVERSION_MAP_TYPES,
+        "group": ["Group"],
+        "graphical": ["Graphical"],
+    }
+    assert sorted(kinds) == sorted(DEFAULTS)
+    covered = set()
+    for kind, names in kinds.items():
+        for name in names:
+            covered.add(name)
+            declared = {
+                key: member["default"]
+                for key, member in defs[name]["properties"].items()
+                if "default" in member
+            }
+            assert declared == DEFAULTS[kind], name
+    for name, definition in defs.items():
+        if name not in covered:
+            assert not any(
+                "default" in m for m in definition.get("properties", {}).values()
+            )
+    assert "default" not in defs["Timeline"]["properties"]["number_type"]
+
+
+def test_the_vocabulary() -> None:
+    defs = _defs()
+    assert defs["TimeUnit"]["enum"] == TIME_UNITS
+    assert defs["NumberType"]["enum"] == ["int", "float", "fraction"]
+    assert defs["Id"]["pattern"] == r"^[^/\u0000-\u001f]+$"
     assert defs["ElementType"]["enum"] == [
         "block",
         "timeline",
@@ -203,37 +313,28 @@ def test_the_graphical_block_vocabulary() -> None:
         "wedge",
         "name",
         "label",
+        "boundary",
+        "ancestor",
+        "group",
+        "card",
     ]
-    map_types = [
-        name
-        for name, definition in defs.items()
-        if definition.get("properties", {}).get("type", {}).get("const") == name
-    ]
-    assert map_types == CONVERSION_MAP_TYPES
-    selector = defs["Selector"]
-    properties = selector["properties"]
-    assert list(properties) == [
+    selector = defs["Selector"]["properties"]
+    assert list(selector) == [
         "element",
         "ids",
         "domain",
         "modality",
         "class",
         "within",
+        "inside",
     ]
-    assert properties["element"] == {"$ref": "#/$defs/ElementType"}
-    assert properties["ids"]["items"] == {"type": "string"}
-    assert properties["ids"]["minItems"] == 1
-    assert properties["ids"]["uniqueItems"] is True
-    assert properties["domain"]["enum"] == ["graphical", "logical", "physical"]
-    assert properties["modality"]["enum"] == ["continuous", "discrete"]
-    assert properties["class"]["enum"] == TIMELINE_CLASSES + CONVERSION_MAP_TYPES
-    assert properties["within"]["type"] == "string"
-    assert selector["additionalProperties"] is False
+    assert selector["class"]["enum"] == TIMELINE_CLASSES + CONVERSION_MAP_TYPES
+    assert selector["ids"]["minItems"] == 1
+    assert selector["ids"]["uniqueItems"] is True
+    assert selector["domain"]["enum"] == ["graphical", "logical", "physical"]
+    assert selector["modality"]["enum"] == ["continuous", "discrete"]
     assert defs["Paint"]["pattern"] == "^(#[0-9A-F]{6}|none)$"
-    declaration = defs["Declaration"]
-    assert declaration["additionalProperties"] is False
-    assert "minProperties" not in declaration
-    members = declaration["properties"]
+    members = defs["Declaration"]["properties"]
     assert members == {
         "stroke": {"$ref": "#/$defs/Paint"},
         "stroke-width": {"type": "number", "minimum": 0},
@@ -257,524 +358,5 @@ def test_the_graphical_block_vocabulary() -> None:
                 {"const": "none"},
             ]
         },
-    }
-
-
-def test_enumerations_are_the_library_vocabulary() -> None:
-    defs = load_schema("0.6.0")["$defs"]
-    assert defs["TimelineClass"]["enum"] == TIMELINE_CLASSES
-    assert defs["TimeUnit"]["enum"] == TIME_UNITS
-    assert defs["NumberType"]["enum"] == NUMBER_TYPES
-
-
-def test_timeline_manifest_is_closed_over_fourteen_keys() -> None:
-    manifest = load_schema("0.6.0")["$defs"]["TimelineManifest"]
-    assert manifest["required"] == MANIFEST_KEYS
-    assert list(manifest["properties"]) == MANIFEST_KEYS
-    assert manifest["additionalProperties"] is False
-    assert manifest["properties"]["metric_hierarchy"]["description"] == (
-        "The metric hierarchy, or null; an object without further constraints."
-    )
-
-
-def test_ids_are_nonempty_without_slashes_or_control_characters() -> None:
-    defs = load_schema("0.6.0")["$defs"]
-    assert defs["TimelineManifest"]["properties"]["id"]["pattern"] == ID_PATTERN
-    assert defs["TimelineManifest"]["properties"]["children"]["propertyNames"] == {
-        "pattern": ID_PATTERN
-    }
-    definitions_with_id = [
-        definition
-        for definition in defs.values()
-        if "id" in definition.get("properties", {})
-    ]
-    assert len(definitions_with_id) == 26
-    assert all(
-        definition["properties"]["id"]["pattern"] == ID_PATTERN
-        for definition in definitions_with_id
-    )
-
-
-def test_regions_and_flow_control_carry_ids() -> None:
-    defs = load_schema("0.6.0")["$defs"]
-    assert defs["Region"]["required"] == ["id", "name", "start", "end", "meta"]
-    assert defs["Region"]["properties"]["name"]["type"] == ["string", "null"]
-    assert defs["Break"]["required"] == [
-        "id",
-        "coordinate",
-        "control_type",
-        "condition",
-        "repeat_count",
-        "label",
-        "name",
-        "meta",
-    ]
-    assert defs["Jump"]["required"] == [
-        "id",
-        "from_coordinate",
-        "to_coordinate",
-        "control_type",
-        "condition",
-        "repeat_count",
-        "target",
-        "label",
-        "meta",
-    ]
-    assert defs["Jump"]["properties"]["target"]["type"] == ["string", "null"]
-    marker = defs["Marker"]
-    assert marker["required"] == ["id", "name", "coordinate"]
-    assert list(marker["properties"]) == ["id", "name", "coordinate"]
-    assert marker["properties"]["name"]["type"] == ["string", "null"]
-    assert marker["properties"]["coordinate"] == {"$ref": "#/$defs/Coordinate"}
-    assert defs["FlowControl"]["properties"]["markers"] == {
-        "type": "array",
-        "items": {"$ref": "#/$defs/Marker"},
-    }
-    for name in ["Region", "Break", "Jump", "Marker"]:
-        assert defs[name]["additionalProperties"] is False
-
-
-def test_measure_map_is_a_nonempty_compressed_row_list() -> None:
-    measure_map = load_schema("0.6.0")["$defs"]["MeasureMap"]
-    row = load_schema("0.6.0")["$defs"]["MeasureMapRow"]
-    assert measure_map["type"] == "array"
-    assert measure_map["items"] == {"$ref": "#/$defs/MeasureMapRow"}
-    assert measure_map["minItems"] == 1
-    assert list(row["properties"]) == MEASURE_MAP_ROW_KEYS
-    assert row["anyOf"] == [{"required": ["ID"]}, {"required": ["count"]}]
-    assert row["additionalProperties"] is False
-    properties = row["properties"]
-    assert properties["actual_length"]["$ref"] == "#/$defs/NumberPositive"
-    assert properties["offset_within_measure"]["$ref"] == "#/$defs/NumberPositive"
-    assert properties["qstamp"]["$ref"] == "#/$defs/NumberNonnegative"
-    assert properties["nominal_length"]["anyOf"] == [
-        {"$ref": "#/$defs/NumberPositive"},
-        {"type": "null"},
-    ]
-
-
-def test_measure_map_is_admitted_on_quarters_timelines_only() -> None:
-    manifest = load_schema("0.6.0")["$defs"]["TimelineManifest"]
-    assert manifest["if"] == {
-        "properties": {"unit": {"const": "quarters"}},
-        "required": ["unit"],
-    }
-    assert manifest["else"] == {"properties": {"measure_map": {"type": "null"}}}
-
-
-def test_metrical_position_map_states_its_meter_map_once() -> None:
-    position_map = load_schema("0.6.0")["$defs"]["MetricalPositionMap"]
-    assert position_map["required"] == [
-        "type",
-        "id",
-        "name",
-        "source_unit",
-        "target_unit",
-        "meter_map",
-        "beat_map_id",
-    ]
-    assert position_map["additionalProperties"] is False
-
-
-@pytest.mark.parametrize(
-    ("version", "added"),
-    [
-        ("0.6.0", []),
-        (
-            "0.7.0",
-            [
-                "locked_root.json",
-                "segment_children.json",
-                "segment_line.json",
-                "segment_pages.json",
-                "segment_pages_accolades.json",
-                "segment_pages_locked.json",
-            ],
-        ),
-    ],
-)
-def test_fixture_set_contains_exactly_the_0_5_0_manifests(
-    version: str, added: list[str]
-) -> None:
-    names = [path.name for path in fixture_paths(version)]
-    assert names == sorted(
-        [
-            *added,
-            "bare.json",
-            "contiguous.json",
-            "continuous_graphical.json",
-            "continuous_logical.json",
-            "continuous_physical.json",
-            "conversion_maps__maps_quarters.json",
-            "conversion_maps__maps_samples.json",
-            "conversion_maps__maps_seconds.json",
-            "conversion_maps__maps_ticks.json",
-            "corpus_audio_audio.json",
-            "corpus_midi_score_midi.json",
-            "corpus_parangonar_parangonada__score_dlt_1.json",
-            "corpus_score_ms3.json",
-            "corpus_supra_iiif.json",
-            "discrete_graphical.json",
-            "discrete_logical.json",
-            "discrete_physical.json",
-            "flow_control.json",
-            "map.json",
-            "nested.json",
-            "styled__performance.json",
-            "styled__score.json",
-            "with_region.json",
-        ]
-    )
-
-
-def test_the_remaining_parangonar_fixture_is_the_discrete_score() -> None:
-    (path,) = [p for p in fixture_paths() if "parangonar" in p.name]
-    timeline = json.loads(path.read_text(encoding="utf-8"))["timeline"]
-    assert path.name == "corpus_parangonar_parangonada__score_dlt_1.json"
-    assert timeline["class"] == "DiscreteLogicalTimeline"
-    assert [entry["type"] for entry in timeline["conversion_maps"]] == ["LinearMap"]
-
-
-_GREY = {"stroke": "#404040", "fill": "#404040"}
-_SHARED = [
-    {"select": {"element": "label"}, "set": _GREY},
-    {"select": {"element": "name"}, "set": _GREY},
-    {"select": {"element": "map"}, "set": {"side": "below"}},
-    {"select": {"ids": ["a"]}, "set": {"display": "none"}},
-]
-_STYLED_SCORE = {
-    "styles": {
-        "accent": {
-            "stroke": "#1D4ED8",
-            "fill": "#1D4ED8",
-            "stroke-width": 4,
-            "opacity": 0.8,
-        }
-    },
-    "statements": [
-        *_SHARED,
-        {"select": {"element": "block"}, "set": {"rx": 4}},
-        {
-            "select": {"class": "ContinuousLogicalTimeline", "element": "timeline"},
-            "set": "accent",
-        },
-        {
-            "select": {"class": "QuartersToTicks"},
-            "set": {"stroke": "#7C3AED", "stroke-width": 1.5},
-        },
-        {
-            "select": {"element": "map", "modality": "discrete"},
-            "set": {"stroke-dasharray": "4 2"},
-        },
-        {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
-        {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
-        {
-            "select": {"element": "jump", "domain": "logical"},
-            "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
-        },
-        {
-            "select": {"element": "wedge", "within": "score"},
-            "set": {"side": "above", "stroke": "#65A30D", "fill": "#65A30D"},
-        },
-        {
-            "select": {"ids": ["score/end"]},
-            "set": {"stroke": "#B45309", "fill": "#B45309"},
-        },
-        {
-            "select": {"element": "child", "within": "score"},
-            "set": {"display": "inline"},
-        },
-        {
-            "select": {"element": "child", "within": "b"},
-            "set": {"stroke": "#EA580C", "fill": "#EA580C"},
-        },
-        {
-            "select": {"element": "label", "within": "score"},
-            "set": {"fill": "#4D7C0F", "font-size": 10},
-        },
-        {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
-        {"select": {"ids": ["intro/label"]}, "set": {"fill": "#0E7490"}},
-        {"select": {"ids": ["da-capo/label"]}, "set": {"fill": "#9D174D"}},
-        {
-            "select": {"ids": ["score/name"]},
-            "set": {
-                "fill": "#111827",
-                "font-size": 12,
-                "content": "Styled score",
-                "max-width": 120,
-            },
-        },
-        {"select": {"element": "name", "within": "b"}, "set": {"fill": "#0369A1"}},
-    ],
-}
-
-
-def _styled(name: str) -> dict:
-    (path,) = [p for p in fixture_paths() if p.name == name]
-    return json.loads(path.read_text(encoding="utf-8"))["graphical"]
-
-
-def test_the_styled_manifests_carry_their_statements() -> None:
-    expected = {
-        "styled__score.json": _STYLED_SCORE,
-        "styled__performance.json": {
-            "statements": [
-                *_SHARED,
-                {
-                    "select": {
-                        "element": "wedge",
-                        "domain": "physical",
-                        "within": "performance",
-                    },
-                    "set": {"stroke": "#7F00FF", "fill": "#7F00FF"},
-                },
-            ],
-        },
-    }
-    styled = {}
-    for path in fixture_paths():
-        manifest = json.loads(path.read_text(encoding="utf-8"))
-        if "graphical" in manifest:
-            assert list(manifest) == ["graphical", "meta", "timeline"]
-            styled[path.name] = manifest["graphical"]
-    assert styled == expected
-    assert [len(value["statements"]) for value in expected.values()] == [21, 5]
-
-
-# The drawn elements and texts of styled__score: (type, address, timeline it
-# belongs to, class, domain, modality, parent address). The map's domain and
-# modality are those of its target unit, ticks.
-_LOGICAL = ("ContinuousLogicalTimeline", "logical", "continuous")
-_SCORE_ELEMENTS = [
-    ("timeline", "score", "score", *_LOGICAL, None),
-    ("child", "b", "b", *_LOGICAL, "score"),
-    ("map", "ticks", "score", "QuartersToTicks", "logical", "discrete", "score"),
-    ("region", "intro", "score", *_LOGICAL, "score"),
-    ("jump", "da-capo", "score", *_LOGICAL, "score"),
-    ("wedge", "score/start", "score", *_LOGICAL, "score"),
-    ("wedge", "score/end", "score", *_LOGICAL, "score"),
-    ("name", "score/name", "score", *_LOGICAL, "score"),
-    ("name", "b/name", "b", *_LOGICAL, "b"),
-    ("label", "score/start/label", "score", *_LOGICAL, "score/start"),
-    ("label", "score/end/label", "score", *_LOGICAL, "score/end"),
-    ("label", "intro/label", "score", *_LOGICAL, "intro"),
-    ("label", "da-capo/label", "score", *_LOGICAL, "da-capo"),
-]
-_ANCESTRY = {"score": ["score"], "b": ["b", "score"]}
-_DEPTH = {"score": 1, "b": 2}
-
-
-def _resolve(graphical: dict, element: tuple, prop: str) -> str:
-    """Return the value the manifest's own statements give ``prop``.
-
-    Ranks follow docs/drawing.md section 2.5 within one layer: ids, depth of
-    within, class, element, the count of domain and modality, position. An
-    inherited property no statement sets is taken from the parent.
-    """
-    kind, address, owner, cls, domain, modality, parent = element
-    ranked = []
-    for position, statement in enumerate(graphical["statements"]):
-        select = statement["select"]
-        declaration = statement["set"]
-        if isinstance(declaration, str):
-            declaration = graphical["styles"][declaration]
-        if prop not in declaration:
-            continue
-        if any(
-            (key == "element" and value != kind)
-            or (key == "ids" and address not in value)
-            or (key == "class" and value != cls)
-            or (key == "domain" and value != domain)
-            or (key == "modality" and value != modality)
-            or (key == "within" and value not in _ANCESTRY[owner])
-            for key, value in select.items()
-        ):
-            continue
-        rank = (
-            "ids" in select,
-            _DEPTH[select["within"]] if "within" in select else 0,
-            "class" in select,
-            "element" in select,
-            ("domain" in select) + ("modality" in select),
-            position,
-        )
-        ranked.append((rank, declaration[prop]))
-    if ranked:
-        return max(ranked)[1]
-    assert parent is not None, (address, prop)
-    (parent_element,) = [e for e in _SCORE_ELEMENTS if e[1] == parent]
-    return _resolve(graphical, parent_element, prop)
-
-
-def test_every_styled_score_item_has_its_own_colour() -> None:
-    graphical = _styled("styled__score.json")
-    painted = {"name": "fill", "label": "fill", "wedge": "fill"}
-    colours = {
-        element[1]: _resolve(graphical, element, painted.get(element[0], "stroke"))
-        for element in _SCORE_ELEMENTS
-    }
-    assert colours == {
-        "score": "#1D4ED8",
-        "b": "#EA580C",
-        "ticks": "#7C3AED",
-        "intro": "#0F766E",
-        "da-capo": "#DB2777",
-        "score/start": "#65A30D",
-        "score/end": "#B45309",
-        "score/name": "#111827",
-        "b/name": "#0369A1",
-        "score/start/label": "#4D7C0F",
-        "score/end/label": "#A16207",
-        "intro/label": "#0E7490",
-        "da-capo/label": "#9D174D",
-    }
-    assert len(set(colours.values())) == 13
-    for element in _SCORE_ELEMENTS:
-        if element[0] in {"timeline", "child", "jump", "wedge"}:
-            assert _resolve(graphical, element, "fill") == colours[element[1]]
-
-
-def test_every_styled_score_item_is_visible() -> None:
-    graphical = _styled("styled__score.json")
-    declarations = [
-        (statement["select"], statement["set"])
-        for statement in graphical["statements"]
-        if isinstance(statement["set"], dict)
-    ] + [(None, style) for style in graphical["styles"].values()]
-    for select, declaration in declarations:
-        assert declaration.get("stroke-width", 1) > 0
-        assert declaration.get("opacity", 1) >= 0.5
-        if declaration.get("display") == "none":
-            assert select == {"ids": ["a"]}
-    content = [
-        select for select, declaration in declarations if "content" in declaration
-    ]
-    assert content == [{"ids": ["score/name"]}]
-
-
-@pytest.mark.parametrize("accessor", [schema_path, load_schema, fixture_paths])
-def test_unknown_version_is_refused(accessor) -> None:
-    with pytest.raises(UnsupportedVersionError) as caught:
-        accessor("9.9.9")
-    assert caught.value.version == "9.9.9"
-
-
-GROUP_FIXTURES = [
-    "corpus_tilia.json",
-    "group_child_member.json",
-    "group_grandchild.json",
-    "group_number_types.json",
-    "group_parent_both.json",
-    "group_parent_exact.json",
-    "group_parent_right.json",
-    "group_parents_mixed.json",
-    "group_styled.json",
-]
-BUNDLE_FIXTURES = [
-    "bundle_mixed.json",
-    "bundle_shared_parent.json",
-    "bundle_ungrouped.json",
-    "corpus_ieee1599.json",
-    "corpus_listen_here.json",
-    "corpus_matchfile.json",
-    "corpus_mpm.json",
-    "corpus_parangonada.json",
-    "corpus_tilia.json",
-]
-
-
-def test_the_group_and_bundle_fixture_sets() -> None:
-    assert [path.name for path in fixture_paths("0.7.0", "group")] == GROUP_FIXTURES
-    assert [path.name for path in fixture_paths("0.7.0", "bundle")] == BUNDLE_FIXTURES
-    assert fixture_paths("0.6.0", "group") == fixture_paths("0.6.0", "bundle") == []
-
-
-def test_the_styled_group_is_the_number_types_group_with_a_block() -> None:
-    def read(name: str) -> dict:
-        (path,) = [p for p in fixture_paths("0.7.0", "group") if p.name == name]
-        data = json.loads(path.read_text(encoding="utf-8"))
-        del data["meta"]["generator"]
-        return data
-
-    styled = read("group_styled.json")
-    plain = read("group_number_types.json")
-    assert styled["graphical"] == {
-        "order": plain["graphical"]["order"],
-        "styles": {"frame-highlight": {"stroke": "#7F00FF"}},
-        "statements": [
-            {"select": {"element": "group"}, "set": "frame-highlight"},
-            {
-                "select": {"element": "name", "ids": ["group_1/name"]},
-                "set": {"fill": "#7F00FF"},
-            },
-            {
-                "select": {"element": "card", "inside": "group"},
-                "set": {"shadow": "#C4B5FD", "rx": 2},
-            },
-        ],
-    }
-    assert styled["group"]["id"] == "group_1"
-    styled["graphical"] = plain["graphical"]
-    assert styled == plain
-
-
-def test_0_7_0_adds_four_element_types_inside_and_shadow() -> None:
-    old = load_schema("0.6.0")["$defs"]
-    new = load_schema("0.7.0", "core")["$defs"]
-    assert new["ElementType"]["enum"] == [
-        *old["ElementType"]["enum"],
-        "boundary",
-        "ancestor",
-        "group",
-        "card",
-    ]
-    selector = new["Selector"]
-    assert selector["properties"] == {
-        **old["Selector"]["properties"],
-        "inside": {
-            "$ref": "#/$defs/ElementType",
-            "description": (
-                "An element type: the element must be held, at any depth, by an "
-                "element of that type in the drawing's element tree."
-            ),
-        },
-    }
-    assert list(selector["properties"])[-1] == "inside"
-    assert selector["additionalProperties"] is False
-    declaration = new["Declaration"]["properties"]
-    assert declaration == {
-        **old["Declaration"]["properties"],
         "shadow": {"$ref": "#/$defs/Paint"},
     }
-    assert list(declaration)[-1] == "shadow"
-
-
-@pytest.mark.parametrize(
-    "statement",
-    [
-        {"select": {"element": "card"}, "set": {"rx": 5}},
-        {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
-        {"select": {"element": "card"}, "set": {"shadow": "#B8BEC8"}},
-    ],
-)
-def test_0_7_0_accepts_card_inside_and_shadow(statement: dict, load_fixture) -> None:
-    manifest = load_fixture("bare", "0.7.0")
-    manifest["graphical"] = {"statements": [statement]}
-    validate(manifest)
-
-
-def _defaults_block() -> dict:
-    """The JSON block of section 4 of the drawing specification."""
-    text = (REPOSITORY_ROOT / "docs" / "drawing.md").read_text(encoding="utf-8")
-    section = text.split("\n## 4. Defaults\n", 1)[1]
-    block = section.split("```json\n", 1)[1].split("\n```", 1)[0]
-    return json.loads(block)
-
-
-def test_the_defaults_are_a_valid_graphical_block(load_fixture) -> None:
-    defaults = _defaults_block()
-    assert len(defaults["styles"]) == 3
-    assert len(defaults["statements"]) == 28
-    manifest = load_fixture("bare", "0.7.0")
-    manifest["graphical"] = defaults
-    validate(manifest)

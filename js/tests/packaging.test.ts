@@ -30,14 +30,13 @@ describe("the npm package", () => {
     expect(manifest.exports["./docs/*"]).toBe("./docs/*");
   });
 
-  it("ships the four 0.7.0 schema documents", () => {
-    for (const name of ["core", "timeline", "group", "bundle"]) {
-      const path = `schema/0.7.0/${name}.schema.json`;
-      expect(shipped).toContain(path);
-      expect(readFileSync(resolve(packageDirectory, path))).toEqual(
-        readFileSync(resolve(repositoryRoot, path)),
-      );
-    }
+  it("ships the schema document", () => {
+    const path = "schema/0.7.0/timeskeleton.schema.json";
+    expect(shipped).toContain(path);
+    expect(shipped.filter((file) => file.startsWith("schema/"))).toEqual([path]);
+    expect(readFileSync(resolve(packageDirectory, path))).toEqual(
+      readFileSync(resolve(repositoryRoot, path)),
+    );
   });
 
   it("ships the repository's licence", () => {

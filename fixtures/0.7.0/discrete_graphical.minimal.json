@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "dgt_2",
+          "length": 640,
+          "locked": true,
+          "offset": 16,
+          "unit": "pixels"
+        },
+        {
+          "id": "dgt_3",
+          "length": 480,
+          "locked": true,
+          "offset": 1000,
+          "unit": "pixels"
+        }
+      ],
+      "id": "dgt_1",
+      "length": 1920,
+      "unit": "pixels"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

@@ -3,7 +3,7 @@
 <rect x="0" y="0" width="527.0793" height="67.4766" rx="10" fill="#F3F4F6"/>
 <rect data-address="maps:seconds/card" x="10" y="10" width="509.0793" height="49.4766" rx="5" fill="#B8BEC8"/>
 <rect data-address="maps:seconds/card" x="8" y="8" width="509.0793" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-address="cmap_1" points="98.1479,16 498.1479,16 498.1479,18 98.1479,18" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="maps:seconds/cmap_1" points="98.1479,16 498.1479,16 498.1479,18 98.1479,18" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
 <line data-address="maps:seconds" x1="98.1479" y1="22.5" x2="498.1479" y2="22.5" stroke="#0050EF" stroke-width="3"/>
 <circle data-address="maps:seconds" cx="98.1479" cy="22.5" r="3" fill="#0050EF"/>
 <polygon data-address="maps:seconds" points="507.1479,22.5 498.1479,18 498.1479,27" fill="#0050EF"/>

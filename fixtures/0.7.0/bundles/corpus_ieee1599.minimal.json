@@ -1,0 +1,299 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "spine:dlt_1"
+      ],
+      "group_2": [
+        "los:dlt_2"
+      ],
+      "group_3": [
+        "original_score:dgt_1"
+      ],
+      "group_4": [
+        "finale_transcription:dgt_2"
+      ],
+      "group_5": [
+        "khomus_audio:cpt_1"
+      ],
+      "group_6": [
+        "khomus_video:cpt_2"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "spine:dlt_1"
+      ],
+      "name": "spine:dlt_1"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "los:dlt_2"
+      ],
+      "name": "los:dlt_2"
+    },
+    {
+      "id": "group_3",
+      "members": [
+        "original_score:dgt_1"
+      ],
+      "name": "original_score:dgt_1"
+    },
+    {
+      "id": "group_4",
+      "members": [
+        "finale_transcription:dgt_2"
+      ],
+      "name": "finale_transcription:dgt_2"
+    },
+    {
+      "id": "group_5",
+      "members": [
+        "khomus_audio:cpt_1"
+      ],
+      "name": "khomus_audio:cpt_1"
+    },
+    {
+      "id": "group_6",
+      "members": [
+        "khomus_video:cpt_2"
+      ],
+      "name": "khomus_video:cpt_2"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "khomus",
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "id": "dgt_7",
+              "length": 4264,
+              "locked": true,
+              "name": "accolade_1",
+              "offset": 0,
+              "unit": "pixels"
+            },
+            {
+              "id": "dgt_8",
+              "length": 4372,
+              "locked": true,
+              "name": "accolade_2",
+              "offset": 4264,
+              "unit": "pixels"
+            },
+            {
+              "id": "dgt_9",
+              "length": 4180,
+              "locked": true,
+              "name": "accolade_3",
+              "offset": 8636,
+              "unit": "pixels"
+            },
+            {
+              "id": "dgt_10",
+              "length": 4110,
+              "locked": true,
+              "name": "accolade_4",
+              "offset": 12816,
+              "unit": "pixels"
+            }
+          ],
+          "id": "dgt_6",
+          "is_segment_line": true,
+          "length": 16926,
+          "locked": true,
+          "meta": {
+            "page": {
+              "encoding_format": "image_jpeg",
+              "file_format": "image_jpeg",
+              "file_name": "score_files/finale_transcription/khomus_finale_score.jpg",
+              "measurement_unit": "pixels",
+              "position_in_group": 1
+            }
+          },
+          "name": "page_1",
+          "offset": 0,
+          "unit": "pixels"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "boundaries": [
+            0
+          ],
+          "id": "cmap_1",
+          "name": "file_name",
+          "source_unit": "pixels",
+          "target_unit": null,
+          "type": "IntervalToConstantMap",
+          "values": [
+            "score_files/finale_transcription/khomus_finale_score.jpg"
+          ]
+        }
+      ],
+      "id": "finale_transcription:dgt_2",
+      "is_segment_line": true,
+      "length": 16926,
+      "meta": {
+        "description": "Finale transcription",
+        "pages": [
+          {
+            "encoding_format": "image_jpeg",
+            "file_format": "image_jpeg",
+            "file_name": "score_files/finale_transcription/khomus_finale_score.jpg",
+            "measurement_unit": "pixels",
+            "position_in_group": 1
+          }
+        ]
+      },
+      "name": "Finale transcription",
+      "unit": "pixels"
+    },
+    {
+      "id": "khomus_audio:cpt_1",
+      "length": 46.98,
+      "meta": {
+        "encoding_format": "audio_wav",
+        "file_format": "audio_wav",
+        "file_name": "audio_files/khomus_audio.wav",
+        "performers": [
+          {
+            "name": "Audio performance",
+            "type": "khomus"
+          }
+        ],
+        "timing_type": "seconds"
+      },
+      "name": "khomus_audio",
+      "unit": "seconds"
+    },
+    {
+      "id": "khomus_video:cpt_2",
+      "length": 45.88,
+      "meta": {
+        "encoding_format": "video_avi",
+        "file_format": "video_avi",
+        "file_name": "audio_files/khomus_video.mp4",
+        "performers": [
+          {
+            "name": "Lesson",
+            "type": "khomus"
+          }
+        ],
+        "timing_type": "seconds"
+      },
+      "name": "khomus_video",
+      "unit": "seconds"
+    },
+    {
+      "id": "los:dlt_2",
+      "length": 48128,
+      "name": "Logically organised symbols",
+      "unit": "ticks"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "id": "dgt_2",
+              "length": 1843,
+              "locked": true,
+              "name": "accolade_1",
+              "offset": 0,
+              "unit": "pixels"
+            },
+            {
+              "id": "dgt_3",
+              "length": 1943,
+              "locked": true,
+              "name": "accolade_2",
+              "offset": 1843,
+              "unit": "pixels"
+            },
+            {
+              "id": "dgt_4",
+              "length": 1804,
+              "locked": true,
+              "name": "accolade_3",
+              "offset": 3786,
+              "unit": "pixels"
+            },
+            {
+              "id": "dgt_5",
+              "length": 1828,
+              "locked": true,
+              "name": "accolade_4",
+              "offset": 5590,
+              "unit": "pixels"
+            }
+          ],
+          "id": "dgt_1",
+          "is_segment_line": true,
+          "length": 7418,
+          "locked": true,
+          "meta": {
+            "page": {
+              "encoding_format": "image_jpeg",
+              "file_format": "image_jpeg",
+              "file_name": "score_files/original_score/khomus_original_score.jpg",
+              "measurement_unit": "pixels",
+              "position_in_group": 1
+            }
+          },
+          "name": "page_1",
+          "offset": 0,
+          "unit": "pixels"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "boundaries": [
+            0
+          ],
+          "id": "cmap_1",
+          "name": "file_name",
+          "source_unit": "pixels",
+          "target_unit": null,
+          "type": "IntervalToConstantMap",
+          "values": [
+            "score_files/original_score/khomus_original_score.jpg"
+          ]
+        }
+      ],
+      "id": "original_score:dgt_1",
+      "is_segment_line": true,
+      "length": 7418,
+      "meta": {
+        "description": "Original score",
+        "pages": [
+          {
+            "encoding_format": "image_jpeg",
+            "file_format": "image_jpeg",
+            "file_name": "score_files/original_score/khomus_original_score.jpg",
+            "measurement_unit": "pixels",
+            "position_in_group": 1
+          }
+        ]
+      },
+      "name": "Original score",
+      "unit": "pixels"
+    },
+    {
+      "id": "spine:dlt_1",
+      "length": 48128,
+      "name": "Spine",
+      "unit": "ticks"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

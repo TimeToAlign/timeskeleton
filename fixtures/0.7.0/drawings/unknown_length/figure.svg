@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="527.7988" height="136.4531" viewBox="0 0 527.7988 136.4531" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="495.7988" height="104.4531" rx="10" fill="#F3F4F6"/>
+<rect data-address="score/card" x="10" y="10" width="477.7988" height="86.4531" rx="5" fill="#B8BEC8"/>
+<rect data-address="score/card" x="8" y="8" width="477.7988" height="86.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-address="score/region_1" d="M110.9417 67.9766Q110.9417 70.9766 113.9417 70.9766L193.656 70.9766Q196.656 70.9766 196.656 73.9766Q196.656 70.9766 199.656 70.9766L279.3703 70.9766Q282.3703 70.9766 282.3703 67.9766" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-address="score" x1="53.7988" y1="37" x2="465.7988" y2="37" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="score" cx="53.7988" cy="37" r="3" fill="#00CC00"/>
+<polyline data-address="score" points="468.7988,32.5 473.2988,37 468.7988,41.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polyline data-address="score" points="473.2988,32.5 477.7988,37 473.2988,41.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="coda" x1="339.5131" y1="23" x2="449.2988" y2="23" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="coda" cx="339.5131" cy="23" r="3" fill="#00CC00"/>
+<polygon data-address="coda" points="449.2988,23 453.7988,19.4 458.2988,23 453.7988,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="score/start" points="53.7988,38.5 50.7988,51.5 56.7988,51.5" fill="#000000"/>
+<text data-address="coda/name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">coda</text>
+<text data-address="score/name" x="16" y="40.8081" text-anchor="start" font-size="11" fill="#000000">score</text>
+<text data-address="score/start/label" x="53.7988" y="61.854" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+</g>
+</svg>

@@ -1,19 +1,14 @@
 {
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
-  "timeline": {
-    "children": {
-      "dpt_2": {
-        "offset": {
-          "number_type": "int",
-          "unit": "samples",
-          "value": 100
-        },
-        "timeline": {
-          "children": {},
-          "class": "DiscretePhysicalTimeline",
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -22,30 +17,19 @@
           },
           "id": "dpt_2",
           "is_segment_line": false,
-          "length": {
-            "number_type": "int",
-            "unit": "samples",
-            "value": 11025
-          },
+          "length": 11025,
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "int",
+          "offset": 100,
           "regions": [],
           "unit": "samples"
-        }
-      },
-      "dpt_3": {
-        "offset": {
-          "number_type": "int",
-          "unit": "samples",
-          "value": 20000
         },
-        "timeline": {
-          "children": {},
-          "class": "DiscretePhysicalTimeline",
+        {
+          "children": [],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -54,43 +38,36 @@
           },
           "id": "dpt_3",
           "is_segment_line": false,
-          "length": {
-            "number_type": "int",
-            "unit": "samples",
-            "value": 2205
-          },
+          "length": 2205,
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "int",
+          "offset": 20000,
           "regions": [],
           "unit": "samples"
         }
-      }
-    },
-    "class": "DiscretePhysicalTimeline",
-    "conversion_maps": [],
-    "flow_control": {
-      "breaks": [],
-      "jumps": [],
-      "markers": []
-    },
-    "id": "dpt_1",
-    "is_segment_line": false,
-    "length": {
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "dpt_1",
+      "is_segment_line": false,
+      "length": 44100,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
       "number_type": "int",
-      "unit": "samples",
-      "value": 44100
-    },
-    "locked": false,
-    "measure_map": null,
-    "meta": {},
-    "metric_hierarchy": null,
-    "name": null,
-    "number_type": "int",
-    "regions": [],
-    "unit": "samples"
-  }
+      "regions": [],
+      "unit": "samples"
+    }
+  ],
+  "timeskeleton": "0.7.0"
 }

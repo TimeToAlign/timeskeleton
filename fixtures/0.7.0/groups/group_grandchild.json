@@ -1,27 +1,32 @@
 {
   "graphical": {
-    "order": [
-      "theme",
-      "recording"
-    ]
+    "order": {
+      "group_1": [
+        "theme",
+        "recording"
+      ]
+    },
+    "statements": [],
+    "styles": {}
   },
-  "group": {
-    "id": "group_1",
-    "members": [
-      "recording",
-      "theme"
-    ],
-    "meta": {},
-    "name": "Theme"
-  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "recording",
+        "theme"
+      ],
+      "meta": {},
+      "name": "Theme"
+    }
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": null,
   "timelines": [
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -30,11 +35,7 @@
       },
       "id": "recording",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 12.0
-      },
+      "length": 12.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -45,86 +46,63 @@
       "unit": "seconds"
     },
     {
-      "children": {
-        "movement": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              16,
-              1
-            ]
-          },
-          "timeline": {
-            "children": {
-              "theme": {
-                "offset": {
-                  "number_type": "fraction",
-                  "unit": "quarters",
-                  "value": [
-                    8,
-                    1
-                  ]
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "ContinuousLogicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "theme",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "fraction",
-                    "unit": "quarters",
-                    "value": [
-                      8,
-                      1
-                    ]
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "Theme",
-                  "number_type": "fraction",
-                  "regions": [],
-                  "unit": "quarters"
-                }
-              }
-            },
-            "class": "ContinuousLogicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "movement",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                16,
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "theme",
+              "is_segment_line": false,
+              "length": [
+                8,
                 1
-              ]
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Movement",
-            "number_type": "fraction",
-            "regions": [],
-            "unit": "quarters"
-          }
+              ],
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "Theme",
+              "number_type": "fraction",
+              "offset": [
+                8,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "movement",
+          "is_segment_line": false,
+          "length": [
+            16,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Movement",
+          "number_type": "fraction",
+          "offset": [
+            16,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
         }
-      },
-      "class": "ContinuousLogicalTimeline",
+      ],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -133,14 +111,10 @@
       },
       "id": "score",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          64,
-          1
-        ]
-      },
+      "length": [
+        64,
+        1
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -150,5 +124,6 @@
       "regions": [],
       "unit": "quarters"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

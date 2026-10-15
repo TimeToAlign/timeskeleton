@@ -1,31 +1,4 @@
 {
-  "bundle": {
-    "groups": [
-      {
-        "id": "group_1",
-        "members": [
-          "score:clt_1",
-          "score:dlt_1"
-        ],
-        "meta": {},
-        "name": "score"
-      },
-      {
-        "id": "group_2",
-        "members": [
-          "perf:cpt_1",
-          "perf:dgt_1",
-          "perf:dpt_1"
-        ],
-        "meta": {},
-        "name": "perf"
-      }
-    ],
-    "id": "bundle_1",
-    "meta": {},
-    "name": "Beethoven_op35_1971Curzon_Var14only",
-    "support_policy": "omit"
-  },
   "graphical": {
     "order": {
       "group_1": [
@@ -37,16 +10,38 @@
         "perf:dpt_1",
         "perf:dgt_1"
       ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "meta": {},
+      "name": "score"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "perf:cpt_1",
+        "perf:dgt_1",
+        "perf:dpt_1"
+      ],
+      "meta": {},
+      "name": "perf"
     }
-  },
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": "Beethoven_op35_1971Curzon_Var14only",
   "timelines": [
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -55,11 +50,7 @@
       },
       "id": "perf:cpt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 75.37598985608956
-      },
+      "length": 75.37598985608956,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -70,12 +61,11 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "DiscreteGraphicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "name": "pixels_to_seconds",
+          "name": null,
           "scalar": 0.0029024943310657597,
           "source_unit": "pixels",
           "target_unit": "seconds",
@@ -89,11 +79,7 @@
       },
       "id": "perf:dgt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 26469
-      },
+      "length": 26469,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -104,12 +90,11 @@
       "unit": "pixels"
     },
     {
-      "children": {},
-      "class": "DiscretePhysicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "name": "samples_to_seconds",
+          "name": null,
           "sample_rate": 44100,
           "scalar": [
             1,
@@ -127,11 +112,7 @@
       },
       "id": "perf:dpt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "samples",
-        "value": 3324081
-      },
+      "length": 3324081,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -142,14 +123,13 @@
       "unit": "samples"
     },
     {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "extrapolate": "extrapolate",
           "id": "tmap_1",
           "kind": "linear",
-          "name": "quarters_to_seconds",
+          "name": null,
           "source_unit": "quarters",
           "target_unit": "seconds",
           "type": "TableMap",
@@ -206,14 +186,10 @@
       },
       "id": "score:clt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          46439,
-          720
-        ]
-      },
+      "length": [
+        46439,
+        720
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -224,12 +200,11 @@
       "unit": "quarters"
     },
     {
-      "children": {},
-      "class": "DiscreteLogicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "name": "ticks_to_quarters",
+          "name": null,
           "ppq": 720,
           "scalar": [
             1,
@@ -247,11 +222,7 @@
       },
       "id": "score:dlt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "ticks",
-        "value": 46440
-      },
+      "length": 46440,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -261,5 +232,6 @@
       "regions": [],
       "unit": "ticks"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

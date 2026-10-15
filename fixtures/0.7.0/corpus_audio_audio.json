@@ -1,31 +1,30 @@
 {
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
-  "timeline": {
-    "children": {},
-    "class": "ContinuousPhysicalTimeline",
-    "conversion_maps": [],
-    "flow_control": {
-      "breaks": [],
-      "jumps": [],
-      "markers": []
-    },
-    "id": "Bass Kick",
-    "is_segment_line": false,
-    "length": {
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "Bass Kick",
+      "is_segment_line": false,
+      "length": 231.0791836734694,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Bass Kick.mp3",
       "number_type": "float",
-      "unit": "seconds",
-      "value": 231.0791836734694
-    },
-    "locked": false,
-    "measure_map": null,
-    "meta": {},
-    "metric_hierarchy": null,
-    "name": "Bass Kick.mp3",
-    "number_type": "float",
-    "regions": [],
-    "unit": "seconds"
-  }
+      "regions": [],
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
 }

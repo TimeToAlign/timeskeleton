@@ -1,0 +1,2341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json",
+  "title": "TimeSkeleton manifest",
+  "description": "The TimeSkeleton 0.7.0 manifest: musical timelines as timetoalign serializes them, without their events. Every manifest is one object holding the version marker `timeskeleton` and an array of root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key it does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
+  "$ref": "#/$defs/TimeSkeleton",
+  "$defs": {
+    "TimeSkeleton": {
+      "type": "object",
+      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is a manifest of one root; a group is a manifest with one group. A manifest with an id or a name is named, one without both is anonymous. Timeline ids (of roots and descendants), group ids and the manifest id are unique together; every other id (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare id and every other element by `<root id>/<element id>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so these five words are no id anywhere. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by id and each group's members by code point; readers accept any order.",
+      "properties": {
+        "$schema": {
+          "type": "string",
+          "description": "The URL of this schema, a hint for editors. It is never read."
+        },
+        "timeskeleton": {
+          "const": "0.7.0",
+          "description": "The TimeSkeleton version this manifest conforms to. A reader reads it first: a value without it is no TimeSkeleton manifest."
+        },
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The manifest id. Without it the manifest is identified by nothing."
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The manifest's human-readable name, its title, or null when none was given.",
+          "default": null
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Free-form metadata of the manifest.",
+          "default": {}
+        },
+        "timelines": {
+          "type": "array",
+          "description": "The root timelines, each with all its descendants. The array may be empty.",
+          "items": {
+            "$ref": "#/$defs/Timeline"
+          }
+        },
+        "groups": {
+          "type": "array",
+          "description": "The timeline groups. A root no group names, and no descendant of which a group names, is ungrouped.",
+          "items": {
+            "$ref": "#/$defs/Group"
+          },
+          "default": []
+        },
+        "graphical": {
+          "$ref": "#/$defs/Graphical"
+        }
+      },
+      "required": [
+        "timeskeleton",
+        "timelines"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Timeline": {
+      "type": "object",
+      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. Arrays whose order carries no meaning have one canonical order: children by offset, then id; conversion maps by id; regions by start, end, id; breaks and markers by coordinate, then id; jumps by from and to coordinate, then id. Readers accept any order.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The timeline id."
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Human-readable name, or null when none was given.",
+          "default": null
+        },
+        "unit": {
+          "$ref": "#/$defs/TimeUnit"
+        },
+        "number_type": {
+          "$ref": "#/$defs/NumberType",
+          "description": "The number type of every coordinate on the timeline's axis. Absent means the unit's default: int for ticks, samples, frames and pixels; fraction for quarters and whole_note; float for every other unit."
+        },
+        "length": {
+          "description": "The end of the timeline on its own axis, or null when the length is not known.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NumberNonnegative"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "offset": {
+          "$ref": "#/$defs/Number",
+          "description": "Where the timeline's origin lies. A child's offset is required and lies on its parent's axis, in the parent's number type. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis, in the root's own number type; absent, the root has none."
+        },
+        "locked": {
+          "type": "boolean",
+          "description": "Whether the timeline's length is fixed.",
+          "default": false
+        },
+        "is_segment_line": {
+          "type": "boolean",
+          "description": "Whether the timeline is a segment line: a timeline containing only contiguous segments. Its children are its segments: each shares the segment line's unit, as every child shares its parent's; they are contiguous from 0 in offset order (a segment of unknown length ends where its successor starts) and end at its length where both are known, all with one is_segment_line value; segments that are segment lines themselves make a nested segment line. Contiguity and the one is_segment_line value are checked after the schema.",
+          "default": false
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Free-form metadata.",
+          "default": {}
+        },
+        "children": {
+          "type": "array",
+          "description": "The child timelines, each carrying its offset on this timeline's axis.",
+          "items": {
+            "$ref": "#/$defs/Timeline",
+            "required": [
+              "offset"
+            ]
+          },
+          "default": []
+        },
+        "conversion_maps": {
+          "type": "array",
+          "description": "Conversion maps attached to this timeline.",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          },
+          "default": []
+        },
+        "regions": {
+          "type": "array",
+          "description": "Regions of this timeline.",
+          "items": {
+            "$ref": "#/$defs/Region"
+          },
+          "default": []
+        },
+        "flow_control": {
+          "$ref": "#/$defs/FlowControl",
+          "default": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          }
+        },
+        "measure_map": {
+          "description": "The measure map, or null. A measure map is anchored in quarter notes, so only a timeline whose unit is quarters may carry one.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MeasureMap"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "metric_hierarchy": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": true,
+          "description": "The metric hierarchy, or null; an object without further constraints.",
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "unit",
+        "length"
+      ],
+      "if": {
+        "properties": {
+          "unit": {
+            "const": "quarters"
+          }
+        },
+        "required": [
+          "unit"
+        ]
+      },
+      "else": {
+        "properties": {
+          "measure_map": {
+            "type": "null"
+          }
+        }
+      },
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Group": {
+      "type": "object",
+      "description": "A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. When only part of a timeline takes part, the member is a child of that timeline, placed at its exact offset. A member names a timeline of the manifest, a root or a descendant at any depth; a timeline is a member of at most one group, and no member lies inside or contains another member of the same group. A child may belong to one group while its root belongs to another or to none.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The group id."
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Human-readable name, or null when none was given.",
+          "default": null
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Free-form metadata.",
+          "default": {}
+        },
+        "members": {
+          "type": "array",
+          "description": "The ids of the member timelines, sorted by code point. The array may be empty.",
+          "items": {
+            "$ref": "#/$defs/Id"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "id",
+        "members"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Graphical": {
+      "type": "object",
+      "description": "How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements and the display order of each group's members. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or a display order. An absent block draws every element with the other style layers alone.",
+      "properties": {
+        "styles": {
+          "type": "object",
+          "description": "Declarations by style name.",
+          "additionalProperties": {
+            "$ref": "#/$defs/Declaration"
+          },
+          "default": {}
+        },
+        "statements": {
+          "type": "array",
+          "description": "Statements in order; of two statements of equal rank the later one decides.",
+          "items": {
+            "$ref": "#/$defs/Statement"
+          },
+          "default": []
+        },
+        "order": {
+          "type": "object",
+          "description": "The display order of each group's members, keyed by group id; each value is a permutation of that group's members. A group without an entry is displayed in the order of its members.",
+          "propertyNames": {
+            "$ref": "#/$defs/Id"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/MemberOrder"
+          },
+          "default": {}
+        }
+      },
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "ConversionMap": {
+      "description": "A conversion map of a timeline, discriminated by its type.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/BeatInMeasureMap"
+        },
+        {
+          "$ref": "#/$defs/ChainMap"
+        },
+        {
+          "$ref": "#/$defs/CombinationMap"
+        },
+        {
+          "$ref": "#/$defs/ConstantMap"
+        },
+        {
+          "$ref": "#/$defs/FloorMap"
+        },
+        {
+          "$ref": "#/$defs/InterpolationMap"
+        },
+        {
+          "$ref": "#/$defs/IntervalToConstantMap"
+        },
+        {
+          "$ref": "#/$defs/LinearMap"
+        },
+        {
+          "$ref": "#/$defs/MetricMap"
+        },
+        {
+          "$ref": "#/$defs/MetricalPositionMap"
+        },
+        {
+          "$ref": "#/$defs/PiecewiseMap"
+        },
+        {
+          "$ref": "#/$defs/QuartersToFloatingMeasures"
+        },
+        {
+          "$ref": "#/$defs/QuartersToMeasureNumber"
+        },
+        {
+          "$ref": "#/$defs/QuartersToTicks"
+        },
+        {
+          "$ref": "#/$defs/RotationMap"
+        },
+        {
+          "$ref": "#/$defs/SamplesToSeconds"
+        },
+        {
+          "$ref": "#/$defs/ScalarMap"
+        },
+        {
+          "$ref": "#/$defs/SecondsToSamples"
+        },
+        {
+          "$ref": "#/$defs/ShiftMap"
+        },
+        {
+          "$ref": "#/$defs/TableMap"
+        },
+        {
+          "$ref": "#/$defs/TicksToQuarters"
+        }
+      ],
+      "discriminator": {
+        "propertyName": "type"
+      }
+    },
+    "Coordinate": {
+      "type": "object",
+      "description": "A position on a named timeline axis: the axis unit, the number type, and the value in the representation that number type selects. A position on the timeline's own axis is a bare Number instead; this form is for positions on other axes.",
+      "properties": {
+        "unit": {
+          "$ref": "#/$defs/TimeUnit"
+        },
+        "number_type": {
+          "$ref": "#/$defs/NumberType"
+        },
+        "value": {
+          "description": "The position, represented as selected by number_type."
+        }
+      },
+      "required": [
+        "unit",
+        "number_type",
+        "value"
+      ],
+      "oneOf": [
+        {
+          "description": "An integer coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "int"
+            },
+            "value": {
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "description": "A float coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "float"
+            },
+            "value": {
+              "type": "number"
+            }
+          }
+        },
+        {
+          "description": "An exact fraction coordinate.",
+          "properties": {
+            "number_type": {
+              "const": "fraction"
+            },
+            "value": {
+              "$ref": "#/$defs/Fraction"
+            }
+          }
+        }
+      ],
+      "discriminator": {
+        "propertyName": "number_type"
+      },
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Number": {
+      "description": "A bare JSON number or an exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number"
+        },
+        {
+          "$ref": "#/$defs/Fraction"
+        }
+      ]
+    },
+    "Fraction": {
+      "type": "array",
+      "description": "Rational number encoded as numerator and non-zero denominator",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "description": "Numerator, signed integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+        }
+      ],
+      "items": false
+    },
+    "TimeUnit": {
+      "type": "string",
+      "description": "The unit of a timeline axis.",
+      "enum": [
+        "number",
+        "floating_measures",
+        "whole_note",
+        "quarters",
+        "ticks",
+        "milliseconds",
+        "seconds",
+        "minutes",
+        "samples",
+        "frames",
+        "pixels",
+        "meters",
+        "centimeters",
+        "millimeters",
+        "inches",
+        "points"
+      ]
+    },
+    "NumberType": {
+      "type": "string",
+      "description": "The number type of every coordinate on a timeline axis. It selects the representation of a coordinate's value: int is a JSON integer, float a JSON number, fraction a Fraction pair.",
+      "enum": [
+        "int",
+        "float",
+        "fraction"
+      ]
+    },
+    "Id": {
+      "type": "string",
+      "pattern": "^[^/\\u0000-\\u001f]+$",
+      "description": "An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed."
+    },
+    "MeasureMapRow": {
+      "type": "object",
+      "description": "One row of the Measure Map standard plus the TimeSkeleton extensions volta and offset_within_measure.",
+      "properties": {
+        "ID": {
+          "type": "string",
+          "description": "Any unique string to identify this Measure object. Unique, here, means that the string cannot be used as ID for another object that forms part of the same MeasureMap. The 'next' array may use these IDs to refer to other Measures. Additionally, IDs can prove useful in cross-relating between MeasureMaps relating to different editions of the same piece, e.g. by assigning identical IDs for measures that are identical across the two. The ID could be, for instance, human-readable form (e.g., the 'count' value converted to a string) or a random string (often the case in MEI scores)."
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Position of this Measure object in the MeasureMap, using natural numbers starting with 1. This serves primarily as an index, and does not attempt detailed musical conventions. In the simplest case (e.g., a score with no anacrusis or other irregularities) this count matches the (most musical) number field below."
+        },
+        "qstamp": {
+          "$ref": "#/$defs/NumberNonnegative",
+          "description": "The symbolic time to have elapsed since the beginning of the source, measured in quarter notes. Non-negative; TimeSkeleton additionally permits an exact Fraction pair."
+        },
+        "number": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "A number assigned to this measure based on a given set of rules or conventions. One wide-spread convention, for instance, is that a piece starts with measure number 0 if it has an anacrusis and with number 1 otherwise."
+        },
+        "name": {
+          "type": "string",
+          "description": "A label for the Measure. Typically used for distinguishing between Measures with the same number, e.g. for first and second endings (as in '16a', '16b') or split logical measures (as in '16-1', '16-2')."
+        },
+        "time_signature": {
+          "type": "string",
+          "description": "A label for the time signature. Typically this takes the form <int>/<int>, as in \u20183/8\u2019, but can be any text (e.g., \u2018C\u2019, \u2018common time\u2019, \u2018unmeasured\u2019 \u2018cadenza\u2019) as long as actual_length is specified."
+        },
+        "nominal_length": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/NumberPositive"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "The default duration that corresponds to the given 'time_signature', in quarter notes. Can be derived from 'time_signature' if it takes the form of an '<int>/<int>'-encoded fraction. Can take the value 'null' if the time signature has no corresponding duration (e.g. 'cadenza'). TimeSkeleton additionally permits an exact Fraction pair."
+        },
+        "actual_length": {
+          "$ref": "#/$defs/NumberPositive",
+          "description": "The actual duration of the measure, in quarter notes. Strictly positive; TimeSkeleton additionally permits an exact Fraction pair."
+        },
+        "start_repeat": {
+          "type": [
+            "boolean",
+            "number"
+          ],
+          "description": "Typical usage is with the bool type, with 'true' indicating a start repeat at the beginning of the measure."
+        },
+        "end_repeat": {
+          "type": [
+            "boolean",
+            "number"
+          ],
+          "description": "Typical usage is with the bool type, with 'true' indicating an end repeat at the end of the measure."
+        },
+        "next": {
+          "type": "array",
+          "items": {
+            "type": [
+              "string",
+              "integer"
+            ]
+          },
+          "description": "The 'ID' strings or 'count' integers that correspond to all measures that can follow this one. The corresponding field needs to be present in the MeasureMap."
+        },
+        "volta": {
+          "type": "integer",
+          "description": "A TimeSkeleton extension that identifies the volta ending. It carries no structural constraint."
+        },
+        "offset_within_measure": {
+          "$ref": "#/$defs/NumberPositive",
+          "description": "A TimeSkeleton extension: where this row begins inside its nominal measure, in quarter notes, when the row represents only part of that measure (an anacrusis, or one constituent of a split measure). Absent means 0; a row never states 0."
+        }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "ID"
+          ]
+        },
+        {
+          "required": [
+            "count"
+          ]
+        }
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "NumberNonnegative": {
+      "description": "A non-negative bare JSON number or a non-negative exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number",
+          "minimum": 0
+        },
+        {
+          "$ref": "#/$defs/FractionNonnegative"
+        }
+      ]
+    },
+    "NumberPositive": {
+      "description": "A strictly positive bare JSON number or a strictly positive exact Fraction pair.",
+      "oneOf": [
+        {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        {
+          "$ref": "#/$defs/FractionPositive"
+        }
+      ]
+    },
+    "FractionNonnegative": {
+      "type": "array",
+      "description": "Non-negative rational number",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Numerator, non-negative integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+        }
+      ],
+      "items": false
+    },
+    "FractionPositive": {
+      "type": "array",
+      "description": "Strictly positive rational number",
+      "minItems": 2,
+      "maxItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Numerator, positive integer"
+        },
+        {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+        }
+      ],
+      "items": false
+    },
+    "Region": {
+      "type": "object",
+      "description": "A region of a timeline, from start to end on the timeline's own axis.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The region id."
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Human-readable name, or null when none was given.",
+          "default": null
+        },
+        "start": {
+          "$ref": "#/$defs/Number"
+        },
+        "end": {
+          "$ref": "#/$defs/Number"
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Free-form metadata.",
+          "default": {}
+        }
+      },
+      "required": [
+        "id",
+        "start",
+        "end"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "FlowControl": {
+      "type": "object",
+      "description": "The flow control of a timeline: its breaks, jumps and markers.",
+      "properties": {
+        "breaks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Break"
+          },
+          "default": []
+        },
+        "jumps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Jump"
+          },
+          "default": []
+        },
+        "markers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Marker"
+          },
+          "default": []
+        }
+      },
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Break": {
+      "type": "object",
+      "description": "A flow-control break at a coordinate on the timeline's own axis.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The break id."
+        },
+        "coordinate": {
+          "$ref": "#/$defs/Number"
+        },
+        "control_type": {
+          "$ref": "#/$defs/FlowControlElement",
+          "default": "section_break"
+        },
+        "condition": {
+          "$ref": "#/$defs/ActivationCondition",
+          "default": "always"
+        },
+        "repeat_count": {
+          "type": "integer",
+          "default": 1
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Free-form metadata.",
+          "default": {}
+        }
+      },
+      "required": [
+        "id",
+        "coordinate"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Jump": {
+      "type": "object",
+      "description": "A flow-control jump from one coordinate to another on the timeline's own axis.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The jump id."
+        },
+        "from_coordinate": {
+          "$ref": "#/$defs/Number"
+        },
+        "to_coordinate": {
+          "$ref": "#/$defs/Number"
+        },
+        "control_type": {
+          "$ref": "#/$defs/FlowControlElement",
+          "default": "repeat_end"
+        },
+        "condition": {
+          "$ref": "#/$defs/ActivationCondition",
+          "default": "first_n"
+        },
+        "repeat_count": {
+          "type": "integer",
+          "default": 1
+        },
+        "target": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "The id of the marker of the same timeline this jump targets, or null.",
+          "default": null
+        },
+        "label": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Free-form metadata.",
+          "default": {}
+        }
+      },
+      "required": [
+        "id",
+        "from_coordinate",
+        "to_coordinate"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Marker": {
+      "type": "object",
+      "description": "A named position on the timeline's own axis, the target of jumps.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The marker id."
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Human-readable name, or null when none was given.",
+          "default": null
+        },
+        "coordinate": {
+          "$ref": "#/$defs/Number"
+        }
+      },
+      "required": [
+        "id",
+        "coordinate"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "FlowControlElement": {
+      "type": "string",
+      "enum": [
+        "repeat_start",
+        "repeat_end",
+        "da_capo",
+        "dal_segno",
+        "dal_segno_al_coda",
+        "dal_segno_al_fine",
+        "da_capo_al_coda",
+        "da_capo_al_fine",
+        "to_coda",
+        "segno",
+        "coda",
+        "fine",
+        "section_break",
+        "double_barline",
+        "final_barline",
+        "first_measure",
+        "last_measure",
+        "jump_from",
+        "jump_to"
+      ]
+    },
+    "ActivationCondition": {
+      "type": "string",
+      "enum": [
+        "always",
+        "first_n",
+        "after_first",
+        "after_dc_ds"
+      ]
+    },
+    "MeasureMap": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/MeasureMapRow"
+      },
+      "minItems": 1,
+      "description": "Compressed rows from the Measure Map standard. A row equal to its predecessor's default successor is omitted as a whole."
+    },
+    "MemberOrder": {
+      "type": "array",
+      "description": "The display order of one group's members: a permutation of its members. It is never re-ordered by a writer.",
+      "items": {
+        "$ref": "#/$defs/Id"
+      },
+      "uniqueItems": true
+    },
+    "Statement": {
+      "type": "object",
+      "description": "One statement: the elements it selects and the properties it sets on them, as a declaration or as the name of a style.",
+      "properties": {
+        "select": {
+          "$ref": "#/$defs/Selector"
+        },
+        "set": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Declaration"
+            },
+            {
+              "type": "string",
+              "description": "The name of a style of the same block's `styles`."
+            }
+          ]
+        }
+      },
+      "required": [
+        "select",
+        "set"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "Selector": {
+      "type": "object",
+      "description": "An element matches when it matches every member present. The empty selector matches every element.",
+      "properties": {
+        "element": {
+          "$ref": "#/$defs/ElementType"
+        },
+        "ids": {
+          "type": "array",
+          "description": "Element addresses; the element's address must be one of them.",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "domain": {
+          "type": "string",
+          "enum": [
+            "graphical",
+            "logical",
+            "physical"
+          ],
+          "description": "The domain of the element: what its time measures (graphical space, musical time, physical time)."
+        },
+        "modality": {
+          "type": "string",
+          "enum": [
+            "continuous",
+            "discrete"
+          ],
+          "description": "Whether the element is continuous or discrete."
+        },
+        "class": {
+          "type": "string",
+          "enum": [
+            "ContinuousLogicalTimeline",
+            "ContinuousPhysicalTimeline",
+            "ContinuousGraphicalTimeline",
+            "DiscreteLogicalTimeline",
+            "DiscretePhysicalTimeline",
+            "DiscreteGraphicalTimeline",
+            "BeatInMeasureMap",
+            "ChainMap",
+            "CombinationMap",
+            "ConstantMap",
+            "FloorMap",
+            "InterpolationMap",
+            "IntervalToConstantMap",
+            "LinearMap",
+            "MetricMap",
+            "MetricalPositionMap",
+            "PiecewiseMap",
+            "QuartersToFloatingMeasures",
+            "QuartersToMeasureNumber",
+            "QuartersToTicks",
+            "RotationMap",
+            "SamplesToSeconds",
+            "ScalarMap",
+            "SecondsToSamples",
+            "ShiftMap",
+            "TableMap",
+            "TicksToQuarters"
+          ],
+          "description": "The class of the element: the timeline class its unit decides, or a conversion map's type."
+        },
+        "within": {
+          "type": "string",
+          "description": "A timeline id: the element must belong to that timeline or to one of its descendants."
+        },
+        "inside": {
+          "$ref": "#/$defs/ElementType",
+          "description": "An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree."
+        }
+      },
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "ElementType": {
+      "type": "string",
+      "description": "The type of a drawn element: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
+      "enum": [
+        "block",
+        "timeline",
+        "child",
+        "map",
+        "region",
+        "break",
+        "jump",
+        "wedge",
+        "name",
+        "label",
+        "boundary",
+        "ancestor",
+        "group",
+        "card"
+      ]
+    },
+    "Paint": {
+      "type": "string",
+      "description": "A colour as #RRGGBB with upper-case hexadecimal digits, or none.",
+      "pattern": "^(#[0-9A-F]{6}|none)$"
+    },
+    "Declaration": {
+      "type": "object",
+      "description": "Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.",
+      "properties": {
+        "stroke": {
+          "$ref": "#/$defs/Paint"
+        },
+        "stroke-width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "stroke-dasharray": {
+          "type": "string",
+          "description": "none, or non-negative decimal numbers separated by single spaces.",
+          "pattern": "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
+        },
+        "fill": {
+          "$ref": "#/$defs/Paint"
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "font-size": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "rx": {
+          "type": "number",
+          "minimum": 0
+        },
+        "display": {
+          "type": "string",
+          "enum": [
+            "inline",
+            "none"
+          ]
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "above",
+            "below"
+          ]
+        },
+        "content": {
+          "type": "string"
+        },
+        "max-width": {
+          "oneOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            {
+              "const": "none"
+            }
+          ]
+        },
+        "shadow": {
+          "$ref": "#/$defs/Paint"
+        }
+      },
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "BeatInMeasureMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "BeatInMeasureMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meter_map": {
+          "$ref": "#/$defs/MetricMap"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "meter_map"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "ChainMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ChainMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "maps"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "CombinationMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "CombinationMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maps": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/ConversionMap"
+          }
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "maps",
+        "names"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "ConstantMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ConstantMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "value": {}
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "value"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "FloorMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "FloorMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "divisor": {
+          "type": "number"
+        },
+        "base": {
+          "type": "integer"
+        },
+        "offset": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "divisor",
+        "base",
+        "offset"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "InterpolationMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "InterpolationMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_coords": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "target_coords": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        },
+        "source_id": {
+          "type": "string"
+        },
+        "target_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "source_coords",
+        "target_coords",
+        "source_id",
+        "target_id"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "IntervalToConstantMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "IntervalToConstantMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "boundaries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "values": {
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "boundaries",
+        "values"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "LinearMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "LinearMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scalar": {
+          "$ref": "#/$defs/Number"
+        },
+        "offset": {
+          "$ref": "#/$defs/Number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "scalar",
+        "offset"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "MetricMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "MetricMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "starts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "mcs": {
+          "type": "array",
+          "items": {
+            "type": "integer"
+          }
+        },
+        "mns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "lengths": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "starts",
+        "mcs",
+        "mns",
+        "lengths"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "MetricalPositionMap": {
+      "type": "object",
+      "description": "Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose identifier is beat_map_id.",
+      "properties": {
+        "type": {
+          "const": "MetricalPositionMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "meter_map": {
+          "$ref": "#/$defs/MetricMap"
+        },
+        "beat_map_id": {
+          "type": "string",
+          "description": "The identifier of the BeatInMeasureMap derived from meter_map."
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "meter_map",
+        "beat_map_id"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "PiecewiseMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "PiecewiseMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "breaks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "maps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "breaks",
+        "maps"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "QuartersToFloatingMeasures": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "QuartersToFloatingMeasures"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x_values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "y_values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "nearest",
+            "previous",
+            "next"
+          ]
+        },
+        "extrapolate": {
+          "type": "string",
+          "enum": [
+            "error",
+            "extrapolate",
+            "constant",
+            "nan"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "x_values",
+        "y_values",
+        "kind",
+        "extrapolate"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "QuartersToMeasureNumber": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "QuartersToMeasureNumber"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "boundaries": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "boundaries",
+        "values"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "QuartersToTicks": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "QuartersToTicks"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scalar": {
+          "$ref": "#/$defs/Number"
+        },
+        "ppq": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "scalar",
+        "ppq"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "RotationMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "RotationMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "period": {
+          "type": "number"
+        },
+        "scale": {
+          "type": "number"
+        },
+        "base": {
+          "type": "number"
+        },
+        "offset": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "period",
+        "scale",
+        "base",
+        "offset"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "SamplesToSeconds": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "SamplesToSeconds"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scalar": {
+          "$ref": "#/$defs/Number"
+        },
+        "sample_rate": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "scalar",
+        "sample_rate"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "ScalarMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ScalarMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scalar": {
+          "$ref": "#/$defs/Number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "scalar"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "SecondsToSamples": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "SecondsToSamples"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scalar": {
+          "$ref": "#/$defs/Number"
+        },
+        "sample_rate": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "scalar",
+        "sample_rate"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "ShiftMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "ShiftMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "offset": {
+          "$ref": "#/$defs/Number"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "offset"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "TableMap": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TableMap"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "x_values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "y_values": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Number"
+          }
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "linear",
+            "nearest",
+            "previous",
+            "next"
+          ]
+        },
+        "extrapolate": {
+          "type": "string",
+          "enum": [
+            "error",
+            "extrapolate",
+            "constant",
+            "nan"
+          ]
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "x_values",
+        "y_values",
+        "kind",
+        "extrapolate"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    },
+    "TicksToQuarters": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "const": "TicksToQuarters"
+        },
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "source_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "target_unit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TimeUnit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scalar": {
+          "$ref": "#/$defs/Number"
+        },
+        "ppq": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit",
+        "scalar",
+        "ppq"
+      ],
+      "unevaluatedProperties": {
+        "x-unknown-key": true
+      }
+    }
+  }
+}

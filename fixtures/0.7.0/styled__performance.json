@@ -1,5 +1,6 @@
 {
   "graphical": {
+    "order": {},
     "statements": [
       {
         "select": {
@@ -48,23 +49,19 @@
           "stroke": "#7F00FF"
         }
       }
-    ]
+    ],
+    "styles": {}
   },
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
-  "timeline": {
-    "children": {
-      "excerpt": {
-        "offset": {
-          "number_type": "float",
-          "unit": "seconds",
-          "value": 1.0
-        },
-        "timeline": {
-          "children": {},
-          "class": "ContinuousPhysicalTimeline",
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -73,43 +70,36 @@
           },
           "id": "excerpt",
           "is_segment_line": false,
-          "length": {
-            "number_type": "float",
-            "unit": "seconds",
-            "value": 4.0
-          },
+          "length": 4.0,
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "float",
+          "offset": 1.0,
           "regions": [],
           "unit": "seconds"
         }
-      }
-    },
-    "class": "ContinuousPhysicalTimeline",
-    "conversion_maps": [],
-    "flow_control": {
-      "breaks": [],
-      "jumps": [],
-      "markers": []
-    },
-    "id": "performance",
-    "is_segment_line": false,
-    "length": {
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "performance",
+      "is_segment_line": false,
+      "length": 10.0,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Performance",
       "number_type": "float",
-      "unit": "seconds",
-      "value": 10.0
-    },
-    "locked": false,
-    "measure_map": null,
-    "meta": {},
-    "metric_hierarchy": null,
-    "name": "Performance",
-    "number_type": "float",
-    "regions": [],
-    "unit": "seconds"
-  }
+      "regions": [],
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
 }

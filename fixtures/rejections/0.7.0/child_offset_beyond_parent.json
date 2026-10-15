@@ -1,0 +1,60 @@
+{
+  "manifest": {
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "take",
+            "is_segment_line": false,
+            "length": null,
+            "locked": false,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "float",
+            "offset": 75.0,
+            "regions": [],
+            "unit": "seconds"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "recording",
+        "is_segment_line": false,
+        "length": 60.0,
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "float",
+        "regions": [],
+        "unit": "seconds"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "children",
+    0,
+    "offset"
+  ],
+  "reason": "A child's offset lies within its parent's known length, whether or not the child's own length is known."
+}

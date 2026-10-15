@@ -1,0 +1,81 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "performance",
+        "score"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "performance",
+        "score"
+      ],
+      "meta": {},
+      "name": "Edition"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "performance",
+      "is_segment_line": false,
+      "length": null,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
+      "number_type": "float",
+      "regions": [
+        {
+          "end": 9.5,
+          "id": "region_1",
+          "meta": {},
+          "name": null,
+          "start": 0.0
+        }
+      ],
+      "unit": "seconds"
+    },
+    {
+      "children": [],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "score",
+      "is_segment_line": false,
+      "length": [
+        12,
+        1
+      ],
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

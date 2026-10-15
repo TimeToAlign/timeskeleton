@@ -1,66 +1,59 @@
 {
   "manifest": {
     "graphical": {
-      "order": [
-        "second-half",
-        "recording"
-      ]
+      "order": {
+        "recording": [
+          "second-half",
+          "recording"
+        ]
+      },
+      "statements": [],
+      "styles": {}
     },
-    "group": {
-      "id": "recording",
-      "members": [
-        "recording",
-        "second-half"
-      ],
-      "meta": {},
-      "name": "Second half"
-    },
-    "meta": {
-      "schema_version": "0.7.0"
-    },
+    "groups": [
+      {
+        "id": "recording",
+        "members": [
+          "recording",
+          "second-half"
+        ],
+        "meta": {},
+        "name": "Second half"
+      }
+    ],
+    "meta": {},
+    "name": null,
     "timelines": [
       {
-        "children": {
-          "second-half": {
-            "offset": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                4,
-                1
-              ]
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
             },
-            "timeline": {
-              "children": {},
-              "class": "ContinuousLogicalTimeline",
-              "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
-              "id": "second-half",
-              "is_segment_line": false,
-              "length": {
-                "number_type": "fraction",
-                "unit": "quarters",
-                "value": [
-                  4,
-                  1
-                ]
-              },
-              "locked": false,
-              "measure_map": null,
-              "meta": {},
-              "metric_hierarchy": null,
-              "name": null,
-              "number_type": "fraction",
-              "regions": [],
-              "unit": "quarters"
-            }
+            "id": "second-half",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              4,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
           }
-        },
-        "class": "ContinuousLogicalTimeline",
+        ],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -69,14 +62,10 @@
         },
         "id": "piece",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -87,8 +76,7 @@
         "unit": "quarters"
       },
       {
-        "children": {},
-        "class": "ContinuousLogicalTimeline",
+        "children": [],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -97,14 +85,10 @@
         },
         "id": "recording",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -114,11 +98,13 @@
         "regions": [],
         "unit": "quarters"
       }
-    ]
+    ],
+    "timeskeleton": "0.7.0"
   },
   "path": [
-    "group",
+    "groups",
+    0,
     "id"
   ],
-  "reason": "The group id differs from every timeline id."
+  "reason": "A group id differs from every timeline id."
 }

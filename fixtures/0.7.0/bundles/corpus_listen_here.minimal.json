@@ -1,0 +1,81 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "rec-a:dpt_1"
+      ],
+      "group_2": [
+        "rec-ref:dpt_1"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "rec-a:dpt_1"
+      ],
+      "name": "rec-a"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "rec-ref:dpt_1"
+      ],
+      "name": "rec-ref"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "alignment",
+  "timelines": [
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "rec-a:dpt_1",
+      "length": 1764,
+      "meta": {
+        "sample_rate": 44100,
+        "sample_rate_provenance": "assumed"
+      },
+      "name": "rec a",
+      "unit": "samples"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "rec-ref:dpt_1",
+      "length": 2205,
+      "meta": {
+        "sample_rate": 44100,
+        "sample_rate_provenance": "assumed"
+      },
+      "name": "rec ref",
+      "unit": "samples"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

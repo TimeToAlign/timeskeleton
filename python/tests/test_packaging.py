@@ -12,10 +12,9 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SPECIFICATION = (REPOSITORY_ROOT / "docs" / "drawing.md").read_bytes()
 LICENCE = (REPOSITORY_ROOT / "LICENSE").read_bytes()
 DOCUMENTS = {
-    f"schema/0.7.0/{name}.schema.json": (
-        REPOSITORY_ROOT / "schema" / "0.7.0" / f"{name}.schema.json"
+    "schema/0.7.0/timeskeleton.schema.json": (
+        REPOSITORY_ROOT / "schema" / "0.7.0" / "timeskeleton.schema.json"
     ).read_bytes()
-    for name in ("core", "timeline", "group", "bundle")
 }
 
 

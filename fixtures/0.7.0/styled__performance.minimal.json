@@ -1,0 +1,74 @@
+{
+  "graphical": {
+    "statements": [
+      {
+        "select": {
+          "element": "label"
+        },
+        "set": {
+          "fill": "#404040",
+          "stroke": "#404040"
+        }
+      },
+      {
+        "select": {
+          "element": "name"
+        },
+        "set": {
+          "fill": "#404040",
+          "stroke": "#404040"
+        }
+      },
+      {
+        "select": {
+          "element": "map"
+        },
+        "set": {
+          "side": "below"
+        }
+      },
+      {
+        "select": {
+          "ids": [
+            "a"
+          ]
+        },
+        "set": {
+          "display": "none"
+        }
+      },
+      {
+        "select": {
+          "domain": "physical",
+          "element": "wedge",
+          "within": "performance"
+        },
+        "set": {
+          "fill": "#7F00FF",
+          "stroke": "#7F00FF"
+        }
+      }
+    ]
+  },
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "excerpt",
+          "length": 4.0,
+          "locked": true,
+          "offset": 1.0,
+          "unit": "seconds"
+        }
+      ],
+      "id": "performance",
+      "length": 10.0,
+      "name": "Performance",
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

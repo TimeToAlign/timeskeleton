@@ -1,0 +1,113 @@
+{
+  "manifest": {
+    "graphical": {
+      "order": {
+        "group_1": [
+          "second-half",
+          "recording",
+          "piece"
+        ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "piece",
+          "recording",
+          "second-half"
+        ],
+        "meta": {},
+        "name": "Second half"
+      }
+    ],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "second-half",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              4,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "piece",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      },
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "recording",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "groups",
+    0,
+    "members",
+    2
+  ],
+  "reason": "No member of a group lies inside another member of the same group; the later one is reported."
+}

@@ -1,31 +1,5 @@
 {
   "manifest": {
-    "bundle": {
-      "groups": [
-        {
-          "id": "group_1",
-          "members": [
-            "performance",
-            "score"
-          ],
-          "meta": {},
-          "name": "Performance"
-        },
-        {
-          "id": "group_2",
-          "members": [
-            "excerpt",
-            "page"
-          ],
-          "meta": {},
-          "name": "Facsimile"
-        }
-      ],
-      "id": "bundle_1",
-      "meta": {},
-      "name": "Mixed",
-      "support_policy": "omit"
-    },
     "graphical": {
       "order": {
         "group_1": [
@@ -36,15 +10,36 @@
           "page",
           "excerpt"
         ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [
+      {
+        "id": "group_1",
+        "members": [
+          "performance",
+          "score"
+        ],
+        "meta": {},
+        "name": "Performance"
+      },
+      {
+        "id": "group_2",
+        "members": [
+          "excerpt",
+          "page"
+        ],
+        "meta": {},
+        "name": "Facsimile"
       }
-    },
-    "meta": {
-      "schema_version": "0.7.0"
-    },
+    ],
+    "id": "bundle_1",
+    "meta": {},
+    "name": "Mixed",
     "timelines": [
       {
-        "children": {},
-        "class": "ContinuousLogicalTimeline",
+        "children": [],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -53,14 +48,10 @@
         },
         "id": "annotations",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -71,8 +62,7 @@
         "unit": "quarters"
       },
       {
-        "children": {},
-        "class": "ContinuousLogicalTimeline",
+        "children": [],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -81,14 +71,10 @@
         },
         "id": "page",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -99,8 +85,7 @@
         "unit": "quarters"
       },
       {
-        "children": {},
-        "class": "ContinuousLogicalTimeline",
+        "children": [],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -109,14 +94,10 @@
         },
         "id": "performance",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -127,47 +108,35 @@
         "unit": "quarters"
       },
       {
-        "children": {
-          "excerpt": {
-            "offset": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                2,
-                1
-              ]
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
             },
-            "timeline": {
-              "children": {},
-              "class": "ContinuousLogicalTimeline",
-              "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
-              "id": "excerpt",
-              "is_segment_line": false,
-              "length": {
-                "number_type": "fraction",
-                "unit": "quarters",
-                "value": [
-                  4,
-                  1
-                ]
-              },
-              "locked": false,
-              "measure_map": null,
-              "meta": {},
-              "metric_hierarchy": null,
-              "name": null,
-              "number_type": "fraction",
-              "regions": [],
-              "unit": "quarters"
-            }
+            "id": "excerpt",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              2,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
           }
-        },
-        "class": "ContinuousLogicalTimeline",
+        ],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -176,14 +145,10 @@
         },
         "id": "recording",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -194,47 +159,35 @@
         "unit": "quarters"
       },
       {
-        "children": {
-          "excerpt": {
-            "offset": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                2,
-                1
-              ]
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
             },
-            "timeline": {
-              "children": {},
-              "class": "ContinuousLogicalTimeline",
-              "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
-              "id": "excerpt",
-              "is_segment_line": false,
-              "length": {
-                "number_type": "fraction",
-                "unit": "quarters",
-                "value": [
-                  4,
-                  1
-                ]
-              },
-              "locked": false,
-              "measure_map": null,
-              "meta": {},
-              "metric_hierarchy": null,
-              "name": null,
-              "number_type": "fraction",
-              "regions": [],
-              "unit": "quarters"
-            }
+            "id": "excerpt",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              2,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
           }
-        },
-        "class": "ContinuousLogicalTimeline",
+        ],
         "conversion_maps": [],
         "flow_control": {
           "breaks": [],
@@ -243,14 +196,10 @@
         },
         "id": "score",
         "is_segment_line": false,
-        "length": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            8,
-            1
-          ]
-        },
+        "length": [
+          8,
+          1
+        ],
         "locked": false,
         "measure_map": null,
         "meta": {},
@@ -260,14 +209,14 @@
         "regions": [],
         "unit": "quarters"
       }
-    ]
+    ],
+    "timeskeleton": "0.7.0"
   },
   "path": [
     "timelines",
     4,
     "children",
-    "excerpt",
-    "timeline",
+    0,
     "id"
   ],
   "reason": "A descendant's id differs from every timeline id of the other roots."

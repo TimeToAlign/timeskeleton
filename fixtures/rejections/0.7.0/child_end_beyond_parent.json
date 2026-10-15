@@ -1,0 +1,69 @@
+{
+  "manifest": {
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "coda",
+            "is_segment_line": false,
+            "length": [
+              4,
+              1
+            ],
+            "locked": false,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              8,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          10,
+          1
+        ],
+        "locked": true,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "children",
+    0,
+    "length"
+  ],
+  "reason": "A child whose offset and length are both known ends within its parent's known length."
+}

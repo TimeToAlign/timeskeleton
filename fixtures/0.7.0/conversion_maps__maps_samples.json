@@ -1,44 +1,43 @@
 {
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
-  "timeline": {
-    "children": {},
-    "class": "DiscretePhysicalTimeline",
-    "conversion_maps": [
-      {
-        "id": "cmap_1",
-        "name": "samples_to_seconds",
-        "sample_rate": 48000,
-        "scalar": [
-          1,
-          48000
-        ],
-        "source_unit": "samples",
-        "target_unit": "seconds",
-        "type": "SamplesToSeconds"
-      }
-    ],
-    "flow_control": {
-      "breaks": [],
-      "jumps": [],
-      "markers": []
-    },
-    "id": "maps:samples",
-    "is_segment_line": false,
-    "length": {
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": null,
+          "sample_rate": 48000,
+          "scalar": [
+            1,
+            48000
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "maps:samples",
+      "is_segment_line": false,
+      "length": 96000,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Sample maps",
       "number_type": "int",
-      "unit": "samples",
-      "value": 96000
-    },
-    "locked": false,
-    "measure_map": null,
-    "meta": {},
-    "metric_hierarchy": null,
-    "name": "Sample maps",
-    "number_type": "int",
-    "regions": [],
-    "unit": "samples"
-  }
+      "regions": [],
+      "unit": "samples"
+    }
+  ],
+  "timeskeleton": "0.7.0"
 }

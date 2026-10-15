@@ -1,61 +1,42 @@
 {
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
-  "timeline": {
-    "children": {
-      "clt_3": {
-        "offset": {
-          "number_type": "fraction",
-          "unit": "quarters",
-          "value": [
-            4,
-            1
-          ]
-        },
-        "timeline": {
-          "children": {
-            "clt_2": {
-              "offset": {
-                "number_type": "fraction",
-                "unit": "quarters",
-                "value": [
-                  3,
-                  2
-                ]
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
               },
-              "timeline": {
-                "children": {},
-                "class": "ContinuousLogicalTimeline",
-                "conversion_maps": [],
-                "flow_control": {
-                  "breaks": [],
-                  "jumps": [],
-                  "markers": []
-                },
-                "id": "clt_2",
-                "is_segment_line": false,
-                "length": {
-                  "number_type": "fraction",
-                  "unit": "quarters",
-                  "value": [
-                    2,
-                    1
-                  ]
-                },
-                "locked": true,
-                "measure_map": null,
-                "meta": {},
-                "metric_hierarchy": null,
-                "name": null,
-                "number_type": "fraction",
-                "regions": [],
-                "unit": "quarters"
-              }
+              "id": "clt_2",
+              "is_segment_line": false,
+              "length": [
+                2,
+                1
+              ],
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": null,
+              "number_type": "fraction",
+              "offset": [
+                3,
+                2
+              ],
+              "regions": [],
+              "unit": "quarters"
             }
-          },
-          "class": "ContinuousLogicalTimeline",
+          ],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -64,49 +45,45 @@
           },
           "id": "clt_3",
           "is_segment_line": false,
-          "length": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              8,
-              1
-            ]
-          },
+          "length": [
+            8,
+            1
+          ],
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "fraction",
+          "offset": [
+            4,
+            1
+          ],
           "regions": [],
           "unit": "quarters"
         }
-      }
-    },
-    "class": "ContinuousLogicalTimeline",
-    "conversion_maps": [],
-    "flow_control": {
-      "breaks": [],
-      "jumps": [],
-      "markers": []
-    },
-    "id": "clt_1",
-    "is_segment_line": false,
-    "length": {
-      "number_type": "fraction",
-      "unit": "quarters",
-      "value": [
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "clt_1",
+      "is_segment_line": false,
+      "length": [
         16,
         1
-      ]
-    },
-    "locked": false,
-    "measure_map": null,
-    "meta": {},
-    "metric_hierarchy": null,
-    "name": null,
-    "number_type": "fraction",
-    "regions": [],
-    "unit": "quarters"
-  }
+      ],
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
 }

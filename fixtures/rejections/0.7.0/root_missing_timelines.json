@@ -1,0 +1,7 @@
+{
+  "manifest": {
+    "timeskeleton": "0.7.0"
+  },
+  "path": [],
+  "reason": "A manifest holds its timelines, an array that may be empty."
+}

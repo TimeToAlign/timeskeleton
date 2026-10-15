@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="523.8403" height="123.4531" viewBox="0 0 523.8403 123.4531" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="491.8403" height="91.4531" rx="10" fill="#F3F4F6"/>
+<rect data-address="form/card" x="10" y="10" width="473.8403" height="73.4531" rx="5" fill="#B8BEC8"/>
+<rect data-address="form/card" x="8" y="8" width="473.8403" height="73.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-address="form/region_1" d="M49.8403 54.9766Q49.8403 57.9766 52.8403 57.9766L93.8992 57.9766Q96.8992 57.9766 96.8992 60.9766Q96.8992 57.9766 99.8992 57.9766L140.958 57.9766Q143.958 57.9766 143.958 54.9766" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-address="form/region_2" d="M379.2521 54.9766Q379.2521 57.9766 382.2521 57.9766L411.5462 57.9766Q414.5462 57.9766 414.5462 60.9766Q414.5462 57.9766 417.5462 57.9766L446.8403 57.9766Q449.8403 57.9766 449.8403 54.9766" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-address="form" x1="49.8403" y1="24" x2="461.8403" y2="24" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="form" cx="49.8403" cy="24" r="3" fill="#00CC00"/>
+<polyline data-address="form" points="464.8403,19.5 469.3403,24 464.8403,28.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polyline data-address="form" points="469.3403,19.5 473.8403,24 469.3403,28.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="b/start" x1="238.0756" y1="16" x2="238.0756" y2="32" stroke="#000000" stroke-width="1"/>
+<line data-address="c/start" x1="379.2521" y1="16" x2="379.2521" y2="32" stroke="#000000" stroke-width="1"/>
+<polygon data-address="form/start" points="49.8403,25.5 46.8403,38.5 52.8403,38.5" fill="#000000"/>
+<text data-address="form/name" x="16" y="27.8081" text-anchor="start" font-size="11" fill="#000000">form</text>
+<text data-address="form/start/label" x="49.8403" y="48.854" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+</g>
+</svg>

@@ -1,0 +1,29 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "coda",
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "offset": [
+            12,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "score",
+      "length": null,
+      "locked": true,
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

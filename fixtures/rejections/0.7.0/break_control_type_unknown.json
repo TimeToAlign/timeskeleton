@@ -1,101 +1,83 @@
 {
   "manifest": {
-    "meta": {
-      "generator": "timetoalign 1.2.0 (f0a58ce1)",
-      "schema_version": "0.7.0"
-    },
-    "timeline": {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
-      "conversion_maps": [],
-      "flow_control": {
-        "breaks": [
-          {
-            "condition": "after_dc_ds",
-            "control_type": "pause",
-            "coordinate": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [
+            {
+              "condition": "after_dc_ds",
+              "control_type": "pause",
+              "coordinate": [
                 12,
                 1
-              ]
-            },
-            "id": "break_1",
-            "label": "Fine",
-            "meta": {
-              "source": "synthetic"
-            },
-            "name": "fine",
-            "repeat_count": 1
-          }
-        ],
-        "jumps": [
-          {
-            "condition": "first_n",
-            "control_type": "repeat_end",
-            "from_coordinate": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
+              ],
+              "id": "break_1",
+              "label": "Fine",
+              "meta": {
+                "source": "synthetic"
+              },
+              "name": "fine",
+              "repeat_count": 1
+            }
+          ],
+          "jumps": [
+            {
+              "condition": "first_n",
+              "control_type": "repeat_end",
+              "from_coordinate": [
                 8,
                 1
-              ]
-            },
-            "id": "jump_1",
-            "label": "Repeat",
-            "meta": {
-              "source": "synthetic"
-            },
-            "repeat_count": 2,
-            "target": "marker_1",
-            "to_coordinate": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
+              ],
+              "id": "jump_1",
+              "label": "Repeat",
+              "meta": {
+                "source": "synthetic"
+              },
+              "repeat_count": 2,
+              "target": "marker_1",
+              "to_coordinate": [
                 2,
                 1
               ]
             }
-          }
-        ],
-        "markers": [
-          {
-            "coordinate": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
+          ],
+          "markers": [
+            {
+              "coordinate": [
                 2,
                 1
-              ]
-            },
-            "id": "marker_1",
-            "name": "repeat-start"
-          }
-        ]
-      },
-      "id": "flow:quarters",
-      "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
+              ],
+              "id": "marker_1",
+              "name": "repeat-start"
+            }
+          ]
+        },
+        "id": "flow:quarters",
+        "is_segment_line": false,
+        "length": [
           16,
           1
-        ]
-      },
-      "locked": false,
-      "measure_map": null,
-      "meta": {},
-      "metric_hierarchy": null,
-      "name": "Flow control",
-      "number_type": "fraction",
-      "regions": [],
-      "unit": "quarters"
-    }
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": "Flow control",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
   },
   "path": [
-    "timeline",
+    "timelines",
+    0,
     "flow_control",
     "breaks",
     0,

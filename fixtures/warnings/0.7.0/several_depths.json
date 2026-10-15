@@ -1,0 +1,291 @@
+{
+  "manifest": {
+    "graphical": {
+      "arrangement": "row",
+      "order": {
+        "together": [
+          "perf"
+        ]
+      },
+      "statements": [
+        {
+          "comment": "c",
+          "select": {
+            "element": "card",
+            "kind": "x"
+          },
+          "set": {
+            "colour": "#00FF00",
+            "rx": 2
+          }
+        }
+      ]
+    },
+    "groups": [
+      {
+        "colour": "blue",
+        "id": "together",
+        "members": [
+          "perf"
+        ]
+      }
+    ],
+    "id": "op35",
+    "meta": {
+      "anything": {
+        "goes": true
+      }
+    },
+    "timelines": [
+      {
+        "children": [
+          {
+            "id": "perf",
+            "length": null,
+            "offset": [
+              4,
+              1
+            ],
+            "unit": "quarters",
+            "x-tilia": {
+              "media": "a.mp3"
+            }
+          }
+        ],
+        "conversion_maps": [
+          {
+            "id": "chain",
+            "maps": [
+              {
+                "id": "shift",
+                "note": "inner",
+                "offset": 1,
+                "source_unit": "quarters",
+                "target_unit": "quarters",
+                "type": "ShiftMap"
+              }
+            ],
+            "note": "outer",
+            "source_unit": "quarters",
+            "target_unit": "quarters",
+            "type": "ChainMap"
+          }
+        ],
+        "flow_control": {
+          "breaks": [
+            {
+              "coordinate": [
+                16,
+                1
+              ],
+              "id": "fine",
+              "pause": 1
+            }
+          ],
+          "codas": [],
+          "jumps": [
+            {
+              "from_coordinate": [
+                8,
+                1
+              ],
+              "id": "back",
+              "target": "top",
+              "to_coordinate": [
+                0,
+                1
+              ],
+              "via": null
+            }
+          ],
+          "markers": [
+            {
+              "coordinate": [
+                0,
+                1
+              ],
+              "glyph": "segno",
+              "id": "top"
+            }
+          ]
+        },
+        "id": "score",
+        "lenght": [
+          32,
+          1
+        ],
+        "length": [
+          32,
+          1
+        ],
+        "measure_map": [
+          {
+            "actual_length": 4,
+            "count": 1,
+            "nominal_length": 4,
+            "number": 1,
+            "qstamp": 0,
+            "tempo": 120,
+            "time_signature": "4/4"
+          }
+        ],
+        "regions": [
+          {
+            "colour": "#FF0000",
+            "end": [
+              8,
+              1
+            ],
+            "id": "theme",
+            "start": [
+              0,
+              1
+            ]
+          }
+        ],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0",
+    "x-editor": {
+      "zoom": 2
+    }
+  },
+  "unknown_keys": [
+    {
+      "key": "x-editor",
+      "path": []
+    },
+    {
+      "key": "arrangement",
+      "path": [
+        "graphical"
+      ]
+    },
+    {
+      "key": "comment",
+      "path": [
+        "graphical",
+        "statements",
+        0
+      ]
+    },
+    {
+      "key": "kind",
+      "path": [
+        "graphical",
+        "statements",
+        0,
+        "select"
+      ]
+    },
+    {
+      "key": "colour",
+      "path": [
+        "graphical",
+        "statements",
+        0,
+        "set"
+      ]
+    },
+    {
+      "key": "colour",
+      "path": [
+        "groups",
+        0
+      ]
+    },
+    {
+      "key": "lenght",
+      "path": [
+        "timelines",
+        0
+      ]
+    },
+    {
+      "key": "x-tilia",
+      "path": [
+        "timelines",
+        0,
+        "children",
+        0
+      ]
+    },
+    {
+      "key": "note",
+      "path": [
+        "timelines",
+        0,
+        "conversion_maps",
+        0
+      ]
+    },
+    {
+      "key": "note",
+      "path": [
+        "timelines",
+        0,
+        "conversion_maps",
+        0,
+        "maps",
+        0
+      ]
+    },
+    {
+      "key": "codas",
+      "path": [
+        "timelines",
+        0,
+        "flow_control"
+      ]
+    },
+    {
+      "key": "pause",
+      "path": [
+        "timelines",
+        0,
+        "flow_control",
+        "breaks",
+        0
+      ]
+    },
+    {
+      "key": "via",
+      "path": [
+        "timelines",
+        0,
+        "flow_control",
+        "jumps",
+        0
+      ]
+    },
+    {
+      "key": "glyph",
+      "path": [
+        "timelines",
+        0,
+        "flow_control",
+        "markers",
+        0
+      ]
+    },
+    {
+      "key": "tempo",
+      "path": [
+        "timelines",
+        0,
+        "measure_map",
+        0
+      ]
+    },
+    {
+      "key": "colour",
+      "path": [
+        "timelines",
+        0,
+        "regions",
+        0
+      ]
+    }
+  ]
+}

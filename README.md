@@ -1,82 +1,98 @@
 # timeskeleton
 
 TimeSkeleton is the JSON Schema for the structural serialization of musical
-timelines, timeline groups and alignment bundles, with fixtures emitted by
-[timetoalign](https://github.com/timetoalign/timetoalign) and validation
-packages for Python and TypeScript. It carries timeline structure, not event
-data.
+timelines, alone or in timeline groups and alignment bundles, with fixtures
+emitted by [timetoalign](https://github.com/timetoalign/timetoalign) and
+validation packages for Python and TypeScript. It carries timeline
+structure, not event data.
 
-**Status: alpha.** The repository contains schema versions 0.5.0, 0.6.0 and
-0.7.0; 0.7.0 is the current version. It provides validators for three file
-kinds (timeline, group and bundle files) that locate a violation under one
-shared path rule, a canonical order, standard writers that produce the same
-bytes in Python and TypeScript, a lossless JSON reader for TypeScript,
-generated TypeScript types, migrations from 0.5.0 to 0.6.0 and from 0.6.0 to
-0.7.0, and shared fixtures. It also specifies how a file of each kind is
-drawn, and both packages ship that specification.
+**Status: alpha.** The repository holds one schema version, 0.7.0, the
+current version, as one JSON Schema document describing one manifest shape.
+It provides validators for Python and TypeScript that locate a violation
+under one shared path rule and list unknown keys as warnings, the complete
+and the minimal form of a manifest, a canonical order, standard writers
+that produce the same bytes in Python and TypeScript, a lossless JSON reader
+for TypeScript, generated TypeScript types, and shared fixtures. It also
+specifies how a manifest is drawn, and both packages ship that
+specification.
 
-## The files
+## The manifest
 
-A TimeSkeleton file is a JSON object holding `meta` and exactly one of
-`timeline`, `group` or `bundle`, the member that names its kind.
-`meta.schema_version` is `"0.7.0"`, and `meta.generator` is optional. Every
-file is self-contained. Versions 0.5.0 and 0.6.0 know the timeline file only.
+Every TimeSkeleton manifest has one shape, whatever it holds: one
+timeline, several, a group of timelines, or an alignment bundle's
+timelines and groups. The smallest manifest is
 
-- **Timeline file** `{meta, timeline, graphical?}`. `timeline` is one
-  timeline manifest matching timetoalign's `Timeline.to_dict(events=False)`
-  output: its axis (`class`, `unit`, `number_type`, and `length`), child
-  timelines at exact offsets, conversion maps, regions, flow control, measure
-  map, and metric hierarchy. The optional `graphical` block styles its
-  drawing ([Drawing a manifest](#drawing-a-manifest)).
-  From 0.7.0 on every timeline, at every depth, also carries the boolean
-  `is_segment_line`. A segment line is a timeline containing only contiguous
-  segments. It is written with one of the six classes, its segments' class,
-  plus `is_segment_line: true`, and its children are its segments: contiguous
-  from 0 in offset order to its length, all of one class, all with one
-  `is_segment_line` value. Segments that are segment lines themselves make a
-  nested segment line. Every other timeline has `is_segment_line: false`.
-  A segment, like every child, is written with `locked: true`: its
-  embedding locks it. The segment line itself is locked or not as any
-  other timeline.
-- **Group file** `{meta, timelines, group, graphical?}`, one timeline group
-  with the timelines it names. A group is an array of member timelines that
-  share the same graphical start and end: every member's 0 coincides with
-  every other member's 0 and every member's length with every other member's
-  length, and positions in between convert linearly. When only part of a
-  timeline takes part, the member is a child of that timeline, placed at its
-  exact offset; a member is never placed partially. `group` is `{id, name,
-  meta, members}`, and `members` are the ids of the member timelines, each
-  naming a timeline of `timelines`: a root or any descendant. `timelines`
-  holds root timeline manifests, and every root contains a member.
-- **Bundle file** `{meta, timelines, bundle, graphical?}`, one alignment
-  bundle. `timelines` holds every root timeline of the bundle, so each
-  timeline occurs once in the file. `bundle` is `{id, name, meta,
-  support_policy, groups}`: `support_policy` is `"omit"`, `"clamp"` or
-  `"extrapolate"`, and `groups` holds groups of the same form as a group
-  file's, whose members name timelines of the one `timelines` array. A
-  timeline is a member of at most one group; a child may belong to one group
-  while its root belongs to another or to none. The roots that no group names
-  are the bundle's ungrouped timelines. A 0.7.0 bundle file carries no
-  MatchClaims.
+```json
+{"timeskeleton": "0.7.0", "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}]}
+```
 
-A group or bundle file's `graphical` block holds the display order `order`
-and, with the same meaning as in a timeline file, named `styles` and
-ordered `statements` ([Drawing a manifest](#drawing-a-manifest)). `order`
-is the display order of a group's members, a permutation of them. In a
-group file it is an array; in a bundle file it is an object mapping a group
-id to such an array. Writers never reorder it. Without it, a group's
-members are displayed in the order of `members`.
+| Member | Required | Holds |
+| --- | --- | --- |
+| `timeskeleton` | yes | the version marker, `"0.7.0"` |
+| `timelines` | yes | the root timelines, an array that may be empty |
+| `id` | no | the manifest's id |
+| `name` | no | the manifest's displayed name |
+| `meta` | no | an object of anything an application wants to record |
+| `groups` | no | timeline groups whose members name timelines of the manifest |
+| `graphical` | no | the styling and display order of the manifest's drawing |
+| `$schema` | no | a string naming the schema, for editors; never read |
 
-A timeline manifest describes one timeline and all its descendants. No file
-says where or how often an application places its object. Event tables
-travel separately, typically as Arrow or Parquet data, and are referenced
-rather than embedded.
+A single timeline is a manifest of one root, and a group is a manifest with
+one group. A manifest with an `id` or a `name` is named; one with neither is
+anonymous. `id` and `name` are independent: either may stand without the
+other.
 
-Every coordinate-valued member is an object with `unit`, `number_type`, and
-`value`. Its number type selects the representation: an integer is a JSON
-integer, a float is a JSON number, and a fraction is a `[numerator,
-denominator]` pair of JSON integers with a strictly positive denominator,
-mirroring BOPP.
+**The version marker.** Both validators read `timeskeleton` first. A value
+without it is refused at the root as `not a TimeSkeleton manifest`; a value
+declaring any other version raises `UnsupportedVersionError` naming 0.7.0.
+
+A manifest describes timelines and all their descendants. No manifest says
+where or how often an application places it. Event tables travel
+separately, typically as Arrow or Parquet data, and are referenced rather
+than embedded.
+
+### The timeline
+
+A timeline (`$defs/Timeline`) requires `id`, `unit` and `length`. Its
+optional keys are `name`, `number_type`, `offset`, `locked`,
+`is_segment_line`, `meta`, `children`, `conversion_maps`, `regions`,
+`flow_control`, `measure_map` and `metric_hierarchy`.
+
+- `unit` decides the timeline's domain (logical, physical or graphical)
+  and modality (continuous or discrete), since each unit belongs to exactly
+  one of the six combinations. A timeline writes no class.
+- `number_type` is `int`, `float` or `fraction`; absent, it is the unit's
+  default (section [Defaults](#defaults)).
+- `length` is the timeline's length on its own axis, or `null` when it is
+  not known (section [Unknown length](#unknown-length)).
+- `children` is an array of timelines, each carrying its `offset` on the
+  parent's axis, written in offset order with ties by id; a child shares
+  its parent's `unit`, here `seconds`:
+
+  ```json
+  "children": [{"id": "perf", "offset": 4.0, "unit": "seconds", "length": 1503.2}]
+  ```
+
+  A child requires `offset`, which is never negative. Where its parent's
+  length is known, a child starts at or before the parent's end and ends at
+  or before it, locked or not: no child reaches past a known length. A root
+  may carry an `offset` too, negative included:
+  it places the root's origin on its unit's absolute axis, such as a
+  recording whose origin is a moment in UNIX time. A root without `offset`
+  has none.
+- `locked` states whether the timeline's length is fixed; it defaults to
+  `false` on every timeline. A child writes it like every other timeline,
+  and may be unlocked as a root may. A locked timeline's length may still
+  be unknown. An unlocked child's length may change only within its
+  parent's known length; a parent's length never follows a child's.
+- `is_segment_line` marks a **segment line**, a timeline containing only
+  contiguous segments: its children are its segments, contiguous from 0 in
+  offset order to its length, all sharing its unit as every child does,
+  and all with one `is_segment_line` value. Segments that are segment lines
+  themselves make a nested segment line.
+- `conversion_maps`, `regions` and `flow_control` (`breaks`, `jumps` and
+  `markers`) hold the timeline's conversion maps, regions and flow
+  control; `metric_hierarchy` is an object without further rules.
 
 A measure map is the
 [Measure Map standard](https://github.com/measure-map/specification)'s
@@ -88,107 +104,223 @@ its nominal measure in quarter notes. Lengths are strictly positive and
 standard uses JSON numbers. Only a timeline whose unit is `quarters` may
 carry a measure map.
 
+### Values on a timeline's own axis
+
+A coordinate on its timeline's own axis is written as its value alone:
+`length`, a child's `offset` (on the parent's axis), a root's `offset`,
+region `start` and `end`, break and marker `coordinate`, and jump
+`from_coordinate` and `to_coordinate`. The value is represented as the
+axis's number type selects, that is `number_type`, or the unit's default
+when it is absent: a JSON integer for `int`, a JSON number for `float`, and
+a `[numerator, denominator]` pair of JSON integers with a strictly positive
+denominator for `fraction`, mirroring BOPP. An `int` axis also accepts an
+integral JSON number, read as that integer, and a `float` axis an integer
+that a float equals exactly; a `fraction` axis accepts only a pair. Writers
+write each axis's own form. A child's `offset` takes the parent's number
+type. The schema types these values as `Number`; both
+validators then check the representation and report a mismatch such as
+`length 32 of 'score' is an int on a fraction axis: write [32, 1]`, or, for
+an integer no float holds exactly,
+`length 9007199254740993 of 'take' is an int on a float axis: write a float`.
+
+A coordinate on another axis, as in a conversion map's tables, keeps the
+coordinate object `{unit, number_type, value}`, its value represented as its
+own `number_type` selects.
+
+### Defaults
+
+Every key of this table is optional, and readers supply its default when it
+is absent. Writers write the **complete form**: every key of the table,
+its default included (`null`, `{}`, `[]`), except the keys whose default is
+"absent", which are written only with a value. Asked for the **minimal
+form**, they omit exactly the keys whose value is the default, equal to it
+in JSON type and value: `repeat_count: 1.0` is a float, not the integer
+default `1`, and stays. Either form
+reads to the same objects, and each writes back to itself. `length` is
+required in both forms.
+
+| Object | Key: default |
+| --- | --- |
+| manifest | `id`: absent (anonymous); `name`: `null`; `meta`: `{}`; `groups`: `[]`; `graphical`: absent |
+| timeline | `name`: `null`; `number_type`: the unit's default (`int` for `ticks`, `samples`, `frames` and `pixels`; `fraction` for `quarters` and `whole_note`; `float` otherwise); `offset`: absent on a root, required on a child; `locked`: `false`; `is_segment_line`: `false`; `meta`: `{}`; `children`, `conversion_maps`, `regions`: `[]`; `flow_control`: `{"breaks": [], "jumps": [], "markers": []}`; `measure_map`, `metric_hierarchy`: `null` |
+| flow control | `breaks`, `jumps`, `markers`: `[]` |
+| region | `name`: `null`; `meta`: `{}` |
+| break | `control_type`: `"section_break"`; `condition`: `"always"`; `repeat_count`: 1; `label`, `name`: `null`; `meta`: `{}` |
+| jump | `control_type`: `"repeat_end"`; `condition`: `"first_n"`; `repeat_count`: 1; `target`, `label`: `null`; `meta`: `{}` |
+| marker | `name`: `null` |
+| conversion map | `name`: `null` |
+| group | `name`: `null`; `meta`: `{}` |
+| graphical | `styles`: `{}`; `statements`: `[]`; `order`: `{}` |
+
+Python's `complete(value)` and npm's `complete(value)` return a copy of a
+manifest in the complete form, and `minimal(value)` in both packages a copy
+in the minimal form; both are pure and read the one table above.
+timetoalign's `to_dict()` writes the complete form, and
+`to_dict(minimal=True)` the minimal one.
+
+### Unknown length
+
+`length: null` means that the length is not known, on any timeline: a root,
+a child, a segment, a locked timeline or a group member. It is a fact
+stated by the manifest, never inferred and never a violation; content
+added to such a timeline leaves its length unknown. A rule that needs an
+end applies where the end is known and is skipped where it is not. Segment
+lines are checked between known values: a segment of unknown length ends
+where the next segment starts, and the last segment of a segment line
+whose length is known ends at that length. The segments of a segment line
+of known length keep ending at its length: a segment's length changes only
+where its neighbours allow, never moving the line's end. The
+[drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md)
+scales a timeline of unknown length to its reach, the farthest coordinate
+its content reaches, and ends its line in a double chevron.
+
+### Groups and the `graphical` block
+
+A group is `{id, name?, meta?, members}`. `members` are the distinct ids of
+the member timelines, each naming a timeline of the manifest: a root or any
+descendant. Members share the same graphical start and end: every
+member's 0 coincides with every other member's 0 and every member's end
+with every other member's end, and positions in between convert linearly.
+When only part of a timeline takes part, the member is a child of that
+timeline, placed at its exact offset; a member is never placed partially.
+A timeline is a member of at most one group, and no member of a group lies
+inside another member of the same group, since a timeline and its
+descendant in one group would give two answers for one position; a child
+may belong to one group while its root belongs to another or to none. The
+roots that no group names, and that contain no member, are ungrouped. A
+manifest holding a group always holds its members' roots, so a member that
+is a child keeps its parent.
+
+`graphical` is `{styles?, statements?, order?}`, at the manifest's top
+level only, never on a timeline. `styles` and `statements` style the
+drawing ([Drawing a manifest](#drawing-a-manifest)). `order` maps a group's
+id to the display order of its members, a permutation of them; writers never
+reorder it, and a group without an entry is displayed in the order of
+`members`. A manifest carries no MatchClaims.
+
+### Unknown keys
+
+Every object of the schema is open: a key the schema does not define is
+valid. The free objects `meta` and `metric_hierarchy` say so explicitly;
+every other object marks an unknown key with the keyword `x-unknown-key`,
+which a standard JSON Schema validator ignores and both packages' validators
+record. Unknown keys are warnings, never errors, since a misspelt optional
+key would otherwise silently become its default. Python's
+`unknown_keys(value)` and npm's `unknownKeys(value)` return the same list of
+`{path, key}` entries, the path locating the object that holds the key,
+sorted by path and then by key; `validate` raises only on errors. timetoalign
+and TimeLineEditor keep the unknown keys of a manifest they read and write
+them back. A key that a host schema declares beside its `$ref` to a
+TimeSkeleton definition is reported as unknown by these validators; the
+host's own validator is unaffected.
+
 ### Identity
 
-Every timeline, conversion map, region, flow-control break, jump and marker
-carries an `id`, which identifies it; so does every group and every bundle. A
+Every timeline, group, conversion map, region, flow-control break, jump and
+marker carries an `id`, which identifies it, and so may the manifest. A
 `name`, where an element has one, is what is displayed, and it may repeat.
 An id is a non-empty string without `/` and without control characters, and
 it may contain spaces. Flow-control `markers` is a list of `{id, name,
 coordinate}` objects, and a jump's `target` is the id of a marker of the same
 timeline, or `null`.
 
-Ids are unique within nested scopes. Each timeline manifest is one scope: an
-id is unique within it across all the element kinds above. In a group or
-bundle file, each root of `timelines` is such a scope; timeline ids, of roots
-and descendants alike, are moreover unique across the file, group ids are
-unique among the groups and differ from every timeline id, and a bundle's id
-differs from every timeline id and every group id of its file.
+Timeline ids, of roots and descendants alike, group ids and the manifest's
+id are unique together across the manifest. Each root's tree is moreover one
+scope: within it, an id is unique across all the element kinds above, so a
+conversion map, region, break, jump or marker id is unique within the tree
+of its root and may repeat in another root's tree.
 
-In a group or bundle file, a conversion map, region, break, jump or marker
-is addressed through the root that holds it (`score/region_1`), and the
-parts of an element follow its address: `…/start`, `…/end`, `…/name`,
-`…/label`, and a timeline's card `…/card`. Such an element therefore may not
-carry `start`, `end`, `name`, `label` or `card` as its id. A timeline may,
-since its parts are addressed by its own id, and a timeline file reserves
-none of these words.
+One address rule holds in every manifest. A timeline, a group or the
+manifest is addressed by its bare id; a conversion map, region, break, jump
+or marker by the id of the root whose tree holds it, `/`, and its own id
+(`score/region_1`); the parts of an element follow its address: `…/start`,
+`…/end`, `…/name`, `…/label`, and a timeline's card `…/card`. These five
+words are therefore reserved: no id of a manifest may be one of them. The
+manifest's title, the top label of its drawing, is addressed `name`,
+whether or not the manifest has an `id`, and a group's title `G/name`.
 
 The JSON Schema cannot express these rules, nor that a member names a
-timeline of the file, nor that no member of a group lies inside another, nor
-that a segment line's segments are contiguous and alike, nor the reserved
-words, so both validators check them after the schema. Members share their start and end, but a child
-sits at its offset inside its parent, so a timeline and its descendant in one
-group would give two answers for one position; in different groups of a
-bundle they are allowed. Each finding is one
-problem, located by a path into the file:
+timeline of the manifest, nor that no member of a group lies inside
+another, nor that a child lies within its parent's known length, nor that a
+segment line's segments are contiguous and alike, nor the representation of
+own-axis values, so both validators check them after
+the schema. Each finding is one problem, located by a path into the
+manifest:
 
 | Rule | Location | Message |
 | --- | --- | --- |
-| An id repeats within one timeline manifest | the later occurrence | `duplicate id '<id>', first at <pointer>` |
+| An id repeats within one root's tree | the later occurrence | `duplicate id '<id>', first at <pointer>` |
 | A jump's `target` names no marker of its timeline | the `target` | `'<target>' names no marker of this timeline` |
-| A segment's `class` is not its segment line's | the segment's `timeline/class` | `segment '<key>' of segment line '<id>' is no <class>` |
-| A segment's `is_segment_line` differs from the first segment's | the segment's `timeline/is_segment_line` | `segment '<key>' of segment line '<id>' differs from segment '<first key>' in is_segment_line` |
-| A segment does not start where the one before it ends, or the first at 0 | the segment's `offset` | `segment '<key>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
-| The last segment does not end at the segment line's length | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
-| In a group or bundle file, a map, region, break, jump or marker id is `start`, `end`, `name`, `label` or `card` | the `id` | `id '<id>' is reserved in a group or bundle file` |
-| A timeline id repeats one of an earlier root | the later occurrence | `duplicate id '<id>', first at <pointer>` |
-| A group id equals a timeline id, or, in a bundle, an earlier group's id | the group's `id` | `duplicate id '<id>', first at <pointer>` |
-| A bundle id equals a timeline id or a group id | `bundle/id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group |
-| A member names no timeline of the file | the member | `'<id>' names no timeline of this file` |
-| In a bundle, a member is already a member of an earlier group | the later member | `duplicate member '<id>', first at <pointer>` |
+| A child's `unit` is not its parent's | the child's `unit` | `child '<id>' has unit '<unit>', its parent '<id>' has '<unit>'` |
+| A child's `offset` is negative | the child's `offset` | `offset <offset> of '<id>' is negative` |
+| A child's `offset` lies beyond its parent's known length | the child's `offset` | `offset <offset> of '<id>' is beyond the length <length> of its parent '<id>'` |
+| A child ends beyond its parent's known length, its own end known | the child's `length` | `child '<id>' ends at <end>, beyond the length <length> of its parent '<id>'` |
+| A segment's `is_segment_line` differs from the first segment's | the segment's `is_segment_line`, or the segment when it leaves the key out | `segment '<id>' of segment line '<id>' differs from segment '<first id>' in is_segment_line` |
+| A segment does not start where the one before it ends, or the first at 0 | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
+| The last segment does not end at the segment line's length, both known | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
+| An id is `start`, `end`, `name`, `label` or `card` | the `id` | `id '<id>' is reserved for the parts of an address` |
+| A timeline id repeats one of an earlier root's tree | the later occurrence | `duplicate id '<id>', first at <pointer>` |
+| A group id equals a timeline id or an earlier group's id | the group's `id` | `duplicate id '<id>', first at <pointer>` |
+| The manifest's id equals a timeline id or a group id | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group |
+| A member names no timeline of the manifest | the member | `'<id>' names no timeline of this manifest` |
+| A member is already a member of an earlier group | the later member | `duplicate member '<id>', first at <pointer>` |
 | A member lies inside an earlier member of its group, or contains one | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
-| In a group file, a root contains no member | the root, `timelines/<i>` | `timeline '<id>' contains no member of the group` |
-| In a bundle, a key of `graphical.order` names no group | the key | `'<key>' names no group of this bundle` |
+| A key of `graphical.order` names no group | the key | `'<key>' names no group of this manifest` |
 | An entry of a display order is not a member of its group | the entry | `'<id>' is not a member of group '<group id>'` |
 | A member of a group is missing from its display order | the order | `member '<id>' of group '<group id>' is missing` |
 
-Within one timeline manifest, ids are visited in identity order (a timeline,
+Within one root's tree, ids are visited in identity order (a timeline,
 then its conversion maps, regions, breaks, jumps and markers, then its
-children in code-point order of their keys); duplicates come first, then
-dangling targets, then segment lines, whose segments are visited in offset
-order (ties by key in code-point order) and compared by exact value. In a
-group or bundle file, the problems come in this order: each root's own
-problems, roots in array order; then reserved words, root by root in
-identity order; repeated timeline ids, group ids, the bundle id, members
-(member by member: dangling, repeated, nested), roots without a member, and
-the display orders (a bundle's in code-point order of their keys). `<pointer>`
-is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as
-Python's `json_pointer(path)` and npm's `jsonPointer(path)` render a path. The
-messages above quote ids as Python does; the TypeScript package quotes them as
-JSON (`duplicate id "piece", first at #/timelines/0/id`). A repeated entry
-within one display order or within one group's `members` is refused by the
-schema.
+children in array order); duplicates come first, then dangling targets,
+then children off their parent's axis (child by child, each followed by its
+own children: its unit, its negative offset, then an offset beyond its
+parent's known length or else an end beyond it), then segment lines, whose
+segments are visited in canonical order and compared by exact value. Across the manifest, the problems come in this
+order: each root's own problems, roots in array order; then reserved words
+(the manifest's id, then root by root in identity order, then the group
+ids); repeated timeline ids, group ids, the manifest's id, members (member by member: dangling, repeated, nested), and
+the display orders in code-point order of their keys. `<pointer>` is a JSON
+pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
+`json_pointer(path)` and npm's `jsonPointer(path)` render a path. The
+messages above quote ids as Python does; the TypeScript package quotes them
+as JSON (`duplicate id "piece", first at #/timelines/0/id`), except the two
+four messages about a child's unit, offset and end, which read the same in
+both packages, every value spelled as the standard writer spells it (`-1`,
+`[-1, 2]`, `-0.5`). A child's end, its offset plus its length, or for a
+segment of unknown length its successor's offset, is compared exactly and
+spelled as its parent's number type writes it, or as a `[numerator,
+denominator]` pair where that type cannot write it exactly. A repeated
+entry within one display order or within one group's `members` is refused by
+the schema.
 
-### Schema documents
+### The schema document
 
-Version 0.7.0 has four schema documents in `schema/0.7.0/`, one per file
-kind and one for what they share:
+Version 0.7.0 is one document, `schema/0.7.0/timeskeleton.schema.json`,
+with the identifier
+`https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json`,
+so the document lies below `schema/` at the path of its identifier. Its root
+is `{"$ref": "#/$defs/TimeSkeleton"}`. These definitions are public and
+may be embedded by a host schema; within 0.7.x they change only by
+addition:
 
-| Document | Holds |
-| --- | --- |
-| `core.schema.json` | the shared definitions: `Fraction` and its variants, the number and coordinate forms, `TimeUnit`, `NumberType`, the id rule `Id`, the file metadata `Meta`, and the vocabulary of the `graphical` block: `Graphical`, `Statement`, `Selector`, `ElementType`, `Paint` and `Declaration` |
-| `timeline.schema.json` | the timeline definitions and the timeline file |
-| `group.schema.json` | `Group`, the display order `MemberOrder`, the group file's `GroupGraphical` and the group file |
-| `bundle.schema.json` | `Bundle`, the bundle file's `BundleGraphical` and the bundle file |
+`TimeSkeleton`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
+`Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id` and
+`MeasureMapRow`.
 
-Each identifier is
-`https://timetoalign.github.io/timeskeleton/0.7.0/<name>.schema.json`, so a
-document lies below `schema/` at the path of its identifier, and the
-documents refer to each other by relative `$ref`
-(`core.schema.json#/$defs/Id`, `timeline.schema.json#/$defs/TimelineManifest`,
-`group.schema.json#/$defs/Group`). A validator registers all four documents
-of the version and checks a file against the document of its kind. Versions
-0.5.0 and 0.6.0 each have one document,
-`schema/timeskeleton-<version>.schema.json`.
+A host refers to the document, or to one definition as
+`timeskeleton.schema.json#/$defs/<Name>`, never through an `$anchor`. It
+embeds either a whole manifest, version marker included, or a bare
+`Timeline`, in which case the host records the TimeSkeleton version itself.
 
 The schema is the source of truth for timetoalign and TimeLineEditor.
 timetoalign's hand-written serialization is tested for schema conformance and
-fixture round trips. TypeScript types are generated in this repository.
+fixture round trips. TypeScript types are generated in this repository from
+the one document.
 
 ## Drawing a manifest
 
-The optional `graphical` block of a file of any kind contains named
-declarations in `styles` and an ordered list of `statements`:
+The optional `graphical` block of a manifest contains named declarations
+in `styles` and an ordered list of `statements`:
 
 ```json
 "graphical": {
@@ -208,23 +340,24 @@ properties, cascade, defaults, element addresses, layout, and writer profiles
 are defined by the
 [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md).
 
-Every file is drawn as a bundle: a bundle file as itself, a group file as an
-anonymous bundle holding its group, and a timeline file as an anonymous
-bundle holding its timeline. Each group is a frame, and each member and each
-ungrouped root lies in its own card; a member that is a child timeline is
-drawn with the faded lines of its ancestors. The element types are `block`,
+Every manifest is drawn as one box, opened by its title: its `name`, or its
+`id` when it has no name; an anonymous manifest has none. Each group is a
+frame, and each member and each ungrouped root lies in its own card; a
+member that is a child timeline is drawn with the faded lines of its
+ancestors. The element types are `block`,
 `card`, `timeline`, `child`, `boundary` (a segment's start on its segment
 line), `ancestor`, `group` (a frame), `map`, `region`, `break`, `jump`,
 `wedge`, `name` and `label`. Besides `element`, a selector may name `ids`,
 `domain`, `modality`, `class`, `within` (a timeline and its descendants)
 and `inside` (an element type that holds the element at any depth); the
-property `shadow` colours a card's offset shadow. The group fixture
-`group_styled` frames its group in violet, fills the group's title violet,
+selector's `class` names the class a timeline's unit decides, such as
+`ContinuousPhysicalTimeline` for `seconds`. The property `shadow` colours
+a card's offset shadow. The group fixture `group_styled` frames its group in violet, fills the group's title violet,
 and gives every card in a frame a light violet shadow:
 
 ```json
 "graphical": {
-  "order": ["score", "page", "performance"],
+  "order": {"group_1": ["score", "page", "performance"]},
   "statements": [
     {"select": {"element": "group"}, "set": "frame-highlight"},
     {"select": {"element": "name", "ids": ["group_1/name"]}, "set": {"fill": "#7F00FF"}},
@@ -258,33 +391,33 @@ package exports `fontMetrics` and exposes the files through the
 
 ## Canonical order
 
-Readers accept a file's collections in any order. Writers emit one
-canonical order, so equal files have equal text. The keys of every object,
-at every depth, are sorted by Unicode code point. The arrays whose order keys
-cannot express are put in this order:
+Readers accept a manifest's collections in any order. Writers emit one
+canonical order, so equal manifests have equal text. The keys of every
+object, at every depth, are sorted by Unicode code point. The arrays whose
+order keys cannot express are put in this order:
 
-- in every timeline manifest, `conversion_maps` by id;
+- `timelines` by id, `groups` by id, and every group's `members` by code
+  point;
+- in every timeline, `children` by offset, then id;
+- `conversion_maps` by id;
 - `regions` by start, then end, then id;
 - flow-control `breaks` and `markers` by coordinate, then id;
-- flow-control `jumps` by from coordinate, then to coordinate, then id;
-- in a group or bundle file, `timelines` by id, a bundle's `groups` by id,
-  and every group's `members` by code point.
+- flow-control `jumps` by from coordinate, then to coordinate, then id.
 
-Ids are unique within their scope, so no two entries tie.
-
-`children` is an object keyed by id, so its text is sorted by id; its
-canonical order, the one a reader that traverses the tree follows, is by
-offset, then id. Coordinates compare by exact numeric value, never by JSON
-spelling. Strings compare by Unicode code point. No other
-array is reordered: `graphical` statements, display orders, conversion-map
-payloads, and measure-map rows keep their order.
+Ids are unique within their scope, so no two entries tie. Coordinates
+compare by exact numeric value, never by JSON spelling. Strings compare by
+Unicode code point. No other array is reordered: `graphical` statements,
+display orders, conversion-map payloads, and measure-map rows keep their
+order.
 
 ## The standard writer
 
-Each package has one writer, `dumps`. It puts a file in canonical order,
-sorts the keys of every object by code point, and writes UTF-8 text with
-two-space indentation and a final newline. It writes any other JSON value, such
-as an application's file embedding manifests, under the same rules. Every
+Each package has one writer, `dumps`. It puts a manifest in canonical
+order, sorts the keys of every object by code point, and writes UTF-8 text
+with two-space indentation and a final newline. It writes any other JSON
+value, such as an application's file embedding manifests, under the same
+rules. It writes the form it is given: pass a manifest through `complete`
+or `minimal` first to choose its form. Every
 character is unescaped except `"`, `\`, and control characters U+0000 to
 U+001F. A float remains a float and is spelled as Python's `repr` spells it
 (`2.0`, `0.0001`, `1e-05`, `1e+16`, `-0.0`); an integer never has a decimal
@@ -308,7 +441,7 @@ npm install @timetoalign/timeskeleton
 ### Python
 
 Python validation raises `SchemaValidationError` with a tuple path to the
-offending value. Read a file with `json.loads`, which keeps integers and
+offending value. Read a manifest with `json.loads`, which keeps integers and
 floats distinct and every integer exact, and write it with `dumps`:
 
 ```python
@@ -325,45 +458,30 @@ else:
     text = dumps(value)
 ```
 
-- `validate(value)` checks a file against the schema of the version and kind
-  it declares: a 0.5.0 or 0.6.0 timeline file against that version's schema,
-  a 0.7.0 file against the document of its kind. A 0.7.0 value holding none
-  or several of `timeline`, `group` and `bundle` is rejected at the root
-  (`exactly one of 'timeline', 'group' or 'bundle' is required; found none`).
-  A value that declares no supported version, or none, is refused on its
-  `meta` alone, checked against the latest version's: at
-  `meta.schema_version`, or at the root when `meta` is missing.
-- `file_kind(value)` returns `"timeline"`, `"group"` or `"bundle"` for a value
-  holding exactly that member, and `None` otherwise; `FILE_KINDS` is
-  `("timeline", "group", "bundle")`.
-- `migrate(value)` returns a copy of a file of any supported version
-  rewritten to 0.7.0, through one step per later version; the input is not
-  changed and the result is not validated. From 0.5.0 only
-  `meta.schema_version` changes; from 0.6.0 every timeline, the root and
-  every descendant, also gains `is_segment_line: false`, since 0.6.0 knows no
-  segment lines. A 0.7.0 file is copied. A value that declares no supported
-  version raises `UnsupportedVersionError`, as do the version-taking
-  accessors below.
-- `dumps(value)` returns the standard text of a file or any JSON value.
-- `canonical_order(value)` returns a deep copy with the file's arrays in
+- `validate(value)` reads the version marker first, then checks the value
+  against the schema, the representation of its own-axis values and the
+  identity rules, and raises `SchemaValidationError` at the first problem.
+  A value without `timeskeleton` is refused at the root; a value declaring
+  another version raises `UnsupportedVersionError` naming 0.7.0. Unknown
+  keys never fail it.
+- `unknown_keys(value)` returns the unknown keys of a manifest as a list of
+  `{path, key}` entries, sorted by path and then by key.
+- `complete(value)` and `minimal(value)` return a copy of a manifest in the
+  complete or the minimal form; the input is not changed.
+- `dumps(value)` returns the standard text of a manifest or any JSON value.
+- `canonical_order(value)` returns a deep copy with the manifest's arrays in
   canonical order. `canonical_json(value)` returns compact JSON with object
   keys sorted by code point.
 - `identity_problems(value)` returns every violation of the identity rules in
-  a schema-valid file of any kind, in the order described above; `validate`
-  raises the first.
+  a schema-valid manifest, in the order described above; `validate` raises
+  the first.
 - `complete_styles(graphical)` returns `(completed, missing)` and warns with
   `MissingStyleWarning` when `missing` is non-empty.
-- `SCHEMA_VERSION` is `"0.7.0"`, and `SUPPORTED_VERSIONS` is
-  `("0.5.0", "0.6.0", "0.7.0")`.
-  `declared_version(value)` returns `meta.schema_version` when it is a string.
-- `schema_documents(version)` returns the names of a version's schema
-  documents: `("timeline",)` for 0.5.0 and 0.6.0, and `SCHEMA_DOCUMENTS`,
-  `("core", "timeline", "group", "bundle")`, for 0.7.0.
-  `schema_path(version, document)` and `load_schema(version, document)` return
-  one document, the timeline document by default.
-  `fixture_paths(version, kind)` returns the bundled fixtures of one file
-  kind, timeline files by default, and `rejection_paths(version)` the bundled
-  rejection cases. Each takes a version, 0.7.0 by default.
+- `SCHEMA_VERSION` is `"0.7.0"`, the one version the package reads.
+- `schema_path()` and `load_schema()` return the schema document,
+  `fixture_paths()` the bundled accepted fixtures, `rejection_paths()`
+  the bundled rejection cases and `warning_paths()` the bundled warning
+  cases.
 - `font_path()` returns the bundled TrueType file, and `font_metrics()` returns
   its metrics.
 
@@ -392,33 +510,27 @@ function load(text: string): string {
 }
 ```
 
-- `parse(text)` reads and validates a file of any kind without losing a
-  number or key order, and returns it as a `TimeSkeletonFile`.
-  `parseJson(text)` reads any JSON text without validating it.
-- `validate(value)` narrows an unknown value to `TimeSkeletonFile`, checking
-  it against the schema of the version and kind it declares, as Python's
-  `validate` does. `TimeSkeletonFile` is the union of `TimeSkeletonManifest`
-  (the timeline file), `TimeSkeletonGroupFile` and `TimeSkeletonBundleFile`.
-- `fileKind(value)` returns the kind of a file, or `null`, as Python's
-  `file_kind` does; `FILE_KINDS` lists the kinds and `FileKind` is their type.
-- `migrate(value)` returns a copy rewritten to 0.7.0, as Python's `migrate`
-  does, keeping every number and key order `parseJson` read.
+- `parse(text)` reads and validates a manifest without losing a number or
+  key order, and returns it as a `TimeSkeleton`. `parseJson(text)` reads
+  any JSON text without validating it.
+- `validate(value)` narrows an unknown value to `TimeSkeleton`, checking it
+  as Python's `validate` does.
+- `unknownKeys(value)` returns the same list as Python's `unknown_keys`.
+- `complete(value)` and `minimal(value)` return the complete and the minimal
+  form, as Python's functions do, keeping every number and key order
+  `parseJson` read.
 - `dumps(value)` is the standard writer. `compactJson(value)` writes without
   whitespace, and `canonicalJson(value)` also sorts object keys by code point.
-- `canonicalOrder(value)` returns a deep copy with the file's arrays in
+- `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
   canonical order.
 - `identityProblems(value)` returns the same identity problems as Python's
   `identity_problems`.
 - `completeStyles(graphical)` returns `{graphical: completed, missing}`.
 - `fontMetrics` contains the bundled font's advance-width metrics.
-- `SCHEMA_VERSION` and `SUPPORTED_VERSIONS` name the bundled versions.
-  `schemaDocuments` holds every bundled schema document, keyed by version and
-  then by document name; `schemas` holds each version's timeline document,
-  and `schema` the latest one. The generated types include
-  `TimeSkeletonManifest`, `TimeSkeletonGroupFile`, `TimeSkeletonBundleFile`,
-  `TimelineManifest`, `Group`, `Bundle`, `Meta`, `Id`, `MemberOrder`,
-  `Graphical`, `GroupGraphical`, `BundleGraphical`, `Statement`,
-  `Selector`, `ElementType`, `Paint`, and `Declaration`.
+- `SCHEMA_VERSION` is `"0.7.0"`, and `schema` holds the schema document.
+  The generated types are generated from it, with the root type
+  `TimeSkeleton` and one type per definition, such as `Timeline`, `Group`
+  and `Graphical`.
 
 A number read by `parseJson` is a `JsonNumber`:
 
@@ -436,17 +548,10 @@ to be written as a float. JavaScript code that writes files must use
 
 ## Versioning
 
-Schema 0.5.0 is the earliest version this repository validates, and every
-schema version from 0.5.0 onward remains validatable. Each later version has
-a pure, ordered migration from the version before it in both packages,
-pinned by a before-and-after fixture pair under `fixtures/migrations/`.
-0.6.0 keeps the manifest format of 0.5.0 and revises the drawing
-specification; its migration rewrites `meta.schema_version` alone. 0.7.0 adds
-the group and bundle files, splits the schema into four documents, adds
-`is_segment_line` to every timeline, and adds to the `graphical` block the
-element types `boundary`, `ancestor`, `group` and `card`, the selector
-member `inside` and the property `shadow`; its migration also writes
-`is_segment_line: false` on every timeline of a 0.6.0 file.
+The packages read the current version only. A value declaring any other
+version raises `UnsupportedVersionError`, and neither package migrates a
+value from one version to another. Older versions live in the git history
+of this repository and in the packages released with them.
 
 A timeskeleton release is a schema-version event: one `vX.Y.Z` tag publishes
 both packages through trusted publishing. `scripts/check_versions.py` checks
@@ -454,14 +559,11 @@ that all version declarations agree.
 
 ## Fixtures
 
-The [fixture guide](fixtures/README.md) describes the generated timeline,
-group and bundle files and the drawings of each version, the hand-authored
-rejection cases, and the migration pairs. The files of every kind are emitted
-only by `scripts/emit_fixtures.py` using timetoalign and record its version
-and commit in `meta.generator`. Do not edit them by hand. Version 0.7.0 has
-29 timeline files, 9 group files and 9 bundle files, 46 drawings, twelve of
-whose figures are derived by hand from the drawing specification, and 100
-rejection cases.
+The [fixture guide](fixtures/README.md) describes the generated manifests
+and the drawings, the hand-authored rejection cases, and the warning cases.
+Every accepted fixture is written in the complete form beside its minimal
+twin. The manifests are emitted only by `scripts/emit_fixtures.py` using
+timetoalign. Do not edit them by hand.
 
 ## Development
 
@@ -498,9 +600,6 @@ revision being represented:
 ```bash
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"
 ```
-
-`--kinds` followed by one or more of `timeline`, `group` and `bundle` emits
-those kinds alone and leaves the files of the others as they are.
 
 From the repository root, check version declarations with:
 

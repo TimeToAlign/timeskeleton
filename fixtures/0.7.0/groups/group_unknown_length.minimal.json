@@ -1,0 +1,46 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "performance",
+        "score"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "performance",
+        "score"
+      ],
+      "name": "Edition"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "performance",
+      "length": null,
+      "regions": [
+        {
+          "end": 9.5,
+          "id": "region_1",
+          "start": 0.0
+        }
+      ],
+      "unit": "seconds"
+    },
+    {
+      "id": "score",
+      "length": [
+        12,
+        1
+      ],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

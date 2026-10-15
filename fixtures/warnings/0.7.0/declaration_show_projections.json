@@ -1,0 +1,56 @@
+{
+  "manifest": {
+    "graphical": {
+      "order": {},
+      "statements": [
+        {
+          "select": {},
+          "set": {
+            "show-projections": true
+          }
+        }
+      ],
+      "styles": {}
+    },
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "bare",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": "Bare",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "unknown_keys": [
+    {
+      "key": "show-projections",
+      "path": [
+        "graphical",
+        "statements",
+        0,
+        "set"
+      ]
+    }
+  ]
+}

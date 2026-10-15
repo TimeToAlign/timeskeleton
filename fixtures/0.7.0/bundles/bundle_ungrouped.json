@@ -1,119 +1,76 @@
 {
-  "bundle": {
-    "groups": [],
-    "id": "bundle_1",
-    "meta": {},
-    "name": "Sketches",
-    "support_policy": "omit"
-  },
-  "graphical": {
-    "order": {}
-  },
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": "Sketches",
   "timelines": [
     {
-      "children": {
-        "page_1": {
-          "offset": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 0
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "DiscreteGraphicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "page_1",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "int",
-              "unit": "pixels",
-              "value": 1754
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Page 1",
-            "number_type": "int",
-            "regions": [],
-            "unit": "pixels"
-          }
+          "id": "page_1",
+          "is_segment_line": false,
+          "length": 1754,
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Page 1",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
         },
-        "page_2": {
-          "offset": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 1754
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "DiscreteGraphicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "page_2",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "int",
-              "unit": "pixels",
-              "value": 1754
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Page 2",
-            "number_type": "int",
-            "regions": [],
-            "unit": "pixels"
-          }
+          "id": "page_2",
+          "is_segment_line": false,
+          "length": 1754,
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Page 2",
+          "number_type": "int",
+          "offset": 1754,
+          "regions": [],
+          "unit": "pixels"
         },
-        "page_3": {
-          "offset": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 3508
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "DiscreteGraphicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "page_3",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "int",
-              "unit": "pixels",
-              "value": 1754
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Page 3",
-            "number_type": "int",
-            "regions": [],
-            "unit": "pixels"
-          }
+          "id": "page_3",
+          "is_segment_line": false,
+          "length": 1754,
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Page 3",
+          "number_type": "int",
+          "offset": 3508,
+          "regions": [],
+          "unit": "pixels"
         }
-      },
-      "class": "DiscreteGraphicalTimeline",
+      ],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -122,11 +79,7 @@
       },
       "id": "pages",
       "is_segment_line": true,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 5262
-      },
+      "length": 5262,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -137,8 +90,7 @@
       "unit": "pixels"
     },
     {
-      "children": {},
-      "class": "DiscretePhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -147,11 +99,7 @@
       },
       "id": "recording",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "samples",
-        "value": 441000
-      },
+      "length": 441000,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -162,8 +110,7 @@
       "unit": "samples"
     },
     {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -172,14 +119,10 @@
       },
       "id": "score",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          16,
-          1
-        ]
-      },
+      "length": [
+        16,
+        1
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -189,5 +132,6 @@
       "regions": [],
       "unit": "quarters"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

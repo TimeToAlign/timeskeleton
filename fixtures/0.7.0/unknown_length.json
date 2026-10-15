@@ -1,0 +1,81 @@
+{
+  "groups": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "coda",
+          "is_segment_line": false,
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": null,
+          "number_type": "fraction",
+          "offset": [
+            10,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": [
+          {
+            "coordinate": [
+              6,
+              1
+            ],
+            "id": "marker_1",
+            "name": null
+          }
+        ]
+      },
+      "id": "score",
+      "is_segment_line": false,
+      "length": null,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
+      "number_type": "fraction",
+      "regions": [
+        {
+          "end": [
+            8,
+            1
+          ],
+          "id": "region_1",
+          "meta": {},
+          "name": null,
+          "start": [
+            2,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

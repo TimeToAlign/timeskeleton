@@ -1,0 +1,73 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "theme",
+        "recording"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "recording",
+        "theme"
+      ],
+      "name": "Theme"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "recording",
+      "length": 12.0,
+      "name": "Recording",
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "id": "theme",
+              "length": [
+                8,
+                1
+              ],
+              "locked": true,
+              "name": "Theme",
+              "offset": [
+                8,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "movement",
+          "length": [
+            16,
+            1
+          ],
+          "locked": true,
+          "name": "Movement",
+          "offset": [
+            16,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "score",
+      "length": [
+        64,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

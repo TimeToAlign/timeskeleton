@@ -1,0 +1,41 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "movement",
+          "length": null,
+          "locked": true,
+          "offset": [
+            8,
+            1
+          ],
+          "regions": [
+            {
+              "end": [
+                6,
+                1
+              ],
+              "id": "region_1",
+              "start": [
+                0,
+                1
+              ]
+            }
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "score",
+      "length": [
+        32,
+        1
+      ],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

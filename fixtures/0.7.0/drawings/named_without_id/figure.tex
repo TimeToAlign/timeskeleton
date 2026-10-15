@@ -1,0 +1,28 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (482.3293,88.1836);
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (8,69.9731) {Sketch};
+\path[rounded corners=5pt,fill=tsB8BEC8] (10,8) rectangle (474.3293,57.3789);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (8,10) rectangle (472.3293,59.3789);
+\path[draw=ts00CC00,line width=3pt] (55.0503,44.9766) -- (455.0503,44.9766);
+\path[fill=ts00CC00] (55.0503,44.9766) circle[radius=3];
+\path[fill=ts00CC00] (464.0503,44.9766) -- (455.0503,49.4766) -- (455.0503,40.4766) -- cycle;
+\path[fill=ts000000] (55.0503,43.4766) -- (52.0503,30.4766) -- (58.0503,30.4766) -- cycle;
+\path[fill=ts000000] (455.0503,43.4766) -- (452.0503,30.4766) -- (458.0503,30.4766) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,41.1685) {Score};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (55.0503,20.1226) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (455.0503,20.1226) {16 ♩};
+\end{scope}
+\end{tikzpicture}
+\end{document}

@@ -1,44 +1,47 @@
 # Fixtures
 
-Fixtures are kept per schema version in `fixtures/<version>/`, for 0.5.0,
-0.6.0 and 0.7.0, the current version; a version's drawings lie in its
-`drawings/` directory, and the rejection cases of each version under
-`fixtures/rejections/<version>/`.
+The fixtures of the current version, 0.7.0, are kept in `fixtures/0.7.0/`,
+its drawings in `fixtures/0.7.0/drawings/`, its rejection cases under
+`fixtures/rejections/0.7.0/` and its warning cases under
+`fixtures/warnings/0.7.0/`. Older versions and their fixtures live in the
+git history and in their released packages.
 
-The generated fixtures are complete TimeSkeleton files, one directory per
-file kind:
+Every generated fixture is a TimeSkeleton manifest of the one shape
+`{timeskeleton, timelines, …}`. The directories sort the manifests by
+content only:
 
-- every JSON file directly under `fixtures/<version>/` is a timeline file
-  `{meta, timeline, graphical?}`;
-- every JSON file under `fixtures/<version>/groups/` is a group file `{meta,
-  timelines, group, graphical}`;
-- every JSON file under `fixtures/<version>/bundles/` is a bundle file
-  `{meta, timelines, bundle, graphical}`.
+- directly under `fixtures/0.7.0/`, manifests of one root timeline and no
+  group;
+- under `groups/`, manifests holding one group;
+- under `bundles/`, the manifests of alignment bundles: several groups,
+  ungrouped roots, or both.
 
-Versions 0.5.0 and 0.6.0 have timeline files only. Version 0.7.0 has 29
-timeline files, 9 group files and 9 bundle files, 46 drawings and 100
-rejection cases. The files are emitted by
+Version 0.7.0 has 36 manifests directly under `fixtures/0.7.0/`, 10 under
+`groups/` and 9 under `bundles/`, 55 in all, each with its minimal twin, so
+110 files. Beside them lie 86 rejection cases and 11 warning cases.
+
+Every accepted fixture is written in the complete form, every key with a
+default written with it, and has a **minimal twin** beside it,
+`<name>.minimal.json`, the same manifest in the minimal form, as
+timetoalign's `to_dict(minimal=True)` writes it. The two obey one law:
+`minimal(fixture)` equals the twin, `complete(twin)` equals the fixture,
+and the library reads both to equal objects. The manifests are emitted by
 timetoalign through `scripts/emit_fixtures.py`; that script is their only
-writer. Regenerate them after a serialization change and review the diff;
-`--kinds` followed by one or more of `timeline`, `group` and `bundle`
-regenerates those kinds alone. The script refuses to replace the fixtures of
-a version whose tag `v<version>` exists, so a released version's fixtures
-stay as released.
+writer. Regenerate them after a serialization change and review the diff.
+The script refuses to replace the fixtures of a version whose tag
+`v<version>` exists, so a released version's fixtures stay as released.
 
-The rejection cases under `fixtures/rejections/<version>/` are
-hand-authored. Each changes one rule and records the path both validators
-must report. The emission script does not touch them.
-
-The migration pairs under `fixtures/migrations/` are hand-authored too
-(section [Migrations](#migrations)).
+The rejection cases under `fixtures/rejections/<version>/` and the warning
+cases under `fixtures/warnings/<version>/` are hand-authored. The emission
+script does not touch them.
 
 The [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md)
-pins how a timeline manifest is drawn. A drawing is derived; these directories contain no drawing schema.
+pins how a manifest is drawn. A drawing is derived; these directories contain no drawing schema.
 
 ## Provenance
 
-Each generated file records the timetoalign revision that produced it in
-`meta.generator`:
+Each generated manifest records the timetoalign revision that produced it
+in its free `meta` object, under `generator`:
 
 ```text
 timetoalign <installed version> (<commit>)
@@ -51,28 +54,28 @@ the represented timetoalign revision:
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C <timetoalign-checkout> rev-parse --short HEAD)"
 ```
 
-The script writes each file with `timeskeleton.dumps` (object keys sorted
-by code point, arrays in canonical order), reads it back, validates it, and
-fails unless its content is stable through the library: a timeline file's
-`timeline` through `Timeline.from_dict(m).to_dict()`, a group file without
-its `meta` through `TimelineGroup.from_dict(m).to_dict()`, and a bundle file
-without its `meta` through `AlignmentBundle.from_dict(m).to_dict()`, each
-compared with sorted keys and arrays as they stand. A library whose array
-order differs from the canonical order therefore fails the round trip. A
-group's or bundle's `graphical.order` is the library's own member order and
-takes part in the round trip; a timeline file's `graphical` block is composed
-by the script and does not. Every timeline, conversion map, region,
-break, jump and marker carries an id; ids the script does not give are
-minted by timetoalign and depend on the construction order in the script,
-which is part of the fixture contract.
+The script writes each manifest and its twin with `timeskeleton.dumps`
+(object keys sorted by code point, arrays in canonical order), reads both
+back, validates them, checks the law above, and fails unless the manifest
+is stable through the library: read by the class that holds its content
+(`Timeline.from_dict` for one root and no group, `TimelineGroup.from_dict`
+for one group, `AlignmentBundle.from_dict` otherwise) and written back with
+`to_dict()`, compared with sorted keys and arrays as they stand. A library
+whose array order differs from the canonical order therefore fails the
+round trip. A group's `graphical.order` is the library's own member order
+and takes part in the round trip; a single timeline's `graphical` block is
+composed by the script and does not. Every timeline, conversion map,
+region, break, jump and marker carries an id; ids the script does not give
+are minted by timetoalign and depend on the construction order in the
+script, which is part of the fixture contract.
 
-A builder that produces one top-level timeline, group or bundle uses
-`<builder>.json` in its kind's directory. A builder that produces several
-uses `<builder>__<slug>.json` for each, where `<slug>` is its id with every
+A builder that produces one root timeline, group or bundle uses
+`<builder>.json` in its directory. A builder that produces several uses
+`<builder>__<slug>.json` for each, where `<slug>` is its id with every
 character outside `[A-Za-z0-9_-]` replaced by `_`. The script refuses two ids
 that would produce the same file name.
 
-## Timeline file coverage
+## Coverage of single timelines
 
 The six axis fixtures cover every combination of continuous or discrete with
 logical, physical, or graphical:
@@ -116,13 +119,35 @@ fixtures are emitted first:
 | `corpus_supra_iiif.json` | an IIIF manifest |
 | `corpus_parangonar_parangonada__score_dlt_1.json` | the discrete score timeline of a Parangonada alignment |
 
-Every generated file carries the full timeline shape that timetoalign writes:
-`name` is `null` when absent, placed children, segments included, are
-locked, empty flow control contains `breaks`, `jumps`, and `markers`, absent
-measure maps and metric hierarchies are `null`, and from 0.7.0 on every
-timeline states `is_segment_line`.
+Every generated manifest is in the complete form timetoalign writes:
+`name` is `null` when absent, every timeline states `number_type`,
+`locked` and `is_segment_line`, empty flow control contains `breaks`,
+`jumps`, and `markers`, and absent measure maps and metric hierarchies are
+`null`. Its minimal twin leaves all of these out. The children of these
+fixtures, segments included, are locked, as timetoalign embeds a child by
+default; a manifest may equally hold an unlocked child, whose `locked` is
+`false` and is left out of the minimal form.
 
-## Group and bundle file coverage
+Two more manifests cover the manifest's own keys:
+
+| File | Coverage |
+| --- | --- |
+| `negative_offset.json` | a root carrying a negative `offset`, its origin on its unit's absolute axis |
+| `named_without_id.json` | a manifest with a `name` and no `id` |
+
+Six manifests draw timelines of unknown length (`length: null`), one case
+each:
+
+| File | Coverage |
+| --- | --- |
+| `unknown_length.json` | a root of unknown length with content |
+| `unknown_length_empty.json` | a root of unknown length without content |
+| `unknown_length_locked.json` | a locked root of unknown length |
+| `unknown_length_child.json` | a child of unknown length in a parent of known length |
+| `groups/group_unknown_length.json` | a group with a member of unknown length |
+| `unknown_length_segments.json` | a segment line whose last segment has an unknown length |
+
+## Coverage of groups and bundles
 
 Every builder writes its files; the constructed files are built first:
 
@@ -154,19 +179,20 @@ as it stands in that version, with exactly three files; the drawings of the
 current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
-The 46 drawings of 0.7.0 are every fixture of every kind but the corpus
-ones (`corpus_*`) at the default placement, 35 in all, and eleven
-variants. A timeline file's drawing is named as the file (`nested`), a
-group or bundle file's as its directory's kind and the file
-(`group__group_child_member`, `bundle__bundle_mixed`). The variants draw
-`nested` at the lengths 200, 400 and 800 (`nested__length-<L>`), the
-spacings 0.5, 1 and 2 (`nested__spacing-<v>`), both 800 and 2
-(`nested__length-800-spacing-2`), in a box 120 wider and 60 higher than its
-content (`nested__box`), at scale 2 (`nested__scale-2`) and with the band
-order `["flow", "regions", "children"]`
-(`nested__order-flow-regions-children`), and `map` with an application
-layer that moves the child's map `ticks` below its line
-(`map__child-map-below`). Each directory holds:
+The drawings of 0.7.0 are every fixture in the complete form but the corpus
+ones (`corpus_*`) at the default placement, and eleven variants. The
+drawing of a manifest directly under `fixtures/0.7.0/` is named as the file
+(`nested`); that of a manifest under `groups/` or `bundles/` as the
+directory's singular and the file (`group__group_child_member`,
+`bundle__bundle_mixed`). The variants draw `nested` at the lengths 200, 400
+and 800 (`nested__length-<L>`), the spacings 0.5, 1 and 2
+(`nested__spacing-<v>`), both 800 and 2 (`nested__length-800-spacing-2`),
+in a box 120 wider and 60 higher than its content (`nested__box`), at scale
+2 (`nested__scale-2`) and with the band order `["flow", "regions",
+"children"]` (`nested__order-flow-regions-children`), and `map` with an
+application layer that moves the child's map `ticks` below its line,
+selecting it by its address `melody/ticks` (`map__child-map-below`): 54
+drawings in all. Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
   the font, written with `dumps`:
@@ -187,51 +213,54 @@ layer that moves the child's map `ticks` below its line
   the font directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Some `figure.svg` files are derived by hand from the
-specification alone and are never regenerated: twelve in 0.7.0, seven in
-0.5.0 and in 0.6.0. Each version's `drawings/README.md` lists them with
-their arithmetic. Every other figure, and every `inputs.json`, is
-emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
-<timeskeleton checkout>` (run in its `app/packages/writers/`), which compares
-the hand-derived SVGs with its own output instead of writing them.
-The script refuses to replace the drawings of a version whose tag
-`v<version>` exists.
+for byte. Eighteen `figure.svg` files are derived by hand from the
+specification alone and are never regenerated, the six figures of
+timelines of unknown length among them; `drawings/README.md` lists them
+with their arithmetic. Every other figure, and every `inputs.json`, is emitted by
+TimeLineEditor's writers with `pnpm emit-drawings --into <timeskeleton
+checkout>` (run in its `app/packages/writers/`), which compares the
+hand-derived SVGs with its own output instead of writing them. The script
+refuses to replace the drawings of a version whose tag `v<version>`
+exists.
 
 ## Rejection coverage
 
-The rejection cases cover the file root and metadata, timeline classes and
-units, coordinate number forms and bounds, child offsets, conversion maps,
-regions, flow control, measure maps, metric hierarchies, the `graphical`
-block's selectors, declarations, and statement shapes, and the identity rules
-`validate` checks beyond the schema: ids unique across a manifest and jump
-targets naming a marker of their own timeline. From 0.7.0 on they also cover
-segment lines (a missing or non-boolean `is_segment_line`, a segment of
-another class or another `is_segment_line` value, a segment that leaves a gap
-or does not start at 0, segments that fall short of the segment line's
-length), the file kinds (none or several of `timeline`, `group` and `bundle`),
-the group and bundle file shapes and their `graphical` block (its `order`,
-its statements, an unknown member), the selector member `inside` and the
-property `shadow`, and the identity rules of group and bundle files: each
-root its own scope, the part words `start`, `end`, `name`, `label` and
-`card` refused as the id of a map, region, break, jump or marker, timeline
-ids unique across the file, group ids distinct from timeline ids and from
-each other, the bundle id distinct from every timeline and group id, members
-naming timelines of the file, a timeline a member of at most one group, no
-member of a group lying inside another, every root of a group file
-containing a member, and display orders that are permutations of their
-group's members. Tests in both packages load the same files and compare the reported
-path with the case's expected path.
+Each rejection case changes one rule of an accepted manifest and records
+the path both validators must report; a rule inside a timeline is located
+under the root that holds it, `/timelines/0/…`. The cases cover the version
+marker (absent, or another version), the manifest's own members, timeline
+units, own-axis values and their representation (such as an integer on a
+fraction axis, or an integer on a float axis that no float equals
+exactly), a child without an `offset`, a child whose unit is not its
+parent's, a child with a negative `offset`, a child whose `offset` lies
+beyond its parent's known length, a child ending beyond it, conversion
+maps, regions,
+flow control, measure maps, metric hierarchies, the `graphical` block's
+selectors, declarations, statement shapes and `order`, segment lines (a
+non-boolean `is_segment_line`, a segment with another `is_segment_line`
+value, a segment that leaves a gap or
+does not start at 0, segments that fall short of a known length), and the
+identity rules `validate` checks beyond the schema: ids unique within a
+root's tree, timeline ids, group ids and the manifest's id unique together,
+the part words `start`, `end`, `name`, `label` and `card` refused as an id,
+in a manifest of one root as in any other, jump targets naming a marker of
+their own timeline, members naming timelines of the manifest, a timeline a
+member of at most one group, no member of a group lying inside another, and
+display orders that are permutations of their group's members. Tests in
+both packages load the same files and compare the reported path with the
+case's expected path.
 
-## Migrations
+## Warning cases
 
-Each directory `fixtures/migrations/<from>-to-<to>/` pins one migration step
-with two files: `before.json`, a file of version `<from>`, and
-`after.json`, the standard text (`dumps`) of `migrate` applied to it. Both
-packages migrate `before.json` and compare the result with `after.json` byte
-for byte. In `0.5.0-to-0.6.0`, `before.json` is `fixtures/0.5.0/bare.json`,
-and `after.json` differs from it only in `meta.schema_version`. In
-`0.6.0-to-0.7.0`, `before.json` is `fixtures/0.6.0/bare.json`, and
-`after.json` differs from it in `meta.schema_version` and in the timeline's
-`is_segment_line: false`.
+An unknown key is never an error. Each of the 11 warning cases under
+`fixtures/warnings/<version>/` holds a manifest carrying unknown keys
+together with the list that `unknown_keys` and `unknownKeys` must return
+for it: `{path, key}` entries, sorted by path and then by key.
+`several_depths` places them at every depth of a manifest; each of the
+others holds one or two keys its object does not declare, among them keys
+that earlier versions defined, such as `support_policy` or a timeline's
+`class`. Python's `warning_paths()` lists the cases. Both packages read the
+same files and compare their lists with it.
 
-See the [main README](../README.md) for the file kinds, the schema API and the canonical writer.
+See the [main README](../README.md) for the manifest shape, the schema API
+and the canonical writer.

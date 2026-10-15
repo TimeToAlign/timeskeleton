@@ -5,40 +5,36 @@ TypeScript packages validate it, and timetoalign emits its fixtures.
 
 ## Schema changes
 
-For a format change, add a new version directory `schema/<version>/` holding
-the full document set, `core.schema.json`, `timeline.schema.json`,
-`group.schema.json` and `bundle.schema.json`, each with the `$id`
-`https://timetoalign.github.io/timeskeleton/<version>/<name>.schema.json`
-and every reference to another document relative; do not alter a published
-schema. Copy the documents a change does not concern, so that one version's
-documents are released together. Update the supported-version and
-latest-version declarations in both packages. Every schema version from
-0.5.0 onward remains validatable, and each later version has a pure, ordered
-migration in both packages, pinned by a before-and-after fixture pair. Add
-shared rejection fixtures, regenerate `js/src/generated/` with
-`pnpm generate`, and re-emit the fixtures through timetoalign.
+A version's schema is one document,
+`schema/<version>/timeskeleton.schema.json`, with the `$id`
+`https://timetoalign.github.io/timeskeleton/<version>/timeskeleton.schema.json`.
+An unreleased version is changed in place; a released one is never altered.
+A new version replaces the current one in `schema/`: the repository and both
+packages hold the current version only, with no migrations, and older
+versions live in the git history and their released packages. Update the
+version declarations in both packages, add shared rejection and warning
+cases, regenerate `js/src/generated/` with `pnpm generate`, and re-emit the
+fixtures through timetoalign.
 
-The timeline files under `fixtures/<version>/`, the group files under its
-`groups/` and the bundle files under its `bundles/` are generated artifacts.
-Use an environment containing the timetoalign revision represented by the
-schema:
+The manifests under `fixtures/<version>/` and its `groups/` and `bundles/`
+subdirectories are generated artifacts, each in the complete form beside
+its minimal twin. Use an environment containing the timetoalign revision
+represented by the schema:
 
 ```bash
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C /path/to/timetoalign rev-parse --short HEAD)"
 ```
 
-`--kinds` followed by one or more of `timeline`, `group` and `bundle` emits
-those kinds alone and leaves the others as they are. Do not edit a fixture
-by hand. The script refuses to write into the fixtures of a version whose
-`v<version>` tag exists. Rejection cases under
-`fixtures/rejections/` and migration pairs under `fixtures/migrations/` are
+Do not edit a fixture by hand. The script refuses to write into the
+fixtures of a version whose `v<version>` tag exists. Rejection cases under
+`fixtures/rejections/` and warning cases under `fixtures/warnings/` are
 authored by hand.
 
 ## The drawing specification
 
 `docs/drawing.md` specifies the `graphical` block, arithmetic, default
-styles, font, layout, SVG and TikZ writers, and the box that draws groups and
-bundles with their frames, cards and ancestor lines. A drawing is derived and has no
+styles, font, layout, SVG and TikZ writers, and the box that draws every
+manifest with its frames, cards and ancestor lines. A drawing is derived and has no
 schema or exchanged JSON form. The specification pins the drawing. A rule a reader could not reproduce from the
 specification alone is a defect of the specification.
 
@@ -121,11 +117,10 @@ A timeskeleton version is a schema version, so release-please does not compute
 it from the commits. The commit that adds a schema version updates every
 declaration (`python/pyproject.toml`, `js/package.json`, `SCHEMA_VERSION`
 in `python/src/timeskeleton/validate.py` and `js/src/validate.ts`, and the
-self entry in `python/uv.lock`), adds the documents
-`schema/X.Y.Z/{core,timeline,group,bundle}.schema.json`, a non-empty
-`fixtures/X.Y.Z/` with its `drawings/`, `groups/` and `bundles/`, and
-rejection fixtures, and passes `python3 scripts/check_versions.py`. A version after 0.5.0 also adds its
-migration pair. The commit carries the footer:
+self entry in `python/uv.lock`), holds the document
+`schema/X.Y.Z/timeskeleton.schema.json`, a non-empty `fixtures/X.Y.Z/`
+with its `drawings/`, and the rejection and warning cases, and passes
+`python3 scripts/check_versions.py`. The commit carries the footer:
 
 ```text
 Release-As: X.Y.Z

@@ -1,22 +1,13 @@
 {
   "manifest": {
-    "meta": {
-      "schema_version": "0.7.0"
-    },
-    "timeline": {
-      "children": {
-        "a": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              1,
-              1
-            ]
-          },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousLogicalTimeline",
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
             "conversion_maps": [],
             "flow_control": {
               "breaks": [],
@@ -25,36 +16,25 @@
             },
             "id": "a",
             "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                2,
-                1
-              ]
-            },
+            "length": [
+              2,
+              1
+            ],
             "locked": false,
             "measure_map": null,
             "meta": {},
             "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
+            "offset": [
+              1,
+              1
+            ],
             "regions": [],
             "unit": "quarters"
-          }
-        },
-        "b": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              3,
-              1
-            ]
           },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousLogicalTimeline",
+          {
+            "children": [],
             "conversion_maps": [],
             "flow_control": {
               "breaks": [],
@@ -63,56 +43,53 @@
             },
             "id": "b",
             "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                5,
-                1
-              ]
-            },
+            "length": [
+              5,
+              1
+            ],
             "locked": false,
             "measure_map": null,
             "meta": {},
             "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
+            "offset": [
+              3,
+              1
+            ],
             "regions": [],
             "unit": "quarters"
           }
-        }
-      },
-      "class": "ContinuousLogicalTimeline",
-      "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
-      "id": "bare",
-      "is_segment_line": true,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
+        ],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "bare",
+        "is_segment_line": true,
+        "length": [
           8,
           1
-        ]
-      },
-      "locked": false,
-      "measure_map": null,
-      "meta": {},
-      "metric_hierarchy": null,
-      "name": "Bare",
-      "number_type": "fraction",
-      "regions": [],
-      "unit": "quarters"
-    }
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": "Bare",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
   },
   "path": [
-    "timeline",
+    "timelines",
+    0,
     "children",
-    "a",
+    0,
     "offset"
   ],
   "reason": "The first segment starts at 0."

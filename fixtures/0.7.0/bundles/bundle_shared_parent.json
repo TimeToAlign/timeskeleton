@@ -1,30 +1,4 @@
 {
-  "bundle": {
-    "groups": [
-      {
-        "id": "group_1",
-        "members": [
-          "exposition",
-          "take_1"
-        ],
-        "meta": {},
-        "name": "Exposition"
-      },
-      {
-        "id": "group_2",
-        "members": [
-          "recapitulation",
-          "take_2"
-        ],
-        "meta": {},
-        "name": "Recapitulation"
-      }
-    ],
-    "id": "bundle_1",
-    "meta": {},
-    "name": "Sonata",
-    "support_policy": "omit"
-  },
   "graphical": {
     "order": {
       "group_1": [
@@ -35,16 +9,37 @@
         "recapitulation",
         "take_2"
       ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "exposition",
+        "take_1"
+      ],
+      "meta": {},
+      "name": "Exposition"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "recapitulation",
+        "take_2"
+      ],
+      "meta": {},
+      "name": "Recapitulation"
     }
-  },
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": "Sonata",
   "timelines": [
     {
-      "children": {},
-      "class": "DiscreteGraphicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -53,11 +48,7 @@
       },
       "id": "page",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 1754
-      },
+      "length": 1754,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -68,85 +59,62 @@
       "unit": "pixels"
     },
     {
-      "children": {
-        "exposition": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              0,
-              1
-            ]
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousLogicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "exposition",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                12,
-                1
-              ]
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Exposition",
-            "number_type": "fraction",
-            "regions": [],
-            "unit": "quarters"
-          }
+          "id": "exposition",
+          "is_segment_line": false,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Exposition",
+          "number_type": "fraction",
+          "offset": [
+            0,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
         },
-        "recapitulation": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              20,
-              1
-            ]
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousLogicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "recapitulation",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                12,
-                1
-              ]
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Recapitulation",
-            "number_type": "fraction",
-            "regions": [],
-            "unit": "quarters"
-          }
+          "id": "recapitulation",
+          "is_segment_line": false,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Recapitulation",
+          "number_type": "fraction",
+          "offset": [
+            20,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
         }
-      },
-      "class": "ContinuousLogicalTimeline",
+      ],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -155,14 +123,10 @@
       },
       "id": "score",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          32,
-          1
-        ]
-      },
+      "length": [
+        32,
+        1
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -173,8 +137,7 @@
       "unit": "quarters"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -183,11 +146,7 @@
       },
       "id": "take_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 30.0
-      },
+      "length": 30.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -198,8 +157,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -208,11 +166,7 @@
       },
       "id": "take_2",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 28.5
-      },
+      "length": 28.5,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -222,5 +176,6 @@
       "regions": [],
       "unit": "seconds"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

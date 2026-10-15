@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Twelve of the 46 drawings in this directory are derived by hand from the
+Eighteen of the 54 drawings in this directory are derived by hand from the
 [drawing specification](../../../docs/drawing.md) and the font metrics
 alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
@@ -33,12 +33,24 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `group__group_child_member` | `groups/group_child_member.json` | none |
 | `group__group_parents_mixed` | `groups/group_parents_mixed.json` | none |
 | `group__group_grandchild` | `groups/group_grandchild.json` | none |
+| `unknown_length` | `unknown_length.json` | none |
+| `unknown_length_empty` | `unknown_length_empty.json` | none |
+| `unknown_length_locked` | `unknown_length_locked.json` | none |
+| `unknown_length_child` | `unknown_length_child.json` | none |
+| `group__group_unknown_length` | `groups/group_unknown_length.json` | none |
+| `unknown_length_segments` | `unknown_length_segments.json` | none |
 
 ## Shared quantities
 
-Every file is drawn as a bundle (§8): the nine timeline files as an
-anonymous bundle holding one ungrouped root in its card, the three group
-files as an anonymous bundle holding one frame. None has a title.
+Every manifest is drawn as one box (§8). Fourteen of these manifests hold
+one ungrouped root, drawn in its card, and four hold one group, drawn as a
+frame. None has a `name` or an `id`, so no box has a title.
+
+Every `data-address` follows §2.2: an element other than a timeline or a
+group is addressed through the root whose tree holds it, also in a manifest
+of one root (`melody/tempo`, `clt_1/region_1`, `flow:quarters/jump_1`,
+`score/intro/label`), and a manifest's title, wherever one is drawn, is
+addressed `name`.
 
 - Constants (§6.2): padding `P` = 8 (`P × v` above and below a member
   drawing's content), card padding `K` = 8, frame padding `Q` = 8, gap
@@ -61,7 +73,16 @@ files as an anonymous bundle holding one frame. None has a title.
   2.12255859375, `h(9)` = 10.4765625; at size 11: `h(11)` = 12.8046875.
   With both wedges below and their labels at `u` = 0 and 1 in one tier,
   the root band below reaches `w / 2 + 13 + 2 + h(9)` = 26.9765625 for a
-  line of width `w` = 3 (§6.4).
+  line of width `w` = 3 (§6.4); a root whose end is open has only its start
+  wedge and label, and its root band below reaches the same.
+- A region band of one row is `pr − 4 × v` = 18.4765625 wide, `pr` = 6 + 2
+  + `h(9)` + 4 = 22.4765625, whether or not its regions have drawn labels
+  (§6.2). Below a root band of 26.9765625 it starts at 30.9765625, so the
+  below side's outer edge is `Eb` = 49.453125.
+- A timeline of unknown length is scaled to its reach `λ` (§3.4). A root's
+  open end lies at `Xe = x0 + L`; its line runs on to `Xr = Xe + 4w` and
+  the outer chevron's tip lies at `Xe + 8w`, which is `x0 + L + 24` for
+  `w` = 3 (§6.6).
 
 ## `bare`
 
@@ -94,7 +115,8 @@ each row shows its id.
 ## `map`
 
 The root `melody` ("Melody", 8 quarters) with the map `tempo` and the child
-`phrase` ("Phrase", 4 at 2) with the map `ticks`.
+`phrase` ("Phrase", 4 at 2) with the map `ticks`, addressed `melody/tempo`
+and `melody/ticks`.
 
 - `N` = max(w(`Melody`, 11), w(`Phrase`, 11)) = max(39.53662109375,
   37.36669921875) = 39.53662109375.
@@ -258,3 +280,118 @@ ancestor lines, `movement` and `score`, both running on to the left.
 - `W` = 8 + 551.70361328125 = 559.70361328125; `H` = 8 + 216.11328125 =
   224.11328125.
 - Page 591.70361328125 × 256.11328125 → **591.7036 × 256.1133**.
+
+## `unknown_length`
+
+The root `score` (quarters, length `null`) with the region `region_1` (2
+to 8), the marker `marker_1` at 6 and the locked child `coda` (4 at 10).
+No timeline has a name.
+
+- The reach is the end of `coda`, 10 + 4 = 14, beyond the region's end 8
+  and the marker 6, so `λ` = 14 and `u(t)` = `t / 14`, rounded once: `x(2)`
+  = 110.94168526785714 → 110.9417, `x(10)` = 339.5131138392857 →
+  339.5131. `coda` ends at 14, known, in its diamond at `x0 + L`.
+- `N` = w(`score`, 11) = 29.798828125.
+- `x0` = 16 + 29.798828125 + 8 = 53.798828125 → 53.7988; the start label
+  `0 ♩` gives only 22.416015625.
+- `R` = the outer chevron tip `x0 + L + 24` = 477.798828125. The root has
+  no end wedge and no end label.
+- `Hm` = 29 + 49.453125 + 8 = 86.453125: `coda` in the children band above
+  (`Ea` = 21), the start wedge and the region band below.
+- `W` = 8 + (10 + 477.798828125) = 495.798828125; `H` = 8 + (10 +
+  86.453125) = 104.453125.
+- Page 527.798828125 × 136.453125 → **527.7988 × 136.4531**.
+
+## `unknown_length_empty`
+
+The root `score` (quarters, length `null`) with no content.
+
+- The reach is 0, so every `u` is 0 (§3.2), and the line is still drawn
+  `L` long, from `x0` to `Xe = x0 + L` (§3.4).
+- `N` = 29.798828125; `x0` = 53.798828125 → 53.7988.
+- `R` = the outer chevron tip 477.798828125.
+- `Hm` = 14.40234375 + 26.9765625 + 8 = 49.37890625: nothing above, so
+  `y_root` = `P + h(11) / 2`.
+- `W` = 495.798828125; `H` = 8 + (10 + 49.37890625) = 67.37890625.
+- Page 527.798828125 × 99.37890625 → **527.7988 × 99.3789**.
+
+## `unknown_length_locked`
+
+The locked root `score` (quarters, length `null`) with the locked child
+`coda` (4 at 12).
+
+- The reach is 12 + 4 = 16 = `λ`; `x(12)` = 353.798828125. The root's end
+  is open, and the double chevron comes before the end circle of a locked
+  root in §6.6, so the root ends in the chevrons; `coda` ends in its diamond
+  at `x0 + L`.
+- `N` = 29.798828125; `x0` = 53.798828125 → 53.7988.
+- `R` = the outer chevron tip 477.798828125.
+- `Hm` = 29 + 26.9765625 + 8 = 63.9765625.
+- `W` = 495.798828125; `H` = 8 + (10 + 63.9765625) = 81.9765625.
+- Page 527.798828125 × 113.9765625 → **527.7988 × 113.9766**.
+
+## `unknown_length_child`
+
+The root `score` (32 quarters) and its locked child `movement` at 8, of
+length `null`, holding the region `region_1` (0 to 6).
+
+- `λ` = 32, the root's length. The reach of `movement` on its own axis is
+  6, so it ends under rule 5 of §3.4 at 8 + 6 = 14, open: `Xe` = `x(14)` =
+  258.490234375, `Xr` = 270.490234375, the outer chevron's tip
+  282.490234375. Its first-fit extent runs on `8w` past its end, to 199.
+- `N` = w(`movement`, 11) = 59.490234375.
+- `x0` = 16 + 59.490234375 + 8 = 83.490234375 → 83.4902.
+- `R` = the end label `32 ♩` at 483.490234375 + 9.279052734375 =
+  492.769287109375, beyond the arrowhead tip 492.490234375.
+- `Hm` = 29 + 49.453125 + 8 = 86.453125.
+- `W` = 8 + (10 + 492.769287109375) = 510.769287109375; `H` = 8 + (10 +
+  86.453125) = 104.453125.
+- Page 542.769287109375 × 136.453125 → **542.7693 × 136.4531**.
+
+## `group__group_unknown_length`
+
+The group "Edition" in the display order `performance`, `score`: the root
+`performance` (seconds, length `null`) with the region `region_1` (0.0 to
+9.5), and the root `score` (12 quarters).
+
+- `performance` is scaled to its reach 9.5, a float: `u(9.5)` = 1.0, so the
+  region spans `x0` to `x0 + L`, and its tip lies at the midpoint (0.0 +
+  9.5) / 2 = 4.75, `u` = 0.5, `x` = 302.640625 (§3.1). Its start label is
+  `0.0 s`.
+- `xn` = 24. `N` = w(`performance`, 11) = 70.640625.
+- `x0` = 24 + 70.640625 + 8 = 102.640625 → 102.6406; the start label
+  `0.0 s` gives only 34.931396484375.
+- `R` = the outer chevron tip of `performance`, 102.640625 + 400 + 24 =
+  526.640625, beyond the end label `12 ♩` of `score` at
+  511.919677734375.
+- `Hm` = 71.85546875 (`performance`, its region band below) and
+  49.37890625 (`score`); the frame is 8 + 12.8046875 + 4 + 71.85546875 + 8
+  + 49.37890625 + 8 = 162.0390625 high.
+- `W` = 8 + (526.640625 + 8 + 8) = 550.640625; `H` = 8 + (8 +
+  162.0390625) = 178.0390625.
+- Page 582.640625 × 210.0390625 → **582.6406 × 210.0391**.
+
+## `unknown_length_segments`
+
+The unlocked segment line `form` (quarters, length `null`) of three
+segments, none a segment line and none named: `a` at 0, of length `null`,
+holding the region `region_1` (0 to 4); `b` (6 at 8); `c` at 14, of length
+`null`, holding the region `region_2` (0 to 3).
+
+- The reach is the largest of 0 + 4, 8 + 6 and 14 + 3, so `λ` = 17. `a`
+  ends where `b` starts (rule 3 of §3.4), and `c` where `form` ends (rule
+  4), open. The double chevron comes before the open arrowhead of a segment
+  line in §6.6.
+- The boundaries of `b` and `c` lie at `x(8)` = 238.07562614889704 →
+  238.0756 and `x(14)` = 379.2520967371323 → 379.2521, and reach `k` = 8
+  to both sides, so the root band above is present and 8 wide (§6.4): `Ea`
+  = 8 and `y_root` = 8 + 8 = 16 in the member drawing. No segment has a
+  label.
+- `N` = w(`form`, 11) = 25.84033203125.
+- `x0` = 16 + 25.84033203125 + 8 = 49.84033203125 → 49.8403.
+- `R` = the outer chevron tip 473.84033203125.
+- `Hm` = 16 + 49.453125 + 8 = 73.453125: both regions in one row of the
+  region band.
+- `W` = 8 + (10 + 473.84033203125) = 491.84033203125; `H` = 8 + (10 +
+  73.453125) = 91.453125.
+- Page 523.84033203125 × 123.453125 → **523.8403 × 123.4531**.

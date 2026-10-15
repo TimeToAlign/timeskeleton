@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="514.3293" height="120.1836" viewBox="0 0 514.3293 120.1836" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="482.3293" height="88.1836" rx="10" fill="#F3F4F6"/>
+<text data-address="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sketch</text>
+<rect data-address="score/card" x="10" y="30.8047" width="464.3293" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-address="score/card" x="8" y="28.8047" width="464.3293" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="score" x1="55.0503" y1="43.207" x2="455.0503" y2="43.207" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="score" cx="55.0503" cy="43.207" r="3" fill="#00CC00"/>
+<polygon data-address="score" points="464.0503,43.207 455.0503,38.707 455.0503,47.707" fill="#00CC00"/>
+<polygon data-address="score/start" points="55.0503,44.707 52.0503,57.707 58.0503,57.707" fill="#000000"/>
+<polygon data-address="score/end" points="455.0503,44.707 452.0503,57.707 458.0503,57.707" fill="#000000"/>
+<text data-address="score/name" x="16" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Score</text>
+<text data-address="score/start/label" x="55.0503" y="68.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="score/end/label" x="455.0503" y="68.061" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+</g>
+</svg>

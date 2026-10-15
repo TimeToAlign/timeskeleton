@@ -5,7 +5,7 @@
         {
           "select": {
             "ids": [
-              "ticks"
+              "melody/ticks"
             ]
           },
           "set": {

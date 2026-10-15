@@ -1,0 +1,57 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "whole",
+        "recording"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "recording",
+        "whole"
+      ],
+      "name": "Whole"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "whole",
+          "length": [
+            16,
+            1
+          ],
+          "locked": true,
+          "name": "Whole",
+          "offset": [
+            0,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "piece",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Piece",
+      "unit": "quarters"
+    },
+    {
+      "id": "recording",
+      "length": 10.0,
+      "name": "Recording",
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

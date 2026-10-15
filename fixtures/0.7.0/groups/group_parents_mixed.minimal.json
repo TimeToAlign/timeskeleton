@@ -1,0 +1,94 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "exposition",
+        "take",
+        "system",
+        "audio"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "audio",
+        "exposition",
+        "system",
+        "take"
+      ],
+      "name": "Exposition"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "audio",
+      "length": 1323000,
+      "name": "Audio",
+      "unit": "samples"
+    },
+    {
+      "children": [
+        {
+          "id": "system",
+          "length": 600,
+          "locked": true,
+          "name": "System",
+          "offset": 0,
+          "unit": "pixels"
+        }
+      ],
+      "id": "page",
+      "length": 1754,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "children": [
+        {
+          "id": "take",
+          "length": 25.5,
+          "locked": true,
+          "name": "Take",
+          "offset": 30.0,
+          "unit": "seconds"
+        }
+      ],
+      "id": "session",
+      "length": 90.0,
+      "name": "Session",
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "id": "exposition",
+          "length": [
+            32,
+            1
+          ],
+          "locked": true,
+          "name": "Exposition",
+          "offset": [
+            16,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "sonata",
+      "length": [
+        48,
+        1
+      ],
+      "locked": true,
+      "name": "Sonata",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

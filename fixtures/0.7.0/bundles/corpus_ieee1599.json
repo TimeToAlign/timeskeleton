@@ -1,60 +1,4 @@
 {
-  "bundle": {
-    "groups": [
-      {
-        "id": "group_1",
-        "members": [
-          "spine:dlt_1"
-        ],
-        "meta": {},
-        "name": "spine:dlt_1"
-      },
-      {
-        "id": "group_2",
-        "members": [
-          "los:dlt_2"
-        ],
-        "meta": {},
-        "name": "los:dlt_2"
-      },
-      {
-        "id": "group_3",
-        "members": [
-          "original_score:dgt_1"
-        ],
-        "meta": {},
-        "name": "original_score:dgt_1"
-      },
-      {
-        "id": "group_4",
-        "members": [
-          "finale_transcription:dgt_2"
-        ],
-        "meta": {},
-        "name": "finale_transcription:dgt_2"
-      },
-      {
-        "id": "group_5",
-        "members": [
-          "khomus_audio:cpt_1"
-        ],
-        "meta": {},
-        "name": "khomus_audio:cpt_1"
-      },
-      {
-        "id": "group_6",
-        "members": [
-          "khomus_video:cpt_2"
-        ],
-        "meta": {},
-        "name": "khomus_video:cpt_2"
-      }
-    ],
-    "id": "bundle_1",
-    "meta": {},
-    "name": "khomus",
-    "support_policy": "omit"
-  },
   "graphical": {
     "order": {
       "group_1": [
@@ -75,186 +19,182 @@
       "group_6": [
         "khomus_video:cpt_2"
       ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "spine:dlt_1"
+      ],
+      "meta": {},
+      "name": "spine:dlt_1"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "los:dlt_2"
+      ],
+      "meta": {},
+      "name": "los:dlt_2"
+    },
+    {
+      "id": "group_3",
+      "members": [
+        "original_score:dgt_1"
+      ],
+      "meta": {},
+      "name": "original_score:dgt_1"
+    },
+    {
+      "id": "group_4",
+      "members": [
+        "finale_transcription:dgt_2"
+      ],
+      "meta": {},
+      "name": "finale_transcription:dgt_2"
+    },
+    {
+      "id": "group_5",
+      "members": [
+        "khomus_audio:cpt_1"
+      ],
+      "meta": {},
+      "name": "khomus_audio:cpt_1"
+    },
+    {
+      "id": "group_6",
+      "members": [
+        "khomus_video:cpt_2"
+      ],
+      "meta": {},
+      "name": "khomus_video:cpt_2"
     }
-  },
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": "khomus",
   "timelines": [
     {
-      "children": {
-        "dgt_6": {
-          "offset": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 0
-          },
-          "timeline": {
-            "children": {
-              "dgt_10": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 12816
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_10",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 4110
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_4",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
               },
-              "dgt_7": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 0
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_7",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 4264
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_1",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
-              },
-              "dgt_8": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 4264
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_8",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 4372
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_2",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
-              },
-              "dgt_9": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 8636
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_9",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 4180
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_3",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
-              }
-            },
-            "class": "DiscreteGraphicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "dgt_6",
-            "is_segment_line": true,
-            "length": {
+              "id": "dgt_7",
+              "is_segment_line": false,
+              "length": 4264,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_1",
               "number_type": "int",
-              "unit": "pixels",
-              "value": 16926
+              "offset": 0,
+              "regions": [],
+              "unit": "pixels"
             },
-            "locked": true,
-            "measure_map": null,
-            "meta": {
-              "page": {
-                "encoding_format": "image_jpeg",
-                "file_format": "image_jpeg",
-                "file_name": "score_files/finale_transcription/khomus_finale_score.jpg",
-                "measurement_unit": "pixels",
-                "position_in_group": 1
-              }
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "dgt_8",
+              "is_segment_line": false,
+              "length": 4372,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_2",
+              "number_type": "int",
+              "offset": 4264,
+              "regions": [],
+              "unit": "pixels"
             },
-            "metric_hierarchy": null,
-            "name": "page_1",
-            "number_type": "int",
-            "regions": [],
-            "unit": "pixels"
-          }
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "dgt_9",
+              "is_segment_line": false,
+              "length": 4180,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_3",
+              "number_type": "int",
+              "offset": 8636,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "dgt_10",
+              "is_segment_line": false,
+              "length": 4110,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_4",
+              "number_type": "int",
+              "offset": 12816,
+              "regions": [],
+              "unit": "pixels"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "dgt_6",
+          "is_segment_line": true,
+          "length": 16926,
+          "locked": true,
+          "measure_map": null,
+          "meta": {
+            "page": {
+              "encoding_format": "image_jpeg",
+              "file_format": "image_jpeg",
+              "file_name": "score_files/finale_transcription/khomus_finale_score.jpg",
+              "measurement_unit": "pixels",
+              "position_in_group": 1
+            }
+          },
+          "metric_hierarchy": null,
+          "name": "page_1",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
         }
-      },
-      "class": "DiscreteGraphicalTimeline",
+      ],
       "conversion_maps": [
         {
           "boundaries": [
@@ -277,11 +217,7 @@
       },
       "id": "finale_transcription:dgt_2",
       "is_segment_line": true,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 16926
-      },
+      "length": 16926,
       "locked": false,
       "measure_map": null,
       "meta": {
@@ -303,8 +239,7 @@
       "unit": "pixels"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -313,11 +248,7 @@
       },
       "id": "khomus_audio:cpt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 46.98
-      },
+      "length": 46.98,
       "locked": false,
       "measure_map": null,
       "meta": {
@@ -339,8 +270,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -349,11 +279,7 @@
       },
       "id": "khomus_video:cpt_2",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 45.88
-      },
+      "length": 45.88,
       "locked": false,
       "measure_map": null,
       "meta": {
@@ -375,8 +301,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "DiscreteLogicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -385,11 +310,7 @@
       },
       "id": "los:dlt_2",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "ticks",
-        "value": 48128
-      },
+      "length": 48128,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -400,178 +321,122 @@
       "unit": "ticks"
     },
     {
-      "children": {
-        "dgt_1": {
-          "offset": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 0
-          },
-          "timeline": {
-            "children": {
-              "dgt_2": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 0
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_2",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 1843
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_1",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
+      "children": [
+        {
+          "children": [
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
               },
-              "dgt_3": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 1843
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_3",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 1943
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_2",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
-              },
-              "dgt_4": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 3786
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_4",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 1804
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_3",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
-              },
-              "dgt_5": {
-                "offset": {
-                  "number_type": "int",
-                  "unit": "pixels",
-                  "value": 5590
-                },
-                "timeline": {
-                  "children": {},
-                  "class": "DiscreteGraphicalTimeline",
-                  "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
-                  "id": "dgt_5",
-                  "is_segment_line": false,
-                  "length": {
-                    "number_type": "int",
-                    "unit": "pixels",
-                    "value": 1828
-                  },
-                  "locked": true,
-                  "measure_map": null,
-                  "meta": {},
-                  "metric_hierarchy": null,
-                  "name": "accolade_4",
-                  "number_type": "int",
-                  "regions": [],
-                  "unit": "pixels"
-                }
-              }
-            },
-            "class": "DiscreteGraphicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "dgt_1",
-            "is_segment_line": true,
-            "length": {
+              "id": "dgt_2",
+              "is_segment_line": false,
+              "length": 1843,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_1",
               "number_type": "int",
-              "unit": "pixels",
-              "value": 7418
+              "offset": 0,
+              "regions": [],
+              "unit": "pixels"
             },
-            "locked": true,
-            "measure_map": null,
-            "meta": {
-              "page": {
-                "encoding_format": "image_jpeg",
-                "file_format": "image_jpeg",
-                "file_name": "score_files/original_score/khomus_original_score.jpg",
-                "measurement_unit": "pixels",
-                "position_in_group": 1
-              }
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "dgt_3",
+              "is_segment_line": false,
+              "length": 1943,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_2",
+              "number_type": "int",
+              "offset": 1843,
+              "regions": [],
+              "unit": "pixels"
             },
-            "metric_hierarchy": null,
-            "name": "page_1",
-            "number_type": "int",
-            "regions": [],
-            "unit": "pixels"
-          }
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "dgt_4",
+              "is_segment_line": false,
+              "length": 1804,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_3",
+              "number_type": "int",
+              "offset": 3786,
+              "regions": [],
+              "unit": "pixels"
+            },
+            {
+              "children": [],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "dgt_5",
+              "is_segment_line": false,
+              "length": 1828,
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "accolade_4",
+              "number_type": "int",
+              "offset": 5590,
+              "regions": [],
+              "unit": "pixels"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "dgt_1",
+          "is_segment_line": true,
+          "length": 7418,
+          "locked": true,
+          "measure_map": null,
+          "meta": {
+            "page": {
+              "encoding_format": "image_jpeg",
+              "file_format": "image_jpeg",
+              "file_name": "score_files/original_score/khomus_original_score.jpg",
+              "measurement_unit": "pixels",
+              "position_in_group": 1
+            }
+          },
+          "metric_hierarchy": null,
+          "name": "page_1",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
         }
-      },
-      "class": "DiscreteGraphicalTimeline",
+      ],
       "conversion_maps": [
         {
           "boundaries": [
@@ -594,11 +459,7 @@
       },
       "id": "original_score:dgt_1",
       "is_segment_line": true,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 7418
-      },
+      "length": 7418,
       "locked": false,
       "measure_map": null,
       "meta": {
@@ -620,8 +481,7 @@
       "unit": "pixels"
     },
     {
-      "children": {},
-      "class": "DiscreteLogicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -630,11 +490,7 @@
       },
       "id": "spine:dlt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "ticks",
-        "value": 48128
-      },
+      "length": 48128,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -644,5 +500,6 @@
       "regions": [],
       "unit": "ticks"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

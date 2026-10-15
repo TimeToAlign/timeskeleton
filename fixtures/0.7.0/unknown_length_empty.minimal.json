@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "score",
+      "length": null,
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

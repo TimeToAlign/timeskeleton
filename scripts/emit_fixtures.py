@@ -1,18 +1,21 @@
 #!/usr/bin/env python
 """Emit the fixtures of the current schema through timetoalign.
 
-Three file kinds are emitted into ``fixtures/<version>/``: timeline files
-directly in it, group files in its ``groups/`` and bundle files in its
-``bundles/`` directory. Every timeline is built with public constructors or a
-public loader and serialized with ``Timeline.to_dict()``; every group with
-``TimelineGroup.to_dict()`` and every bundle with ``AlignmentBundle.to_dict()``.
-Each file is wrapped with ``meta``, written with ``timeskeleton.dumps``, read
-back, validated and round-tripped through the matching ``from_dict``; a file
-whose order differs from the library's fails the round trip. Every builder
-entry emits exactly the files it builds. A styled file also carries
-``graphical`` styles and statements composed in this script from
-``GRAPHICAL``. ``--kinds`` restricts the run to some file kinds; the others are
-left as they are. The current schema version is
+Every fixture is a manifest of the one shape, emitted into
+``fixtures/<version>/``. The directories sort the manifests by content: one
+root timeline and no group directly in it, one group in its ``groups/``, and
+alignment bundles in its ``bundles/`` directory. Every timeline, group and
+bundle is built with public constructors or a public loader and written with
+its ``to_dict()``. The script adds the manifest's provenance to its free
+``meta`` (``meta.generator``) and, for a styled manifest, the ``graphical``
+styles and statements of ``GRAPHICAL``; the class that reads the directory's
+manifests as a whole reads the result back, and its ``to_dict()`` writes the
+fixture in the complete form and ``to_dict(minimal=True)`` its minimal twin
+``<name>.minimal.json``. Both are written with ``timeskeleton.dumps``, read
+back, validated, checked against ``timeskeleton.complete`` and
+``timeskeleton.minimal``, and round-tripped through the library; a manifest
+whose array order differs from the canonical order fails. Every builder
+entry emits exactly the files it builds. The current schema version is
 ``timeskeleton.SCHEMA_VERSION``. The fixtures of a released version are
 frozen: the script refuses to write into ``fixtures/<version>/`` once the tag
 ``v<version>`` exists. Map identifiers come from a per-process counter, so
@@ -86,12 +89,29 @@ from timetoalign.testdata import ensure_data
 from timetoalign.timelines import SegmentLine
 from timetoalign.timelines.flowcontrol import Break, Jump, Marker
 
-from timeskeleton import FILE_KINDS, SCHEMA_VERSION, dumps, validate
+from timeskeleton import (
+    SCHEMA_VERSION,
+    canonical_order,
+    complete,
+    dumps,
+    minimal,
+    unknown_keys,
+    validate,
+)
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[1]
 FIXTURE_DIR = REPOSITORY_ROOT / "fixtures" / SCHEMA_VERSION
-SUBDIRECTORY = {"timeline": None, "group": "groups", "bundle": "bundles"}
-"""Where each file kind lies below a version's fixture directory."""
+READERS: dict[str, Any] = {
+    "": Timeline,
+    "groups": TimelineGroup,
+    "bundles": AlignmentBundle,
+}
+"""The class reading the manifests of each directory as a whole, by directory.
+
+``Timeline.from_dict`` reads a manifest of one root and no group,
+``TimelineGroup.from_dict`` an anonymous manifest of one group and
+``AlignmentBundle.from_dict`` any manifest.
+"""
 
 
 def with_children(
@@ -517,10 +537,13 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
                 },
                 {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
                 {
-                    "select": {"ids": ["intro/label"]},
+                    "select": {"ids": ["score/intro/label"]},
                     "set": {"fill": "#0E7490"},
                 },
-                {"select": {"ids": ["da-capo/label"]}, "set": {"fill": "#9D174D"}},
+                {
+                    "select": {"ids": ["score/da-capo/label"]},
+                    "set": {"fill": "#9D174D"},
+                },
                 {
                     "select": {"ids": ["score/name"]},
                     "set": {
@@ -567,12 +590,14 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
         },
     },
 }
-"""The ``graphical`` styles and statements of each styled file, by fixture name
-and the id of its root (a timeline file) or of its group (a group file).
+"""The ``graphical`` styles and statements of each styled manifest, by fixture
+name and the id of its root (a manifest of one root) or of its group (a
+manifest of one group).
 
-A timeline file's whole ``graphical`` block comes from this table. A group's or
-bundle's entry becomes its ``styling``, which the library writes beside its own
-``graphical.order``.
+The script adds an entry to the manifest's ``graphical``; the library reads it
+back as styling it keeps unread and writes it beside its own
+``graphical.order``. An element other than a timeline, a group or the
+manifest is addressed ``<root id>/<element id>`` (``score/intro``).
 
 ``group_styled`` gives every group frame the named style ``frame-highlight``
 (a violet stroke), fills the group's title, ``group_1/name``, violet, and
@@ -583,23 +608,23 @@ In ``styled__score`` every drawn element and every text takes its own colour
 under the cascade of ``docs/drawing.md`` (statements numbered from 0 in the
 list, the four shared ones first):
 
-========================  =========  ==========================================
-Item                      Colour     Set by
-========================  =========  ==========================================
-root line ``score``       #1D4ED8    5, the style ``accent`` (class and element)
-child line ``b``          #EA580C    14 (element ``child`` within ``b``)
-map ``ticks``             #7C3AED    6 (class ``QuartersToTicks``)
-brace ``intro``           #0F766E    9, which outranks 8 by its position
-jump ``da-capo``          #DB2777    10 (element ``jump``, domain ``logical``)
-wedge ``score/start``     #65A30D    11 (element ``wedge`` within ``score``)
-wedge ``score/end``       #B45309    12 (``ids``)
-name ``score/name``       #111827    19 (``ids``; also ``content``)
-name ``b/name``           #0369A1    20 (element ``name`` within ``b``)
-label of ``score/start``  #4D7C0F    15 (element ``label`` within ``score``)
-label of ``score/end``    #A16207    16 (``ids``)
-label of ``intro``        #0E7490    17 (``ids``)
-label of ``da-capo``      #9D174D    18 (``ids``)
-========================  =========  ==========================================
+==========================  =========  ==========================================
+Item                        Colour     Set by
+==========================  =========  ==========================================
+root line ``score``         #1D4ED8    5, the style ``accent`` (class and element)
+child line ``b``            #EA580C    14 (element ``child`` within ``b``)
+map ``score/ticks``         #7C3AED    6 (class ``QuartersToTicks``)
+brace ``score/intro``       #0F766E    9, which outranks 8 by its position
+jump ``score/da-capo``      #DB2777    10 (element ``jump``, domain ``logical``)
+wedge ``score/start``       #65A30D    11 (element ``wedge`` within ``score``)
+wedge ``score/end``         #B45309    12 (``ids``)
+name ``score/name``         #111827    19 (``ids``; also ``content``)
+name ``b/name``             #0369A1    20 (element ``name`` within ``b``)
+label of ``score/start``    #4D7C0F    15 (element ``label`` within ``score``)
+label of ``score/end``      #A16207    16 (``ids``)
+label of ``score/intro``    #0E7490    17 (``ids``)
+label of ``score/da-capo``  #9D174D    18 (``ids``)
+==========================  =========  ==========================================
 
 A stroke and the fill of one element share its colour. Statement 13 displays
 every child of ``score``; the shared ``ids`` statement 3 outranks it and hides
@@ -667,7 +692,7 @@ def number_types_group() -> TimelineGroup:
 
 
 def group_constructions() -> dict[str, list[TimelineGroup]]:
-    """Build the groups constructed directly, one per group file.
+    """Build the groups constructed directly, one manifest each.
 
     ``group_number_types`` and ``group_styled`` are two groups built by
     ``number_types_group``; ``group_styled`` also carries the styles and
@@ -845,7 +870,7 @@ def group_grandchild() -> TimelineGroup:
 
 
 def parent_groups() -> dict[str, list[TimelineGroup]]:
-    """Return the groups whose members include children, one per group file."""
+    """Return the groups whose members include children, one manifest each."""
     builders: dict[str, Callable[[], TimelineGroup]] = {
         "group_parent_right": group_parent_right,
         "group_parent_both": group_parent_both,
@@ -913,7 +938,7 @@ def bundle_ungrouped() -> AlignmentBundle:
 
 
 def parent_bundles() -> dict[str, list[AlignmentBundle]]:
-    """Return the bundles of children and of ungrouped roots, one per bundle file."""
+    """Return the bundles of children and of ungrouped roots, one manifest each."""
     builders: dict[str, Callable[[], AlignmentBundle]] = {
         "bundle_shared_parent": bundle_shared_parent,
         "bundle_ungrouped": bundle_ungrouped,
@@ -973,22 +998,137 @@ def corpus_bundles() -> dict[str, list[AlignmentBundle]]:
     return {name: [build()] for name, build in builders.items()}
 
 
-def build_groups() -> dict[str, list[TimelineGroup]]:
-    """Return group fixture names and groups, constructions before corpora."""
-    return {**group_constructions(), **parent_groups(), **corpus_groups()}
+def negative_offset_timeline() -> Timeline:
+    """Build a root whose origin lies before the zero of its unit's axis.
+
+    The recording ``recording`` ("Recording", 30.0 seconds) carries the
+    offset -2.5. The library keeps a root's offset as read from a manifest,
+    so the recording is written, given its offset and read back.
+    """
+    recording = ContinuousPhysicalTimeline(
+        length=30.0, unit="seconds", uid="recording", name="Recording"
+    )
+    data = recording.to_dict()
+    data["timelines"][0]["offset"] = -2.5
+    return Timeline.from_dict(data)
 
 
-def build_bundles() -> dict[str, list[AlignmentBundle]]:
-    """Return bundle fixture names and bundles, constructions before corpora."""
+def named_without_id_bundle() -> AlignmentBundle:
+    """Build a named manifest without an id: a bundle of one ungrouped root.
+
+    The bundle "Sketch", given no id, holds the score ``score`` ("Score", 16
+    quarters).
+    """
+    bundle = AlignmentBundle(name="Sketch")
+    bundle.add_timeline(
+        _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(16))
+    )
+    return bundle
+
+
+def _quarters(uid: str, length: Any, **keywords: Any) -> Timeline:
+    """Build an unnamed timeline of quarters; a length of None is unknown."""
+    return ContinuousLogicalTimeline(
+        length=length, unit="quarters", uid=uid, **keywords
+    )
+
+
+def _with_region(timeline: Timeline, start: Any, end: Any, uid: str) -> Timeline:
+    """Give ``timeline`` the region ``uid`` from ``start`` to ``end``."""
+    timeline.create_region(start, end, id=uid)
+    return timeline
+
+
+def unknown_length_timelines() -> dict[str, list[Timeline]]:
+    """Build the manifests of one root drawing timelines of unknown length.
+
+    - ``unknown_length``: the root ``score`` of unknown length holds the
+      region ``region_1`` from 2 to 8, the marker ``marker_1`` at 6 and the
+      child ``coda`` (4 quarters) at 10; its content reaches 14.
+    - ``unknown_length_empty``: the root ``score`` of unknown length and
+      nothing else.
+    - ``unknown_length_locked``: ``locked_root`` with its length unknown,
+      the locked root ``score`` holding ``coda`` (4 quarters) at 12.
+    - ``unknown_length_child``: the root ``score`` (32 quarters) holds the
+      child ``movement`` of unknown length at 8, with the region
+      ``region_1`` from 0 to 6.
+    - ``unknown_length_segments``: the segment line ``form`` of unknown
+      length holds ``a`` of unknown length at 0 (region ``region_1`` from 0
+      to 4), ``b`` (6 quarters) at 8 and ``c`` of unknown length at 14
+      (region ``region_2`` from 0 to 3).
+
+    Every timeline is of quarters and unnamed.
+    """
+    score = _with_region(_quarters("score", None), 2, 8, "region_1")
+    score.flow_control.add_marker(Marker(score.make_coordinate(6), id="marker_1"))
+    score.add_child(_quarters("coda", 4), 10)
+
+    locked = _quarters("score", None, locked=True)
+    locked.add_child(_quarters("coda", 4), 12)
+
+    known = _quarters("score", Fraction(32))
+    known.add_child(_with_region(_quarters("movement", None), 0, 6, "region_1"), 8)
+
+    form = SegmentLine[ContinuousLogicalTimeline](
+        length=None, unit="quarters", uid="form"
+    )
+    form.add_child(_with_region(_quarters("a", None), 0, 4, "region_1"), 0)
+    form.add_child(_quarters("b", 6), 8)
+    form.add_child(_with_region(_quarters("c", None), 0, 3, "region_2"), 14)
+    return {
+        "unknown_length": [score],
+        "unknown_length_empty": [_quarters("score", None)],
+        "unknown_length_locked": [locked],
+        "unknown_length_child": [known],
+        "unknown_length_segments": [form],
+    }
+
+
+def group_unknown_length() -> TimelineGroup:
+    """Build a group whose member is of unknown length.
+
+    The group "Edition" lists the performance ``performance`` of unknown
+    length (seconds, with the region ``region_1`` from 0.0 to 9.5) and the
+    score ``score`` (12 quarters), both unnamed.
+    """
+    performance = ContinuousPhysicalTimeline(
+        length=None, unit="seconds", uid="performance"
+    )
+    _with_region(performance, 0.0, 9.5, "region_1")
+    return TimelineGroup(
+        name="Edition", timelines=[performance, _quarters("score", Fraction(12))]
+    )
+
+
+def build_groups() -> dict[str, list[Any]]:
+    """Return the names and groups of the manifests of one group.
+
+    The constructions come before the corpora, the group with a member of
+    unknown length last.
+    """
+    return {
+        **group_constructions(),
+        **parent_groups(),
+        **corpus_groups(),
+        "group_unknown_length": [group_unknown_length()],
+    }
+
+
+def build_bundles() -> dict[str, list[Any]]:
+    """Return the names and bundles of the bundle manifests.
+
+    The constructions come before the corpora.
+    """
     return {**bundle_constructions(), **parent_bundles(), **corpus_bundles()}
 
 
-def build_manifests() -> dict[str, list[Timeline]]:
-    """Return fixture names and top-level timelines in emission order.
+def build_timelines() -> dict[str, list[Any]]:
+    """Return the names and objects of the manifests of one root and no group.
 
-    The synthetic manifests come first and the corpus manifests last.
+    The synthetic manifests come first, then the corpus manifests, then the
+    manifests of the manifest's own keys and of unknown lengths.
     """
-    manifests: dict[str, list[Timeline]] = {}
+    manifests: dict[str, list[Any]] = {}
     manifests["continuous_logical"] = [
         with_children(
             ContinuousLogicalTimeline, "quarters", 12, [(4, Fraction(1, 3)), (3, 2)]
@@ -1053,110 +1193,112 @@ def build_manifests() -> dict[str, list[Timeline]]:
     manifests["segment_pages_accolades"] = [accolade_pages_timeline()]
     manifests["segment_children"] = [segment_children_timeline()]
     manifests.update(corpus_manifests())
+    manifests["negative_offset"] = [negative_offset_timeline()]
+    manifests["named_without_id"] = [named_without_id_bundle()]
+    manifests.update(unknown_length_timelines())
     return manifests
 
 
-def wrap(content: dict[str, Any], generator: str) -> dict[str, Any]:
-    """Prefix a file's content with its ``meta``."""
-    return {
-        "meta": {"schema_version": SCHEMA_VERSION, "generator": generator},
-        **content,
-    }
+def build_fixtures() -> dict[str, list[Any]]:
+    """Return every fixture's name, prefixed by its directory, and its objects.
 
-
-def manifest(
-    timeline: Timeline,
-    generator: str,
-    graphical: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Wrap one timeline, and a graphical block if any, in a manifest."""
-    result = wrap({"timeline": timeline.to_dict()}, generator)
-    if graphical is not None:
-        result["graphical"] = copy.deepcopy(graphical)
-    return result
-
-
-def write(path: Path, data: dict[str, Any]) -> None:
-    """Write one fixture with the standard writer, in canonical order."""
-    path.write_text(dumps(data), encoding="utf-8")
-
-
-ROUND_TRIPS: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
-    "timeline": lambda data: {
-        "timeline": Timeline.from_dict(data["timeline"]).to_dict()
-    },
-    "group": lambda data: TimelineGroup.from_dict(data).to_dict(),
-    "bundle": lambda data: AlignmentBundle.from_dict(data).to_dict(),
-}
-"""Rebuild a file's content (without ``meta``) through the library, by kind.
-
-A timeline file's ``graphical`` block is composed in this script, so only its
-``timeline`` takes part; a group or bundle file takes part whole, its
-``graphical`` included.
-"""
-
-
-def check_round_trip(path: Path, kind: str) -> int:
-    """Confirm that a file validates and survives from_dict/to_dict.
-
-    Object keys carry no order (the file has them sorted), so both sides are
-    compared with sorted keys; arrays are compared as they stand, so a library
-    whose order differs from the canonical order fails.
+    The manifests of one root come first, then those of one group
+    (``groups/``), then the bundles (``bundles/``).
     """
-    with path.open(encoding="utf-8") as handle:
-        data = json.load(handle)
-    validate(data)
-    content = {key: value for key, value in data.items() if key != "meta"}
-    if kind == "timeline":
-        content = {"timeline": content["timeline"]}
-    rebuilt = ROUND_TRIPS[kind](content)
-    if json.dumps(rebuilt, sort_keys=True) != json.dumps(content, sort_keys=True):
-        raise SystemExit(
-            f"{path.name}: the {kind} file does not round-trip through "
-            f"timetoalign.\nexpected: {json.dumps(content, indent=2)}\n"
-            f"got:      {json.dumps(rebuilt, indent=2)}"
-        )
-    return 1
+    return {
+        **build_timelines(),
+        **{f"groups/{name}": items for name, items in build_groups().items()},
+        **{f"bundles/{name}": items for name, items in build_bundles().items()},
+    }
 
 
 def slug(identifier: str) -> str:
-    """Return a fixture-safe spelling of a timeline id."""
+    """Return a fixture-safe spelling of an id."""
     return re.sub(r"[^A-Za-z0-9_-]", "_", identifier)
 
 
-def plan(kind: str, output: Path, generator: str) -> list[tuple[Path, dict[str, Any]]]:
-    """Return the files of one kind to write, one per object of every builder entry."""
-    directory = output if SUBDIRECTORY[kind] is None else output / SUBDIRECTORY[kind]
-    builders: dict[str, Callable[[], dict[str, list[Any]]]] = {
-        "timeline": build_manifests,
-        "group": build_groups,
-        "bundle": build_bundles,
-    }
-    planned: list[tuple[Path, dict[str, Any]]] = []
+def compose(data: dict[str, Any], generator: str, graphical: Any) -> dict[str, Any]:
+    """Add the provenance and any styling to a manifest the library wrote."""
+    result = copy.deepcopy(data)
+    result["meta"]["generator"] = generator
+    if graphical is not None:
+        result.setdefault("graphical", {}).update(copy.deepcopy(graphical))
+    return result
+
+
+def plan(output: Path, generator: str) -> list[tuple[Path, Any, Any, dict[str, Any]]]:
+    """Return every fixture to write: its path, reader, object and manifest.
+
+    The object is read back from the composed manifest by the reader, the
+    class of the fixture's directory, so that the library writes every
+    fixture and twin.
+    """
+    planned: list[tuple[Path, Any, Any, dict[str, Any]]] = []
     claimed: dict[Path, str] = {}
-    for name, objects in builders[kind]().items():
+    for name, objects in build_fixtures().items():
+        directory, _, builder = name.rpartition("/")
         for item in objects:
             filename = name if len(objects) == 1 else f"{name}__{slug(item.id)}"
-            path = directory / f"{filename}.json"
+            path = output / f"{filename}.json"
             if path in claimed:
                 raise SystemExit(
                     f"ids {claimed[path]!r} and {item.id!r} of {name!r} both produce "
                     f"the file name {path.name}; nothing was written."
                 )
             claimed[path] = item.id
-            graphical = GRAPHICAL.get(name, {}).get(item.id)
-            if kind == "timeline":
-                data = manifest(item, generator, graphical)
-            else:
-                if graphical is not None:
-                    item.styling = copy.deepcopy(graphical)
-                data = wrap(item.to_dict(), generator)
-            planned.append((path, data))
+            graphical = GRAPHICAL.get(builder, {}).get(item.id)
+            data = compose(item.to_dict(), generator, graphical)
+            reader = READERS[directory]
+            planned.append((path, reader, reader.from_dict(data), data))
     return planned
 
 
+def twin_path(path: Path) -> Path:
+    """Return the path of a fixture's minimal twin, ``<name>.minimal.json``."""
+    return path.with_name(f"{path.stem}.minimal.json")
+
+
+def library_order(value: dict[str, Any]) -> str:
+    """Return a manifest's JSON text with sorted keys and arrays as they stand."""
+    return json.dumps(value, sort_keys=True)
+
+
+def check(path: Path, reader: Any) -> None:
+    """Confirm the laws a fixture and its minimal twin obey.
+
+    Both validate without unknown keys; ``minimal`` of the fixture is the
+    twin and ``complete`` of the twin the fixture; the library reads both to
+    objects writing the same manifests, writes each as it stands (its arrays
+    already in canonical order), and the text ``dumps`` writes is the file's.
+    """
+    text = path.read_text(encoding="utf-8")
+    twin_text = twin_path(path).read_text(encoding="utf-8")
+    fixture, twin = json.loads(text), json.loads(twin_text)
+    problems: list[str] = []
+    for label, value in (("fixture", fixture), ("twin", twin)):
+        validate(value)
+        if unknown_keys(value):
+            problems.append(f"the {label} has unknown keys {unknown_keys(value)}")
+    if dumps(minimal(fixture)) != twin_text:
+        problems.append("minimal(fixture) is not the twin")
+    if dumps(complete(twin)) != text:
+        problems.append("complete(twin) is not the fixture")
+    for label, value in (("fixture", fixture), ("twin", twin)):
+        read = reader.from_dict(value)
+        written = read.to_dict()
+        written_minimal = read.to_dict(minimal=True)
+        if library_order(written) != library_order(fixture):
+            problems.append(f"the {label} read and written is not the fixture")
+        if library_order(written_minimal) != library_order(twin):
+            problems.append(f"the {label} read and written minimal is not the twin")
+        if library_order(canonical_order(written)) != library_order(written):
+            problems.append(f"the {label} read is written out of canonical order")
+    if problems:
+        raise SystemExit(f"{path.name}: " + "; ".join(problems))
+
+
 def main(argv: list[str] | None = None) -> int:
-    """Parse arguments, emit the fixtures, and verify their round trips."""
+    """Parse arguments, emit the fixtures and their twins, and check them."""
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument(
         "--timetoalign-commit",
@@ -1168,13 +1310,6 @@ def main(argv: list[str] | None = None) -> int:
         type=Path,
         default=FIXTURE_DIR,
         help=f"destination directory (default: fixtures/{SCHEMA_VERSION}/)",
-    )
-    parser.add_argument(
-        "--kinds",
-        nargs="+",
-        choices=FILE_KINDS,
-        default=list(FILE_KINDS),
-        help="the file kinds to emit (default: all); the others are left as they are",
     )
     args = parser.parse_args(argv)
     generator = f"timetoalign {version('timetoalign')} ({args.timetoalign_commit})"
@@ -1191,26 +1326,27 @@ def main(argv: list[str] | None = None) -> int:
             "Emit into another directory with --output."
         )
 
-    emitted = {kind: plan(kind, args.output, generator) for kind in args.kinds}
-    written: list[tuple[Path, str]] = []
-    for kind, files in emitted.items():
-        subdirectory = SUBDIRECTORY[kind]
-        directory = args.output if subdirectory is None else args.output / subdirectory
-        directory.mkdir(parents=True, exist_ok=True)
-        for stale in directory.glob("*.json"):
+    planned = plan(args.output, generator)
+    for directory in READERS:
+        (args.output / directory).mkdir(parents=True, exist_ok=True)
+        for stale in (args.output / directory).glob("*.json"):
             stale.unlink()
-        for path, data in files:
-            write(path, data)
-            written.append((path, kind))
+    for path, _, item, _ in planned:
+        path.write_text(dumps(item.to_dict()), encoding="utf-8")
+        twin_path(path).write_text(dumps(item.to_dict(minimal=True)), encoding="utf-8")
 
-    for path, kind in written:
-        count = check_round_trip(path, kind)
+    for path, reader, _, data in planned:
+        check(path, reader)
+        if dumps(complete(data)) != path.read_text(encoding="utf-8"):
+            raise SystemExit(
+                f"{path.name}: the library did not write back its manifest"
+            )
         display = (
             path.relative_to(REPOSITORY_ROOT)
             if path.is_relative_to(REPOSITORY_ROOT)
             else path
         )
-        print(f"{display}: {count} {kind} file round-trips")
+        print(f"{display}: the fixture and its minimal twin hold")
     print(f"generator: {generator}")
     return 0
 

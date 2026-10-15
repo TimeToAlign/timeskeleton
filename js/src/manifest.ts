@@ -1,18 +1,17 @@
 /**
  * Lossless reading, the canonical order and the standard writer of a
- * TimeSkeleton file.
+ * TimeSkeleton manifest.
  *
  * The standard writer sorts the keys of every object by Unicode code point, so
  * equal objects are equal text whatever order their keys were given in. Every
- * array of a file whose order carries no meaning has one canonical order: in
- * every timeline manifest, `conversion_maps` by id; `regions` by start, then
- * end, then id; flow-control `breaks` and `markers` by coordinate, then id;
- * `jumps` by from coordinate, then to coordinate, then id; in a group or bundle
- * file, `timelines` by id, a bundle's `groups` by id and every group's
- * `members` by code point. Coordinates compare by exact numeric value, strings
- * by Unicode code point; ids are unique within their scope, so no two entries
- * tie. A `graphical.order` array is a display order and is never re-ordered.
- * Readers accept any order; writers emit the canonical one.
+ * array of a manifest whose order carries no meaning has one canonical order:
+ * `timelines` by id; in every timeline, `children` by offset, then id,
+ * `conversion_maps` by id, `regions` by start, then end, then id, flow-control
+ * `breaks` and `markers` by coordinate, then id, `jumps` by from coordinate,
+ * then to coordinate, then id; `groups` by id and every group's `members` by
+ * code point. Own-axis values compare by exact numeric value, strings by
+ * Unicode code point. A `graphical.order` array is a display order and is
+ * never re-ordered. Readers accept any order; writers emit the canonical one.
  *
  * The standard writer emits text with every character unescaped except `"`,
  * `\` and the control characters, two-space indentation and a final newline.
@@ -361,7 +360,21 @@ export function compactJson(value: Lossless<Json>): string {
 }
 
 /**
- * Return the standard text of a TimeSkeleton file, or of any JSON value.
+ * Spell a value as a message quotes it: a number as the standard writer
+ * spells it, an array as its items separated by `, ` within brackets (`[32,
+ * 1]`, as Python's `repr` spells a list), anything else as compact JSON.
+ * Python spells numbers and arrays the same way.
+ */
+export function spell(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(spell).join(", ")}]`;
+  if (typeof value === "number" || typeof value === "bigint" || value instanceof JsonFloat) {
+    return scalar(value);
+  }
+  return value === undefined ? "undefined" : compactJson(value as Lossless<Json>);
+}
+
+/**
+ * Return the standard text of a TimeSkeleton manifest, or of any JSON value.
  *
  * The value is put in `canonicalOrder`, then written with the keys of every
  * object sorted by code point, two-space indentation and a final newline, characters unescaped, every float spelled as
@@ -447,26 +460,30 @@ export function exactNumber(value: unknown): Rational | null {
   return null;
 }
 
-/** The exact value of a coordinate dict. */
-export function exact(coordinate: unknown): Rational {
-  const value = isJsonObject(coordinate) ? coordinate.value : undefined;
+/**
+ * The exact value of a bare Number: a JSON number, or a `[numerator,
+ * denominator]` pair (an integral float in the pair counts as the integer it
+ * equals, as in Python).
+ *
+ * @throws {TypeError} if the value is no Number.
+ */
+export function exact(value: unknown): Rational {
   if (Array.isArray(value) && value.length === 2) {
     const [numerator, denominator] = value.map(jsonInteger);
-    if (numerator !== null && numerator !== undefined && denominator && denominator !== 0n) {
+    if (numerator !== null && numerator !== undefined && denominator && denominator > 0n) {
       return rational(numerator, denominator);
     }
   }
   const result = exactNumber(value);
-  if (result === null) throw new TypeError(`not a coordinate: ${String(coordinate)}`);
+  if (result === null) throw new TypeError(`not a Number: ${spell(value)}`);
   return result;
 }
 
-/** Compare two coordinate dicts by exact value. */
+/** Compare two bare Numbers by exact value. */
 export function compareExact(left: unknown, right: unknown): number {
   const a = exact(left);
   const b = exact(right);
-  const sign = a.denominator * b.denominator > 0n ? 1n : -1n;
-  const difference = (a.numerator * b.denominator - b.numerator * a.denominator) * sign;
+  const difference = a.numerator * b.denominator - b.numerator * a.denominator;
   return difference < 0n ? -1 : difference > 0n ? 1 : 0;
 }
 
@@ -490,66 +507,55 @@ function member(entry: unknown, key: string): unknown {
   return isJsonObject(entry) ? entry[key] : undefined;
 }
 
-function orderTimeline(manifest: JsonObject): void {
-  if (isJsonObject(manifest.children)) {
-    for (const child of Object.values(manifest.children)) {
-      const timeline = member(child, "timeline");
-      if (isJsonObject(timeline)) orderTimeline(timeline);
-    }
-  }
-  const id = (a: unknown, b: unknown) =>
-    compareCodePoints(text(member(a, "id")), text(member(b, "id")));
-  const at =
-    (key: string) =>
-    (a: unknown, b: unknown): number =>
-      compareExact(member(a, key), member(b, key));
-  if (Array.isArray(manifest.conversion_maps)) manifest.conversion_maps.sort(id);
-  if (Array.isArray(manifest.regions)) manifest.regions.sort(by(at("start"), at("end"), id));
-  const flow = manifest.flow_control;
-  if (!isJsonObject(flow)) return;
-  if (Array.isArray(flow.breaks)) flow.breaks.sort(by(at("coordinate"), id));
-  if (Array.isArray(flow.jumps)) {
-    flow.jumps.sort(by(at("from_coordinate"), at("to_coordinate"), id));
-  }
-  if (Array.isArray(flow.markers)) flow.markers.sort(by(at("coordinate"), id));
-}
+const byId = (a: unknown, b: unknown): number =>
+  compareCodePoints(text(member(a, "id")), text(member(b, "id")));
 
-/** Order a group's members by code point, in place. */
-function orderGroup(group: JsonObject): void {
-  if (Array.isArray(group.members)) {
-    group.members.sort((a: unknown, b: unknown) => compareCodePoints(text(a), text(b)));
+const at =
+  (key: string) =>
+  (a: unknown, b: unknown): number =>
+    compareExact(member(a, key), member(b, key));
+
+/** Order the arrays of one timeline and of its descendants, in place. */
+function orderTimeline(timeline: JsonObject): void {
+  if (Array.isArray(timeline.children)) {
+    for (const child of timeline.children) if (isJsonObject(child)) orderTimeline(child);
+    timeline.children.sort(by(at("offset"), byId));
   }
+  if (Array.isArray(timeline.conversion_maps)) timeline.conversion_maps.sort(byId);
+  if (Array.isArray(timeline.regions)) timeline.regions.sort(by(at("start"), at("end"), byId));
+  const flow = timeline.flow_control;
+  if (!isJsonObject(flow)) return;
+  if (Array.isArray(flow.breaks)) flow.breaks.sort(by(at("coordinate"), byId));
+  if (Array.isArray(flow.jumps))
+    flow.jumps.sort(by(at("from_coordinate"), at("to_coordinate"), byId));
+  if (Array.isArray(flow.markers)) flow.markers.sort(by(at("coordinate"), byId));
 }
 
 /**
- * Return a deep copy of `value` with the arrays of its file ordered.
+ * Return a deep copy of `value` with the arrays of its manifest ordered.
  *
- * A top-level `timeline` orders the arrays of that timeline manifest and of
- * its children at every depth. A top-level `timelines` array has every
- * manifest in it ordered and is itself ordered by id; a `group` has its
- * `members` ordered, and a `bundle` its `groups` (by id) and their `members`.
- * Object keys are left as they are (`dumps` sorts them), and any other JSON
- * value is copied unchanged. Python's `timeskeleton.canonical_order` gives the
- * same order.
+ * A value with a top-level `timelines` array is a manifest: every timeline in
+ * it is ordered at every depth and the array itself by id, and its `groups`
+ * are ordered by id, each with its `members` by code point. Object keys are
+ * left as they are (`dumps` sorts them), and any other JSON value is copied
+ * unchanged. Python's `timeskeleton.canonical_order` gives the same order.
  *
  * @throws {TypeError} if a collection holds an entry whose ordering members are missing or of the wrong type.
  */
 export function canonicalOrder<T>(value: T): T {
   const result = clone(value);
-  const timeline = member(result, "timeline");
-  if (isJsonObject(timeline)) orderTimeline(timeline);
-  const byId = (a: unknown, b: unknown) =>
-    compareCodePoints(text(member(a, "id")), text(member(b, "id")));
   const timelines = member(result, "timelines");
-  if (Array.isArray(timelines)) {
-    for (const manifest of timelines) if (isJsonObject(manifest)) orderTimeline(manifest);
-    timelines.sort(byId);
-  }
-  const group = member(result, "group");
-  if (isJsonObject(group)) orderGroup(group);
-  const groups = member(member(result, "bundle"), "groups");
+  if (!Array.isArray(timelines)) return result;
+  for (const timeline of timelines) if (isJsonObject(timeline)) orderTimeline(timeline);
+  timelines.sort(byId);
+  const groups = member(result, "groups");
   if (Array.isArray(groups)) {
-    for (const entry of groups) if (isJsonObject(entry)) orderGroup(entry);
+    for (const group of groups) {
+      const members = member(group, "members");
+      if (Array.isArray(members)) {
+        members.sort((a: unknown, b: unknown) => compareCodePoints(text(a), text(b)));
+      }
+    }
     groups.sort(byId);
   }
   return result;

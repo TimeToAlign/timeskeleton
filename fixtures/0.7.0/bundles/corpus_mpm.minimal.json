@@ -1,0 +1,163 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "group_2": [
+        "perf:cpt_1",
+        "perf:dpt_1",
+        "perf:dgt_1"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "name": "score"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "perf:cpt_1",
+        "perf:dgt_1",
+        "perf:dpt_1"
+      ],
+      "name": "perf"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "Beethoven_op35_1971Curzon_Var14only",
+  "timelines": [
+    {
+      "id": "perf:cpt_1",
+      "length": 75.37598985608956,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "unit": "seconds"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "scalar": 0.0029024943310657597,
+          "source_unit": "pixels",
+          "target_unit": "seconds",
+          "type": "ScalarMap"
+        }
+      ],
+      "id": "perf:dgt_1",
+      "length": 26469,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "unit": "pixels"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "perf:dpt_1",
+      "length": 3324081,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "unit": "samples"
+    },
+    {
+      "conversion_maps": [
+        {
+          "extrapolate": "extrapolate",
+          "id": "tmap_1",
+          "kind": "linear",
+          "source_unit": "quarters",
+          "target_unit": "seconds",
+          "type": "TableMap",
+          "x_values": [
+            [
+              0,
+              1
+            ],
+            [
+              79,
+              2
+            ],
+            [
+              40,
+              1
+            ],
+            [
+              111,
+              2
+            ],
+            [
+              56,
+              1
+            ],
+            [
+              125,
+              2
+            ],
+            [
+              64,
+              1
+            ],
+            [
+              46439,
+              720
+            ]
+          ],
+          "y_values": [
+            0.0,
+            23.7,
+            24.9,
+            34.199999999999996,
+            35.4,
+            39.3,
+            42.9,
+            43.278691983122364
+          ]
+        }
+      ],
+      "id": "score:clt_1",
+      "length": [
+        46439,
+        720
+      ],
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "unit": "quarters"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "ppq": 720,
+          "scalar": [
+            1,
+            720
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "TicksToQuarters"
+        }
+      ],
+      "id": "score:dlt_1",
+      "length": 46440,
+      "name": "Beethoven_op35_1971Curzon_Var14only",
+      "unit": "ticks"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="612.4846" height="449.8828" viewBox="0 0 612.4846 449.8828" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
 <rect x="0" y="0" width="580.4846" height="417.8828" rx="10" fill="#F3F4F6"/>
-<text data-address="bundle_1/name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Mixed</text>
+<text data-address="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Mixed</text>
 <rect data-address="group_1" x="8" y="28.8047" width="562.4846" height="139.5625" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_1/name" x="16" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Performance</text>
 <rect data-address="score/card" x="18" y="55.6094" width="546.4846" height="49.3789" rx="5" fill="#B8BEC8"/>

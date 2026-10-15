@@ -1,0 +1,168 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "id": "i1",
+              "length": [
+                3,
+                1
+              ],
+              "locked": true,
+              "name": "i1",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "id": "i2",
+              "length": [
+                3,
+                1
+              ],
+              "locked": true,
+              "name": "i2",
+              "offset": [
+                3,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "intro",
+          "is_segment_line": true,
+          "length": [
+            6,
+            1
+          ],
+          "locked": true,
+          "name": "Intro",
+          "offset": [
+            2,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "id": "t1",
+              "length": [
+                4,
+                1
+              ],
+              "locked": true,
+              "name": "t1",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "id": "t2",
+              "length": [
+                4,
+                1
+              ],
+              "locked": true,
+              "name": "t2",
+              "offset": [
+                4,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "id": "t3",
+              "length": [
+                4,
+                1
+              ],
+              "locked": true,
+              "name": "t3",
+              "offset": [
+                8,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "theme",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "name": "Theme",
+          "offset": [
+            6,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "id": "c1",
+              "length": [
+                5,
+                1
+              ],
+              "locked": true,
+              "name": "c1",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "id": "c2",
+              "length": [
+                3,
+                1
+              ],
+              "locked": true,
+              "name": "c2",
+              "offset": [
+                5,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "coda",
+          "is_segment_line": true,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "name": "Coda",
+          "offset": [
+            22,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "piece",
+      "length": [
+        32,
+        1
+      ],
+      "name": "Piece",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

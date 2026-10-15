@@ -1,0 +1,57 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "second-half",
+        "recording"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "recording",
+        "second-half"
+      ],
+      "name": "Second half"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "second-half",
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "name": "Second half",
+          "offset": [
+            8,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "piece",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Piece",
+      "unit": "quarters"
+    },
+    {
+      "id": "recording",
+      "length": 10.0,
+      "name": "Recording",
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

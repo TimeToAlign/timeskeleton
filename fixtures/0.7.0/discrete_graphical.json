@@ -1,19 +1,14 @@
 {
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
-  "timeline": {
-    "children": {
-      "dgt_2": {
-        "offset": {
-          "number_type": "int",
-          "unit": "pixels",
-          "value": 16
-        },
-        "timeline": {
-          "children": {},
-          "class": "DiscreteGraphicalTimeline",
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -22,30 +17,19 @@
           },
           "id": "dgt_2",
           "is_segment_line": false,
-          "length": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 640
-          },
+          "length": 640,
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "int",
+          "offset": 16,
           "regions": [],
           "unit": "pixels"
-        }
-      },
-      "dgt_3": {
-        "offset": {
-          "number_type": "int",
-          "unit": "pixels",
-          "value": 1000
         },
-        "timeline": {
-          "children": {},
-          "class": "DiscreteGraphicalTimeline",
+        {
+          "children": [],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -54,43 +38,36 @@
           },
           "id": "dgt_3",
           "is_segment_line": false,
-          "length": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 480
-          },
+          "length": 480,
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "int",
+          "offset": 1000,
           "regions": [],
           "unit": "pixels"
         }
-      }
-    },
-    "class": "DiscreteGraphicalTimeline",
-    "conversion_maps": [],
-    "flow_control": {
-      "breaks": [],
-      "jumps": [],
-      "markers": []
-    },
-    "id": "dgt_1",
-    "is_segment_line": false,
-    "length": {
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "dgt_1",
+      "is_segment_line": false,
+      "length": 1920,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
       "number_type": "int",
-      "unit": "pixels",
-      "value": 1920
-    },
-    "locked": false,
-    "measure_map": null,
-    "meta": {},
-    "metric_hierarchy": null,
-    "name": null,
-    "number_type": "int",
-    "regions": [],
-    "unit": "pixels"
-  }
+      "regions": [],
+      "unit": "pixels"
+    }
+  ],
+  "timeskeleton": "0.7.0"
 }

@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="617.3901" height="484.457" viewBox="0 0 617.3901 484.457" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
 <rect x="0" y="0" width="585.3901" height="452.457" rx="10" fill="#F3F4F6"/>
-<text data-address="bundle_1/name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sonata</text>
+<text data-address="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sonata</text>
 <rect data-address="group_1" x="8" y="28.8047" width="567.3901" height="174.1367" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_1/name" x="16" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Exposition</text>
 <rect data-address="exposition/card" x="18" y="55.6094" width="551.3901" height="83.9531" rx="5" fill="#B8BEC8"/>

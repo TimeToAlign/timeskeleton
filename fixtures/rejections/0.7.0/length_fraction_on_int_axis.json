@@ -1,0 +1,82 @@
+{
+  "manifest": {
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "dlt_2",
+            "is_segment_line": false,
+            "length": 120,
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "int",
+            "offset": 3,
+            "regions": [],
+            "unit": "ticks"
+          },
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "dlt_3",
+            "is_segment_line": false,
+            "length": 96,
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "int",
+            "offset": 7,
+            "regions": [],
+            "unit": "ticks"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "dlt_1",
+        "is_segment_line": false,
+        "length": [
+          480,
+          1
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "int",
+        "regions": [],
+        "unit": "ticks"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "length"
+  ],
+  "reason": "A length is represented as its timeline's number type selects; an int axis takes a JSON integer."
+}

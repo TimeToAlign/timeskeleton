@@ -3,10 +3,10 @@
 <rect x="0" y="0" width="528.0801" height="136.9219" rx="4" fill="#F3F4F6"/>
 <rect data-address="score/card" x="10" y="10" width="510.0801" height="118.9219" rx="5" fill="#B8BEC8"/>
 <rect data-address="score/card" x="8" y="8" width="510.0801" height="118.9219" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-address="ticks" points="98.0801,67.6406 498.0801,67.6406 498.0801,69.6406 98.0801,69.6406" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 2"/>
-<path data-address="intro" d="M98.0801 73.6406Q98.0801 76.6406 101.0801 76.6406L145.0801 76.6406Q148.0801 76.6406 148.0801 79.6406Q148.0801 76.6406 151.0801 76.6406L195.0801 76.6406Q198.0801 76.6406 198.0801 73.6406" fill="none" stroke="#0F766E" stroke-width="1"/>
-<path data-address="da-capo" d="M498.0801 97.2812C398.0801 107.9479 198.0801 107.9479 106.035 98.1298" fill="none" stroke="#DB2777" stroke-width="2" stroke-dasharray="1 1"/>
-<polygon data-address="da-capo" points="98.0801,97.2812 105.6107,102.1072 106.4592,94.1523" fill="#DB2777"/>
+<polygon data-address="score/ticks" points="98.0801,67.6406 498.0801,67.6406 498.0801,69.6406 98.0801,69.6406" fill="none" stroke="#7C3AED" stroke-width="1.5" stroke-dasharray="4 2"/>
+<path data-address="score/intro" d="M98.0801 73.6406Q98.0801 76.6406 101.0801 76.6406L145.0801 76.6406Q148.0801 76.6406 148.0801 79.6406Q148.0801 76.6406 151.0801 76.6406L195.0801 76.6406Q198.0801 76.6406 198.0801 73.6406" fill="none" stroke="#0F766E" stroke-width="1"/>
+<path data-address="score/da-capo" d="M498.0801 97.2812C398.0801 107.9479 198.0801 107.9479 106.035 98.1298" fill="none" stroke="#DB2777" stroke-width="2" stroke-dasharray="1 1"/>
+<polygon data-address="score/da-capo" points="98.0801,97.2812 105.6107,102.1072 106.4592,94.1523" fill="#DB2777"/>
 <line data-address="score" x1="98.0801" y1="62.6406" x2="498.0801" y2="62.6406" stroke="#1D4ED8" stroke-width="4" opacity="0.8"/>
 <circle data-address="score" cx="98.0801" cy="62.6406" r="4" fill="#1D4ED8" opacity="0.8"/>
 <polygon data-address="score" points="510.0801,62.6406 498.0801,56.6406 498.0801,68.6406" fill="#1D4ED8" opacity="0.8"/>
@@ -19,7 +19,7 @@
 <text data-address="score/name" x="16" y="66.7949" text-anchor="start" font-size="12" fill="#111827">Styled score</text>
 <text data-address="score/start/label" x="98.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#4D7C0F">0 ♩</text>
 <text data-address="score/end/label" x="498.0801" y="43.2822" text-anchor="middle" font-size="10" fill="#A16207">8 ♩</text>
-<text data-address="intro/label" x="148.0801" y="90.9229" text-anchor="middle" font-size="10" fill="#0E7490">intro</text>
-<text data-address="da-capo/label" x="298.0801" y="116.5635" text-anchor="middle" font-size="10" fill="#9D174D">D.C.</text>
+<text data-address="score/intro/label" x="148.0801" y="90.9229" text-anchor="middle" font-size="10" fill="#0E7490">intro</text>
+<text data-address="score/da-capo/label" x="298.0801" y="116.5635" text-anchor="middle" font-size="10" fill="#9D174D">D.C.</text>
 </g>
 </svg>

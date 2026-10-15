@@ -1,0 +1,15 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "recording",
+      "length": 30.0,
+      "name": "Recording",
+      "offset": -2.5,
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

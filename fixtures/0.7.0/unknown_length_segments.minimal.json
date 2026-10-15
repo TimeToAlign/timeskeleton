@@ -1,0 +1,75 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "a",
+          "length": null,
+          "locked": true,
+          "offset": [
+            0,
+            1
+          ],
+          "regions": [
+            {
+              "end": [
+                4,
+                1
+              ],
+              "id": "region_1",
+              "start": [
+                0,
+                1
+              ]
+            }
+          ],
+          "unit": "quarters"
+        },
+        {
+          "id": "b",
+          "length": [
+            6,
+            1
+          ],
+          "locked": true,
+          "offset": [
+            8,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "id": "c",
+          "length": null,
+          "locked": true,
+          "offset": [
+            14,
+            1
+          ],
+          "regions": [
+            {
+              "end": [
+                3,
+                1
+              ],
+              "id": "region_2",
+              "start": [
+                0,
+                1
+              ]
+            }
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "form",
+      "is_segment_line": true,
+      "length": null,
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

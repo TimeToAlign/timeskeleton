@@ -1,0 +1,78 @@
+{
+  "graphical": {
+    "order": {
+      "tilia:Bruckner5_Scherzo": [
+        "cpt_1",
+        "cpt_2",
+        "cpt_3",
+        "cpt_4",
+        "cpt_5",
+        "cpt_6",
+        "cpt_7"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "tilia:Bruckner5_Scherzo",
+      "members": [
+        "cpt_1",
+        "cpt_2",
+        "cpt_3",
+        "cpt_4",
+        "cpt_5",
+        "cpt_6",
+        "cpt_7"
+      ],
+      "name": "Bruckner5_Scherzo"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "cpt_1",
+      "length": 788.0,
+      "name": "Form (Harnoncourt)",
+      "unit": "seconds"
+    },
+    {
+      "id": "cpt_2",
+      "length": 788.0,
+      "name": "Themen",
+      "unit": "seconds"
+    },
+    {
+      "id": "cpt_3",
+      "length": 788.0,
+      "name": "Topik",
+      "unit": "seconds"
+    },
+    {
+      "id": "cpt_4",
+      "length": 788.0,
+      "name": "Takte",
+      "unit": "seconds"
+    },
+    {
+      "id": "cpt_5",
+      "length": 788.0,
+      "name": "Tempo",
+      "unit": "seconds"
+    },
+    {
+      "id": "cpt_6",
+      "length": 788.0,
+      "name": "Dramaturgie",
+      "unit": "seconds"
+    },
+    {
+      "id": "cpt_7",
+      "length": 788.0,
+      "name": "Partitur (PDF)",
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

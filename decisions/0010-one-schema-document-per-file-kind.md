@@ -2,6 +2,8 @@
 
 Date: 2026-10-12
 
+Status: superseded by [0011](0011-one-schema-document.md)
+
 ## Context
 
 Up to 0.6.0 a TimeSkeleton version is one schema file describing one file

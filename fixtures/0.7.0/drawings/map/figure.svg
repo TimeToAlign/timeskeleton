@@ -3,8 +3,8 @@
 <rect x="0" y="0" width="490.5366" height="85.4766" rx="10" fill="#F3F4F6"/>
 <rect data-address="melody/card" x="10" y="10" width="472.5366" height="67.4766" rx="5" fill="#B8BEC8"/>
 <rect data-address="melody/card" x="8" y="8" width="472.5366" height="67.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-address="tempo" points="63.5366,34 463.5366,34 463.5366,36 63.5366,36" fill="none" stroke="#0050EF" stroke-width="1"/>
-<polygon data-address="ticks" points="163.5366,16.5 363.5366,16.5 363.5366,18.5 163.5366,18.5" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="melody/tempo" points="63.5366,34 463.5366,34 463.5366,36 63.5366,36" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="melody/ticks" points="163.5366,16.5 363.5366,16.5 363.5366,18.5 163.5366,18.5" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <line data-address="melody" x1="63.5366" y1="40.5" x2="463.5366" y2="40.5" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="melody" cx="63.5366" cy="40.5" r="3" fill="#00CC00"/>
 <polygon data-address="melody" points="472.5366,40.5 463.5366,36 463.5366,45" fill="#00CC00"/>

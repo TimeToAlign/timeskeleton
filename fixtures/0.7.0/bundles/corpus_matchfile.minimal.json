@@ -1,0 +1,70 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score:clt_1"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "score:clt_1"
+      ],
+      "name": "score"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "conversion_maps": [
+        {
+          "id": "ticks_to_seconds:Chopin_op10_no3_p01",
+          "name": "ticks_to_seconds",
+          "scalar": 0.0010416666666666667,
+          "source_unit": "ticks",
+          "target_unit": "seconds",
+          "type": "ScalarMap"
+        }
+      ],
+      "id": "perf:Chopin_op10_no3_p01:dlt_1",
+      "length": 79900,
+      "name": "Chopin_op10_no3_p01",
+      "unit": "ticks"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "quarters_to_divs",
+          "name": "quarters_to_divs",
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "ScalarMap"
+        },
+        {
+          "id": "raw_quarters",
+          "name": "raw_quarters",
+          "offset": [
+            -1,
+            2
+          ],
+          "source_unit": "quarters",
+          "target_unit": "quarters",
+          "type": "ShiftMap"
+        }
+      ],
+      "id": "score:clt_1",
+      "length": [
+        83,
+        2
+      ],
+      "name": "Chopin_op10_no3",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

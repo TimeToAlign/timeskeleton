@@ -1,19 +1,14 @@
 {
+  "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
-  "timeline": {
-    "children": {
-      "cgt_2": {
-        "offset": {
-          "number_type": "float",
-          "unit": "points",
-          "value": 10.0
-        },
-        "timeline": {
-          "children": {},
-          "class": "ContinuousGraphicalTimeline",
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -22,30 +17,19 @@
           },
           "id": "cgt_2",
           "is_segment_line": false,
-          "length": {
-            "number_type": "float",
-            "unit": "points",
-            "value": 200.0
-          },
+          "length": 200.0,
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "float",
+          "offset": 10.0,
           "regions": [],
           "unit": "points"
-        }
-      },
-      "cgt_3": {
-        "offset": {
-          "number_type": "float",
-          "unit": "points",
-          "value": 300.0
         },
-        "timeline": {
-          "children": {},
-          "class": "ContinuousGraphicalTimeline",
+        {
+          "children": [],
           "conversion_maps": [],
           "flow_control": {
             "breaks": [],
@@ -54,43 +38,36 @@
           },
           "id": "cgt_3",
           "is_segment_line": false,
-          "length": {
-            "number_type": "float",
-            "unit": "points",
-            "value": 150.0
-          },
+          "length": 150.0,
           "locked": true,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
           "name": null,
           "number_type": "float",
+          "offset": 300.0,
           "regions": [],
           "unit": "points"
         }
-      }
-    },
-    "class": "ContinuousGraphicalTimeline",
-    "conversion_maps": [],
-    "flow_control": {
-      "breaks": [],
-      "jumps": [],
-      "markers": []
-    },
-    "id": "cgt_1",
-    "is_segment_line": false,
-    "length": {
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "cgt_1",
+      "is_segment_line": false,
+      "length": 600.0,
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": null,
       "number_type": "float",
-      "unit": "points",
-      "value": 600.0
-    },
-    "locked": false,
-    "measure_map": null,
-    "meta": {},
-    "metric_hierarchy": null,
-    "name": null,
-    "number_type": "float",
-    "regions": [],
-    "unit": "points"
-  }
+      "regions": [],
+      "unit": "points"
+    }
+  ],
+  "timeskeleton": "0.7.0"
 }

@@ -1,0 +1,36 @@
+{
+  "manifest": {
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "take",
+        "is_segment_line": false,
+        "length": 9007199254740993,
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "float",
+        "regions": [],
+        "unit": "seconds"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "length"
+  ],
+  "reason": "An integer on a float axis must equal a float exactly; 9007199254740993 (2^53 + 1) has none."
+}

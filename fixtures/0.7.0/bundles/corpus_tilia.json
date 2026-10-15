@@ -1,26 +1,4 @@
 {
-  "bundle": {
-    "groups": [
-      {
-        "id": "tilia:Bruckner5_Scherzo",
-        "members": [
-          "cpt_1",
-          "cpt_2",
-          "cpt_3",
-          "cpt_4",
-          "cpt_5",
-          "cpt_6",
-          "cpt_7"
-        ],
-        "meta": {},
-        "name": "Bruckner5_Scherzo"
-      }
-    ],
-    "id": "bundle_1",
-    "meta": {},
-    "name": "Bruckner5_Scherzo",
-    "support_policy": "omit"
-  },
   "graphical": {
     "order": {
       "tilia:Bruckner5_Scherzo": [
@@ -32,16 +10,33 @@
         "cpt_6",
         "cpt_7"
       ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "tilia:Bruckner5_Scherzo",
+      "members": [
+        "cpt_1",
+        "cpt_2",
+        "cpt_3",
+        "cpt_4",
+        "cpt_5",
+        "cpt_6",
+        "cpt_7"
+      ],
+      "meta": {},
+      "name": "Bruckner5_Scherzo"
     }
-  },
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": "Bruckner5_Scherzo",
   "timelines": [
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -50,11 +45,7 @@
       },
       "id": "cpt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 788.0
-      },
+      "length": 788.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -65,8 +56,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -75,11 +65,7 @@
       },
       "id": "cpt_2",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 788.0
-      },
+      "length": 788.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -90,8 +76,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -100,11 +85,7 @@
       },
       "id": "cpt_3",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 788.0
-      },
+      "length": 788.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -115,8 +96,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -125,11 +105,7 @@
       },
       "id": "cpt_4",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 788.0
-      },
+      "length": 788.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -140,8 +116,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -150,11 +125,7 @@
       },
       "id": "cpt_5",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 788.0
-      },
+      "length": 788.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -165,8 +136,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -175,11 +145,7 @@
       },
       "id": "cpt_6",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 788.0
-      },
+      "length": 788.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -190,8 +156,7 @@
       "unit": "seconds"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -200,11 +165,7 @@
       },
       "id": "cpt_7",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 788.0
-      },
+      "length": 788.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -214,5 +175,6 @@
       "regions": [],
       "unit": "seconds"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

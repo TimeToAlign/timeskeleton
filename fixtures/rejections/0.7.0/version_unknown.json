@@ -1,0 +1,83 @@
+{
+  "error": "UnsupportedVersionError",
+  "manifest": {
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [
+            {
+              "condition": "after_dc_ds",
+              "control_type": "fine",
+              "coordinate": [
+                12,
+                1
+              ],
+              "id": "break_1",
+              "label": "Fine",
+              "meta": {
+                "source": "synthetic"
+              },
+              "name": "fine",
+              "repeat_count": 1
+            }
+          ],
+          "jumps": [
+            {
+              "condition": "first_n",
+              "control_type": "repeat_end",
+              "from_coordinate": [
+                8,
+                1
+              ],
+              "id": "jump_1",
+              "label": "Repeat",
+              "meta": {
+                "source": "synthetic"
+              },
+              "repeat_count": 2,
+              "target": "marker_1",
+              "to_coordinate": [
+                2,
+                1
+              ]
+            }
+          ],
+          "markers": [
+            {
+              "coordinate": [
+                2,
+                1
+              ],
+              "id": "marker_1",
+              "name": "repeat-start"
+            }
+          ]
+        },
+        "id": "flow:quarters",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": "Flow control",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "9.9.9"
+  },
+  "path": [
+    "timeskeleton"
+  ],
+  "reason": "This release reads 0.7.0 only; another version is refused with UnsupportedVersionError."
+}

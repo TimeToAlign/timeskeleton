@@ -1,0 +1,58 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "a",
+          "length": [
+            3,
+            1
+          ],
+          "locked": true,
+          "offset": [
+            0,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "id": "c",
+          "length": [
+            2,
+            1
+          ],
+          "locked": true,
+          "offset": [
+            1,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "id": "b",
+          "length": [
+            5,
+            1
+          ],
+          "locked": true,
+          "offset": [
+            3,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "piece",
+      "length": [
+        8,
+        1
+      ],
+      "name": "Piece",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

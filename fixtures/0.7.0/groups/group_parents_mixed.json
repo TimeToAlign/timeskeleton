@@ -1,31 +1,36 @@
 {
   "graphical": {
-    "order": [
-      "exposition",
-      "take",
-      "system",
-      "audio"
-    ]
+    "order": {
+      "group_1": [
+        "exposition",
+        "take",
+        "system",
+        "audio"
+      ]
+    },
+    "statements": [],
+    "styles": {}
   },
-  "group": {
-    "id": "group_1",
-    "members": [
-      "audio",
-      "exposition",
-      "system",
-      "take"
-    ],
-    "meta": {},
-    "name": "Exposition"
-  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "audio",
+        "exposition",
+        "system",
+        "take"
+      ],
+      "meta": {},
+      "name": "Exposition"
+    }
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": null,
   "timelines": [
     {
-      "children": {},
-      "class": "DiscretePhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -34,11 +39,7 @@
       },
       "id": "audio",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "samples",
-        "value": 1323000
-      },
+      "length": 1323000,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -49,41 +50,29 @@
       "unit": "samples"
     },
     {
-      "children": {
-        "system": {
-          "offset": {
-            "number_type": "int",
-            "unit": "pixels",
-            "value": 0
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "DiscreteGraphicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "system",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "int",
-              "unit": "pixels",
-              "value": 600
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "System",
-            "number_type": "int",
-            "regions": [],
-            "unit": "pixels"
-          }
+          "id": "system",
+          "is_segment_line": false,
+          "length": 600,
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "System",
+          "number_type": "int",
+          "offset": 0,
+          "regions": [],
+          "unit": "pixels"
         }
-      },
-      "class": "DiscreteGraphicalTimeline",
+      ],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -92,11 +81,7 @@
       },
       "id": "page",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 1754
-      },
+      "length": 1754,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -107,41 +92,29 @@
       "unit": "pixels"
     },
     {
-      "children": {
-        "take": {
-          "offset": {
-            "number_type": "float",
-            "unit": "seconds",
-            "value": 30.0
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousPhysicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "take",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "float",
-              "unit": "seconds",
-              "value": 25.5
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Take",
-            "number_type": "float",
-            "regions": [],
-            "unit": "seconds"
-          }
+          "id": "take",
+          "is_segment_line": false,
+          "length": 25.5,
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Take",
+          "number_type": "float",
+          "offset": 30.0,
+          "regions": [],
+          "unit": "seconds"
         }
-      },
-      "class": "ContinuousPhysicalTimeline",
+      ],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -150,11 +123,7 @@
       },
       "id": "session",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 90.0
-      },
+      "length": 90.0,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -165,47 +134,35 @@
       "unit": "seconds"
     },
     {
-      "children": {
-        "exposition": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              16,
-              1
-            ]
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousLogicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "exposition",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                32,
-                1
-              ]
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Exposition",
-            "number_type": "fraction",
-            "regions": [],
-            "unit": "quarters"
-          }
+          "id": "exposition",
+          "is_segment_line": false,
+          "length": [
+            32,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Exposition",
+          "number_type": "fraction",
+          "offset": [
+            16,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
         }
-      },
-      "class": "ContinuousLogicalTimeline",
+      ],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -214,14 +171,10 @@
       },
       "id": "sonata",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          48,
-          1
-        ]
-      },
+      "length": [
+        48,
+        1
+      ],
       "locked": true,
       "measure_map": null,
       "meta": {},
@@ -231,5 +184,6 @@
       "regions": [],
       "unit": "quarters"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

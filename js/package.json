@@ -1,7 +1,7 @@
 {
   "name": "@timetoalign/timeskeleton",
   "version": "0.7.0",
-  "description": "The TimeSkeleton schemas for timeline, group and bundle files, their fixtures, generated TypeScript types and a validator",
+  "description": "The TimeSkeleton manifest schema, its fixtures, generated TypeScript types and a validator",
   "license": "MIT",
   "repository": {
     "type": "git",

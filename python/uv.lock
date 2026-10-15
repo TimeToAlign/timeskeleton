@@ -344,7 +344,6 @@ version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "jsonschema" },
-    { name = "referencing" },
 ]
 
 [package.dev-dependencies]
@@ -355,10 +354,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [
-    { name = "jsonschema", specifier = ">=4.26.0,<5" },
-    { name = "referencing", specifier = ">=0.37.0,<1" },
-]
+requires-dist = [{ name = "jsonschema", specifier = ">=4.26.0,<5" }]
 
 [package.metadata.requires-dev]
 dev = [

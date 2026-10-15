@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "conversion_maps": [
+        {
+          "id": "lmap_1",
+          "offset": [
+            -1,
+            2
+          ],
+          "scalar": [
+            1,
+            32
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "score:dlt_1",
+      "length": 2064,
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "unit": "ticks"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

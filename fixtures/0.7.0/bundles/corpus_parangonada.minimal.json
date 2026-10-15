@@ -1,0 +1,243 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "group_2": [
+        "perf:1966_Szegedi:cpt_1",
+        "perf:1966_Szegedi:dpt_1"
+      ],
+      "group_3": [
+        "perf:1970_Gould:cpt_1",
+        "perf:1970_Gould:dpt_1"
+      ],
+      "group_4": [
+        "perf:1971_Curzon:cpt_1",
+        "perf:1971_Curzon:dpt_1"
+      ],
+      "group_5": [
+        "perf:1985_Brendel:cpt_1",
+        "perf:1985_Brendel:dpt_1"
+      ],
+      "group_6": [
+        "perf:2023_Hewitt:cpt_1",
+        "perf:2023_Hewitt:dpt_1"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "score:clt_1",
+        "score:dlt_1"
+      ],
+      "name": "score"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "perf:1966_Szegedi:cpt_1",
+        "perf:1966_Szegedi:dpt_1"
+      ],
+      "name": "perf:1966_Szegedi"
+    },
+    {
+      "id": "group_3",
+      "members": [
+        "perf:1970_Gould:cpt_1",
+        "perf:1970_Gould:dpt_1"
+      ],
+      "name": "perf:1970_Gould"
+    },
+    {
+      "id": "group_4",
+      "members": [
+        "perf:1971_Curzon:cpt_1",
+        "perf:1971_Curzon:dpt_1"
+      ],
+      "name": "perf:1971_Curzon"
+    },
+    {
+      "id": "group_5",
+      "members": [
+        "perf:1985_Brendel:cpt_1",
+        "perf:1985_Brendel:dpt_1"
+      ],
+      "name": "perf:1985_Brendel"
+    },
+    {
+      "id": "group_6",
+      "members": [
+        "perf:2023_Hewitt:cpt_1",
+        "perf:2023_Hewitt:dpt_1"
+      ],
+      "name": "perf:2023_Hewitt"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "Beethoven_Eroica_op35-cpjku",
+  "timelines": [
+    {
+      "id": "perf:1966_Szegedi:cpt_1",
+      "length": 73.06201814058957,
+      "name": "1966_Szegedi",
+      "unit": "seconds"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "perf:1966_Szegedi:dpt_1",
+      "length": 3222035,
+      "name": "1966_Szegedi",
+      "unit": "samples"
+    },
+    {
+      "id": "perf:1970_Gould:cpt_1",
+      "length": 122.89201814058957,
+      "name": "1970_Gould",
+      "unit": "seconds"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "perf:1970_Gould:dpt_1",
+      "length": 5419538,
+      "name": "1970_Gould",
+      "unit": "samples"
+    },
+    {
+      "id": "perf:1971_Curzon:cpt_1",
+      "length": 77.78290249433107,
+      "name": "1971_Curzon",
+      "unit": "seconds"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "perf:1971_Curzon:dpt_1",
+      "length": 3430226,
+      "name": "1971_Curzon",
+      "unit": "samples"
+    },
+    {
+      "id": "perf:1985_Brendel:cpt_1",
+      "length": 74.88201814058957,
+      "name": "1985_Brendel",
+      "unit": "seconds"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "perf:1985_Brendel:dpt_1",
+      "length": 3302297,
+      "name": "1985_Brendel",
+      "unit": "samples"
+    },
+    {
+      "id": "perf:2023_Hewitt:cpt_1",
+      "length": 89.94301587301587,
+      "name": "2023_Hewitt",
+      "unit": "seconds"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
+      "id": "perf:2023_Hewitt:dpt_1",
+      "length": 3966486,
+      "name": "2023_Hewitt",
+      "unit": "samples"
+    },
+    {
+      "id": "score:clt_1",
+      "length": [
+        64,
+        1
+      ],
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "unit": "quarters"
+    },
+    {
+      "conversion_maps": [
+        {
+          "id": "lmap_1",
+          "offset": [
+            -1,
+            2
+          ],
+          "scalar": [
+            1,
+            32
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "LinearMap"
+        }
+      ],
+      "id": "score:dlt_1",
+      "length": 2064,
+      "name": "Beethoven_Eroica_op35-cpjku",
+      "unit": "ticks"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

@@ -1,70 +1,49 @@
 /**
- * The TimeSkeleton schemas and their validators.
+ * The TimeSkeleton schema and its validator.
  *
- * Versions 0.5.0 and 0.6.0 have one schema document each, for the one file
- * kind they know, the timeline file. From 0.7.0 on a version has four
- * documents: `core` (the shared definitions), `timeline`, `group` and
- * `bundle`, one per file kind, referring to each other by relative `$ref`. The
- * schema objects are bundled from `schema/` at the repository root by
- * `scripts/generate.ts`, which also derives the TypeScript types in
- * `generated/`.
+ * The schema is one document, `schema/<version>/timeskeleton.schema.json`,
+ * bundled by `scripts/generate.ts`, which also derives the TypeScript types in
+ * `generated/`. A value is checked for its version marker, then against the
+ * schema, then for the representation of its own-axis values and for the
+ * identity rules the schema cannot express. Every object of the schema is
+ * open: a key it does not declare is kept and reported by `unknownKeys`,
+ * never refused.
  */
 
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
-import { schemaDocuments } from "./generated/schema.js";
-import type {
-  TimelineManifest,
-  TimeSkeletonBundleFile,
-  TimeSkeletonGroupFile,
-  TimeSkeletonManifest,
-} from "./generated/types.js";
+import type { DataValidationCxt } from "ajv/dist/types/index.js";
+import { schema } from "./generated/schema.js";
+import type { NumberType, TimeSkeleton, TimeUnit } from "./generated/types.js";
 import {
   compareCodePoints,
   compareExact,
   exact,
+  exactNumber,
+  isJsonObject,
+  JsonFloat,
+  jsonInteger,
   type Lossless,
   parseJson,
   plain,
   type Rational,
   rational,
+  spell,
 } from "./manifest.js";
 
-/** The latest schema version bundled by this package. */
+/** The schema version this package reads and writes, the only one it supports. */
 export const SCHEMA_VERSION = "0.7.0";
-
-/** Every bundled schema version, oldest first. */
-export const SUPPORTED_VERSIONS: readonly string[] = ["0.5.0", "0.6.0", "0.7.0"];
-
-/**
- * The file kinds, each named by the top-level member that holds its content.
- * A file of version 0.7.0 or later holds exactly one of these members beside
- * `meta`; versions 0.5.0 and 0.6.0 know the timeline file only.
- */
-export const FILE_KINDS = ["timeline", "group", "bundle"] as const;
-
-/** A file kind. */
-export type FileKind = (typeof FILE_KINDS)[number];
-
-/** A TimeSkeleton file of any kind. */
-export type TimeSkeletonFile =
-  | TimeSkeletonManifest
-  | TimeSkeletonGroupFile
-  | TimeSkeletonBundleFile;
-
-const DOCUMENTS: Readonly<Record<string, Readonly<Record<string, { $id: string }>>>> =
-  schemaDocuments;
 
 /** One step of a path into a value: an object key or an array index. */
 export type PathSegment = string | number;
 
-/** Thrown when a value declares a schema version this release does not know. */
+/** Thrown when a manifest's version marker names a version other than `SCHEMA_VERSION`. */
 export class UnsupportedVersionError extends Error {
-  /** The declared version, or `null` when the value carries no string `meta.schema_version`. */
-  readonly version: string | null;
+  /** The value of the manifest's `timeskeleton` member. */
+  readonly version: unknown;
 
-  constructor(version: string | null) {
+  constructor(version: unknown) {
     super(
-      `unsupported schema_version ${JSON.stringify(version)}; this package supports ${SUPPORTED_VERSIONS.join(", ")}`,
+      `unsupported TimeSkeleton version ${spell(version)}; this package reads ${SCHEMA_VERSION} only`,
     );
     this.name = "UnsupportedVersionError";
     this.version = version;
@@ -72,7 +51,7 @@ export class UnsupportedVersionError extends Error {
 }
 
 /**
- * Thrown when a value violates the schema.
+ * Thrown when a value violates the schema or a rule checked after it.
  *
  * `path` locates the offending value and `detail` is the validator's
  * description; `message` reads `<JSON pointer>: <detail>`, the pointer in URI
@@ -91,39 +70,20 @@ export class SchemaValidationError extends Error {
   }
 }
 
+/** A key the schema does not declare on the object at `path`. */
+export interface UnknownKey {
+  readonly path: readonly PathSegment[];
+  readonly key: string;
+}
+
 /** Render a path as a JSON pointer in URI fragment form (`#` for the root). */
 export function jsonPointer(path: readonly PathSegment[]): string {
   const segments = path.map((segment) => String(segment).replace(/~/g, "~0").replace(/\//g, "~1"));
   return `#${segments.map((segment) => `/${segment}`).join("")}`;
 }
 
-/** Return `meta.schema_version` if present as a string, else `null`. */
-export function declaredVersion(value: unknown): string | null {
-  if (typeof value !== "object" || value === null) {
-    return null;
-  }
-  const meta = (value as Record<string, unknown>).meta;
-  if (typeof meta !== "object" || meta === null) {
-    return null;
-  }
-  const version = (meta as Record<string, unknown>).schema_version;
-  return typeof version === "string" ? version : null;
-}
-
-/** The members of `FILE_KINDS` a value holds, in that order. */
-function presentKinds(value: unknown): FileKind[] {
-  if (typeof value !== "object" || value === null || Array.isArray(value)) return [];
-  return FILE_KINDS.filter((kind) => Object.hasOwn(value, kind));
-}
-
-/**
- * Return the kind of a file: the one member of `FILE_KINDS` it holds, or
- * `null` for a value that holds none or several of them, or is no object.
- */
-export function fileKind(value: unknown): FileKind | null {
-  const present = presentKinds(value);
-  return present.length === 1 ? (present[0] as FileKind) : null;
-}
+/** The unknown keys found by the running schema check, in the order found. */
+let found: UnknownKey[] = [];
 
 const ajv = new Ajv2020({
   strict: false,
@@ -131,47 +91,21 @@ const ajv = new Ajv2020({
   allowUnionTypes: true,
   discriminator: true,
 });
-const registered = new Set<string>();
-const validators = new Map<string, ReturnType<typeof ajv.compile>>();
-
-/** Add every schema document of a version to Ajv, once. */
-function register(version: string): Readonly<Record<string, { $id: string }>> {
-  const documents = DOCUMENTS[version];
-  if (documents === undefined) throw new UnsupportedVersionError(version);
-  if (!registered.has(version)) {
-    for (const schema of Object.values(documents)) ajv.addSchema(schema);
-    registered.add(version);
-  }
-  return documents;
-}
-
-/** The validator of one document, with every document of its version registered. */
-function validatorFor(version: string, document: string): ReturnType<typeof ajv.compile> {
-  const key = `${version}/${document}`;
-  let validator = validators.get(key);
-  if (validator === undefined) {
-    const target = register(version)[document];
-    if (target === undefined) throw new UnsupportedVersionError(version);
-    validator = ajv.getSchema(target.$id) as ReturnType<typeof ajv.compile>;
-    validators.set(key, validator);
-  }
-  return validator;
-}
-
-/** The validator of `meta` alone, as the latest version states it. */
-function declarationValidator(): ReturnType<typeof ajv.compile> {
-  let validator = validators.get("declaration");
-  if (validator === undefined) {
-    const core = register(SCHEMA_VERSION).core as { $id: string };
-    validator = ajv.compile({
-      type: "object",
-      required: ["meta"],
-      properties: { meta: { $ref: `${core.$id}#/$defs/Meta` } },
-    });
-    validators.set("declaration", validator);
-  }
-  return validator;
-}
+// The schema marks every object's undeclared keys with `x-unknown-key`, a
+// keyword every other validator ignores; here it records the key and passes.
+ajv.addKeyword({
+  keyword: "x-unknown-key",
+  schemaType: "boolean",
+  errors: false,
+  validate(_schema: unknown, _data: unknown, _parent: unknown, cxt?: DataValidationCxt) {
+    if (cxt !== undefined) {
+      const pointer = cxt.instancePath.slice(0, cxt.instancePath.lastIndexOf("/"));
+      found.push({ path: toPath(pointer, cxt.rootData), key: String(cxt.parentDataProperty) });
+    }
+    return true;
+  },
+});
+const check = ajv.compile(schema);
 
 /** Convert an Ajv instance path to segments, typing array indices as numbers. */
 function toPath(instancePath: string, value: unknown): PathSegment[] {
@@ -220,47 +154,77 @@ function select(errors: readonly ErrorObject[]): ErrorObject | undefined {
   return best;
 }
 
-/** The problem of a value holding none or several file kinds. */
-function kindProblem(value: unknown): SchemaValidationError {
-  const present = presentKinds(value);
-  const found =
-    present.length === 0 ? "none" : present.map((kind) => JSON.stringify(kind)).join(", ");
-  return new SchemaValidationError(
-    [],
-    `exactly one of "timeline", "group" or "bundle" is required; found ${found}`,
+/** Order paths segment by segment: indices by number, keys by code point, prefixes first. */
+function comparePaths(left: readonly PathSegment[], right: readonly PathSegment[]): number {
+  for (let index = 0; index < Math.min(left.length, right.length); index += 1) {
+    const a = left[index] as PathSegment;
+    const b = right[index] as PathSegment;
+    if (a === b) continue;
+    if (typeof a === "number" && typeof b === "number") return a < b ? -1 : 1;
+    return compareCodePoints(String(a), String(b));
+  }
+  return left.length - right.length;
+}
+
+/**
+ * Check a value through every rule and return its unknown keys.
+ *
+ * @throws {SchemaValidationError} on the first violation.
+ * @throws {UnsupportedVersionError} for a version marker other than `SCHEMA_VERSION`.
+ */
+function run(value: unknown): UnknownKey[] {
+  if (!isJsonObject(value) || !Object.hasOwn(value, "timeskeleton")) {
+    throw new SchemaValidationError([], "not a TimeSkeleton manifest");
+  }
+  if (value.timeskeleton !== SCHEMA_VERSION) throw new UnsupportedVersionError(value.timeskeleton);
+  const instance = plain(value);
+  found = [];
+  const valid = check(instance);
+  const keys = found;
+  found = [];
+  if (!valid) reject(check.errors ?? [], instance);
+  const [problem] = [...representationProblems(value), ...identityProblems(value)];
+  if (problem !== undefined) throw problem;
+  const unique = new Map(keys.map((entry) => [`${jsonPointer(entry.path)} ${entry.key}`, entry]));
+  return [...unique.values()].sort(
+    (a, b) => comparePaths(a.path, b.path) || compareCodePoints(a.key, b.key),
   );
 }
 
 /**
- * Check `value` against the schema of the version and kind it declares.
+ * Check that `value` is a TimeSkeleton manifest.
  *
- * A value whose `meta.schema_version` is one of `SUPPORTED_VERSIONS` is
- * checked against that version's schema; from 0.7.0 on, against the document
- * of its kind (`fileKind`), and a value holding none or several of
- * `timeline`, `group` and `bundle` is rejected at the root. Any other value is
- * refused for its declaration alone: its `meta` is checked against the latest
- * version's, which rejects it at `meta.schema_version`, or at the root when it
- * has no `meta`. A value read
- * by `parse` is checked by the exact values of its numbers. A value the schema
- * accepts is then checked for the identity rules the schema cannot express
- * (`identityProblems`).
+ * The version marker is read first: a value that is no object or has no
+ * `timeskeleton` member is refused at the root, and a marker other than
+ * `SCHEMA_VERSION` raises `UnsupportedVersionError`. The value is then
+ * checked against the schema (a value read by `parse` by the exact values of
+ * its numbers), then for the representation of every own-axis value (its
+ * timeline's number type selects an int, a float or a fraction pair), then
+ * for the identity rules (`identityProblems`). Unknown keys are no violation;
+ * `unknownKeys` reports them.
  *
  * @throws {SchemaValidationError} on the first violation found, with the path to the offending value.
+ * @throws {UnsupportedVersionError} for a version marker other than `SCHEMA_VERSION`.
  */
-export function validate(value: unknown): asserts value is TimeSkeletonFile {
-  const version = declaredVersion(value);
-  const kind = fileKind(value);
-  let validator: ReturnType<typeof ajv.compile>;
-  if (version === null || !SUPPORTED_VERSIONS.includes(version)) {
-    validator = declarationValidator();
-  } else if (Object.keys(DOCUMENTS[version] ?? {}).length === 1) {
-    validator = validatorFor(version, "timeline");
-  } else if (kind !== null) validator = validatorFor(version, kind);
-  else throw kindProblem(value);
-  const instance = plain(value);
-  if (!validator(instance)) reject(validator.errors ?? [], instance);
-  const [problem] = identityProblems(value as TimeSkeletonFile);
-  if (problem !== undefined) throw problem;
+export function validate(value: unknown): asserts value is TimeSkeleton {
+  run(value);
+}
+
+/**
+ * Return the keys of a manifest that the schema does not declare.
+ *
+ * Every object of the schema is open, so an undeclared key, a misspelt
+ * optional one included, is kept rather than refused; this lists them, each
+ * as the path of its object and the key, sorted by path (indices by number,
+ * keys by code point, an object before its descendants) and then by key.
+ * Python's `unknown_keys` gives the same list. The value of an unknown key is
+ * not looked into.
+ *
+ * @throws {SchemaValidationError} if the value is no valid manifest (see `validate`).
+ * @throws {UnsupportedVersionError} for a version marker other than `SCHEMA_VERSION`.
+ */
+export function unknownKeys(value: unknown): UnknownKey[] {
+  return run(value);
 }
 
 /** Throw the error the shared path rule selects among a failed validation's errors. */
@@ -276,163 +240,228 @@ function reject(errors: readonly ErrorObject[], instance: unknown): never {
 }
 
 /**
- * Read a TimeSkeleton file without losing a number or the order of a key
- * (see `parseJson`), and check it against the schema version and kind it
- * declares.
+ * Read a TimeSkeleton manifest without losing a number or the order of a key
+ * (see `parseJson`), and check it (see `validate`).
  *
  * @throws {SyntaxError} if the text is not one JSON value.
  * @throws {SchemaValidationError} on the first violation found.
+ * @throws {UnsupportedVersionError} for a version marker other than `SCHEMA_VERSION`.
  */
-export function parse(text: string): Lossless<TimeSkeletonFile> {
+export function parse(text: string): Lossless<TimeSkeleton> {
   const value = parseJson(text);
   validate(value);
-  return value as unknown as Lossless<TimeSkeletonFile>;
+  return value as unknown as Lossless<TimeSkeleton>;
 }
 
-/** The keys of a timeline's children in code-point order. */
-function childKeys(timeline: TimelineManifest): string[] {
-  return Object.keys(timeline.children).sort(compareCodePoints);
+// -- the values of a manifest ----------------------------------------------------
+
+type JsonObject = Record<string, unknown>;
+
+/** The objects of an array member, or none where it is absent. */
+function entries(owner: unknown, key: string): JsonObject[] {
+  const value = isJsonObject(owner) ? owner[key] : undefined;
+  return Array.isArray(value) ? (value as JsonObject[]) : [];
 }
+
+function text(owner: JsonObject, key: string): string {
+  return owner[key] as string;
+}
+
+/** A timeline's length, or `null` where it is not known. */
+function lengthOf(timeline: JsonObject): unknown {
+  return timeline.length ?? null;
+}
+
+/** The default number type of each unit. */
+const UNIT_NUMBER_TYPES: Readonly<Record<TimeUnit, NumberType>> = {
+  number: "float",
+  floating_measures: "float",
+  whole_note: "fraction",
+  quarters: "fraction",
+  ticks: "int",
+  milliseconds: "float",
+  seconds: "float",
+  minutes: "float",
+  samples: "int",
+  frames: "int",
+  pixels: "int",
+  meters: "float",
+  centimeters: "float",
+  millimeters: "float",
+  inches: "float",
+  points: "float",
+};
+
+/** The number type of a timeline's axis: its own, or its unit's default. */
+export function numberTypeOf(timeline: { unit: TimeUnit; number_type?: NumberType }): NumberType {
+  return timeline.number_type ?? UNIT_NUMBER_TYPES[timeline.unit];
+}
+
+// -- representation ----------------------------------------------------------------
+
+const ARTICLES: Readonly<Record<NumberType, string>> = {
+  int: "an int",
+  float: "a float",
+  fraction: "a fraction",
+};
+
+/** The number type a bare Number is written as. */
+function writtenAs(value: unknown): NumberType {
+  if (Array.isArray(value)) return "fraction";
+  return typeof value === "bigint" || (typeof value === "number" && Number.isInteger(value))
+    ? "int"
+    : "float";
+}
+
+/** Whether a bare Number is represented as the axis's number type selects. */
+function represents(value: unknown, numberType: NumberType): boolean {
+  if (numberType === "fraction") return Array.isArray(value);
+  if (Array.isArray(value)) return false;
+  if (numberType === "float")
+    return writtenAs(value) !== "int" || rewritten(value, "float") !== null;
+  return jsonInteger(value) !== null;
+}
+
+/**
+ * The value written as `numberType` with exactly the same value, spelled as in
+ * a manifest, or `null` when no such representation exists.
+ */
+function rewritten(value: unknown, numberType: NumberType): string | null {
+  const exactValue = exact(value);
+  if (numberType === "fraction") {
+    return `[${exactValue.numerator}, ${exactValue.denominator}]`;
+  }
+  if (numberType === "int") {
+    return exactValue.denominator === 1n ? String(exactValue.numerator) : null;
+  }
+  const double = Number(exactValue.numerator) / Number(exactValue.denominator);
+  if (!Number.isFinite(double)) return null;
+  const back = exactNumber(double) as Rational;
+  if (!equal(back, exactValue)) return null;
+  return spell(Number.isInteger(double) ? new JsonFloat(double) : double);
+}
+
+/**
+ * The problem of an own-axis value that is not represented as its axis's
+ * number type selects, or nothing. The message names the key, the value, the
+ * id of the object holding it, the representation found and the one the axis
+ * selects, and ends with the value rewritten where an exact rewriting exists.
+ */
+function* representationProblem(
+  key: string,
+  owner: JsonObject,
+  path: readonly PathSegment[],
+  numberType: NumberType,
+): Generator<SchemaValidationError> {
+  const value = owner[key];
+  if (value === undefined || value === null || represents(value, numberType)) return;
+  const fix = rewritten(value, numberType) ?? ARTICLES[numberType];
+  yield new SchemaValidationError(
+    [...path, key],
+    `${key} ${spell(value)} of '${text(owner, "id")}' is ${ARTICLES[writtenAs(value)]} on ${ARTICLES[numberType]} axis: write ${fix}`,
+  );
+}
+
+/**
+ * The representation problems of a timeline tree: its offset (on its
+ * parent's axis, a root's on its own), its length, its regions' starts and
+ * ends, its breaks', jumps' and markers' coordinates, then its children's
+ * trees in array order.
+ */
+function* timelineRepresentation(
+  timeline: JsonObject,
+  path: readonly PathSegment[],
+  offsetType: NumberType | null,
+): Generator<SchemaValidationError> {
+  const own = numberTypeOf(timeline as { unit: TimeUnit; number_type?: NumberType });
+  yield* representationProblem("offset", timeline, path, offsetType ?? own);
+  yield* representationProblem("length", timeline, path, own);
+  for (const [index, region] of entries(timeline, "regions").entries()) {
+    for (const key of ["start", "end"]) {
+      yield* representationProblem(key, region, [...path, "regions", index], own);
+    }
+  }
+  const flow = isJsonObject(timeline.flow_control) ? timeline.flow_control : {};
+  const members = [
+    ["breaks", ["coordinate"]],
+    ["jumps", ["from_coordinate", "to_coordinate"]],
+    ["markers", ["coordinate"]],
+  ] as const;
+  for (const [member, keys] of members) {
+    for (const [index, entry] of entries(flow, member).entries()) {
+      for (const key of keys) {
+        yield* representationProblem(key, entry, [...path, "flow_control", member, index], own);
+      }
+    }
+  }
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    yield* timelineRepresentation(child, [...path, "children", index], own);
+  }
+}
+
+/** The representation problems of every root of a manifest, in array order. */
+function* representationProblems(manifest: JsonObject): Generator<SchemaValidationError> {
+  for (const [index, root] of entries(manifest, "timelines").entries()) {
+    yield* timelineRepresentation(root, ["timelines", index], null);
+  }
+}
+
+// -- identity ----------------------------------------------------------------------
 
 /**
  * Every id of a timeline tree with its path, in identity order: a timeline's
  * own id, then the ids of its conversion maps, regions, breaks, jumps and
- * markers in array order, then its children's trees in code-point order of
- * their keys.
+ * markers in array order, then its children's trees in array order.
  */
 function* elementIds(
-  timeline: TimelineManifest,
+  timeline: JsonObject,
   path: readonly PathSegment[],
 ): Generator<[string, PathSegment[]]> {
-  yield [timeline.id, [...path, "id"]];
-  for (const member of ["conversion_maps", "regions"] as const) {
-    for (const [index, entry] of timeline[member].entries()) {
-      yield [entry.id, [...path, member, index, "id"]];
+  yield [text(timeline, "id"), [...path, "id"]];
+  for (const member of ["conversion_maps", "regions"]) {
+    for (const [index, entry] of entries(timeline, member).entries()) {
+      yield [text(entry, "id"), [...path, member, index, "id"]];
     }
   }
-  const flow = timeline.flow_control;
-  for (const member of ["breaks", "jumps", "markers"] as const) {
-    for (const [index, entry] of flow[member].entries()) {
-      yield [entry.id, [...path, "flow_control", member, index, "id"]];
+  for (const member of ["breaks", "jumps", "markers"]) {
+    for (const [index, entry] of entries(timeline.flow_control, member).entries()) {
+      yield [text(entry, "id"), [...path, "flow_control", member, index, "id"]];
     }
   }
-  for (const key of childKeys(timeline)) {
-    const child = timeline.children[key] as { timeline: TimelineManifest };
-    yield* elementIds(child.timeline, [...path, "children", key, "timeline"]);
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    yield* elementIds(child, [...path, "children", index]);
+  }
+}
+
+/** The id of every timeline of a tree with its path, in identity order. */
+function* timelineIds(
+  timeline: JsonObject,
+  path: readonly PathSegment[],
+): Generator<[string, PathSegment[]]> {
+  yield [text(timeline, "id"), [...path, "id"]];
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    yield* timelineIds(child, [...path, "children", index]);
   }
 }
 
 /** A problem for each jump whose target names no marker of its timeline. */
 function* danglingTargets(
-  timeline: TimelineManifest,
+  timeline: JsonObject,
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
   const flow = timeline.flow_control;
-  const markers = new Set(flow.markers.map((marker) => marker.id));
-  for (const [index, jump] of flow.jumps.entries()) {
-    if (jump.target !== null && !markers.has(jump.target)) {
+  const markers = new Set(entries(flow, "markers").map((marker) => marker.id));
+  for (const [index, jump] of entries(flow, "jumps").entries()) {
+    const target = jump.target ?? null;
+    if (target !== null && !markers.has(target)) {
       yield new SchemaValidationError(
         [...path, "flow_control", "jumps", index, "target"],
-        `${JSON.stringify(jump.target)} names no marker of this timeline`,
+        `${JSON.stringify(target)} names no marker of this timeline`,
       );
     }
   }
-  for (const key of childKeys(timeline)) {
-    const child = timeline.children[key] as { timeline: TimelineManifest };
-    yield* danglingTargets(child.timeline, [...path, "children", key, "timeline"]);
-  }
-}
-
-/** The identity problems of one timeline manifest, its own id scope. */
-function timelineProblems(
-  timeline: TimelineManifest,
-  path: readonly PathSegment[],
-): SchemaValidationError[] {
-  const problems: SchemaValidationError[] = [];
-  const first = new Map<string, PathSegment[]>();
-  for (const [id, at] of elementIds(timeline, path)) {
-    const earlier = first.get(id);
-    if (earlier === undefined) first.set(id, at);
-    else problems.push(duplicate(id, at, earlier));
-  }
-  problems.push(...danglingTargets(timeline, path));
-  problems.push(...segmentProblems(timeline, path));
-  return problems;
-}
-
-function add(left: Rational, right: Rational): Rational {
-  return rational(
-    left.numerator * right.denominator + right.numerator * left.denominator,
-    left.denominator * right.denominator,
-  );
-}
-
-function equal(left: Rational, right: Rational): boolean {
-  return left.numerator === right.numerator && left.denominator === right.denominator;
-}
-
-/**
- * The problems of every segment line of a timeline tree. A timeline with
- * `is_segment_line` true holds only its segments, visited in offset order
- * (ties by key in code-point order): a segment of another class than the
- * segment line, at its `class`; a segment whose `is_segment_line` differs
- * from the first segment's, at that member; a segment that does not start
- * where the one before it ends (the first at 0), at its `offset`; then, if the
- * last segment does not end at the segment line's length, one problem at the
- * `length`. Coordinates compare by exact value; the tree is visited in
- * identity order. Python's `_segment_problems` gives the same problems.
- */
-function* segmentProblems(
-  timeline: TimelineManifest,
-  path: readonly PathSegment[],
-): Generator<SchemaValidationError> {
-  if (timeline.is_segment_line === true) {
-    const children = timeline.children as Record<
-      string,
-      { offset: unknown; timeline: TimelineManifest }
-    >;
-    const keys = Object.keys(children).sort(
-      (a, b) => compareExact(children[a]?.offset, children[b]?.offset) || compareCodePoints(a, b),
-    );
-    const id = JSON.stringify(timeline.id);
-    let end = rational(0n, 1n);
-    let flag: boolean | undefined;
-    for (const [index, key] of keys.entries()) {
-      const child = children[key] as { offset: unknown; timeline: TimelineManifest };
-      const segment = child.timeline;
-      const at = [...path, "children", key];
-      if (segment.class !== timeline.class) {
-        yield new SchemaValidationError(
-          [...at, "timeline", "class"],
-          `segment ${JSON.stringify(key)} of segment line ${id} is no ${timeline.class}`,
-        );
-      }
-      if (index === 0) flag = segment.is_segment_line;
-      else if (segment.is_segment_line !== flag) {
-        yield new SchemaValidationError(
-          [...at, "timeline", "is_segment_line"],
-          `segment ${JSON.stringify(key)} of segment line ${id} differs from segment ${JSON.stringify(keys[0])} in is_segment_line`,
-        );
-      }
-      const offset = exact(child.offset);
-      if (!equal(offset, end)) {
-        yield new SchemaValidationError(
-          [...at, "offset"],
-          `segment ${JSON.stringify(key)} of segment line ${id} does not ${index === 0 ? "start at 0" : "start where the one before it ends"}`,
-        );
-      }
-      end = add(offset, exact(segment.length));
-    }
-    if (!equal(end, exact(timeline.length))) {
-      yield new SchemaValidationError(
-        [...path, "length"],
-        `the segments of segment line ${id} do not end at its length`,
-      );
-    }
-  }
-  for (const key of childKeys(timeline)) {
-    const child = timeline.children[key] as { timeline: TimelineManifest };
-    yield* segmentProblems(child.timeline, [...path, "children", key, "timeline"]);
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    yield* danglingTargets(child, [...path, "children", index]);
   }
 }
 
@@ -447,78 +476,201 @@ function duplicate(
   );
 }
 
-/** The id of every timeline of a tree with its path, in identity order. */
-function* timelineIds(
-  timeline: TimelineManifest,
+/** The indices of children in offset order, ties by id in code-point order. */
+function offsetOrder(children: readonly JsonObject[]): number[] {
+  return [...children.keys()].sort(
+    (a, b) =>
+      compareExact(children[a]?.offset, children[b]?.offset) ||
+      compareCodePoints(
+        text(children[a] as JsonObject, "id"),
+        text(children[b] as JsonObject, "id"),
+      ),
+  );
+}
+
+/**
+ * Where each child of a timeline ends on its axis, `null` where unknown: a
+ * child of the timeline's unit ends at its offset plus its known length; a
+ * segment of unknown length ends where its successor in offset order starts.
+ */
+function childEnds(timeline: JsonObject): (Rational | null)[] {
+  const children = entries(timeline, "children");
+  const ends = children.map((child) => {
+    const length = lengthOf(child);
+    return length !== null && child.unit === timeline.unit
+      ? add(exact(child.offset), exact(length))
+      : null;
+  });
+  if (timeline.is_segment_line === true) {
+    const order = offsetOrder(children);
+    for (const [position, index] of order.entries()) {
+      const successor = order[position + 1];
+      if (successor !== undefined && lengthOf(children[index] as JsonObject) === null) {
+        ends[index] = exact(children[successor]?.offset);
+      }
+    }
+  }
+  return ends;
+}
+
+/**
+ * A problem for each child that does not sit on its parent's axis, child by
+ * child in array order, each followed by its own children: a unit other than
+ * its parent's, at its `unit`; a negative offset, at its `offset`; where the
+ * parent's length is known, an offset beyond it, at the `offset`, or else an
+ * end beyond it where the child's end is known (see `childEnds`), at the
+ * child's `length`. The end is spelled as the parent's number type writes
+ * it, as a fraction pair where that type cannot write it exactly. Values
+ * compare exactly. Python's `_child_problems` gives the same problems.
+ */
+function* childProblems(
+  timeline: JsonObject,
   path: readonly PathSegment[],
-): Generator<[string, PathSegment[]]> {
-  yield [timeline.id, [...path, "id"]];
-  for (const key of childKeys(timeline)) {
-    const child = timeline.children[key] as { timeline: TimelineManifest };
-    yield* timelineIds(child.timeline, [...path, "children", key, "timeline"]);
+): Generator<SchemaValidationError> {
+  const length = lengthOf(timeline);
+  const ends = childEnds(timeline);
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    const at = [...path, "children", index];
+    const offset = exact(child.offset);
+    const id = text(child, "id");
+    const parent = `its parent '${text(timeline, "id")}'`;
+    if (child.unit !== timeline.unit) {
+      yield new SchemaValidationError(
+        [...at, "unit"],
+        `child '${id}' has unit '${text(child, "unit")}', ${parent} has '${text(timeline, "unit")}'`,
+      );
+    }
+    if (offset.numerator < 0n) {
+      yield new SchemaValidationError(
+        [...at, "offset"],
+        `offset ${spell(child.offset)} of '${id}' is negative`,
+      );
+    }
+    const end = ends[index] ?? null;
+    if (length !== null && exceeds(offset, exact(length))) {
+      yield new SchemaValidationError(
+        [...at, "offset"],
+        `offset ${spell(child.offset)} of '${id}' is beyond the length ${spell(length)} of ${parent}`,
+      );
+    } else if (length !== null && end !== null && exceeds(end, exact(length))) {
+      const pair = [end.numerator, end.denominator];
+      const spelled =
+        rewritten(pair, numberTypeOf(timeline as { unit: TimeUnit; number_type?: NumberType })) ??
+        spell(pair);
+      yield new SchemaValidationError(
+        [...at, "length"],
+        `child '${id}' ends at ${spelled}, beyond the length ${spell(length)} of ${parent}`,
+      );
+    }
+    yield* childProblems(child, at);
   }
 }
 
 /**
- * The part words, which no element other than a timeline may carry as its id
- * in a group or bundle file.
+ * The identity problems of one root, its own scope: duplicates, then targets,
+ * then children off their parent's axis or beyond its length, then segment
+ * lines.
  */
-const PART_WORDS: ReadonlySet<string> = new Set(["start", "end", "name", "label", "card"]);
+function rootProblems(root: JsonObject, path: readonly PathSegment[]): SchemaValidationError[] {
+  const problems: SchemaValidationError[] = [];
+  const first = new Map<string, PathSegment[]>();
+  for (const [id, at] of elementIds(root, path)) {
+    const earlier = first.get(id);
+    if (earlier === undefined) first.set(id, at);
+    else problems.push(duplicate(id, at, earlier));
+  }
+  problems.push(...danglingTargets(root, path));
+  problems.push(...childProblems(root, path));
+  problems.push(...segmentProblems(root, path));
+  return problems;
+}
+
+function add(left: Rational, right: Rational): Rational {
+  return rational(
+    left.numerator * right.denominator + right.numerator * left.denominator,
+    left.denominator * right.denominator,
+  );
+}
+
+function equal(left: Rational, right: Rational): boolean {
+  return left.numerator === right.numerator && left.denominator === right.denominator;
+}
+
+/** Whether `left` is greater than `right`; denominators are positive. */
+function exceeds(left: Rational, right: Rational): boolean {
+  return left.numerator * right.denominator > right.numerator * left.denominator;
+}
 
 /**
- * A problem for each element id of a tree that is a part word. Timeline ids
- * are exempt; the other elements are visited in identity order.
+ * The problems of every segment line of a timeline tree. A timeline with
+ * `is_segment_line` true holds only its segments, visited in offset order
+ * (ties by id in code-point order): a segment whose `is_segment_line`
+ * differs from the first segment's, at that member (at the segment where it
+ * is absent); a segment that does not start where the one before it ends
+ * (the first at 0), at its `offset`; then, if the last segment does not end
+ * at the segment line's length, one problem at the `length`. A
+ * segment of unknown length ends where its successor starts, so the
+ * successor's offset is not checked, and the end is not checked where the
+ * last segment's length or the segment line's is not known. Values compare
+ * exactly; the tree is visited in identity order. Python's
+ * `_segment_problems` gives the same problems.
  */
-function* partWordProblems(
-  timeline: TimelineManifest,
+function* segmentProblems(
+  timeline: JsonObject,
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
-  const timelines = new Set([...timelineIds(timeline, path)].map(([, at]) => jsonPointer(at)));
-  for (const [id, at] of elementIds(timeline, path)) {
-    if (PART_WORDS.has(id) && !timelines.has(jsonPointer(at))) {
+  const children = entries(timeline, "children");
+  if (timeline.is_segment_line === true) {
+    const order = offsetOrder(children);
+    const id = JSON.stringify(timeline.id);
+    let end: Rational | null = rational(0n, 1n);
+    let flag: boolean | undefined;
+    let firstId = "";
+    for (const [position, index] of order.entries()) {
+      const segment = children[index] as JsonObject;
+      const at = [...path, "children", index];
+      const name = JSON.stringify(segment.id);
+      const segmentFlag = segment.is_segment_line === true;
+      if (position === 0) {
+        flag = segmentFlag;
+        firstId = JSON.stringify(segment.id);
+      } else if (segmentFlag !== flag) {
+        yield new SchemaValidationError(
+          Object.hasOwn(segment, "is_segment_line") ? [...at, "is_segment_line"] : at,
+          `segment ${name} of segment line ${id} differs from segment ${firstId} in is_segment_line`,
+        );
+      }
+      const offset = exact(segment.offset);
+      if (end !== null && !equal(offset, end)) {
+        yield new SchemaValidationError(
+          [...at, "offset"],
+          `segment ${name} of segment line ${id} does not ${position === 0 ? "start at 0" : "start where the one before it ends"}`,
+        );
+      }
+      const length = lengthOf(segment);
+      end = length === null ? null : add(offset, exact(length));
+    }
+    const length = lengthOf(timeline);
+    if (end !== null && length !== null && !equal(end, exact(length))) {
       yield new SchemaValidationError(
-        at,
-        `id ${JSON.stringify(id)} is reserved in a group or bundle file`,
+        [...path, "length"],
+        `the segments of segment line ${id} do not end at its length`,
       );
     }
   }
+  for (const [index, child] of children.entries()) {
+    yield* segmentProblems(child, [...path, "children", index]);
+  }
 }
 
-/**
- * The first path of every timeline id of a file's roots. Each root is its own
- * id scope under the rules of a timeline file. Then, root by root, each
- * element id other than a timeline id that is a part word is one problem at
- * that id. A timeline id that repeats a timeline id of an earlier root is one
- * problem at its later occurrence (a repetition within one root is that
- * root's problem).
- */
-function fileTimelines(
-  roots: readonly TimelineManifest[],
-  problems: SchemaValidationError[],
-): Map<string, PathSegment[]> {
-  const first = new Map<string, PathSegment[]>();
-  for (const [index, root] of roots.entries()) {
-    problems.push(...timelineProblems(root, ["timelines", index]));
-  }
-  for (const [index, root] of roots.entries()) {
-    problems.push(...partWordProblems(root, ["timelines", index]));
-  }
-  for (const [index, root] of roots.entries()) {
-    const seen = new Map<string, PathSegment[]>();
-    for (const [id, path] of timelineIds(root, ["timelines", index])) {
-      if (seen.has(id)) continue;
-      seen.set(id, path);
-      const earlier = first.get(id);
-      if (earlier !== undefined) problems.push(duplicate(id, path, earlier));
-    }
-    for (const [id, path] of seen) if (!first.has(id)) first.set(id, path);
-  }
-  return first;
-}
+/** The part words, which follow an element's address as its parts and so are no id. */
+const PART_WORDS: ReadonlySet<string> = new Set(["start", "end", "name", "label", "card"]);
 
-interface GroupValue {
-  readonly id: string;
-  readonly members: readonly string[];
+function reserved(id: string, path: readonly PathSegment[]): SchemaValidationError {
+  return new SchemaValidationError(
+    path,
+    `id ${JSON.stringify(id)} is reserved for the parts of an address`,
+  );
 }
 
 /**
@@ -527,35 +679,30 @@ interface GroupValue {
  * missing from the order at the order.
  */
 function* orderProblems(
-  group: GroupValue,
+  group: JsonObject,
   order: readonly string[],
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
-  const members = new Set(group.members);
+  const members = group.members as string[];
+  const memberSet = new Set(members);
   const listed = new Set(order);
+  const id = JSON.stringify(group.id);
   for (const [index, entry] of order.entries()) {
-    if (!members.has(entry)) {
+    if (!memberSet.has(entry)) {
       yield new SchemaValidationError(
         [...path, index],
-        `${JSON.stringify(entry)} is not a member of group ${JSON.stringify(group.id)}`,
+        `${JSON.stringify(entry)} is not a member of group ${id}`,
       );
     }
   }
-  for (const member of group.members) {
+  for (const member of members) {
     if (!listed.has(member)) {
       yield new SchemaValidationError(
         path,
-        `member ${JSON.stringify(member)} of group ${JSON.stringify(group.id)} is missing`,
+        `member ${JSON.stringify(member)} of group ${id} is missing`,
       );
     }
   }
-}
-
-function dangling(member: string, path: readonly PathSegment[]): SchemaValidationError {
-  return new SchemaValidationError(
-    path,
-    `${JSON.stringify(member)} names no timeline of this file`,
-  );
 }
 
 /**
@@ -563,49 +710,47 @@ function dangling(member: string, path: readonly PathSegment[]): SchemaValidatio
  * timeline id repeats (a problem reported on its own), its first occurrence
  * counts.
  */
-function ancestorsOf(roots: readonly TimelineManifest[]): Map<string, readonly string[]> {
-  const found = new Map<string, readonly string[]>();
-  const visit = (timeline: TimelineManifest, above: readonly string[]): void => {
-    if (!found.has(timeline.id)) found.set(timeline.id, above);
-    for (const key of childKeys(timeline)) {
-      const child = timeline.children[key] as { timeline: TimelineManifest };
-      visit(child.timeline, [timeline.id, ...above]);
-    }
+function ancestorsOf(roots: readonly JsonObject[]): Map<string, readonly string[]> {
+  const ancestors = new Map<string, readonly string[]>();
+  const visit = (timeline: JsonObject, above: readonly string[]): void => {
+    const id = text(timeline, "id");
+    if (!ancestors.has(id)) ancestors.set(id, above);
+    for (const child of entries(timeline, "children")) visit(child, [id, ...above]);
   };
   for (const root of roots) visit(root, []);
-  return found;
+  return ancestors;
 }
 
 /**
  * The problems of a group's members, member by member: a member naming no
- * timeline of the file (not checked further); in a bundle (`firstMember`
- * given) a member named by an earlier group; then a member nested with an
- * earlier member of the same group (inside it or containing it), naming the
- * first such earlier member.
+ * timeline of the manifest (not checked further); a member named by an
+ * earlier group; then a member nested with an earlier member of the same
+ * group (inside it or containing it), naming the first such earlier member.
  */
 function* memberProblems(
-  group: GroupValue,
+  group: JsonObject,
   path: readonly PathSegment[],
   ancestors: Map<string, readonly string[]>,
-  firstMember: Map<string, PathSegment[]> | null,
+  firstMember: Map<string, PathSegment[]>,
 ): Generator<SchemaValidationError> {
   const checked: string[] = [];
-  for (const [index, member] of group.members.entries()) {
+  for (const [index, member] of (group.members as string[]).entries()) {
     const at = [...path, index];
     const above = ancestors.get(member);
     if (above === undefined) {
-      yield dangling(member, at);
+      yield new SchemaValidationError(
+        at,
+        `${JSON.stringify(member)} names no timeline of this manifest`,
+      );
       continue;
     }
-    if (firstMember !== null) {
-      const earlier = firstMember.get(member);
-      if (earlier !== undefined) {
-        yield new SchemaValidationError(
-          at,
-          `duplicate member ${JSON.stringify(member)}, first at ${jsonPointer(earlier)}`,
-        );
-      } else firstMember.set(member, at);
-    }
+    const earlier = firstMember.get(member);
+    if (earlier !== undefined) {
+      yield new SchemaValidationError(
+        at,
+        `duplicate member ${JSON.stringify(member)}, first at ${jsonPointer(earlier)}`,
+      );
+    } else firstMember.set(member, at);
     for (const other of checked) {
       const relation = above.includes(other)
         ? "lies inside"
@@ -624,117 +769,113 @@ function* memberProblems(
   }
 }
 
-function groupProblems(file: TimeSkeletonGroupFile): SchemaValidationError[] {
+/**
+ * The violations of the identity rules in a schema-valid manifest, in this
+ * order, one problem per finding:
+ *
+ * 1. root by root, in array order, each root's tree is its own scope: every
+ *    id of a timeline, conversion map, region, break, jump and marker of the
+ *    tree is unique within it, each repeated id one problem at its later
+ *    occurrence in identity order (a timeline, then its maps, regions,
+ *    breaks, jumps and markers, then its children in array order),
+ *    `duplicate id "<id>", first at <pointer>`; then each jump whose
+ *    non-null `target` names no marker of its own timeline, at the target;
+ *    then each child whose `unit` is not its parent's, `child '<id>' has
+ *    unit '<u>', its parent '<pid>' has '<pu>'`, whose `offset` is negative,
+ *    `offset <v> of '<id>' is negative`, whose `offset` is beyond its
+ *    parent's known length, `offset <v> of '<id>' is beyond the length <pl>
+ *    of its parent '<pid>'`, or which ends beyond it, `child '<id>' ends at
+ *    <e>, beyond the length <pl> of its parent '<pid>'` (see
+ *    `childProblems`); then the segment lines (see `segmentProblems`);
+ * 2. every id that is a part word (`start`, `end`, `name`, `label`, `card`),
+ *    which follow an address as its parts: the manifest's `id`, then root by
+ *    root every id of the tree in identity order, then each group's id;
+ * 3. a timeline id (of a root or a descendant) repeating a timeline id of an
+ *    earlier root, at the later occurrence;
+ * 4. a group id equal to a timeline id (first at the timeline) or to the id
+ *    of an earlier group (first at that group), at the group's `id`;
+ * 5. the manifest's `id` equal to a timeline id or a group id, at `id`, first
+ *    at the timeline, else at the first such group;
+ * 6. group by group, member by member: a member naming no timeline of the
+ *    manifest; a member already named by an earlier group, `duplicate
+ *    member`; a member nested with an earlier member of the same group
+ *    (inside it or containing it), each at the member;
+ * 7. each key of `graphical.order` in code-point order: a key naming no
+ *    group, at the key; each entry that is not a member of the group, at the
+ *    entry; then each member missing from the order, at the order.
+ *
+ * A key with a default may be absent; its default applies. Python's
+ * `identity_problems` gives the same problems at the same paths, quoting ids
+ * as `repr` does where this quotes them as JSON; the four child messages are
+ * the same text in both.
+ */
+export function identityProblems(
+  value: TimeSkeleton | Lossless<TimeSkeleton> | JsonObject,
+): SchemaValidationError[] {
+  const manifest = value as JsonObject;
   const problems: SchemaValidationError[] = [];
-  const roots = file.timelines;
-  const timelines = fileTimelines(roots, problems);
-  const group = file.group;
-  const earlier = timelines.get(group.id);
-  if (earlier !== undefined) problems.push(duplicate(group.id, ["group", "id"], earlier));
-  problems.push(...memberProblems(group, ["group", "members"], ancestorsOf(roots), null));
-  const members = new Set(group.members);
+  const roots = entries(manifest, "timelines");
+  const groups = entries(manifest, "groups");
   for (const [index, root] of roots.entries()) {
-    if (![...timelineIds(root, [])].some(([id]) => members.has(id))) {
-      problems.push(
-        new SchemaValidationError(
-          ["timelines", index],
-          `timeline ${JSON.stringify(root.id)} contains no member of the group`,
-        ),
-      );
+    problems.push(...rootProblems(root, ["timelines", index]));
+  }
+  const manifestId = typeof manifest.id === "string" ? manifest.id : null;
+  if (manifestId !== null && PART_WORDS.has(manifestId))
+    problems.push(reserved(manifestId, ["id"]));
+  for (const [index, root] of roots.entries()) {
+    for (const [id, at] of elementIds(root, ["timelines", index])) {
+      if (PART_WORDS.has(id)) problems.push(reserved(id, at));
     }
   }
-  const order = file.graphical?.order;
-  if (order !== undefined) problems.push(...orderProblems(group, order, ["graphical", "order"]));
-  return problems;
-}
-
-function bundleProblems(file: TimeSkeletonBundleFile): SchemaValidationError[] {
-  const problems: SchemaValidationError[] = [];
-  const timelines = fileTimelines(file.timelines, problems);
-  const groups = file.bundle.groups;
+  for (const [index, group] of groups.entries()) {
+    const id = text(group, "id");
+    if (PART_WORDS.has(id)) problems.push(reserved(id, ["groups", index, "id"]));
+  }
+  const timelines = new Map<string, PathSegment[]>();
+  for (const [index, root] of roots.entries()) {
+    const seen = new Map<string, PathSegment[]>();
+    for (const [id, path] of timelineIds(root, ["timelines", index])) {
+      if (seen.has(id)) continue;
+      seen.set(id, path);
+      const earlier = timelines.get(id);
+      if (earlier !== undefined) problems.push(duplicate(id, path, earlier));
+    }
+    for (const [id, path] of seen) if (!timelines.has(id)) timelines.set(id, path);
+  }
   const firstGroup = new Map<string, number>();
   for (const [index, group] of groups.entries()) {
-    const path = ["bundle", "groups", index, "id"];
-    const timeline = timelines.get(group.id);
-    const earlier = firstGroup.get(group.id);
-    if (timeline !== undefined) problems.push(duplicate(group.id, path, timeline));
-    else if (earlier !== undefined) {
-      problems.push(duplicate(group.id, path, ["bundle", "groups", earlier, "id"]));
-    }
-    if (earlier === undefined) firstGroup.set(group.id, index);
+    const id = text(group, "id");
+    const path = ["groups", index, "id"];
+    const timeline = timelines.get(id);
+    const earlier = firstGroup.get(id);
+    if (timeline !== undefined) problems.push(duplicate(id, path, timeline));
+    else if (earlier !== undefined) problems.push(duplicate(id, path, ["groups", earlier, "id"]));
+    if (earlier === undefined) firstGroup.set(id, index);
   }
-  const bundleId = file.bundle.id;
-  const groupIndex = firstGroup.get(bundleId);
-  const first =
-    timelines.get(bundleId) ??
-    (groupIndex === undefined ? undefined : ["bundle", "groups", groupIndex, "id"]);
-  if (first !== undefined) problems.push(duplicate(bundleId, ["bundle", "id"], first));
-  const ancestors = ancestorsOf(file.timelines);
+  if (manifestId !== null) {
+    const groupIndex = firstGroup.get(manifestId);
+    const first =
+      timelines.get(manifestId) ??
+      (groupIndex === undefined ? undefined : ["groups", groupIndex, "id"]);
+    if (first !== undefined) problems.push(duplicate(manifestId, ["id"], first));
+  }
+  const ancestors = ancestorsOf(roots);
   const firstMember = new Map<string, PathSegment[]>();
-  for (const [groupIndex, group] of groups.entries()) {
-    const path = ["bundle", "groups", groupIndex, "members"];
-    problems.push(...memberProblems(group, path, ancestors, firstMember));
+  for (const [index, group] of groups.entries()) {
+    problems.push(...memberProblems(group, ["groups", index, "members"], ancestors, firstMember));
   }
-  const orders = file.graphical?.order ?? {};
+  const graphical = isJsonObject(manifest.graphical) ? manifest.graphical : {};
+  const orders = isJsonObject(graphical.order) ? (graphical.order as Record<string, string[]>) : {};
   for (const key of Object.keys(orders).sort(compareCodePoints)) {
     const path = ["graphical", "order", key];
     const index = firstGroup.get(key);
     if (index === undefined) {
       problems.push(
-        new SchemaValidationError(path, `${JSON.stringify(key)} names no group of this bundle`),
+        new SchemaValidationError(path, `${JSON.stringify(key)} names no group of this manifest`),
       );
     } else {
-      problems.push(...orderProblems(groups[index] as GroupValue, orders[key] ?? [], path));
+      problems.push(...orderProblems(groups[index] as JsonObject, orders[key] ?? [], path));
     }
   }
   return problems;
-}
-
-/**
- * The violations of the identity rules in a schema-valid file.
- *
- * **Timeline file.** Every id of the manifest (timelines, conversion maps,
- * regions, breaks, jumps and markers) is unique within it across all kinds:
- * each repeated id is one problem, located at its second occurrence in
- * identity order (a timeline, then its maps, regions, breaks, jumps and
- * markers, then its children by key). A jump's non-null `target` names a
- * marker of the same timeline; each one that does not is one problem, located
- * at the `target`. A segment line's segments are contiguous from 0 to its
- * length, of its class, with one `is_segment_line` value (see
- * `segmentProblems`). The duplicate problems come first, then the targets,
- * then the segment lines.
- *
- * **Group and bundle files**, in this order:
- * 1. each root of `timelines`, in array order, is its own scope under the
- *    timeline-file rules, its problems located under `timelines/<i>`;
- * 2. root by root, in identity order, a conversion-map, region, break, jump or
- *    marker id that is a part word (`start`, `end`, `name`, `label` or `card`,
- *    which follow an element's address as its parts): at that `id`,
- *    `id "<word>" is reserved in a group or bundle file`;
- * 3. a timeline id (of a root or a descendant) repeating a timeline id of an
- *    earlier root: at the later occurrence, `duplicate id`;
- * 4. a group id equal to a timeline id (at the group's `id`, first at the
- *    timeline), or, in a bundle, to the id of an earlier group (first at that
- *    group);
- * 5. in a bundle, a bundle id equal to a timeline id or to a group id (at
- *    `bundle/id`, first at the timeline, else at the first such group);
- * 6. member by member: a member naming no timeline of the file, at the
- *    member; in a bundle, a member already named by an earlier group, at the
- *    later member, `duplicate member`; a member nested with an earlier member
- *    of the same group (inside it or containing it), at the later member;
- * 7. in a group file, a root containing no member, at the root;
- * 8. `graphical.order` (a group file's array, or each entry of a bundle's
- *    object in code-point order of its keys): a key naming no group, at the
- *    key; each entry that is not a member of the group, at the entry; then
- *    each member missing from the order, at the order.
- *
- * Python's `timeskeleton.identity_problems` gives the same problems.
- */
-export function identityProblems(
-  value: TimeSkeletonFile | Lossless<TimeSkeletonFile>,
-): SchemaValidationError[] {
-  const kind = fileKind(value);
-  if (kind === "group") return groupProblems(value as TimeSkeletonGroupFile);
-  if (kind === "bundle") return bundleProblems(value as TimeSkeletonBundleFile);
-  return timelineProblems((value as TimeSkeletonManifest).timeline, ["timeline"]);
 }

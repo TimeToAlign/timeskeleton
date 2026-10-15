@@ -1,6 +1,7 @@
 {
   "manifest": {
     "graphical": {
+      "order": {},
       "statements": [
         {
           "select": {
@@ -209,24 +210,14 @@
         }
       }
     },
-    "meta": {
-      "generator": "timetoalign 1.2.0 (f0a58ce1)",
-      "schema_version": "0.7.0"
-    },
-    "timeline": {
-      "children": {
-        "a": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              0,
-              1
-            ]
-          },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousLogicalTimeline",
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
             "conversion_maps": [],
             "flow_control": {
               "breaks": [],
@@ -235,36 +226,25 @@
             },
             "id": "a",
             "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                4,
-                1
-              ]
-            },
+            "length": [
+              4,
+              1
+            ],
             "locked": true,
             "measure_map": null,
             "meta": {},
             "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
+            "offset": [
+              0,
+              1
+            ],
             "regions": [],
             "unit": "quarters"
-          }
-        },
-        "b": {
-          "offset": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
-              4,
-              1
-            ]
           },
-          "timeline": {
-            "children": {},
-            "class": "ContinuousLogicalTimeline",
+          {
+            "children": [],
             "conversion_maps": [],
             "flow_control": {
               "breaks": [],
@@ -273,109 +253,89 @@
             },
             "id": "b",
             "is_segment_line": false,
-            "length": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
-                4,
-                1
-              ]
-            },
+            "length": [
+              4,
+              1
+            ],
             "locked": true,
             "measure_map": null,
             "meta": {},
             "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
+            "offset": [
+              4,
+              1
+            ],
             "regions": [],
             "unit": "quarters"
           }
-        }
-      },
-      "class": "ContinuousLogicalTimeline",
-      "conversion_maps": [
-        {
-          "id": "ticks",
-          "name": "Ticks",
-          "ppq": 480,
-          "scalar": 480,
-          "source_unit": "quarters",
-          "target_unit": "ticks",
-          "type": "QuartersToTicks"
-        }
-      ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [
+        ],
+        "conversion_maps": [
           {
-            "condition": "always",
-            "control_type": "da_capo",
-            "from_coordinate": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
+            "id": "ticks",
+            "name": "Ticks",
+            "ppq": 480,
+            "scalar": 480,
+            "source_unit": "quarters",
+            "target_unit": "ticks",
+            "type": "QuartersToTicks"
+          }
+        ],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [
+            {
+              "condition": "always",
+              "control_type": "da_capo",
+              "from_coordinate": [
                 8,
                 1
-              ]
-            },
-            "id": "da-capo",
-            "label": "D.C.",
-            "meta": {},
-            "repeat_count": 1,
-            "target": null,
-            "to_coordinate": {
-              "number_type": "fraction",
-              "unit": "quarters",
-              "value": [
+              ],
+              "id": "da-capo",
+              "label": "D.C.",
+              "meta": {},
+              "repeat_count": 1,
+              "target": null,
+              "to_coordinate": [
                 0,
                 1
               ]
             }
-          }
-        ],
-        "markers": []
-      },
-      "id": "score",
-      "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
+          ],
+          "markers": []
+        },
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
           8,
           1
-        ]
-      },
-      "locked": false,
-      "measure_map": null,
-      "meta": {},
-      "metric_hierarchy": null,
-      "name": "Score",
-      "number_type": "fraction",
-      "regions": [
-        {
-          "end": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": "Score",
+        "number_type": "fraction",
+        "regions": [
+          {
+            "end": [
               2,
               1
-            ]
-          },
-          "id": "intro",
-          "meta": {},
-          "name": "intro",
-          "start": {
-            "number_type": "fraction",
-            "unit": "quarters",
-            "value": [
+            ],
+            "id": "intro",
+            "meta": {},
+            "name": "intro",
+            "start": [
               0,
               1
             ]
           }
-        }
-      ],
-      "unit": "quarters"
-    }
+        ],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
   },
   "path": [
     "graphical",

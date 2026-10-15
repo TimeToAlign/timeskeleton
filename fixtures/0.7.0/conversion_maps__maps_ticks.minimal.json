@@ -1,0 +1,27 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "ppq": 480,
+          "scalar": [
+            1,
+            480
+          ],
+          "source_unit": "ticks",
+          "target_unit": "quarters",
+          "type": "TicksToQuarters"
+        }
+      ],
+      "id": "maps:ticks",
+      "length": 960,
+      "name": "Tick maps",
+      "unit": "ticks"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

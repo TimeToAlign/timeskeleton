@@ -1,0 +1,52 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "coda",
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "offset": [
+            10,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "flow_control": {
+        "markers": [
+          {
+            "coordinate": [
+              6,
+              1
+            ],
+            "id": "marker_1"
+          }
+        ]
+      },
+      "id": "score",
+      "length": null,
+      "regions": [
+        {
+          "end": [
+            8,
+            1
+          ],
+          "id": "region_1",
+          "start": [
+            2,
+            1
+          ]
+        }
+      ],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

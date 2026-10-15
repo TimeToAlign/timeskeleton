@@ -1,28 +1,4 @@
 {
-  "bundle": {
-    "groups": [
-      {
-        "id": "group_1",
-        "members": [
-          "rec-a:dpt_1"
-        ],
-        "meta": {},
-        "name": "rec-a"
-      },
-      {
-        "id": "group_2",
-        "members": [
-          "rec-ref:dpt_1"
-        ],
-        "meta": {},
-        "name": "rec-ref"
-      }
-    ],
-    "id": "bundle_1",
-    "meta": {},
-    "name": "alignment",
-    "support_policy": "omit"
-  },
   "graphical": {
     "order": {
       "group_1": [
@@ -31,20 +7,39 @@
       "group_2": [
         "rec-ref:dpt_1"
       ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "rec-a:dpt_1"
+      ],
+      "meta": {},
+      "name": "rec-a"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "rec-ref:dpt_1"
+      ],
+      "meta": {},
+      "name": "rec-ref"
     }
-  },
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": "alignment",
   "timelines": [
     {
-      "children": {},
-      "class": "DiscretePhysicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "name": "samples_to_seconds",
+          "name": null,
           "sample_rate": 44100,
           "scalar": [
             1,
@@ -62,11 +57,7 @@
       },
       "id": "rec-a:dpt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "samples",
-        "value": 1764
-      },
+      "length": 1764,
       "locked": false,
       "measure_map": null,
       "meta": {
@@ -80,12 +71,11 @@
       "unit": "samples"
     },
     {
-      "children": {},
-      "class": "DiscretePhysicalTimeline",
+      "children": [],
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "name": "samples_to_seconds",
+          "name": null,
           "sample_rate": 44100,
           "scalar": [
             1,
@@ -103,11 +93,7 @@
       },
       "id": "rec-ref:dpt_1",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "samples",
-        "value": 2205
-      },
+      "length": 2205,
       "locked": false,
       "measure_map": null,
       "meta": {
@@ -120,5 +106,6 @@
       "regions": [],
       "unit": "samples"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

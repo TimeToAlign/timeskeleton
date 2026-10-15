@@ -1,30 +1,4 @@
 {
-  "bundle": {
-    "groups": [
-      {
-        "id": "group_1",
-        "members": [
-          "performance",
-          "score"
-        ],
-        "meta": {},
-        "name": "Performance"
-      },
-      {
-        "id": "group_2",
-        "members": [
-          "excerpt",
-          "page"
-        ],
-        "meta": {},
-        "name": "Facsimile"
-      }
-    ],
-    "id": "bundle_1",
-    "meta": {},
-    "name": "Mixed",
-    "support_policy": "omit"
-  },
   "graphical": {
     "order": {
       "group_1": [
@@ -35,16 +9,37 @@
         "page",
         "excerpt"
       ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "performance",
+        "score"
+      ],
+      "meta": {},
+      "name": "Performance"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "excerpt",
+        "page"
+      ],
+      "meta": {},
+      "name": "Facsimile"
     }
-  },
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (98a6bb36)",
-    "schema_version": "0.7.0"
+    "generator": "timetoalign 1.2.0 (996de8c2)"
   },
+  "name": "Mixed",
   "timelines": [
     {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -53,14 +48,10 @@
       },
       "id": "annotations",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          12,
-          1
-        ]
-      },
+      "length": [
+        12,
+        1
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -71,8 +62,7 @@
       "unit": "quarters"
     },
     {
-      "children": {},
-      "class": "DiscreteGraphicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -81,11 +71,7 @@
       },
       "id": "page",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "pixels",
-        "value": 1920
-      },
+      "length": 1920,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -96,8 +82,7 @@
       "unit": "pixels"
     },
     {
-      "children": {},
-      "class": "ContinuousPhysicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -106,11 +91,7 @@
       },
       "id": "performance",
       "is_segment_line": false,
-      "length": {
-        "number_type": "float",
-        "unit": "seconds",
-        "value": 12.5
-      },
+      "length": 12.5,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -121,41 +102,29 @@
       "unit": "seconds"
     },
     {
-      "children": {
-        "excerpt": {
-          "offset": {
-            "number_type": "int",
-            "unit": "samples",
-            "value": 44100
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
           },
-          "timeline": {
-            "children": {},
-            "class": "DiscretePhysicalTimeline",
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "excerpt",
-            "is_segment_line": false,
-            "length": {
-              "number_type": "int",
-              "unit": "samples",
-              "value": 88200
-            },
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": "Excerpt",
-            "number_type": "int",
-            "regions": [],
-            "unit": "samples"
-          }
+          "id": "excerpt",
+          "is_segment_line": false,
+          "length": 88200,
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Excerpt",
+          "number_type": "int",
+          "offset": 44100,
+          "regions": [],
+          "unit": "samples"
         }
-      },
-      "class": "DiscretePhysicalTimeline",
+      ],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -164,11 +133,7 @@
       },
       "id": "recording",
       "is_segment_line": false,
-      "length": {
-        "number_type": "int",
-        "unit": "samples",
-        "value": 441000
-      },
+      "length": 441000,
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -179,8 +144,7 @@
       "unit": "samples"
     },
     {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
+      "children": [],
       "conversion_maps": [],
       "flow_control": {
         "breaks": [],
@@ -189,14 +153,10 @@
       },
       "id": "score",
       "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
-          12,
-          1
-        ]
-      },
+      "length": [
+        12,
+        1
+      ],
       "locked": false,
       "measure_map": null,
       "meta": {},
@@ -206,5 +166,6 @@
       "regions": [],
       "unit": "quarters"
     }
-  ]
+  ],
+  "timeskeleton": "0.7.0"
 }

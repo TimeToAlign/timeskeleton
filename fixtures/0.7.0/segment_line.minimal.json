@@ -1,0 +1,125 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "id": "a1",
+              "length": [
+                8,
+                1
+              ],
+              "locked": true,
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "a",
+          "is_segment_line": true,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "name": "A",
+          "offset": [
+            0,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "id": "b1",
+              "length": [
+                6,
+                1
+              ],
+              "locked": true,
+              "name": "b1",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "id": "b2",
+              "length": [
+                6,
+                1
+              ],
+              "locked": true,
+              "name": "b2",
+              "offset": [
+                6,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "b",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "name": "B",
+          "offset": [
+            8,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "id": "c1",
+              "length": [
+                12,
+                1
+              ],
+              "locked": true,
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "c",
+          "is_segment_line": true,
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "name": "C",
+          "offset": [
+            20,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "form",
+      "is_segment_line": true,
+      "length": [
+        32,
+        1
+      ],
+      "name": "Form",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

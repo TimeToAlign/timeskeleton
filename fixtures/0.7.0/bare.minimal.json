@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "timelines": [
+    {
+      "id": "bare",
+      "length": [
+        8,
+        1
+      ],
+      "name": "Bare",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

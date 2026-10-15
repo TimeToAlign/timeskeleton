@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "timeskeleton"
 version = "0.7.0"
-description = "The TimeSkeleton schemas for timeline, group and bundle files, their fixtures and a validator"
+description = "The TimeSkeleton manifest schema, its fixtures and a validator"
 dynamic = ["readme"]
 requires-python = ">=3.11"
 license = "MIT"
@@ -20,7 +20,7 @@ classifiers = [
   "Topic :: File Formats :: JSON :: JSON Schema",
   "Typing :: Typed",
 ]
-dependencies = ["jsonschema>=4.26.0,<5", "referencing>=0.37.0,<1"]
+dependencies = ["jsonschema>=4.26.0,<5"]
 
 [project.urls]
 Repository = "https://github.com/TimeToAlign/timeskeleton"

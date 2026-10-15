@@ -14,19 +14,20 @@ JSON form of a drawing is exchanged. This specification pins the drawing.
 
 Sections 1 to 7 specify the drawing of one timeline, called **the root**,
 with all its descendants: a **member drawing**. Section 8 specifies the box
-that holds member drawings. Every file is drawn as a bundle: a bundle file
-as itself, a group file as an anonymous bundle holding its group, and a
-timeline file as an anonymous bundle holding its top-level timeline, so the
-three file kinds share one box rule. Terms in `code` are JSON members.
+that holds member drawings. Every manifest is drawn as one box, whether it
+holds one timeline or many, groups or none: its groups as frames and its
+ungrouped roots as cards. Terms in `code` are JSON members.
 
 ## 1. Inputs and output
 
 `draw(manifest, placement, layers, metrics)` returns the manifest's drawing.
 
-- `manifest`: a timeline, group or bundle file, read in canonical order
-  (README, "Canonical order") whatever order it was written in. Its
-  `graphical` block holds the manifest's own style statements; in a group or
-  bundle file it also holds the member `order` (section 8).
+- `manifest`: a TimeSkeleton manifest, read in its complete form, every
+  key the manifest leaves out taking its default (README, "Defaults"), and
+  in canonical order (README, "Canonical order"), whatever form and order it
+  was written in. Its `graphical` block holds the manifest's own style
+  statements and the display order `order` of its groups' members (section
+  8).
 - `placement`: chosen by whoever places the drawing, such as an editor's
   canvas or a script:
   - `length`, the **graphical length** `L` of the root, in canvas units
@@ -63,7 +64,13 @@ change one input each:
 |---|---|---|
 | Scale | scale `z` | everything scales, proportions kept, text included |
 | Box | `width`, `height` | only the box changes; the content keeps its place at the top left; the box never becomes smaller than the content (section 8.4) |
-| Stretch | `length` (horizontal), `spacing` (vertical), both (a corner) | distances stretch: along time horizontally, between rows and bands vertically; markers, line widths and text keep their size |
+| Stretch | `length` (horizontal), `spacing` (vertical), both (a corner); `width`, `height` where a box size is requested | distances stretch: along time horizontally, between rows and bands vertically; markers, line widths and text keep their size; the box follows the content (below) |
+
+On a stretch, a requested box size larger than the content keeps the space
+it adds, so the box follows the stretched content: `width` (or `height`)
+becomes the stretched content's size plus the request minus the content's
+size before the stretch. A request no larger than the content before the
+stretch becomes `null`, and `null` stays `null`.
 
 ## 2. The `graphical` block
 
@@ -75,7 +82,7 @@ change one input each:
   "statements": [
     {"select": {"element": "label"}, "set": {"fill": "#404040"}},
     {"select": {"element": "wedge", "within": "performance"}, "set": "highlight"},
-    {"select": {"ids": ["region_1"]}, "set": {"display": "none"}}
+    {"select": {"ids": ["score/region_1"]}, "set": {"display": "none"}}
   ]
 }
 ```
@@ -100,7 +107,7 @@ Every drawn thing is an **element** of one **type**:
 | Type | What it is |
 |---|---|
 | `block` | the box's background |
-| `card` | the raised container of a timeline drawn in its own card: a timeline file's top-level timeline, a group member, an ungrouped root (section 8) |
+| `card` | the raised container of a timeline drawn in its own card: a group member or an ungrouped root (section 8) |
 | `timeline` | the line of a timeline drawn in its own card (section 8) |
 | `child` | a child timeline's line, at any depth |
 | `boundary` | the start of a segment on its segment line, drawn as a thin vertical rule (section 6.4) |
@@ -111,30 +118,33 @@ Every drawn thing is an **element** of one **type**:
 | `break` | a flow-control break, drawn as a vertical line |
 | `jump` | a flow-control jump, drawn as an arc with an arrowhead |
 | `wedge` | a marker of the root's start or end; on an ancestor line, the member's start or end on the ancestor's axis (section 8.3) |
-| `name` | the name of a row, in the name column, or the title of a group or bundle (section 8) |
+| `name` | the name of a row, in the name column, or the title of a group or of the manifest (section 8) |
 | `label` | any other text: a coordinate, or the label of a region, jump, break or segment |
 
 An element **belongs** to a timeline (section 2.2); the `block`, a `group`
-and the titles of a group or bundle belong to none, and have no domain,
-modality or class. A card belongs to the timeline it holds, and so has
-its domain, modality and class. An element has the **domain** (`graphical`, `logical` or `physical`)
-and the **modality** (`continuous` or `discrete`) of its timeline's
-`class` (`ContinuousGraphicalTimeline` is continuous and graphical, and so
-on). A map instead has the domain and modality of the map's `target_unit`,
-so a map is drawn in the style of the timelines it converts to:
+and the titles of a group or of the manifest belong to none, and have no
+domain, modality or class. A card belongs to the timeline it holds, and so
+has its domain, modality and class. An element has the **domain**
+(`graphical`, `logical` or `physical`) and the **modality** (`continuous`
+or `discrete`) of its timeline's `unit`. A map instead has the domain and
+modality of the map's `target_unit`, so a map is drawn in the style of the
+timelines it converts to:
 
 | Domain | Units |
 |---|---|
-| `logical` | `floating_measures`, `whole_note`, `quarters`, `ticks` |
+| `logical` | `number`, `floating_measures`, `whole_note`, `quarters`, `ticks` |
 | `physical` | `milliseconds`, `seconds`, `minutes`, `samples`, `frames` |
 | `graphical` | `pixels`, `meters`, `centimeters`, `millimeters`, `inches`, `points` |
 
 `ticks`, `samples`, `frames` and `pixels` are discrete, every other unit
-continuous. A map whose `target_unit` is null or not in the table has no
-domain and no modality, so no selector naming them matches it and it
-inherits its timeline's style (section 2.5). An element's **class** is its
-timeline's `class`, except that a map has the map's `type`
-(`QuartersToTicks`, …).
+continuous. A map whose `target_unit` is null has no domain and no
+modality, so no selector naming them matches it and it inherits its
+timeline's style (section 2.5). An element's **class** is the timeline
+class its timeline's unit decides: `Continuous` or `Discrete` for the
+modality, then `Logical`, `Physical` or `Graphical` for the domain, then
+`Timeline` (`seconds` decides `ContinuousPhysicalTimeline`, `ticks`
+`DiscreteLogicalTimeline`). A manifest writes no class; the unit decides
+it. A map instead has the map's `type` (`QuartersToTicks`, …).
 
 Elements form a **tree** that carries inheritance (section 2.5): the
 `block` holds the `timeline`; a `timeline` or `child` holds its maps,
@@ -150,19 +160,34 @@ of the tree: the block, frames, cards and ancestor lines.
 
 ### 2.2 Addresses
 
-Every timeline, conversion map, region, break, jump and marker of a manifest
-carries an `id`, unique within the manifest across all of these kinds; an id
-is a non-empty string without `/` and without control characters. An element is addressed by its own id,
-and a part of an element by that element's address followed by `/` and the part's word (so a wedge's label is `T/end/label`).
-An address is compared as a whole string.
+Every timeline, group, conversion map, region, break, jump and marker of a
+manifest carries an `id`, and so may the manifest itself; an id is a
+non-empty string without `/` and without control characters. Timeline ids
+(of roots and descendants alike), group ids and the manifest's id are
+unique together across the manifest; every other id is unique within the
+tree of the root that holds it (README, "Identity"). One rule addresses
+every element of every manifest, one timeline or many:
+
+- a timeline, a group or the manifest is addressed by its bare id;
+- every other element with an id of its own (a conversion map, region,
+  break, jump or marker) is addressed by the id of the root of `timelines`
+  whose tree holds it, `/`, and its own id;
+- a part of an element is addressed by that element's address, `/`, and
+  the part's word: `start`, `end`, `name`, `label` or `card`. These five
+  words are reserved: no id of a manifest may be one of them, so an address
+  is read without ambiguity.
+
+An address is compared as a whole string. In this table `T` is a
+timeline's id, `r` the id of the root whose tree holds the element, and `C`
+an element's address:
 
 | Element | Address | Belongs to |
 |---|---|---|
 | the root, or a child timeline with id `T` | `T` | `T` |
-| a conversion map with id `M` on `T` | `M` | `T` |
-| a region with id `R` of `T`'s `regions` | `R` | `T` |
-| a break with id `B` of `T`'s `flow_control.breaks` | `B` | `T` |
-| a jump with id `J` of `T`'s `flow_control.jumps` | `J` | `T` |
+| a conversion map with id `M` on `T` | `r/M` | `T` |
+| a region with id `R` of `T`'s `regions` | `r/R` | `T` |
+| a break with id `B` of `T`'s `flow_control.breaks` | `r/B` | `T` |
+| a jump with id `J` of `T`'s `flow_control.jumps` | `r/J` | `T` |
 | the root's wedges at its start and end, the root's id being `T` | `T/start`, `T/end` | `T` |
 | the name of an element with address `C` | `C/name` | that element's timeline |
 | the label of an element with address `C` | `C/label` | that element's timeline |
@@ -172,27 +197,24 @@ An address is compared as a whole string.
 | the ancestor line of a timeline with id `A` | `A` | `A` |
 | the marks of the start and end of a member `M` on an ancestor line | `M/start`, `M/end` | `M` |
 | the frame of a group with id `G` | `G` | none |
-| the title of a group with id `G`, or of the bundle with id `D` | `G/name`, `D/name` | none |
+| the title of a group with id `G` | `G/name` | none |
+| the title of the manifest | `name` | none |
 
-A marker is addressed by its id but is not drawn. The block has no
-address.
+So a region `region_1` of a timeline in the tree of root `score` is
+`score/region_1` and its label `score/region_1/label`, whether the manifest
+holds `score` alone or many roots, and also when a member below `score` is
+drawn as the root of its own member drawing; a jump `jump_1` of the root
+`score` itself is `score/jump_1`, its label `score/jump_1/label`. The
+manifest's title is addressed `name` whether or not the manifest has an
+`id`, so naming a manifest, or giving it an id, changes no address. The
+manifest's own id addresses the manifest, which draws no element of its
+own: the block has no address. A marker is addressed like a region but is
+not drawn.
 
-A timeline file keeps these addresses, although it is drawn as an
-anonymous bundle (section 8). In a group or bundle file, timeline ids, group ids and the bundle id are
-unique across the file, but every other id is unique only within its root's
-tree (README). There, a timeline, a group or the bundle is addressed by its
-bare id as above, and every other element with an id of its own (a map,
-region, break, jump or marker) by the id of the root of `timelines` whose
-tree holds it, `/`, and its own id: a region `region_1` of a timeline in the
-tree of root `score` is `score/region_1`, and its label
-`score/region_1/label`, also when a member below `score` is drawn as the
-root of its own member drawing. A part keeps its element's address, so a
-member `M`'s wedges are `M/start` and `M/end` and its card `M/card`. Such ids may not be
-`start`, `end`, `name`, `label` or `card`, so an address is read without
-ambiguity. One timeline may be drawn more than once, as an ancestor line of
-several members or also as a member, and a member's start and end are
-marked on its own line and on each of its ancestor lines (section 8.3);
-every drawing of an element carries its address.
+One timeline may be drawn more than once, as an ancestor line of several
+members or also as a member, and a member's start and end are marked on its
+own line and on each of its ancestor lines (section 8.3); every drawing of
+an element carries its address.
 
 ### 2.3 Selectors
 
@@ -201,7 +223,7 @@ A selector is an object with any of these members:
 - `element`: an element type;
 - `ids`: a non-empty list of distinct addresses;
 - `domain`, `modality`: a domain, a modality;
-- `class`: a timeline class or a conversion-map type;
+- `class`: a timeline class (section 2.1) or a conversion-map type;
 - `within`: a timeline id; it matches the elements belonging to that
   timeline or to any of its descendants;
 - `inside`: an element type; it matches the elements held, at any depth,
@@ -278,7 +300,8 @@ its ancestors, from the root down. The root starts at the zero of its
 number type (labelled `0`, or `0.0` for a float) and ends at its length; a child of a timeline starting at `s`, with
 offset `o`, starts at `s + o` and ends at that start plus its own length; a
 region, break or jump of a timeline starting at `s` lies at `s` plus its
-coordinate.
+coordinate. Where a length is `null`, section 3.4 says where the timeline
+ends.
 
 A coordinate's value is read as its number type selects: a `float` value is
 a float, an `int` or `fraction` value is exact. Values combine as Python's
@@ -287,10 +310,18 @@ involving a float converts each exact operand to the nearest double (ties
 to even) and adds in IEEE 754 binary64 arithmetic, rounding to nearest,
 ties to even.
 
+The **midpoint** of two positions `a` and `b`, on which section 6 centres
+a segment label, a region's brace tip and label and a jump's label, is
+`(a + b) / 2` in the same arithmetic: the sum `a + b` combined as above,
+then halved, exactly when the sum is exact and as a binary64 division by 2
+when it is a float. On a float axis it is therefore the double sum halved,
+not the exact midpoint of the two doubles rounded once.
+
 ### 3.2 From the axis to the canvas
 
-A position `t` on the root's axis, with the root's length `λ`, becomes the
-**proportion** `u = t / λ`: an exact quotient when both are exact, then
+A position `t` on the root's axis, with `λ` the root's length, or its reach
+when its length is `null` (section 3.4), becomes the **proportion** `u = t
+/ λ`: an exact quotient when both are exact, then
 rounded once to the nearest double; a binary64 division when either is a
 float; 0 when `λ` is 0. Its x in the box is
 
@@ -305,7 +336,7 @@ show the exact coordinate, never the double.
 Every other number of a drawing is a double, computed in IEEE 754 binary64
 in the order its formula is written, left to right, multiplications and
 divisions before additions and subtractions, and a constant factor such as
-`4/3`, `4w`, `2w`, `1.5w`, `1.2w` or `2.5w` formed before it multiplies
+`4/3`, `8w`, `4w`, `2w`, `1.5w`, `1.2w` or `2.5w` formed before it multiplies
 (`1.2w` is the double nearest the exact product of 6/5 and `w`, not the
 binary64 product of the double `1.2` and `w`). A distance outwards is
 summed whole, left to right as written and a label gap of 2 included,
@@ -315,6 +346,55 @@ labels of a line from that line (section 6.4), the marks of an ancestor
 line and their labels from that line (section 8.3), and a break label from
 the flow row (section 6.4). A label's baseline is then that ordinate plus
 `a(9)` or minus `d(9)`. `max` and `min` compare exactly.
+
+### 3.4 Timelines of unknown length
+
+A timeline whose `length` is `null` has an unknown length: the manifest
+does not say where it ends, and the drawing never invents an end for it.
+It is scaled to its reach, and its end is marked as open.
+
+**The reach** of a timeline `T` is a value on `T`'s own axis: the largest
+of the zero of `T`'s number type and of every coordinate its content
+reaches on that axis, which is
+
+- for each child at offset `o`, `o` plus the child's length, or, when the
+  child's length is `null`, `o` plus the child's own reach, recursively;
+- the `start` and the `end` of each region;
+- the `coordinate` of each break and of each marker;
+- the `from_coordinate` and the `to_coordinate` of each jump;
+- for each row of the `measure_map` that holds both `qstamp` and
+  `actual_length`, `qstamp + actual_length`.
+
+Sums combine as section 3.1 combines values. The values compare exactly;
+of several equal largest values, an exact one (`int` or `fraction`) is
+taken before a float. Content counts whether or not it is displayed, so a
+style never changes a scale. Conversion maps are not content. A timeline
+without content, or whose content reaches no further than its start, has
+the reach 0. The reach is a coordinate on an axis; the distances that
+sections 6 and 8 call the reach of a map stack, a line, a band or a mark
+are canvas distances outwards from a line, and have nothing to do with it.
+
+**The end.** Every drawn timeline `T` starting at `S` (section 3.1) ends
+at a position on the root's axis, and its end is either **known** or
+**open**. The first of these rules that applies gives it:
+
+1. `T`'s length is a value: `T` ends at `S` plus its length; known.
+2. `T` is the root of its member drawing: it ends at `λ`, its reach;
+   open.
+3. `T` is a segment followed by another segment, in canonical order: it
+   ends where the next segment starts; known, since the segment line fixes
+   it.
+4. `T` is the last segment of its segment line: it ends where its segment
+   line ends; known or open as that end is.
+5. Otherwise: `T` ends at `S` plus its reach; open.
+
+`Xe`, `x` of the end, is `x` of the end's position (section 3.2), except
+for an end that is the root's under rule 2, directly or through rule 4,
+where `Xe = x0 + L` whatever the reach. So the reach of a
+root of unknown length lies at the end of the graphical length, and a root
+whose reach is 0 is still drawn `L` long, every position of it at `u = 0`
+(section 3.2). A line whose end is open ends in the double chevron
+(section 6.6), never in a mark that would assert a position.
 
 ## 4. Defaults
 
@@ -430,8 +510,9 @@ conversion map has no name or label in the drawing. A region's label is its `nam
 `label`, or its `control_type` when `label` is null; a break's label is its
 `label`, and a break whose `label` is null has none; a segment's label is
 its `name`, and a segment whose `name` is null has none. The title of a
-group or bundle is its `name`, or, when `name` is null, its `id` without its
-scope.
+group, or of the manifest, is its `name`, or, when `name` is null, its `id`
+without its scope. A manifest with neither a `name` nor an `id` has no
+title.
 
 ## 6. Layout
 
@@ -487,8 +568,10 @@ displayed has no row. A row whose lines contribute no name (a row of
 segment lines, section 6.6) counts the font size the `name` of its first
 line has under the cascade. The root's row is a band of its own, so `p0` (section
 6.4) takes the root's name size alone and a children band its own rows'. Wherever `h(9)`, `a(9)` or `d(9)` appears in section 3.3, anywhere
-in section 6 or in section 8, 9 stands for the largest font size of the labels of the band in
-question (9 by default). The labels of a flow band are its drawn jump labels
+in section 6 or in section 8, 9 stands for the largest font size of the drawn labels of the band in
+question, and is 9 when the band draws no label. So a region band whose
+regions have no drawn label still keeps the label room `2 + h(9)` in its
+row pitch `pr`, and is as wide as one with labels of size 9. The labels of a flow band are its drawn jump labels
 and break labels together, so its jump levels and break-label tiers share one
 size.
 
@@ -554,7 +637,9 @@ segment that is itself a segment line lies on its segment line's line, not
 on its own. The labels
 (section 5.3) of the segments of one segment line, in canonical order, are
 placed by one first fit into **segment-label tiers** above its line, each
-centred on `x` of the exact midpoint of its segment's start and end. Tier
+centred on `x` of the midpoint (section 3.1) of its segment's start and end (the
+end of section 3.4, so a segment of unknown length ends where the next
+segment starts, and the last where its segment line ends). Tier
 `n` has its baseline at `y − (m + 2 + (n − 1) × h(9)) − d(9)`, `y` the
 line's ordinate and `m` the larger of the reach `e` of the line's stack
 above and, when the line has a drawn boundary, `k`. A segment
@@ -569,11 +654,17 @@ reach on a side, it uses the line's reach instead.
 
 **The root band.** The root's map stack on the side, and the root's wedges
 whose `side` it is, each wedge labelled with the coordinate it marks in the
-root's unit: `0` and `length`. The labels of one side are placed by first
+root's unit (section 5.2): the zero of its number type, which is `0`, or
+`0.0` on a float axis (section 3.1), and `length`. A root whose end is open
+(section 3.4) has its start wedge and that zero's label only (`0 ♩` in
+quarters, `0.0 s` in seconds). The labels of one side are placed by first
 fit, start before end, into tiers centred on their wedge's `X`. Only wedge labels fill these tiers. When
 the root is a segment line, its boundaries and segment labels belong to
 the root band too, and the band reaches at least the root line's reach on
-that side. The
+that side. A drawn boundary spans `k` to either side of the line, so it is
+a drawn element of both sides: a root with a drawn boundary has a root
+band above and below, reaching at least `k`, even on a side that holds no
+wedge, map or segment label. The
 wedges reach `w / 2 + 13`, or `w / 2 + 13 + 2 + T × h(9)` (left to right)
 when the labels fill `T ≥ 1` tiers, `w` the root's stroke width; the band reaches the larger of that reach (when a
 wedge is drawn) and the root's stack's reach `e`. Wedges are drawn over the
@@ -581,7 +672,10 @@ stack.
 
 **Children.** Every displayed child that is not a segment, and every
 displayed segment that is a segment line, in traversal order, is placed on
-its side by first fit with the extent from its start to its end. Its minimum row is
+its side by first fit with the extent from its start to its end; when its
+end is open (section 3.4), the extent runs on to `L × u + 8w`, `u` the
+proportion of its end and `w` its stroke width, so that its chevrons
+(section 6.6) take room in its row. Its minimum row is
 one more than its parent's **anchor** on that side: the root's anchor is 0
 on both sides, a placed child's anchor on its own side is its row, and
 every other anchor of a child is its parent's; the anchors of a segment
@@ -650,30 +744,45 @@ above side and down below.
 
 - **Root and children.** A line with stroke width `w` from `Xs`; a filled
   circle of radius `w` centred at the start. The end tells what the
-  timeline is:
-  - a top-level timeline (a root of the file) whose `locked` is false ends
-    with an **arrowhead** of length `3w` and half-width `1.5w` whose base is
+  timeline is; the first of these that applies draws it:
+  - a timeline whose end is open (section 3.4) ends with the **double
+    chevron**: the line runs on past `Xe` to `Xr = Xe + 4w` and stops
+    there; the inner chevron passes through `(Xr + w, y − 1.5w)`, `(Xr +
+    2.5w, y)` and `(Xr + w, y + 1.5w)`, the outer one, `1.5w` further
+    right, through `(Xr + 2.5w, y − 1.5w)`, `(Xr + 4w, y)` and `(Xr +
+    2.5w, y + 1.5w)`, so its tip is at `Xr + 4w`. These are the chevrons
+    of an ancestor line that runs on to the right (section 8.3), placed at
+    the timeline's own end: the line runs on `4w` past its end and the
+    glyph ends `8w` past it, 12 and 24 with the default stroke width 3 of a
+    `timeline` or `child` line. The chevrons stand for a root, a child, a
+    segment line or a member alike, locked or not: an end that is not known
+    has no position for a circle, an arrowhead or a diamond to mark. Such a
+    root has no end wedge and no end label (section 6.4);
+  - a top-level timeline (a root of the manifest) whose end is known and
+    whose `locked` is false ends with an **arrowhead** of length `3w` and half-width `1.5w` whose base is
     at `Xe` and whose tip is at `Xe + 3w`, the line ending at `Xe`, so that
     the drawn timeline is longer than its length; when it is a segment line,
     the arrowhead is **open**: the same triangle, stroked with width `w / 2`
     and not filled, since prolonging it appends a segment;
-  - a top-level timeline whose `locked` is true ends with a filled circle of
-    radius `w` centred at `Xe`, like its start, the line ending at `Xe`;
-  - a child timeline, at any depth, ends with an **open diamond** of
-    half-length `1.5w` and half-width `1.2w` centred at `Xe` and stroked with
-    width `w / 2`, the line stopping at its left corner: a child is locked by
-    its embedding, whatever its `locked` says. A member that is a child
-    timeline ends so too, although its line is a `timeline` element.
+  - a top-level timeline whose end is known and whose `locked` is true ends
+    with a filled circle of radius `w` centred at `Xe`, like its start, the
+    line ending at `Xe`;
+  - a child timeline whose end is known, at any depth, ends with an **open
+    diamond** of half-length `1.5w` and half-width `1.2w` centred at `Xe`
+    and stroked with width `w / 2`, the line stopping at its left corner:
+    the diamond marks where the child ends on its parent's axis, and is the
+    same whether the child's `locked` is true or false. A member that is a
+    child timeline ends so too, although its line is a `timeline` element.
 
   A child carries no coordinate labels. The circles and the arrowhead are
-  filled and not stroked; the open arrowhead and the diamond are stroked
-  and not filled, with no dash. Every arrow of a drawing follows one rule:
+  filled and not stroked; the open arrowhead, the diamond and the chevrons
+  are stroked and not filled, with no dash. Every arrow of a drawing follows one rule:
   its shaft ends at its head's base, and the head continues the shaft's
   direction at that point.
 - **Boundaries.** A line from `(X, y − k)` to `(X, y + k)`, `X` the
   segment's start and `y` its segment line's ordinate (section 6.4), drawn
   over the line.
-- **Segment labels.** Centred on `x` of the exact midpoint of the segment,
+- **Segment labels.** Centred on `x` of the midpoint of the segment's start and end,
   in its tier (section 6.4).
 - **Wedges.** A filled triangle, not stroked, with its tip on the root
   line's edge on its side (`y_root ± w / 2`) and its base 13 further out
@@ -684,7 +793,7 @@ above side and down below.
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
 - **Regions.** A brace from `Xs` to `Xe`, arms at `yb`, tip 6 further out
-  at `Xm`, `x` of the exact midpoint of the region's start and end, so it
+  at `Xm`, `x` of the midpoint (section 3.1) of the region's start and end, so it
   opens towards the root; its label centred on `Xm` beyond the tip, 2
   further out.
 - **Jumps.** An arrow from `(Xf, yf)` to `(Xt, yf)`, `Xf = x(from)`, `Xt =
@@ -703,7 +812,7 @@ above side and down below.
   ux, yf − 4w × uy)`, its corners `Bh − 2w × n` and `Bh + 2w × n`, `n = (−uy, ux)`; the **shaft** is
   the curve with its end moved from `P3` to `Bh` and its controls kept, so
   it meets the head's base at a right angle. The label is centred on `x` of
-  the exact midpoint of from and to, beyond the apex, 2 further out.
+  the midpoint of from and to, beyond the apex, 2 further out.
 - **Breaks.** The line of section 6.4 at `x` of the break; its label
   starting at `x + 3`, in its tier (section 6.4).
 - **Names.** For each row holding lines (the root's row and the child
@@ -736,8 +845,9 @@ mark on an ancestor line is centred at the member's start (`ui = 0`) or end
 draws (lines, markers, wedges, braces, arcs, labels and names). Right
 edges are geometric, no stroke width counted: a timeline's start circle
 `Xs + w`, its arrowhead's tip `Xe + 3w`, its end circle `Xe + w` or its
-diamond's corner `Xe + 1.5w`, an ancestor's outer chevron tip (section
-8.3), a map's `Xe`, a boundary's `X`, a wedge's `X + 3`, the largest x of
+diamond's corner `Xe + 1.5w`, the outer chevron's tip `Xr + 4w` of an open
+end (section 6.6) or of an ancestor line that runs on to the right
+(section 8.3), a map's `Xe`, a boundary's `X`, a wedge's `X + 3`, the largest x of
 the points written in a brace's or a jump's descriptors (control points and
 a jump's arrowhead corners included), and a text's end from its advance
 widths.
@@ -769,7 +879,13 @@ of their segments, the region labels, the jump labels and the break labels. Sect
 the ancestor lines. Every
 descriptor except the background carries `data-address`, the address of its
 element; the several descriptors of one element carry the same address. An editor renders these same descriptors on
-screen; the SVG writer serializes them.
+screen; the SVG writer serializes them. An element's hit area is the
+painted geometry of its descriptors, each standing for the element whose
+address it carries; this specification gives no element a hit area beyond
+them. So the chevrons of an open end, part of their line like an
+arrowhead, carry the line's address `T` and hit the timeline, and an open end, which
+draws no end wedge and no end label, has no descriptor with `T/end` or
+`T/end/label` and nothing there to hit.
 
 | Element | Descriptors |
 |---|---|
@@ -781,7 +897,7 @@ screen; the SVG writer serializes them.
 | open arrowhead | the line stops at `Xe`; the same `<polygon>` with `fill="none"`, stroked in the line's `stroke` with width `w/2` and no dash |
 | end circle | the line stops at `Xe`; `<circle cx="{Xe}" cy="{y}" r="{w}">` |
 | diamond | the line stops at `Xe − 1.5w`; `<polygon points="{Xe−1.5w},{y} {Xe},{y−1.2w} {Xe+1.5w},{y} {Xe},{y+1.2w}" fill="none">` stroked in the line's `stroke` with width `w/2` and no dash |
-| chevrons | two `<polyline points="{p1} {p2} {p3}" fill="none">`, inner one first, stroked in the line's `stroke` with width `w/2` and no dash (section 8.3) |
+| chevrons | the line stops at `Xr` (an open end, section 6.6, or an ancestor line running on to the right, section 8.3) or starts at `Xa` (an ancestor line running on to the left); two `<polyline points="{p1} {p2} {p3}" fill="none">`, inner one first, each through its three points in the order sections 6.6 and 8.3 list them, stroked in the line's `stroke` with width `w/2` and no dash |
 | wedge | `<polygon points="{X},{yt} {X−3},{yb} {X+3},{yb}">`, `yt` its tip and `yb` its base (section 6.6) |
 | map | `<polygon points="{Xs},{yc−d/2} {Xe},{yc−d/2} {Xe},{yc+d/2} {Xs},{yc+d/2}" fill="none">` stroked |
 | region | `<path d="{brace}">` |
@@ -900,46 +1016,51 @@ becomes `\textasciicircum{}`, each of `# $ % & _ { }` is preceded by
 `\`, and a space at the start or end of a text or after another space is
 written `\ `, so that TeX keeps it.
 
-## 8. The box: bundles, frames and cards
+## 8. The box: frames and cards
 
-Every file is drawn as a **bundle**: a bundle file as itself; a group file
-as an **anonymous bundle** holding its group; a timeline file as an
-anonymous bundle holding its top-level timeline as an ungrouped root. An
-anonymous bundle has no title, and is one naming step from a bundle file.
+Every manifest is drawn as one **box**, the bundle box, whatever it holds:
+a manifest of one root as a box holding that root as an ungrouped root, a
+manifest of one group as a box holding that group's frame, and every other
+manifest alike. The box opens with the manifest's title (section 5.3),
+which a manifest with neither a `name` nor an `id` does not have.
 Every timeline drawn as a root (a member or an ungrouped root) is drawn as
 sections 3 to 6 draw a root, in its own **card**, and all of them share
 one graphical length `L` and one start `x0`, so that by definition they
-start and end at the same points.
+start and end at the same points. The **shared end** is `x0 + L`, found
+from `x0` and `L` alone and never from a length: a member or ungrouped
+root of unknown length is drawn with its reach at the shared end (section
+3.4), and its line runs on past it into its chevrons (section 6.6).
 
 ### 8.1 What is drawn
 
-- **Groups.** A bundle draws its groups in canonical order (by id), and
+- **Groups.** A box draws the manifest's groups in canonical order (by id), and
   then every **ungrouped root**, a root of `timelines` that no group names
   as a member and that contains no member, in canonical order (by id). A
   root that contains a member is drawn only as an ancestor line of that
   member.
 - **Frames.** Each group is a **frame**, a `group` element: a rounded
   rectangle holding the group's title and then its members' cards, one
-  under the other, in the group's display order: `graphical.order` (in a
-  bundle file, `graphical.order` under the group's id), or `members` when
-  absent. An ungrouped root has no frame.
+  under the other, in the group's display order: the entry of
+  `graphical.order` under the group's id, or `members` when `order` has no
+  entry for it. An ungrouped root has no frame.
 - **Cards.** Each member and each ungrouped root `M` lies in a **card**, a
   `card` element with the address `M/card`: a raised rounded rectangle
   around `M`'s member drawing (in the tree below, a card holds nothing). The card is the same whether it lies on the
   grey box or in a frame.
 - **Member drawings.** A **member drawing** is the drawing of sections 3
   to 6 of one timeline `M` taken as the root: its line is a `timeline`
-  element, its wedges mark its own `0` and `length`, and positions are on
-  `M`'s axis (section 3.1). A member that is a child timeline in
-  `timelines` is still a `timeline` element in its member drawing, so
-  statements selecting `child` do not reach its line, and it ends with the
-  diamond (section 6.6). Such a member's drawing also has an **ancestor
-  band** (section 8.3).
+  element, its wedges mark its own `0` and `length` (its `0` alone when
+  its length is `null`), and positions are on `M`'s axis (section 3.1). A
+  member that is a child timeline in `timelines` is still a `timeline`
+  element in its member drawing, so statements selecting `child` do not
+  reach its line, and it ends with the diamond, or with the chevrons when
+  its length is `null` (section 6.6). Such a member's drawing also has an
+  **ancestor band** (section 8.3).
 - **Titles.** A group's title, a `name` element with the address `G/name`,
-  opens its frame. A bundle file opens with the bundle's title, a `name`
-  element with the address `D/name`; an anonymous bundle has none.
+  opens its frame. The manifest's title, a `name` element with the
+  address `name`, opens the box.
 
-The tree of section 2.1: the `block` holds the bundle's title, the frames,
+The tree of section 2.1: the `block` holds the manifest's title, the frames,
 and the cards and `timeline` elements of the ungrouped roots; a frame holds
 its title and its members' cards and `timeline` elements; a card holds
 nothing; a member's `timeline` element holds what a root holds (section
@@ -967,7 +1088,7 @@ crosses the name column's left edge, and no chevron crosses the gap after
 the names.
 
 Let `R` be the largest right edge of every member drawing (section 6.7)
-and of every title, a group's title starting at `P + Q` and the bundle's at
+and of every title, a group's title starting at `P + Q` and the manifest's at
 `P`, or `x0` when none of them draws anything. A card inside a frame spans `x = P + Q` to `R + K`; a frame spans `x =
 P` to `R + K + Q`; an ungrouped root's card spans `x = P` to `R + K + Q`
 when the box holds a frame and to `R + K` otherwise, so that every frame
@@ -982,8 +1103,10 @@ ancestors from its root `A1` down to its parent `Ak`. Each `Aj` has an
 + … + o(k) + oM)`, the negated sum of the offsets from `Aj` down to `M`
 (`oM` being `M`'s own offset in `Ak`, `o(j+1)` that of `A(j+1)` in `Aj`), and
 ends at `te = ts + ` `Aj`'s `length`, combined as section 3.1 combines
-values; `ts ≤ 0` and `te ≥ λ`, `λ` being `M`'s length, since a child lies
-within its parent. With `w` the line's stroke width and `y` its ordinate:
+values, when that length is a value; `λ` is `M`'s length, or its reach when
+its length is `null` (section 3.4). `ts ≤ 0`, and `te ≥ λ` wherever every
+length involved is a value, since a child lies within its parent. With `w`
+the line's stroke width and `y` its ordinate:
 
 - **On the left**, when `ts < 0` (compared exactly) the line **runs on**:
   it starts at `Xa = x0 − 4w` and ends in a double chevron pointing left,
@@ -991,20 +1114,27 @@ within its parent. With `w` the line's stroke width and `y` its ordinate:
   w, y + 1.5w)`, the outer one the same `1.5w` further left, through `(Xa −
   2.5w, y − 1.5w)`, `(Xa − 4w, y)` and `(Xa − 2.5w, y + 1.5w)`, so its tip
   is at `x0 − 8w`. When `ts = 0` the line starts at `x0` with its circle.
-- **On the right**, when `te > λ` the line runs on to `Xr = x0 + L + 4w`
+- **On the right**, when `Aj`'s length or `M`'s length is `null`, or `te
+  > λ`, the line runs on to `Xr = x0 + L + 4w`
   and ends in a double chevron pointing right, mirrored: the inner one
   through `(Xr + w, y − 1.5w)`, `(Xr + 2.5w, y)` and `(Xr + w, y + 1.5w)`,
   the outer one `1.5w` further right, through `(Xr + 2.5w, y − 1.5w)`, `(Xr
-  + 4w, y)` and `(Xr + 2.5w, y + 1.5w)`, its tip at `x0 + L + 8w`. When `te =
+  + 4w, y)` and `(Xr + 2.5w, y + 1.5w)`, its tip at `x0 + L + 8w`: where
+  either end is not known, the drawing does not claim that the ancestor
+  ends with the member. When `te =
   λ` the line ends at `x0 + L` with `Aj`'s own end (section 6.6): the
   arrowhead, open arrowhead or circle of a top-level timeline, the diamond
-  of a child.
+  of a child. When `te < λ`, which a manifest allows only where a timeline
+  between `Aj` and `M` has a length of `null`, the line ends at `x(te)`
+  (section 3.2), inside the member's span, with `Aj`'s own end.
 - **Marks.** Two wedges mark `M`'s start and end on `Aj`'s axis: `wedge`
-  elements with the addresses `M/start` and `M/end`, always on the line's
+  elements with the addresses `M/start` and `M/end`; when `M`'s length is
+  `null`, its end is not known and only `M/start` and its label are drawn.
+  The marks lie always on the line's
   above side, whatever their `side`, each with its tip on the line's edge (`y − w / 2`) and its base 13
   further up, at `x0` and `x0 + L`. Each is labelled with the coordinate it
   marks in `Aj`'s unit: `−ts` and `−ts + λ`, combined as section 3.1
-  combines values. The two labels are placed by first fit, start before
+  combines values. The labels are placed by first fit, start before
   end, into tiers above the base, as the root band places its wedge
   labels (section 6.4).
 - **Nothing else** of `Aj` is drawn: no maps, regions, flow, boundaries or
@@ -1048,7 +1178,7 @@ and `height`, and its right and bottom edges are `b + 2` and `d + 2`.
   not displayed), and each further one `F` below the previous one's bottom.
   The frame is `Q + h(s) + 4 + Hm1 + F + Hm2 + … + F + Hmn + Q` high,
   summed in that order, without `h(s) + 4` when the title is not displayed.
-- **The box.** The bundle's title, when there is one, is drawn at `x = P`,
+- **The box.** The manifest's title, when there is one, is drawn at `x = P`,
   with its baseline at `P + a(s)`; the first frame or ungrouped card starts
   at `P + h(s) + F` (at `P` when there is no title or it is not
   displayed), and each further one `F` below the previous one's bottom.
@@ -1058,8 +1188,8 @@ Within a member drawing, the root's line lies at the drawing's top plus the
 follows from that line as section 3.3 states. The box's padding `P` is
 not stretched by `v`. The box's content is `Wb = P` plus
 the largest right edge of any frame or card, a card's shadow included, or
-of the bundle's displayed title, wide, and `Hb = P` plus the largest bottom
-edge of any frame or card, a card's shadow included, or of the bundle's
+of the manifest's displayed title, wide, and `Hb = P` plus the largest bottom
+edge of any frame or card, a card's shadow included, or of the manifest's
 displayed title, whose slot ends at `P + h(s)`, high (`P + x0` and `P` when
 the box holds none of these). A frame or card that is not displayed is not drawn but keeps
 its place, since member drawings lie in it: the layout, `xn`, `Wb` and `Hb`
@@ -1071,8 +1201,8 @@ background is a rectangle filling it with corner radius `rx`.
 
 ### 8.5 Descriptors
 
-A file becomes element descriptors in this order: the background; the
-bundle's title; then, for each frame in drawing order, the frame, its
+A manifest becomes element descriptors in this order: the background; the
+manifest's title; then, for each frame in drawing order, the frame, its
 title, and for each of its members in display order, the member's card and
 the descriptors of its member drawing; then, for each ungrouped root, its
 card and the descriptors of its member drawing. The descriptors of a member

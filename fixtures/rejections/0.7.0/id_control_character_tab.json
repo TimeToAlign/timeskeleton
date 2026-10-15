@@ -1,40 +1,38 @@
 {
   "manifest": {
-    "meta": {
-      "generator": "timetoalign 1.2.0 (f0a58ce1)",
-      "schema_version": "0.7.0"
-    },
-    "timeline": {
-      "children": {},
-      "class": "ContinuousLogicalTimeline",
-      "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
-      "id": "bare\tid",
-      "is_segment_line": false,
-      "length": {
-        "number_type": "fraction",
-        "unit": "quarters",
-        "value": [
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "bare\tid",
+        "is_segment_line": false,
+        "length": [
           8,
           1
-        ]
-      },
-      "locked": false,
-      "measure_map": null,
-      "meta": {},
-      "metric_hierarchy": null,
-      "name": "Bare",
-      "number_type": "fraction",
-      "regions": [],
-      "unit": "quarters"
-    }
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": "Bare",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
   },
   "path": [
-    "timeline",
+    "timelines",
+    0,
     "id"
   ],
   "reason": "An id contains no control character."

@@ -8,14 +8,16 @@ from typing import Any
 import pytest
 
 from timeskeleton import (
-    FILE_KINDS,
     canonical_json,
     canonical_order,
     dumps,
     fixture_paths,
     rejection_paths,
     validate,
+    warning_paths,
 )
+
+from .conftest import bundle, manifest, timeline
 
 # Shared with the JavaScript suite, character for character.
 NUMBER_CORPUS = (
@@ -50,8 +52,7 @@ NUMBER_CORPUS_TEXT = (
 
 
 def _standard_files() -> list:
-    fixtures = [path for kind in FILE_KINDS for path in fixture_paths(kind=kind)]
-    return [*fixtures, *rejection_paths()]
+    return [*fixture_paths(), *rejection_paths(), *warning_paths()]
 
 
 @pytest.mark.parametrize(
@@ -62,29 +63,17 @@ def test_standard_files_round_trip_byte_for_byte(path) -> None:
     assert dumps(json.loads(text)) == text
 
 
-def test_the_standard_files_number_one_hundred_and_thirty_one() -> None:
-    assert [len(fixture_paths(kind=kind)) for kind in FILE_KINDS] == [29, 9, 9]
-    assert len(_standard_files()) == 29 + 9 + 9 + 100
-
-
-def test_non_ascii_text_is_written_unescaped() -> None:
-    (path,) = [p for p in fixture_paths() if p.name == "corpus_score_ms3.json"]
-    text = path.read_text(encoding="utf-8")
-    assert '"label": "MC 15 → start (MC 1)"' in text
-    assert "\\u2192" not in text
-
-
 def test_number_corpus() -> None:
     assert dumps(json.loads(NUMBER_CORPUS)) == NUMBER_CORPUS_TEXT
 
 
-def test_canonical_order_copies_and_reorders_files_only(load_fixture) -> None:
-    manifest = load_fixture("continuous_logical")
-    text = json.dumps(manifest)
-    assert dumps(canonical_order(manifest)) == dumps(manifest)
-    assert json.dumps(manifest) == text
-    value = {"b": [3, 1], "a": {"timeline": 1}}
-    assert json.dumps(canonical_order(value)) == json.dumps(value)
+def test_canonical_order_copies_and_reorders_manifests_only() -> None:
+    value = manifest(timeline("b"), timeline("a"))
+    text = json.dumps(value)
+    assert [root["id"] for root in canonical_order(value)["timelines"]] == ["a", "b"]
+    assert json.dumps(value) == text
+    other = {"b": [3, 1], "timeline": {"regions": [{"id": "z"}, {"id": "a"}]}}
+    assert json.dumps(canonical_order(other)) == json.dumps(other)
 
 
 def test_the_writer_sorts_every_object_by_key() -> None:
@@ -103,162 +92,158 @@ def test_the_writer_sorts_every_object_by_key() -> None:
     )
 
 
-def _at(numerator: int, denominator: int = 1) -> dict[str, Any]:
-    return {
-        "unit": "quarters",
-        "number_type": "fraction",
-        "value": [numerator, denominator],
-    }
-
-
-def _tied_manifest(load_fixture) -> dict[str, Any]:
-    """The bare fixture, extended with ties at every key level."""
-    manifest = load_fixture("bare")
-    timeline = manifest["timeline"]
-    pristine = copy.deepcopy(timeline)
-
-    def copy_of(timeline_id: str) -> dict[str, Any]:
-        return {**copy.deepcopy(pristine), "id": timeline_id}
-
-    nested = copy_of("z")
-    nested["children"] = {
-        "y": {"offset": _at(1), "timeline": copy_of("y")},
-        "x": {"offset": _at(0), "timeline": copy_of("x")},
-    }
-    timeline["children"] = {
-        "z": {"offset": _at(1), "timeline": nested},
-        "m": {"offset": _at(1), "timeline": copy_of("m")},
-        "b": {"offset": _at(5, 8), "timeline": copy_of("b")},
-        "a": {"offset": _at(2, 3), "timeline": copy_of("a")},
-    }
-    timeline["conversion_maps"] = [
-        {
-            "type": "ShiftMap",
-            "id": map_id,
-            "name": map_id,
-            "source_unit": "quarters",
-            "target_unit": None,
-            "offset": [1, 2],
-        }
-        for map_id in ["\U0001f600", "\ufb00", "B2", "a2", "B"]
+def _tied_manifest() -> dict[str, Any]:
+    """A manifest with ties at every key level, own-axis values in mixed forms."""
+    regions = [
+        ("rb", [2, 1], [6, 1]),
+        ("ra", [2, 1], [6, 1]),
+        ("rc", [2, 1], [4, 1]),
+        ("rd", [5, 8], [2, 3]),
     ]
-    timeline["regions"] = [
-        {"id": region_id, "name": region_id, "start": start, "end": end, "meta": {}}
-        for region_id, start, end in [
-            ("rb", _at(2), _at(6)),
-            ("ra", _at(2), _at(6)),
-            ("rc", _at(2), _at(4)),
-            ("rd", _at(5, 8), _at(2, 3)),
-        ]
-    ]
-    flow = timeline["flow_control"]
-    flow["breaks"] = [
-        {
-            "id": break_id,
-            "coordinate": coordinate,
-            "control_type": "fine",
-            "condition": "always",
-            "repeat_count": 1,
-            "label": None,
-            "name": None,
-            "meta": {},
-        }
-        for break_id, coordinate in [
-            ("kb", _at(12)),
-            ("ka", _at(12)),
-            ("kz", _at(5, 8)),
-        ]
-    ]
-    flow["jumps"] = [
-        {
-            "id": jump_id,
-            "from_coordinate": start,
-            "to_coordinate": end,
-            "control_type": "repeat_end",
-            "condition": "always",
-            "repeat_count": 1,
-            "target": target,
-            "label": None,
-            "meta": {},
-        }
-        for jump_id, start, end, target in [
-            ("jj", _at(8), _at(2), "Coda"),
-            ("jd", _at(8), _at(2), None),
-            ("js", _at(8), _at(2, 3), None),
-            ("je", _at(5, 8), _at(2), None),
-        ]
-    ]
-    flow["markers"] = [
-        {"id": marker_id, "name": None, "coordinate": coordinate}
-        for marker_id, coordinate in [
-            ("\U0001f600!", _at(2)),
-            ("\ufb00!", _at(2)),
-            ("\u00e9", _at(2)),
-            ("Coda", _at(2)),
-            ("start", _at(5, 8)),
-        ]
-    ]
-    return manifest
+    root = timeline(
+        "piece",
+        length=(16, 1),
+        number_type="fraction",
+        children=[
+            timeline(
+                "z",
+                offset=(1, 1),
+                children=[
+                    timeline("y", length=(2, 1), offset=(1, 1)),
+                    timeline("x", length=(2, 1), offset=(0, 1)),
+                ],
+            ),
+            timeline("m", offset=(1, 1)),
+            timeline("b", offset=(5, 8)),
+            timeline("a", offset=(2, 3)),
+        ],
+        conversion_maps=[
+            {
+                "type": "ShiftMap",
+                "id": map_id,
+                "source_unit": "quarters",
+                "target_unit": None,
+                "offset": [1, 2],
+            }
+            for map_id in ["\U0001f600", "\ufb00", "B2", "a2", "B"]
+        ],
+        regions=[{"id": i, "start": s, "end": e} for i, s, e in regions],
+        flow_control={
+            "breaks": [
+                {"id": "kb", "coordinate": [12, 1]},
+                {"id": "ka", "coordinate": [12, 1]},
+                {"id": "kz", "coordinate": [5, 8]},
+            ],
+            "jumps": [
+                {
+                    "id": "jj",
+                    "from_coordinate": [8, 1],
+                    "to_coordinate": [2, 1],
+                    "target": "Coda",
+                },
+                {"id": "jd", "from_coordinate": [8, 1], "to_coordinate": [2, 1]},
+                {"id": "js", "from_coordinate": [8, 1], "to_coordinate": [2, 3]},
+                {"id": "je", "from_coordinate": [5, 8], "to_coordinate": [2, 1]},
+            ],
+            "markers": [
+                {"id": marker_id, "coordinate": coordinate}
+                for marker_id, coordinate in [
+                    ("\U0001f600!", [2, 1]),
+                    ("\ufb00!", [2, 1]),
+                    ("\u00e9", [2, 1]),
+                    ("Coda", [2, 1]),
+                    ("starting", [5, 8]),
+                ]
+            ],
+        },
+    )
+    return manifest(root)
 
 
-def test_every_tie_resolves_to_the_canonical_order(load_fixture) -> None:
-    result = canonical_order(_tied_manifest(load_fixture))
+def test_every_tie_resolves_to_the_canonical_order() -> None:
+    result = canonical_order(_tied_manifest())
     validate(result)
-    timeline = result["timeline"]
-    assert list(timeline["children"]) == ["z", "m", "b", "a"]
-    assert [entry["id"] for entry in timeline["conversion_maps"]] == [
+    root = result["timelines"][0]
+    assert [child["id"] for child in root["children"]] == ["b", "a", "m", "z"]
+    assert [child["id"] for child in root["children"][3]["children"]] == ["x", "y"]
+    assert [entry["id"] for entry in root["conversion_maps"]] == [
         "B",
         "B2",
         "a2",
         "\ufb00",
         "\U0001f600",
     ]
-    assert [entry["id"] for entry in timeline["regions"]] == ["rd", "rc", "ra", "rb"]
-    flow = timeline["flow_control"]
+    assert [entry["id"] for entry in root["regions"]] == ["rd", "rc", "ra", "rb"]
+    flow = root["flow_control"]
     assert [entry["id"] for entry in flow["breaks"]] == ["kz", "ka", "kb"]
     assert [entry["id"] for entry in flow["jumps"]] == ["je", "js", "jd", "jj"]
     assert [entry["id"] for entry in flow["markers"]] == [
-        "start",
+        "starting",
         "Coda",
         "\u00e9",
         "\ufb00!",
         "\U0001f600!",
     ]
-    written = json.loads(dumps(result))["timeline"]
-    assert list(written["children"]) == ["a", "b", "m", "z"]
-    assert list(written["children"]["z"]["timeline"]["children"]) == ["x", "y"]
 
 
-def test_a_group_file_is_put_in_order(group_document) -> None:
-    group_document["timelines"].reverse()
-    group_document["group"]["members"].reverse()
-    recording = group_document["timelines"][0]
-    recording["regions"] = [
-        {"id": region, "name": None, "start": _at(start), "end": _at(8), "meta": {}}
-        for region, start in [("late", 4), ("early", 0)]
+def test_bare_values_compare_by_exact_value() -> None:
+    root = timeline(
+        "take",
+        "seconds",
+        10.0,
+        children=[
+            timeline("late", "seconds", 1.0, offset=2),
+            timeline("tie-b", "seconds", 1.0, offset=0.625),
+            timeline("tie-a", "seconds", 1.0, offset=0.625),
+            timeline("early", "seconds", 1.0, offset=0.5),
+        ],
+        regions=[
+            {"id": "r2", "start": 1, "end": 2.5},
+            {"id": "r1", "start": 1.0, "end": 2},
+        ],
+    )
+    result = canonical_order(manifest(root))["timelines"][0]
+    assert [child["id"] for child in result["children"]] == [
+        "early",
+        "tie-a",
+        "tie-b",
+        "late",
     ]
-    given = copy.deepcopy(group_document)
-    result = canonical_order(group_document)
-    assert group_document == given
-    assert [root["id"] for root in result["timelines"]] == ["piece", "recording"]
-    assert result["group"]["members"] == ["recording", "second-half"]
-    assert result["graphical"]["order"] == ["second-half", "recording"]
-    regions = result["timelines"][1]["regions"]
-    assert [region["id"] for region in regions] == ["early", "late"]
-    validate(result)
+    assert [region["id"] for region in result["regions"]] == ["r1", "r2"]
+    mixed = canonical_order(
+        {
+            "timelines": [
+                {
+                    "id": "q",
+                    "children": [
+                        {"id": "c", "offset": [5, 8]},
+                        {"id": "b", "offset": 0.625},
+                        {"id": "a", "offset": [2, 1]},
+                    ],
+                }
+            ]
+        }
+    )
+    assert [child["id"] for child in mixed["timelines"][0]["children"]] == [
+        "b",
+        "c",
+        "a",
+    ]
 
 
-def test_a_bundle_file_is_put_in_order(bundle_document) -> None:
-    groups = bundle_document["bundle"]["groups"]
-    groups.reverse()
-    for group in groups:
+def test_roots_groups_and_members_are_ordered_and_display_orders_kept() -> None:
+    value = bundle()
+    value["timelines"].reverse()
+    value["groups"].reverse()
+    for group in value["groups"]:
         group["members"].reverse()
-    bundle_document["timelines"].reverse()
-    bundle_document["graphical"]["order"] = {
+    value["graphical"]["order"] = {
         "group_2": ["excerpt", "page"],
         "group_1": ["performance", "score"],
     }
-    result = canonical_order(bundle_document)
+    given = copy.deepcopy(value)
+    result = canonical_order(value)
+    assert value == given
     assert [root["id"] for root in result["timelines"]] == [
         "annotations",
         "page",
@@ -266,11 +251,8 @@ def test_a_bundle_file_is_put_in_order(bundle_document) -> None:
         "recording",
         "score",
     ]
-    assert [group["id"] for group in result["bundle"]["groups"]] == [
-        "group_1",
-        "group_2",
-    ]
-    assert [group["members"] for group in result["bundle"]["groups"]] == [
+    assert [group["id"] for group in result["groups"]] == ["group_1", "group_2"]
+    assert [group["members"] for group in result["groups"]] == [
         ["performance", "score"],
         ["excerpt", "page"],
     ]
@@ -282,15 +264,19 @@ def test_a_bundle_file_is_put_in_order(bundle_document) -> None:
 
 
 def test_members_are_ordered_by_code_point() -> None:
-    value = {"group": {"members": ["\U0001f600", "\ufb00", "b"]}}
-    assert canonical_order(value)["group"]["members"] == ["b", "\ufb00", "\U0001f600"]
+    value = {
+        "timelines": [],
+        "groups": [{"id": "g", "members": ["\U0001f600", "\ufb00", "b"]}],
+    }
+    assert canonical_order(value)["groups"][0]["members"] == [
+        "b",
+        "\ufb00",
+        "\U0001f600",
+    ]
 
 
-@pytest.mark.parametrize(
-    "value",
-    [{"group": {"members": ["a", 5]}}, {"bundle": {"groups": [{"members": [5, "a"]}]}}],
-)
-def test_a_member_that_is_no_string_is_refused(value) -> None:
+def test_a_member_that_is_no_string_is_refused() -> None:
+    value = {"timelines": [], "groups": [{"id": "g", "members": ["a", 5]}]}
     with pytest.raises(ValueError, match="cannot put members in canonical order"):
         canonical_order(value)
 
@@ -320,6 +306,6 @@ def test_values_the_writer_refuses(value) -> None:
 
 
 def test_an_unorderable_collection_is_refused() -> None:
-    manifest = {"timeline": {"regions": [{"id": "r"}] * 2}}
+    value = {"timelines": [{"id": "t", "regions": [{"id": "r"}] * 2}]}
     with pytest.raises(ValueError, match="cannot put regions in canonical order"):
-        dumps(manifest)
+        dumps(value)

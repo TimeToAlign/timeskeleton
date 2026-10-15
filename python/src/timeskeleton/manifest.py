@@ -1,21 +1,20 @@
-"""The canonical order of a TimeSkeleton file and its standard writer.
+"""The canonical order of a TimeSkeleton manifest and its standard writer.
 
 The standard writer sorts the keys of every object by Unicode code point, so
 equal objects are equal text whatever order their keys were given in. Every
-array of a file whose order carries no meaning has one canonical order:
+array of a manifest whose order carries no meaning has one canonical order:
 
-* in every timeline manifest, ``conversion_maps`` by id; ``regions`` by
-  start, then end, then id; flow-control ``breaks`` and ``markers`` by
-  coordinate, then id; ``jumps`` by from coordinate, then to coordinate, then
-  id;
-* in a group or bundle file, ``timelines`` by id, a bundle's ``groups`` by
-  id and every group's ``members`` by code point.
+* ``timelines`` by id;
+* in every timeline, ``children`` by offset, then id; ``conversion_maps`` by
+  id; ``regions`` by start, then end, then id; flow-control ``breaks`` and
+  ``markers`` by coordinate, then id; ``jumps`` by from coordinate, then to
+  coordinate, then id;
+* ``groups`` by id and every group's ``members`` by code point.
 
-Coordinates compare by their exact numeric value, never by their JSON
-spelling; strings compare by Unicode code point. Ids are unique within their
-scope, so no two entries tie. Nothing else is reordered; in particular a
-``graphical.order`` array is a display order and stays as it is. Readers
-accept any order; writers emit the canonical one.
+Own-axis values compare by their exact numeric value, never by their JSON
+spelling; strings compare by Unicode code point. Nothing else is reordered;
+in particular a ``graphical.order`` array is a display order and stays as it
+is. Readers accept any order; writers emit the canonical one.
 
 The standard writer emits UTF-8 text with every character unescaped except
 ``"``, ``\\`` and the control characters, two-space indentation and a final
@@ -61,19 +60,33 @@ def _utf8(text: str) -> str:
     return text
 
 
-def _exact(coordinate: Any) -> Fraction:
-    """Return the exact value of a coordinate dict: an int, a float or a pair.
+def _exact(value: Any) -> Fraction:
+    """Return the exact value of a bare Number: a JSON number or a pair.
 
     An integral float in a Fraction pair counts as the integer it equals, as a
     JavaScript reader cannot tell ``1.0`` from ``1``.
     """
-    value = coordinate["value"]
-    if isinstance(value, list):
+    if isinstance(value, list) and len(value) == 2:
         numerator, denominator = (_integer(item) for item in value)
-        return Fraction(numerator, denominator)
+        if denominator > 0:
+            return Fraction(numerator, denominator)
     if isinstance(value, bool) or not isinstance(value, int | float):
-        raise TypeError(f"not a coordinate value: {value!r}")
+        raise TypeError(f"not a Number: {value!r}")
     return Fraction(value)
+
+
+def spell(value: Any) -> str:
+    """Spell a value as a message quotes it.
+
+    A number is spelled as the standard writer spells it, an array as its
+    items separated by ``, `` within brackets (``[32, 1]``), anything else as
+    compact JSON. The JavaScript package spells numbers and arrays the same way.
+    """
+    if isinstance(value, list):
+        return "[" + ", ".join(spell(item) for item in value) + "]"
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return json.dumps(value, separators=(",", ":"), ensure_ascii=False)
+    return repr(value)
 
 
 def _integer(value: Any) -> int:
@@ -91,30 +104,45 @@ def _sorted(entries: list[Any], key: Callable[[Any], Any], where: str) -> list[A
         raise ValueError(f"cannot put {where} in canonical order: {error!r}") from error
 
 
-def _order_timeline(manifest: dict[str, Any]) -> None:
-    """Put the arrays of one timeline manifest and its children in order, in place."""
-    children = manifest.get("children")
-    if isinstance(children, dict):
-        for child in children.values():
-            if isinstance(child, dict) and isinstance(child.get("timeline"), dict):
-                _order_timeline(child["timeline"])
-    if isinstance(manifest.get("conversion_maps"), list):
-        manifest["conversion_maps"] = _sorted(
-            manifest["conversion_maps"], lambda entry: entry["id"], "conversion_maps"
+def _identifier(value: Any) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"not an id: {value!r}")
+    return value
+
+
+def _by_id(entry: Any) -> str:
+    return _identifier(entry["id"])
+
+
+def _order_timeline(timeline: dict[str, Any]) -> None:
+    """Put the arrays of one timeline and its descendants in order, in place."""
+    children = timeline.get("children")
+    if isinstance(children, list):
+        for child in children:
+            if isinstance(child, dict):
+                _order_timeline(child)
+        timeline["children"] = _sorted(
+            children,
+            lambda entry: (_exact(entry["offset"]), _by_id(entry)),
+            "children",
         )
-    if isinstance(manifest.get("regions"), list):
-        manifest["regions"] = _sorted(
-            manifest["regions"],
-            lambda entry: (_exact(entry["start"]), _exact(entry["end"]), entry["id"]),
+    if isinstance(timeline.get("conversion_maps"), list):
+        timeline["conversion_maps"] = _sorted(
+            timeline["conversion_maps"], _by_id, "conversion_maps"
+        )
+    if isinstance(timeline.get("regions"), list):
+        timeline["regions"] = _sorted(
+            timeline["regions"],
+            lambda entry: (_exact(entry["start"]), _exact(entry["end"]), _by_id(entry)),
             "regions",
         )
-    flow = manifest.get("flow_control")
+    flow = timeline.get("flow_control")
     if not isinstance(flow, dict):
         return
     if isinstance(flow.get("breaks"), list):
         flow["breaks"] = _sorted(
             flow["breaks"],
-            lambda entry: (_exact(entry["coordinate"]), entry["id"]),
+            lambda entry: (_exact(entry["coordinate"]), _by_id(entry)),
             "breaks",
         )
     if isinstance(flow.get("jumps"), list):
@@ -123,75 +151,51 @@ def _order_timeline(manifest: dict[str, Any]) -> None:
             lambda entry: (
                 _exact(entry["from_coordinate"]),
                 _exact(entry["to_coordinate"]),
-                entry["id"],
+                _by_id(entry),
             ),
             "jumps",
         )
     if isinstance(flow.get("markers"), list):
         flow["markers"] = _sorted(
             flow["markers"],
-            lambda entry: (_exact(entry["coordinate"]), entry["id"]),
+            lambda entry: (_exact(entry["coordinate"]), _by_id(entry)),
             "markers",
         )
 
 
-def _identifier(value: Any) -> str:
-    if not isinstance(value, str):
-        raise TypeError(f"not an id: {value!r}")
-    return value
-
-
-def _order_group(group: dict[str, Any]) -> None:
-    """Put the members of one group in order, in place."""
-    if isinstance(group.get("members"), list):
-        group["members"] = _sorted(group["members"], _identifier, "members")
-
-
 def canonical_order(value: Any) -> Any:
-    """Return a deep copy of ``value`` with the arrays of its file ordered.
+    """Return a deep copy of ``value`` with the arrays of its manifest ordered.
 
-    A value with a top-level ``timeline`` member orders the arrays of that
-    timeline manifest and of its children at every depth. A value with a
-    top-level ``timelines`` array orders every manifest in it and the array by
-    id; its ``group`` has its ``members`` ordered, and its ``bundle`` its
-    ``groups`` (by id) and their ``members``. Only the arrays listed in the
-    module docstring move; object keys are left as they are (``dumps`` sorts
-    them), and any other JSON value is copied unchanged.
+    A value with a top-level ``timelines`` array is a manifest: every timeline
+    in it is ordered at every depth and the array itself by id, and its
+    ``groups`` are ordered by id, each with its ``members`` by code point.
+    Only the arrays listed in the module docstring move; object keys are left
+    as they are (``dumps`` sorts them), and any other JSON value is copied
+    unchanged.
 
     Raises:
         ValueError: If a collection holds an entry whose ordering members are
             missing or of the wrong type.
     """
     result = copy.deepcopy(value)
-    if not isinstance(result, Mapping):
+    if not isinstance(result, Mapping) or not isinstance(result.get("timelines"), list):
         return result
-    timeline = result.get("timeline")
-    if isinstance(timeline, dict):
-        _order_timeline(timeline)
-    timelines = result.get("timelines")
-    if isinstance(timelines, list):
-        for manifest in timelines:
-            if isinstance(manifest, dict):
-                _order_timeline(manifest)
-        result["timelines"] = _sorted(
-            timelines, lambda entry: _identifier(entry["id"]), "timelines"
-        )
-    group = result.get("group")
-    if isinstance(group, dict):
-        _order_group(group)
-    bundle = result.get("bundle")
-    if isinstance(bundle, dict) and isinstance(bundle.get("groups"), list):
-        for entry in bundle["groups"]:
-            if isinstance(entry, dict):
-                _order_group(entry)
-        bundle["groups"] = _sorted(
-            bundle["groups"], lambda entry: _identifier(entry["id"]), "groups"
-        )
+    timelines = result["timelines"]
+    for timeline in timelines:
+        if isinstance(timeline, dict):
+            _order_timeline(timeline)
+    result["timelines"] = _sorted(timelines, _by_id, "timelines")
+    groups = result.get("groups")
+    if isinstance(groups, list):
+        for group in groups:
+            if isinstance(group, dict) and isinstance(group.get("members"), list):
+                group["members"] = _sorted(group["members"], _identifier, "members")
+        result["groups"] = _sorted(groups, _by_id, "groups")
     return result
 
 
 def dumps(value: Any) -> str:
-    """Return the standard text of a TimeSkeleton file, or of any JSON value.
+    """Return the standard text of a TimeSkeleton manifest, or of any JSON value.
 
     The value is put in :func:`canonical_order`, then written as UTF-8 text
     with the keys of every object sorted by code point, two-space indentation

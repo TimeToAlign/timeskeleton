@@ -1,0 +1,96 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "exposition",
+        "take_1"
+      ],
+      "group_2": [
+        "recapitulation",
+        "take_2"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "exposition",
+        "take_1"
+      ],
+      "name": "Exposition"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "recapitulation",
+        "take_2"
+      ],
+      "name": "Recapitulation"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "Sonata",
+  "timelines": [
+    {
+      "id": "page",
+      "length": 1754,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "children": [
+        {
+          "id": "exposition",
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "name": "Exposition",
+          "offset": [
+            0,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "id": "recapitulation",
+          "length": [
+            12,
+            1
+          ],
+          "locked": true,
+          "name": "Recapitulation",
+          "offset": [
+            20,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "score",
+      "length": [
+        32,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    },
+    {
+      "id": "take_1",
+      "length": 30.0,
+      "name": "Take 1",
+      "unit": "seconds"
+    },
+    {
+      "id": "take_2",
+      "length": 28.5,
+      "name": "Take 2",
+      "unit": "seconds"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

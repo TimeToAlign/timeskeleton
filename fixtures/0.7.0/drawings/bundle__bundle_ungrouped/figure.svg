@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="557.8967" height="249.0156" viewBox="0 0 557.8967 249.0156" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
 <rect x="0" y="0" width="525.8967" height="217.0156" rx="10" fill="#F3F4F6"/>
-<text data-address="bundle_1/name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sketches</text>
+<text data-address="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sketches</text>
 <rect data-address="pages/card" x="10" y="30.8047" width="507.8967" height="63.4531" rx="5" fill="#B8BEC8"/>
 <rect data-address="pages/card" x="8" y="28.8047" width="507.8967" height="63.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="pages" x1="79.7036" y1="57.2812" x2="479.7036" y2="57.2812" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>

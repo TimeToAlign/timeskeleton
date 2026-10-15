@@ -3,24 +3,24 @@
 <rect x="0" y="0" width="556.1926" height="152.4766" rx="10" fill="#F3F4F6"/>
 <rect data-address="maps:quarters/card" x="10" y="10" width="538.1926" height="134.4766" rx="5" fill="#B8BEC8"/>
 <rect data-address="maps:quarters/card" x="8" y="8" width="538.1926" height="134.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<polygon data-address="cmap_1" points="128.9136,101 528.9136,101 528.9136,103 128.9136,103" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_10" points="128.9136,96 528.9136,96 528.9136,98 128.9136,98" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_11" points="128.9136,91 528.9136,91 528.9136,93 128.9136,93" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
-<polygon data-address="cmap_12" points="128.9136,86 528.9136,86 528.9136,88 128.9136,88" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_13" points="128.9136,81 528.9136,81 528.9136,83 128.9136,83" fill="none" stroke="#0050EF" stroke-width="1"/>
-<polygon data-address="cmap_14" points="128.9136,76 528.9136,76 528.9136,78 128.9136,78" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_2" points="128.9136,71 528.9136,71 528.9136,73 128.9136,73" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_3" points="128.9136,66 528.9136,66 528.9136,68 128.9136,68" fill="none" stroke="#0050EF" stroke-width="1"/>
-<polygon data-address="cmap_4" points="128.9136,61 528.9136,61 528.9136,63 128.9136,63" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_5" points="128.9136,56 528.9136,56 528.9136,58 128.9136,58" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_6" points="128.9136,51 528.9136,51 528.9136,53 128.9136,53" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_7" points="128.9136,46 528.9136,46 528.9136,48 128.9136,48" fill="none" stroke="#0050EF" stroke-width="1"/>
-<polygon data-address="cmap_8" points="128.9136,41 528.9136,41 528.9136,43 128.9136,43" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="cmap_9" points="128.9136,36 528.9136,36 528.9136,38 128.9136,38" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="lmap_1" points="128.9136,31 528.9136,31 528.9136,33 128.9136,33" fill="none" stroke="#0050EF" stroke-width="1"/>
-<polygon data-address="pmap_1" points="128.9136,26 528.9136,26 528.9136,28 128.9136,28" fill="none" stroke="#0050EF" stroke-width="1"/>
-<polygon data-address="tmap_1" points="128.9136,21 528.9136,21 528.9136,23 128.9136,23" fill="none" stroke="#00CC00" stroke-width="1"/>
-<polygon data-address="tmap_2" points="128.9136,16 528.9136,16 528.9136,18 128.9136,18" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_1" points="128.9136,101 528.9136,101 528.9136,103 128.9136,103" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_10" points="128.9136,96 528.9136,96 528.9136,98 128.9136,98" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_11" points="128.9136,91 528.9136,91 528.9136,93 128.9136,93" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="maps:quarters/cmap_12" points="128.9136,86 528.9136,86 528.9136,88 128.9136,88" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_13" points="128.9136,81 528.9136,81 528.9136,83 128.9136,83" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_14" points="128.9136,76 528.9136,76 528.9136,78 128.9136,78" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_2" points="128.9136,71 528.9136,71 528.9136,73 128.9136,73" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_3" points="128.9136,66 528.9136,66 528.9136,68 128.9136,68" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_4" points="128.9136,61 528.9136,61 528.9136,63 128.9136,63" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_5" points="128.9136,56 528.9136,56 528.9136,58 128.9136,58" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_6" points="128.9136,51 528.9136,51 528.9136,53 128.9136,53" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_7" points="128.9136,46 528.9136,46 528.9136,48 128.9136,48" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_8" points="128.9136,41 528.9136,41 528.9136,43 128.9136,43" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/cmap_9" points="128.9136,36 528.9136,36 528.9136,38 128.9136,38" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/lmap_1" points="128.9136,31 528.9136,31 528.9136,33 128.9136,33" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="maps:quarters/pmap_1" points="128.9136,26 528.9136,26 528.9136,28 128.9136,28" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="maps:quarters/tmap_1" points="128.9136,21 528.9136,21 528.9136,23 128.9136,23" fill="none" stroke="#00CC00" stroke-width="1"/>
+<polygon data-address="maps:quarters/tmap_2" points="128.9136,16 528.9136,16 528.9136,18 128.9136,18" fill="none" stroke="#0050EF" stroke-width="1"/>
 <line data-address="maps:quarters" x1="128.9136" y1="107.5" x2="528.9136" y2="107.5" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="maps:quarters" cx="128.9136" cy="107.5" r="3" fill="#00CC00"/>
 <polygon data-address="maps:quarters" points="537.9136,107.5 528.9136,103 528.9136,112" fill="#00CC00"/>

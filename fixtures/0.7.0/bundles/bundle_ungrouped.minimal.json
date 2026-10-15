@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "Sketches",
+  "timelines": [
+    {
+      "children": [
+        {
+          "id": "page_1",
+          "length": 1754,
+          "locked": true,
+          "name": "Page 1",
+          "offset": 0,
+          "unit": "pixels"
+        },
+        {
+          "id": "page_2",
+          "length": 1754,
+          "locked": true,
+          "name": "Page 2",
+          "offset": 1754,
+          "unit": "pixels"
+        },
+        {
+          "id": "page_3",
+          "length": 1754,
+          "locked": true,
+          "name": "Page 3",
+          "offset": 3508,
+          "unit": "pixels"
+        }
+      ],
+      "id": "pages",
+      "is_segment_line": true,
+      "length": 5262,
+      "name": "Pages",
+      "unit": "pixels"
+    },
+    {
+      "id": "recording",
+      "length": 441000,
+      "name": "Recording",
+      "unit": "samples"
+    },
+    {
+      "id": "score",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

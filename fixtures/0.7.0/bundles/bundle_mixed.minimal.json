@@ -1,0 +1,85 @@
+{
+  "graphical": {
+    "order": {
+      "group_1": [
+        "score",
+        "performance"
+      ],
+      "group_2": [
+        "page",
+        "excerpt"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "group_1",
+      "members": [
+        "performance",
+        "score"
+      ],
+      "name": "Performance"
+    },
+    {
+      "id": "group_2",
+      "members": [
+        "excerpt",
+        "page"
+      ],
+      "name": "Facsimile"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (996de8c2)"
+  },
+  "name": "Mixed",
+  "timelines": [
+    {
+      "id": "annotations",
+      "length": [
+        12,
+        1
+      ],
+      "name": "Annotations",
+      "unit": "quarters"
+    },
+    {
+      "id": "page",
+      "length": 1920,
+      "name": "Page",
+      "unit": "pixels"
+    },
+    {
+      "id": "performance",
+      "length": 12.5,
+      "name": "Performance",
+      "unit": "seconds"
+    },
+    {
+      "children": [
+        {
+          "id": "excerpt",
+          "length": 88200,
+          "locked": true,
+          "name": "Excerpt",
+          "offset": 44100,
+          "unit": "samples"
+        }
+      ],
+      "id": "recording",
+      "length": 441000,
+      "name": "Recording",
+      "unit": "samples"
+    },
+    {
+      "id": "score",
+      "length": [
+        12,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}
