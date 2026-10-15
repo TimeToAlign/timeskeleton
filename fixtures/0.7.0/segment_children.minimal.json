@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (996de8c2)"
+    "generator": "timetoalign 1.2.0 (1d90e3ff)"
   },
   "timelines": [
     {
@@ -13,7 +13,6 @@
                 3,
                 1
               ],
-              "locked": true,
               "name": "i1",
               "offset": [
                 0,
@@ -27,7 +26,6 @@
                 3,
                 1
               ],
-              "locked": true,
               "name": "i2",
               "offset": [
                 3,
@@ -58,7 +56,6 @@
                 4,
                 1
               ],
-              "locked": true,
               "name": "t1",
               "offset": [
                 0,
@@ -72,7 +69,6 @@
                 4,
                 1
               ],
-              "locked": true,
               "name": "t2",
               "offset": [
                 4,
@@ -86,7 +82,6 @@
                 4,
                 1
               ],
-              "locked": true,
               "name": "t3",
               "offset": [
                 8,
@@ -117,7 +112,6 @@
                 5,
                 1
               ],
-              "locked": true,
               "name": "c1",
               "offset": [
                 0,
@@ -131,7 +125,6 @@
                 3,
                 1
               ],
-              "locked": true,
               "name": "c2",
               "offset": [
                 5,

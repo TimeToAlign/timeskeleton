@@ -99,7 +99,7 @@ export const schema = {
         },
         "offset": {
           "$ref": "#/$defs/Number",
-          "description": "Where the timeline's origin lies. A child's offset is required and lies on its parent's axis, in the parent's number type. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis, in the root's own number type; absent, the root has none."
+          "description": "Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis, in the root's own number type; absent, the root has none."
         },
         "locked": {
           "type": "boolean",

@@ -135,49 +135,57 @@ def test_a_child_shares_its_parents_unit() -> None:
     )
 
 
-def test_a_childs_offset_is_not_negative() -> None:
-    value = manifest(
-        timeline(
-            "recording",
-            "seconds",
-            60.0,
-            children=[timeline("take", "seconds", 4.0, offset=-1.5)],
-        )
-    )
-    assert _only(value) == (
-        ("timelines", 0, "children", 0, "offset"),
-        "offset -1.5 of 'take' is negative",
-    )
-    value = manifest(timeline("score", children=[timeline("c", offset=(-1, 1000000))]))
-    assert _only(value) == (
-        ("timelines", 0, "children", 0, "offset"),
-        "offset [-1, 1000000] of 'c' is negative",
-    )
-    grandchild = timeline("b", offset=(-1, 2))
-    value = manifest(
-        timeline(
-            "score", children=[timeline("a", offset=(0, 1), children=[grandchild])]
-        )
-    )
-    assert _only(value) == (
-        ("timelines", 0, "children", 0, "children", 0, "offset"),
-        "offset [-1, 2] of 'b' is negative",
-    )
-    for document in (
-        manifest(timeline("score", children=[timeline("c", offset=(0, 1))])),
-        manifest(
+def test_a_negative_offset_is_accepted_on_a_child_or_a_root() -> None:
+    def take(offset: float) -> dict:
+        return manifest(
             timeline(
                 "recording",
                 "seconds",
                 60.0,
-                children=[timeline("take", "seconds", 4.0, offset=-0.0)],
+                children=[timeline("take", "seconds", 4.0, offset=offset)],
+            )
+        )
+
+    grandchild = timeline("b", offset=(-1, 2))
+    for document in (
+        take(-1.5),
+        manifest(timeline("score", children=[timeline("c", offset=(-1, 1000000))])),
+        manifest(
+            timeline(
+                "score", children=[timeline("a", offset=(0, 1), children=[grandchild])]
             )
         ),
+        {
+            "timeskeleton": "0.7.0",
+            "timelines": [
+                {
+                    "id": "piece",
+                    "unit": "quarters",
+                    "length": [32, 1],
+                    "children": [
+                        {
+                            "id": "take",
+                            "unit": "quarters",
+                            "offset": [-3, 2],
+                            "length": [4, 1],
+                        }
+                    ],
+                }
+            ],
+        },
+        manifest(timeline("score", children=[timeline("c", offset=(0, 1))])),
+        take(-0.0),
         manifest(timeline("take", "seconds", 2.5, offset=-1700000000.25)),
         manifest(timeline("score", offset=[-3, 2])),
     ):
         assert _problems(document) == []
         validate(document)
+    long = timeline("take", length=(40, 1), offset=(-3, 2))
+    value = manifest(timeline("piece", length=(32, 1), children=[long]))
+    assert _only(value) == (
+        ("timelines", 0, "children", 0, "length"),
+        "child 'take' ends at [77, 2], beyond the length [32, 1] of its parent 'piece'",
+    )
 
 
 def test_a_child_lies_within_its_parents_known_length() -> None:
@@ -288,7 +296,6 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
             "child_unit_differs",
             "child 'take' has unit 'seconds', its parent 'score' has 'quarters'",
         ),
-        ("child_offset_negative", "offset -1.5 of 'take' is negative"),
         (
             "child_offset_beyond_parent",
             "offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'",
@@ -508,10 +515,6 @@ def test_every_step_in_order() -> None:
         (
             ("timelines", 0, "children", 0, "unit"),
             "child 'kid' has unit 'seconds', its parent 'first' has 'quarters'",
-        ),
-        (
-            ("timelines", 0, "children", 0, "offset"),
-            "offset [-1, 1] of 'kid' is negative",
         ),
         (
             ("timelines", 0, "children", 1, "offset"),

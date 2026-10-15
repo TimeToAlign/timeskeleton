@@ -7,18 +7,18 @@ its drawings in `fixtures/0.7.0/drawings/`, its rejection cases under
 git history and in their released packages.
 
 Every generated fixture is a TimeSkeleton manifest of the one shape
-`{timeskeleton, timelines, …}`. The directories sort the manifests by
-content only:
+`{timeskeleton, timelines, …}`, and every manifest is an alignment bundle.
+The directories sort the manifests by content only:
 
 - directly under `fixtures/0.7.0/`, manifests of one root timeline and no
   group;
 - under `groups/`, manifests holding one group;
-- under `bundles/`, the manifests of alignment bundles: several groups,
-  ungrouped roots, or both.
+- under `bundles/`, manifests of several groups, several ungrouped roots,
+  or both.
 
 Version 0.7.0 has 36 manifests directly under `fixtures/0.7.0/`, 10 under
 `groups/` and 9 under `bundles/`, 55 in all, each with its minimal twin, so
-110 files. Beside them lie 86 rejection cases and 11 warning cases.
+110 files. Beside them lie 85 rejection cases and 11 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -124,9 +124,14 @@ Every generated manifest is in the complete form timetoalign writes:
 `locked` and `is_segment_line`, empty flow control contains `breaks`,
 `jumps`, and `markers`, and absent measure maps and metric hierarchies are
 `null`. Its minimal twin leaves all of these out. The children of these
-fixtures, segments included, are locked, as timetoalign embeds a child by
-default; a manifest may equally hold an unlocked child, whose `locked` is
-`false` and is left out of the minimal form.
+fixtures are locked, as timetoalign embeds a child by default, except the
+segments: a segment is never locked, its segment line's lock governs it, so
+its `locked` is `false` and is left out of the minimal form. A segment line
+that is a child, a segment or a group member is locked by default, and
+its `locked: true` stays in the minimal form, since the table's default is
+`false`. A manifest may equally hold an unlocked child that is
+not a segment line, whose `locked` is `false` and is left out of the
+minimal form.
 
 Two more manifests cover the manifest's own keys:
 
@@ -134,6 +139,10 @@ Two more manifests cover the manifest's own keys:
 | --- | --- |
 | `negative_offset.json` | a root carrying a negative `offset`, its origin on its unit's absolute axis |
 | `named_without_id.json` | a manifest with a `name` and no `id` |
+
+No fixture holds a child with a negative `offset`: the schema and the
+validators accept one, but timetoalign, which emits the fixtures, does not
+support it yet, and no rejection case refuses one.
 
 Six manifests draw timelines of unknown length (`length: null`), one case
 each:
@@ -232,8 +241,8 @@ marker (absent, or another version), the manifest's own members, timeline
 units, own-axis values and their representation (such as an integer on a
 fraction axis, or an integer on a float axis that no float equals
 exactly), a child without an `offset`, a child whose unit is not its
-parent's, a child with a negative `offset`, a child whose `offset` lies
-beyond its parent's known length, a child ending beyond it, conversion
+parent's, a child whose `offset` lies beyond its parent's known length, a
+child ending beyond it, conversion
 maps, regions,
 flow control, measure maps, metric hierarchies, the `graphical` block's
 selectors, declarations, statement shapes and `order`, segment lines (a

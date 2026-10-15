@@ -1,20 +1,21 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="582.6406" height="210.0391" viewBox="0 0 582.6406 210.0391" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="587.1406" height="210.0391" viewBox="0 0 587.1406 210.0391" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="550.6406" height="178.0391" rx="10" fill="#F3F4F6"/>
-<rect data-address="group_1" x="8" y="8" width="534.6406" height="162.0391" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
+<rect x="0" y="0" width="555.1406" height="178.0391" rx="10" fill="#F3F4F6"/>
+<rect data-address="group_1" x="8" y="8" width="539.1406" height="162.0391" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_1/name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Edition</text>
-<rect data-address="performance/card" x="18" y="34.8047" width="518.6406" height="71.8555" rx="5" fill="#B8BEC8"/>
-<rect data-address="performance/card" x="16" y="32.8047" width="518.6406" height="71.8555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="performance/card" x="18" y="34.8047" width="523.1406" height="71.8555" rx="5" fill="#B8BEC8"/>
+<rect data-address="performance/card" x="16" y="32.8047" width="523.1406" height="71.8555" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <path data-address="performance/region_1" d="M102.6406 78.1836Q102.6406 81.1836 105.6406 81.1836L299.6406 81.1836Q302.6406 81.1836 302.6406 84.1836Q302.6406 81.1836 305.6406 81.1836L499.6406 81.1836Q502.6406 81.1836 502.6406 78.1836" fill="none" stroke="#000000" stroke-width="1"/>
 <line data-address="performance" x1="102.6406" y1="47.207" x2="514.6406" y2="47.207" stroke="#0050EF" stroke-width="3"/>
 <circle data-address="performance" cx="102.6406" cy="47.207" r="3" fill="#0050EF"/>
 <polyline data-address="performance" points="517.6406,42.707 522.1406,47.207 517.6406,51.707" fill="none" stroke="#0050EF" stroke-width="1.5"/>
 <polyline data-address="performance" points="522.1406,42.707 526.6406,47.207 522.1406,51.707" fill="none" stroke="#0050EF" stroke-width="1.5"/>
+<polyline data-address="performance" points="526.6406,42.707 531.1406,47.207 526.6406,51.707" fill="none" stroke="#0050EF" stroke-width="1.5"/>
 <polygon data-address="performance/start" points="102.6406,48.707 99.6406,61.707 105.6406,61.707" fill="#000000"/>
 <text data-address="performance/name" x="24" y="51.0151" text-anchor="start" font-size="11" fill="#000000">performance</text>
 <text data-address="performance/start/label" x="102.6406" y="72.061" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<rect data-address="score/card" x="18" y="114.6602" width="518.6406" height="49.3789" rx="5" fill="#B8BEC8"/>
-<rect data-address="score/card" x="16" y="112.6602" width="518.6406" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="score/card" x="18" y="114.6602" width="523.1406" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-address="score/card" x="16" y="112.6602" width="523.1406" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="score" x1="102.6406" y1="127.0625" x2="502.6406" y2="127.0625" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="score" cx="102.6406" cy="127.0625" r="3" fill="#00CC00"/>
 <polygon data-address="score" points="511.6406,127.0625 502.6406,122.5625 502.6406,131.5625" fill="#00CC00"/>

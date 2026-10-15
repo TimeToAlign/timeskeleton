@@ -66,7 +66,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (996de8c2)"
+    "generator": "timetoalign 1.2.0 (1d90e3ff)"
   },
   "name": "khomus",
   "timelines": [
@@ -77,7 +77,6 @@
             {
               "id": "dgt_7",
               "length": 4264,
-              "locked": true,
               "name": "accolade_1",
               "offset": 0,
               "unit": "pixels"
@@ -85,7 +84,6 @@
             {
               "id": "dgt_8",
               "length": 4372,
-              "locked": true,
               "name": "accolade_2",
               "offset": 4264,
               "unit": "pixels"
@@ -93,7 +91,6 @@
             {
               "id": "dgt_9",
               "length": 4180,
-              "locked": true,
               "name": "accolade_3",
               "offset": 8636,
               "unit": "pixels"
@@ -101,7 +98,6 @@
             {
               "id": "dgt_10",
               "length": 4110,
-              "locked": true,
               "name": "accolade_4",
               "offset": 12816,
               "unit": "pixels"
@@ -143,6 +139,7 @@
       "id": "finale_transcription:dgt_2",
       "is_segment_line": true,
       "length": 16926,
+      "locked": true,
       "meta": {
         "description": "Finale transcription",
         "pages": [
@@ -207,7 +204,6 @@
             {
               "id": "dgt_2",
               "length": 1843,
-              "locked": true,
               "name": "accolade_1",
               "offset": 0,
               "unit": "pixels"
@@ -215,7 +211,6 @@
             {
               "id": "dgt_3",
               "length": 1943,
-              "locked": true,
               "name": "accolade_2",
               "offset": 1843,
               "unit": "pixels"
@@ -223,7 +218,6 @@
             {
               "id": "dgt_4",
               "length": 1804,
-              "locked": true,
               "name": "accolade_3",
               "offset": 3786,
               "unit": "pixels"
@@ -231,7 +225,6 @@
             {
               "id": "dgt_5",
               "length": 1828,
-              "locked": true,
               "name": "accolade_4",
               "offset": 5590,
               "unit": "pixels"
@@ -273,6 +266,7 @@
       "id": "original_score:dgt_1",
       "is_segment_line": true,
       "length": 7418,
+      "locked": true,
       "meta": {
         "description": "Original score",
         "pages": [

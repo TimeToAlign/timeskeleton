@@ -18,9 +18,9 @@ specification.
 
 ## The manifest
 
-Every TimeSkeleton manifest has one shape, whatever it holds: one
-timeline, several, a group of timelines, or an alignment bundle's
-timelines and groups. The smallest manifest is
+Every TimeSkeleton manifest has one shape and is an alignment bundle,
+whatever it holds: one timeline, several, a group of timelines, or several
+groups beside ungrouped timelines. The smallest manifest is
 
 ```json
 {"timeskeleton": "0.7.0", "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}]}
@@ -37,10 +37,10 @@ timelines and groups. The smallest manifest is
 | `graphical` | no | the styling and display order of the manifest's drawing |
 | `$schema` | no | a string naming the schema, for editors; never read |
 
-A single timeline is a manifest of one root, and a group is a manifest with
-one group. A manifest with an `id` or a `name` is named; one with neither is
-anonymous. `id` and `name` are independent: either may stand without the
-other.
+A single timeline is a bundle of one root, and a group is a bundle of one
+group. A manifest with an `id` or a `name` is a named bundle; one with
+neither is an anonymous bundle. `id` and `name` are independent: either may
+stand without the other.
 
 **The version marker.** Both validators read `timeskeleton` first. A value
 without it is refused at the root as `not a TimeSkeleton manifest`; a value
@@ -73,10 +73,13 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   "children": [{"id": "perf", "offset": 4.0, "unit": "seconds", "length": 1503.2}]
   ```
 
-  A child requires `offset`, which is never negative. Where its parent's
-  length is known, a child starts at or before the parent's end and ends at
-  or before it, locked or not: no child reaches past a known length. A root
-  may carry an `offset` too, negative included:
+  A child requires `offset`. The schema and both validators accept a
+  negative offset, a child starting before its parent's 0; timetoalign and
+  TimeLineEditor do not support it yet and refuse it (`A negative child
+  offset is not supported yet: …`). Where its
+  parent's length is known, a child starts at or before the parent's end
+  and ends at or before it, locked or not: no child reaches past a known
+  length. A root may carry an `offset` too, negative included:
   it places the root's origin on its unit's absolute axis, such as a
   recording whose origin is a moment in UNIX time. A root without `offset`
   has none.
@@ -85,6 +88,14 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   and may be unlocked as a root may. A locked timeline's length may still
   be unknown. An unlocked child's length may change only within its
   parent's known length; a parent's length never follows a child's.
+  A segment is never locked, since its segment line's lock governs it:
+  writers write `false` for a segment, and timetoalign and TimeLineEditor
+  read a segment's `locked` as `false` whatever it states. A segment line
+  that is a child, a segment or a group member is the exception, locked by
+  default when it is built. That default belongs to construction, not to the table of
+  [Defaults](#defaults), so writers write its `true` explicitly, in the
+  minimal form as well. timetoalign and TimeLineEditor do not support
+  lifting it yet.
 - `is_segment_line` marks a **segment line**, a timeline containing only
   contiguous segments: its children are its segments, contiguous from 0 in
   offset order to its length, all sharing its unit as every child does,
@@ -141,7 +152,7 @@ required in both forms.
 
 | Object | Key: default |
 | --- | --- |
-| manifest | `id`: absent (anonymous); `name`: `null`; `meta`: `{}`; `groups`: `[]`; `graphical`: absent |
+| manifest | `id`: absent (without a `name` too, an anonymous bundle); `name`: `null`; `meta`: `{}`; `groups`: `[]`; `graphical`: absent |
 | timeline | `name`: `null`; `number_type`: the unit's default (`int` for `ticks`, `samples`, `frames` and `pixels`; `fraction` for `quarters` and `whole_note`; `float` otherwise); `offset`: absent on a root, required on a child; `locked`: `false`; `is_segment_line`: `false`; `meta`: `{}`; `children`, `conversion_maps`, `regions`: `[]`; `flow_control`: `{"breaks": [], "jumps": [], "markers": []}`; `measure_map`, `metric_hierarchy`: `null` |
 | flow control | `breaks`, `jumps`, `markers`: `[]` |
 | region | `name`: `null`; `meta`: `{}` |
@@ -172,7 +183,7 @@ of known length keep ending at its length: a segment's length changes only
 where its neighbours allow, never moving the line's end. The
 [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md)
 scales a timeline of unknown length to its reach, the farthest coordinate
-its content reaches, and ends its line in a double chevron.
+its content reaches, and ends its line in three chevrons.
 
 ### Groups and the `graphical` block
 
@@ -252,7 +263,6 @@ manifest:
 | An id repeats within one root's tree | the later occurrence | `duplicate id '<id>', first at <pointer>` |
 | A jump's `target` names no marker of its timeline | the `target` | `'<target>' names no marker of this timeline` |
 | A child's `unit` is not its parent's | the child's `unit` | `child '<id>' has unit '<unit>', its parent '<id>' has '<unit>'` |
-| A child's `offset` is negative | the child's `offset` | `offset <offset> of '<id>' is negative` |
 | A child's `offset` lies beyond its parent's known length | the child's `offset` | `offset <offset> of '<id>' is beyond the length <length> of its parent '<id>'` |
 | A child ends beyond its parent's known length, its own end known | the child's `length` | `child '<id>' ends at <end>, beyond the length <length> of its parent '<id>'` |
 | A segment's `is_segment_line` differs from the first segment's | the segment's `is_segment_line`, or the segment when it leaves the key out | `segment '<id>' of segment line '<id>' differs from segment '<first id>' in is_segment_line` |
@@ -273,8 +283,8 @@ Within one root's tree, ids are visited in identity order (a timeline,
 then its conversion maps, regions, breaks, jumps and markers, then its
 children in array order); duplicates come first, then dangling targets,
 then children off their parent's axis (child by child, each followed by its
-own children: its unit, its negative offset, then an offset beyond its
-parent's known length or else an end beyond it), then segment lines, whose
+own children: its unit, then an offset beyond its parent's known length
+or else an end beyond it), then segment lines, whose
 segments are visited in canonical order and compared by exact value. Across the manifest, the problems come in this
 order: each root's own problems, roots in array order; then reserved words
 (the manifest's id, then root by root in identity order, then the group
@@ -283,10 +293,10 @@ the display orders in code-point order of their keys. `<pointer>` is a JSON
 pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. The
 messages above quote ids as Python does; the TypeScript package quotes them
-as JSON (`duplicate id "piece", first at #/timelines/0/id`), except the two
-four messages about a child's unit, offset and end, which read the same in
-both packages, every value spelled as the standard writer spells it (`-1`,
-`[-1, 2]`, `-0.5`). A child's end, its offset plus its length, or for a
+as JSON (`duplicate id "piece", first at #/timelines/0/id`), except the
+three messages about a child's unit, offset and end, which read the same in
+both packages, every value spelled as the standard writer spells it (`720`,
+`[19, 2]`, `75.0`). A child's end, its offset plus its length, or for a
 segment of unknown length its successor's offset, is compared exactly and
 spelled as its parent's number type writes it, or as a `[numerator,
 denominator]` pair where that type cannot write it exactly. A repeated
@@ -341,7 +351,7 @@ are defined by the
 [drawing specification](https://github.com/TimeToAlign/timeskeleton/blob/main/docs/drawing.md).
 
 Every manifest is drawn as one box, opened by its title: its `name`, or its
-`id` when it has no name; an anonymous manifest has none. Each group is a
+`id` when it has no name; an anonymous bundle has none. Each group is a
 frame, and each member and each ungrouped root lies in its own card; a
 member that is a child timeline is drawn with the faded lines of its
 ancestors. The element types are `block`,

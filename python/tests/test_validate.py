@@ -30,7 +30,6 @@ REJECTIONS = [
     "child_missing_offset",
     "child_offset_beyond_parent",
     "child_offset_fraction_on_float_axis",
-    "child_offset_negative",
     "child_unit_differs",
     "conversion_map_unknown_type",
     "float_axis_int_not_exact",

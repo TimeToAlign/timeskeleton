@@ -1,7 +1,7 @@
 {
   "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (996de8c2)"
+    "generator": "timetoalign 1.2.0 (1d90e3ff)"
   },
   "name": "Sketches",
   "timelines": [
@@ -18,7 +18,7 @@
           "id": "page_1",
           "is_segment_line": false,
           "length": 1754,
-          "locked": true,
+          "locked": false,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
@@ -39,7 +39,7 @@
           "id": "page_2",
           "is_segment_line": false,
           "length": 1754,
-          "locked": true,
+          "locked": false,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
@@ -60,7 +60,7 @@
           "id": "page_3",
           "is_segment_line": false,
           "length": 1754,
-          "locked": true,
+          "locked": false,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,

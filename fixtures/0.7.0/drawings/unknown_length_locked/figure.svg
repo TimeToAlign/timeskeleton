@@ -1,12 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="527.7988" height="113.9766" viewBox="0 0 527.7988 113.9766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="532.2988" height="113.9766" viewBox="0 0 532.2988 113.9766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="495.7988" height="81.9766" rx="10" fill="#F3F4F6"/>
-<rect data-address="score/card" x="10" y="10" width="477.7988" height="63.9766" rx="5" fill="#B8BEC8"/>
-<rect data-address="score/card" x="8" y="8" width="477.7988" height="63.9766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect x="0" y="0" width="500.2988" height="81.9766" rx="10" fill="#F3F4F6"/>
+<rect data-address="score/card" x="10" y="10" width="482.2988" height="63.9766" rx="5" fill="#B8BEC8"/>
+<rect data-address="score/card" x="8" y="8" width="482.2988" height="63.9766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="score" x1="53.7988" y1="37" x2="465.7988" y2="37" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="score" cx="53.7988" cy="37" r="3" fill="#00CC00"/>
 <polyline data-address="score" points="468.7988,32.5 473.2988,37 468.7988,41.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
 <polyline data-address="score" points="473.2988,32.5 477.7988,37 473.2988,41.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polyline data-address="score" points="477.7988,32.5 482.2988,37 477.7988,41.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
 <line data-address="coda" x1="353.7988" y1="23" x2="449.2988" y2="23" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="coda" cx="353.7988" cy="23" r="3" fill="#00CC00"/>
 <polygon data-address="coda" points="449.2988,23 453.7988,19.4 458.2988,23 453.7988,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>

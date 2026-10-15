@@ -542,12 +542,13 @@ def _child_problems(
     """Yield a problem for each child that does not sit on its parent's axis.
 
     Child by child in array order, each followed by its own children: a unit
-    other than its parent's, at its ``unit``; a negative offset, at its
-    ``offset``; where the parent's length is known, an offset beyond it, at
-    the ``offset``, or else an end beyond it where the child's end is known
-    (see ``_child_ends``), at the child's ``length``. The end is spelled as
-    the parent's number type writes it, as a fraction pair where that type
-    cannot write it exactly. Values compare exactly.
+    other than its parent's, at its ``unit``; where the parent's length is
+    known, an offset beyond it, at the ``offset``, or else an end beyond it
+    where the child's end is known (see ``_child_ends``), at the child's
+    ``length``. A negative offset is no problem: the child starts before its
+    parent's origin. The end is spelled as the parent's number type writes
+    it, as a fraction pair where that type cannot write it exactly. Values
+    compare exactly.
     """
     length = timeline.get("length")
     ends = _child_ends(timeline)
@@ -559,11 +560,6 @@ def _child_problems(
                 (*at, "unit"),
                 f"child '{child['id']}' has unit '{child['unit']}', its parent "
                 f"'{timeline['id']}' has '{timeline['unit']}'",
-            )
-        if offset < 0:
-            yield SchemaValidationError(
-                (*at, "offset"),
-                f"offset {spell(child['offset'])} of '{child['id']}' is negative",
             )
         end = ends[index]
         if length is not None and offset > _exact(length):
@@ -766,7 +762,6 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
        non-null ``target`` names no marker of its own timeline, at the target;
        then each child whose ``unit`` is not its parent's, ``child '<id>' has
        unit '<u>', its parent '<pid>' has '<pu>'``, whose ``offset`` is
-       negative, ``offset <v> of '<id>' is negative``, whose ``offset`` is
        beyond its parent's known length, ``offset <v> of '<id>' is beyond the
        length <pl> of its parent '<pid>'``, or which ends beyond it, ``child
        '<id>' ends at <e>, beyond the length <pl> of its parent '<pid>'``

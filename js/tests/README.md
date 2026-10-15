@@ -59,14 +59,13 @@ cases of the Python README's sections "The version marker",
 "Representation of own-axis values", "Identity", "Segment lines" and "Groups
 and unknown length", with the same documents, paths and messages, except:
 
-- **Quoting.** The representation message and the four child messages are
+- **Quoting.** The representation message and the three child messages are
   the same text in both packages (`length 32 of 'score' is an int on a
   fraction axis: write [32, 1]`, `child 'take' has unit 'seconds', its parent
-  'score' has 'quarters'`, `offset -1.5 of 'take' is negative`, `offset 75.0
-  of 'take' is beyond the length 60.0 of its parent 'recording'`, `child
-  'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'`);
-  every
-  other message quotes an id as JSON (`duplicate id "m", first at …`, `id
+  'score' has 'quarters'`, `offset 75.0 of 'take' is beyond the length 60.0
+  of its parent 'recording'`, `child 'coda' ends at [12, 1], beyond the
+  length [10, 1] of its parent 'score'`); every other message quotes an id
+  as JSON (`duplicate id "m", first at …`, `id
   "start" is reserved for the parts of an address`), where Python quotes it
   as `repr` does. The `UnsupportedVersionError` message reads
   `unsupported TimeSkeleton version "9.9.9"; this package reads 0.7.0 only`.
@@ -106,7 +105,7 @@ objects of `DEFAULTS` itself (two completions of one manifest hold distinct
 
 ## Shared rejection cases
 
-For each of the 86 cases (`validate.test.ts`), read by `parseJson`: its text
+For each of the 85 cases (`validate.test.ts`), read by `parseJson`: its text
 is the standard writer's; `version_unknown` raises `UnsupportedVersionError`
 and stores `["timeskeleton"]`; every other case raises
 `SchemaValidationError` at its stored path, through `validate` on the parsed

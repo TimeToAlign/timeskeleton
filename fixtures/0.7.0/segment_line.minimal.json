@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (996de8c2)"
+    "generator": "timetoalign 1.2.0 (1d90e3ff)"
   },
   "timelines": [
     {
@@ -13,7 +13,6 @@
                 8,
                 1
               ],
-              "locked": true,
               "offset": [
                 0,
                 1
@@ -43,7 +42,6 @@
                 6,
                 1
               ],
-              "locked": true,
               "name": "b1",
               "offset": [
                 0,
@@ -57,7 +55,6 @@
                 6,
                 1
               ],
-              "locked": true,
               "name": "b2",
               "offset": [
                 6,
@@ -88,7 +85,6 @@
                 12,
                 1
               ],
-              "locked": true,
               "offset": [
                 0,
                 1

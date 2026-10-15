@@ -11,6 +11,7 @@
 <circle data-address="movement" cx="183.4902" cy="23" r="3" fill="#00CC00"/>
 <polyline data-address="movement" points="273.4902,18.5 277.9902,23 273.4902,27.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
 <polyline data-address="movement" points="277.9902,18.5 282.4902,23 277.9902,27.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polyline data-address="movement" points="282.4902,18.5 286.9902,23 282.4902,27.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
 <polygon data-address="score/start" points="83.4902,38.5 80.4902,51.5 86.4902,51.5" fill="#000000"/>
 <polygon data-address="score/end" points="483.4902,38.5 480.4902,51.5 486.4902,51.5" fill="#000000"/>
 <text data-address="movement/name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">movement</text>

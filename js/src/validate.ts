@@ -516,12 +516,13 @@ function childEnds(timeline: JsonObject): (Rational | null)[] {
 /**
  * A problem for each child that does not sit on its parent's axis, child by
  * child in array order, each followed by its own children: a unit other than
- * its parent's, at its `unit`; a negative offset, at its `offset`; where the
- * parent's length is known, an offset beyond it, at the `offset`, or else an
- * end beyond it where the child's end is known (see `childEnds`), at the
- * child's `length`. The end is spelled as the parent's number type writes
- * it, as a fraction pair where that type cannot write it exactly. Values
- * compare exactly. Python's `_child_problems` gives the same problems.
+ * its parent's, at its `unit`; where the parent's length is known, an offset
+ * beyond it, at the `offset`, or else an end beyond it where the child's end
+ * is known (see `childEnds`), at the child's `length`. A negative offset is
+ * no problem: the child starts before its parent's origin. The end is spelled
+ * as the parent's number type writes it, as a fraction pair where that type
+ * cannot write it exactly. Values compare exactly. Python's `_child_problems`
+ * gives the same problems.
  */
 function* childProblems(
   timeline: JsonObject,
@@ -538,12 +539,6 @@ function* childProblems(
       yield new SchemaValidationError(
         [...at, "unit"],
         `child '${id}' has unit '${text(child, "unit")}', ${parent} has '${text(timeline, "unit")}'`,
-      );
-    }
-    if (offset.numerator < 0n) {
-      yield new SchemaValidationError(
-        [...at, "offset"],
-        `offset ${spell(child.offset)} of '${id}' is negative`,
       );
     }
     const end = ends[index] ?? null;
@@ -781,11 +776,10 @@ function* memberProblems(
  *    `duplicate id "<id>", first at <pointer>`; then each jump whose
  *    non-null `target` names no marker of its own timeline, at the target;
  *    then each child whose `unit` is not its parent's, `child '<id>' has
- *    unit '<u>', its parent '<pid>' has '<pu>'`, whose `offset` is negative,
- *    `offset <v> of '<id>' is negative`, whose `offset` is beyond its
- *    parent's known length, `offset <v> of '<id>' is beyond the length <pl>
- *    of its parent '<pid>'`, or which ends beyond it, `child '<id>' ends at
- *    <e>, beyond the length <pl> of its parent '<pid>'` (see
+ *    unit '<u>', its parent '<pid>' has '<pu>'`, whose `offset` is beyond
+ *    its parent's known length, `offset <v> of '<id>' is beyond the length
+ *    <pl> of its parent '<pid>'`, or which ends beyond it, `child '<id>' ends
+ *    at <e>, beyond the length <pl> of its parent '<pid>'` (see
  *    `childProblems`); then the segment lines (see `segmentProblems`);
  * 2. every id that is a part word (`start`, `end`, `name`, `label`, `card`),
  *    which follow an address as its parts: the manifest's `id`, then root by

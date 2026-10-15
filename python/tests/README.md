@@ -229,14 +229,13 @@ in this order, one problem per finding (Python quotes ids as `repr`):
    marker of this timeline`; then, child by child in array order, each
    followed by its own children, a child whose unit is not its parent's, at
    its `unit`, `child 'take' has unit 'seconds', its parent 'score' has
-   'quarters'`, a child whose offset is negative, at its `offset`,
-   `offset -1.5 of 'take' is negative`, and, where the parent's length is
-   known, a child whose offset lies beyond it, at its `offset`, `offset 75.0
-   of 'take' is beyond the length 60.0 of its parent 'recording'`, or else a
-   child whose end lies beyond it, at its `length`, `child 'coda' ends at
-   [12, 1], beyond the length [10, 1] of its parent 'score'` (the four
-   messages the same text in the JavaScript package); then the segment
-   lines;
+   'quarters'`, and, where the parent's length is known, a child whose
+   offset lies beyond it, at its `offset`, `offset 75.0 of 'take' is beyond
+   the length 60.0 of its parent 'recording'`, or else a child whose end
+   lies beyond it, at its `length`, `child 'coda' ends at [12, 1], beyond
+   the length [10, 1] of its parent 'score'` (the three messages the same
+   text in the JavaScript package); a negative offset is no problem, on a
+   child as on a root; then the segment lines;
 2. part words: the manifest's `id`, then every id of every root's tree, then
    each group id, `id 'start' is reserved for the parts of an address`;
 3. a timeline id repeating one of an earlier root;
@@ -256,19 +255,24 @@ timeline `perf` of root `take` is no problem either; a timeline id repeated
 inside one root is reported once (step 1); every part word is refused as the
 id of a timeline, a map, a region, a break, a jump, a marker, a group and the
 manifest, in a one-root manifest, while `starts` and `Start` are accepted;
-a child sharing its parent's unit at offset 0 is no problem, and a root at
-a negative offset (`-1700000000.25` seconds, `[-3, 2]` quarters) is none
-either: a root's offset places its origin and may be negative; the offset
-compares exactly, so a child at `[-1, 1000000]` quarters is reported and
-children at `[0, 1]` quarters and `-0.0` seconds are not; a child in
+a child sharing its parent's unit at offset 0 is no problem, and a negative
+offset is none either, on a root (`-1700000000.25` seconds, `[-3, 2]`
+quarters), where it places the origin, or on a child, which then starts
+before its parent's origin: children at `-1.5` seconds, `[-1, 1000000]`,
+`[0, 1]` and `[-3, 2]` quarters (the last of length `[4, 1]` in a parent of
+`[32, 1]`), at `-0.0` seconds and a grandchild at `[-1, 2]` quarters all
+validate, the same documents in both packages; yet a child at `[-3, 2]` of
+length `[40, 1]` in that parent ends at `[77, 2]`, beyond its length, and is
+reported at its `length`, so the end rule still applies to a child that
+starts before the origin; a child in
 `number` under a parent in `quarters`, both continuous logical, is still
-reported, since the rule compares units, not classes; both rules reach a
-grandchild at its own path; one manifest carrying a finding of every step yields exactly the problems in
-the stated order, with paths and messages; a child of one group with its root
+reported, since the rule compares units, not classes; the unit rule reaches
+a grandchild at its own path; one manifest carrying a finding of every step
+yields exactly the problems in the stated order, with paths and messages; a child of one group with its root
 in another, or ungrouped, is no problem; a group without members stays valid;
 every shared rejection pins its path, `child_unit_differs`,
-`child_offset_negative`, `child_offset_beyond_parent` and
-`child_end_beyond_parent` with their messages too.
+`child_offset_beyond_parent` and `child_end_beyond_parent` with their
+messages too.
 
 **A child lies within its parent's known length.** A child's end is its
 offset plus its length where both are known; a segment of unknown length ends
@@ -333,7 +337,7 @@ step 1) need the parent's length and are skipped where it is unknown.
 
 ## Shared rejection cases
 
-`fixtures/rejections/0.7.0/` holds 86 cases `{manifest, path, reason}`, one
+`fixtures/rejections/0.7.0/` holds 85 cases `{manifest, path, reason}`, one
 rule each, written by `dumps`; `version_unknown` adds `"error":
 "UnsupportedVersionError"` and its `path` is `["timeskeleton"]`. For every
 other case `validate` raises `SchemaValidationError` at exactly the stored

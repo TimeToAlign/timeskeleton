@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (996de8c2)"
+    "generator": "timetoalign 1.2.0 (1d90e3ff)"
   },
   "timelines": [
     {
@@ -8,7 +8,6 @@
         {
           "id": "page_1",
           "length": 1754,
-          "locked": true,
           "name": "Page 1",
           "offset": 0,
           "unit": "pixels"
@@ -16,7 +15,6 @@
         {
           "id": "page_2",
           "length": 1754,
-          "locked": true,
           "name": "Page 2",
           "offset": 1754,
           "unit": "pixels"
@@ -24,7 +22,6 @@
         {
           "id": "page_3",
           "length": 1754,
-          "locked": true,
           "name": "Page 3",
           "offset": 3508,
           "unit": "pixels"
@@ -32,7 +29,6 @@
         {
           "id": "page_4",
           "length": 1754,
-          "locked": true,
           "name": "Page 4",
           "offset": 5262,
           "unit": "pixels"

@@ -314,7 +314,7 @@ describe("identity", () => {
     ).toEqual([]);
   });
 
-  it("refuses a negative child offset, never a root's", () => {
+  it("accepts a negative offset, of a child or a root", () => {
     const take = (offset: unknown) =>
       manifest([
         timeline("recording", "seconds", 60, {
@@ -327,23 +327,23 @@ describe("identity", () => {
           children: [timeline("c", "quarters", [8, 1], { offset })],
         }),
       ]);
-    expect(only(take(-1.5))).toEqual([
-      ["timelines", 0, "children", 0, "offset"],
-      "offset -1.5 of 'take' is negative",
-    ]);
-    expect(only(child([-1, 1000000]))).toEqual([
-      ["timelines", 0, "children", 0, "offset"],
-      "offset [-1, 1000000] of 'c' is negative",
-    ]);
     const grandchild = timeline("b", "quarters", [8, 1], { offset: [-1, 2] });
     const parent = timeline("a", "quarters", [8, 1], { offset: [0, 1], children: [grandchild] });
-    expect(only(manifest([timeline("score", "quarters", [8, 1], { children: [parent] })]))).toEqual(
-      [
-        ["timelines", 0, "children", 0, "children", 0, "offset"],
-        "offset [-1, 2] of 'b' is negative",
-      ],
-    );
     for (const value of [
+      take(-1.5),
+      child([-1, 1000000]),
+      manifest([timeline("score", "quarters", [8, 1], { children: [parent] })]),
+      {
+        timeskeleton: "0.7.0",
+        timelines: [
+          {
+            id: "piece",
+            unit: "quarters",
+            length: [32, 1],
+            children: [{ id: "take", unit: "quarters", offset: [-3, 2], length: [4, 1] }],
+          },
+        ],
+      },
       child([0, 1]),
       take(-0),
       manifest([timeline("take", "seconds", 2.5, { offset: -1700000000.25 })]),
@@ -352,6 +352,11 @@ describe("identity", () => {
       expect(problems(value)).toEqual([]);
       validate(value);
     }
+    const long = timeline("take", "quarters", [40, 1], { offset: [-3, 2] });
+    expect(only(manifest([timeline("piece", "quarters", [32, 1], { children: [long] })]))).toEqual([
+      ["timelines", 0, "children", 0, "length"],
+      "child 'take' ends at [77, 2], beyond the length [32, 1] of its parent 'piece'",
+    ]);
   });
 
   it("requires a child to lie within its parent's known length", () => {
@@ -437,7 +442,6 @@ describe("identity", () => {
 
   it.each([
     ["child_unit_differs", "child 'take' has unit 'seconds', its parent 'score' has 'quarters'"],
-    ["child_offset_negative", "offset -1.5 of 'take' is negative"],
     [
       "child_offset_beyond_parent",
       "offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'",
@@ -477,7 +481,6 @@ describe("identity", () => {
         ["timelines", 0, "children", 0, "unit"],
         "child 'kid' has unit 'seconds', its parent 'first' has 'quarters'",
       ],
-      [["timelines", 0, "children", 0, "offset"], "offset [-1, 1] of 'kid' is negative"],
       [
         ["timelines", 0, "children", 1, "offset"],
         "offset [9, 1] of 'gone' is beyond the length [8, 1] of its parent 'first'",

@@ -1,7 +1,7 @@
 {
   "groups": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (996de8c2)"
+    "generator": "timetoalign 1.2.0 (1d90e3ff)"
   },
   "name": null,
   "timelines": [
@@ -18,7 +18,7 @@
           "id": "a",
           "is_segment_line": false,
           "length": null,
-          "locked": true,
+          "locked": false,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
@@ -59,7 +59,7 @@
             6,
             1
           ],
-          "locked": true,
+          "locked": false,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,
@@ -83,7 +83,7 @@
           "id": "c",
           "is_segment_line": false,
           "length": null,
-          "locked": true,
+          "locked": false,
           "measure_map": null,
           "meta": {},
           "metric_hierarchy": null,

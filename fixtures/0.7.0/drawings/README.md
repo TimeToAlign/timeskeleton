@@ -81,8 +81,9 @@ addressed `name`.
   below side's outer edge is `Eb` = 49.453125.
 - A timeline of unknown length is scaled to its reach `λ` (§3.4). A root's
   open end lies at `Xe = x0 + L`; its line runs on to `Xr = Xe + 4w` and
-  the outer chevron's tip lies at `Xe + 8w`, which is `x0 + L + 24` for
-  `w` = 3 (§6.6).
+  the outer of its three chevrons has its tip, and the right edge, at
+  `Xr + 5.5w`, `Xr` computed first (§6.6, §6.7): `(x0 + L + 12) + 16.5`
+  for `w` = 3, 28.5 past `Xe`.
 
 ## `bare`
 
@@ -273,7 +274,7 @@ ancestor lines, `movement` and `score`, both running on to the left.
 - `x0` = the chevron term 24 + 55.70361328125 + 8 + 24 = 111.70361328125 →
   111.7036.
 - `R` = the outer chevron tip of `score`, which also runs on to the right,
-  `x0 + L + 8w` = 535.70361328125.
+  `Xr + 4w` = (111.70361328125 + 400 + 12) + 12 = 535.70361328125 (§8.3).
 - `Hm` = 82.953125 + 26.9765625 + 8 = 117.9296875 (`theme`, two ancestor
   rows above) and 49.37890625 (`recording`); the frame is 208.11328125
   high.
@@ -294,13 +295,13 @@ No timeline has a name.
 - `N` = w(`score`, 11) = 29.798828125.
 - `x0` = 16 + 29.798828125 + 8 = 53.798828125 → 53.7988; the start label
   `0 ♩` gives only 22.416015625.
-- `R` = the outer chevron tip `x0 + L + 24` = 477.798828125. The root has
-  no end wedge and no end label.
+- `R` = the outer chevron tip `Xr + 5.5w` = 465.798828125 + 16.5 =
+  482.298828125. The root has no end wedge and no end label.
 - `Hm` = 29 + 49.453125 + 8 = 86.453125: `coda` in the children band above
   (`Ea` = 21), the start wedge and the region band below.
-- `W` = 8 + (10 + 477.798828125) = 495.798828125; `H` = 8 + (10 +
+- `W` = 8 + (10 + 482.298828125) = 500.298828125; `H` = 8 + (10 +
   86.453125) = 104.453125.
-- Page 527.798828125 × 136.453125 → **527.7988 × 136.4531**.
+- Page 532.298828125 × 136.453125 → **532.2988 × 136.4531**.
 
 ## `unknown_length_empty`
 
@@ -309,11 +310,11 @@ The root `score` (quarters, length `null`) with no content.
 - The reach is 0, so every `u` is 0 (§3.2), and the line is still drawn
   `L` long, from `x0` to `Xe = x0 + L` (§3.4).
 - `N` = 29.798828125; `x0` = 53.798828125 → 53.7988.
-- `R` = the outer chevron tip 477.798828125.
+- `R` = the outer chevron tip 482.298828125.
 - `Hm` = 14.40234375 + 26.9765625 + 8 = 49.37890625: nothing above, so
   `y_root` = `P + h(11) / 2`.
-- `W` = 495.798828125; `H` = 8 + (10 + 49.37890625) = 67.37890625.
-- Page 527.798828125 × 99.37890625 → **527.7988 × 99.3789**.
+- `W` = 500.298828125; `H` = 8 + (10 + 49.37890625) = 67.37890625.
+- Page 532.298828125 × 99.37890625 → **532.2988 × 99.3789**.
 
 ## `unknown_length_locked`
 
@@ -321,14 +322,14 @@ The locked root `score` (quarters, length `null`) with the locked child
 `coda` (4 at 12).
 
 - The reach is 12 + 4 = 16 = `λ`; `x(12)` = 353.798828125. The root's end
-  is open, and the double chevron comes before the end circle of a locked
+  is open, and the three chevrons come before the end circle of a locked
   root in §6.6, so the root ends in the chevrons; `coda` ends in its diamond
   at `x0 + L`.
 - `N` = 29.798828125; `x0` = 53.798828125 → 53.7988.
-- `R` = the outer chevron tip 477.798828125.
+- `R` = the outer chevron tip 482.298828125.
 - `Hm` = 29 + 26.9765625 + 8 = 63.9765625.
-- `W` = 495.798828125; `H` = 8 + (10 + 63.9765625) = 81.9765625.
-- Page 527.798828125 × 113.9765625 → **527.7988 × 113.9766**.
+- `W` = 500.298828125; `H` = 8 + (10 + 63.9765625) = 81.9765625.
+- Page 532.298828125 × 113.9765625 → **532.2988 × 113.9766**.
 
 ## `unknown_length_child`
 
@@ -338,7 +339,8 @@ length `null`, holding the region `region_1` (0 to 6).
 - `λ` = 32, the root's length. The reach of `movement` on its own axis is
   6, so it ends under rule 5 of §3.4 at 8 + 6 = 14, open: `Xe` = `x(14)` =
   258.490234375, `Xr` = 270.490234375, the outer chevron's tip
-  282.490234375. Its first-fit extent runs on `8w` past its end, to 199.
+  286.990234375. Its first-fit extent runs on `9.5w` past its end, to
+  203.5.
 - `N` = w(`movement`, 11) = 59.490234375.
 - `x0` = 16 + 59.490234375 + 8 = 83.490234375 → 83.4902.
 - `R` = the end label `32 ♩` at 483.490234375 + 9.279052734375 =
@@ -361,15 +363,15 @@ The group "Edition" in the display order `performance`, `score`: the root
 - `xn` = 24. `N` = w(`performance`, 11) = 70.640625.
 - `x0` = 24 + 70.640625 + 8 = 102.640625 → 102.6406; the start label
   `0.0 s` gives only 34.931396484375.
-- `R` = the outer chevron tip of `performance`, 102.640625 + 400 + 24 =
-  526.640625, beyond the end label `12 ♩` of `score` at
+- `R` = the outer chevron tip of `performance`, `Xr + 5.5w` = (102.640625 +
+  400 + 12) + 16.5 = 531.140625, beyond the end label `12 ♩` of `score` at
   511.919677734375.
 - `Hm` = 71.85546875 (`performance`, its region band below) and
   49.37890625 (`score`); the frame is 8 + 12.8046875 + 4 + 71.85546875 + 8
   + 49.37890625 + 8 = 162.0390625 high.
-- `W` = 8 + (526.640625 + 8 + 8) = 550.640625; `H` = 8 + (8 +
+- `W` = 8 + (531.140625 + 8 + 8) = 555.140625; `H` = 8 + (8 +
   162.0390625) = 178.0390625.
-- Page 582.640625 × 210.0390625 → **582.6406 × 210.0391**.
+- Page 587.140625 × 210.0390625 → **587.1406 × 210.0391**.
 
 ## `unknown_length_segments`
 
@@ -380,8 +382,8 @@ holding the region `region_1` (0 to 4); `b` (6 at 8); `c` at 14, of length
 
 - The reach is the largest of 0 + 4, 8 + 6 and 14 + 3, so `λ` = 17. `a`
   ends where `b` starts (rule 3 of §3.4), and `c` where `form` ends (rule
-  4), open. The double chevron comes before the open arrowhead of a segment
-  line in §6.6.
+  4), open. The three chevrons come before the open arrowhead of a
+  segment line in §6.6.
 - The boundaries of `b` and `c` lie at `x(8)` = 238.07562614889704 →
   238.0756 and `x(14)` = 379.2520967371323 → 379.2521, and reach `k` = 8
   to both sides, so the root band above is present and 8 wide (§6.4): `Ea`
@@ -389,9 +391,9 @@ holding the region `region_1` (0 to 4); `b` (6 at 8); `c` at 14, of length
   label.
 - `N` = w(`form`, 11) = 25.84033203125.
 - `x0` = 16 + 25.84033203125 + 8 = 49.84033203125 → 49.8403.
-- `R` = the outer chevron tip 473.84033203125.
+- `R` = the outer chevron tip 478.34033203125.
 - `Hm` = 16 + 49.453125 + 8 = 73.453125: both regions in one row of the
   region band.
-- `W` = 8 + (10 + 473.84033203125) = 491.84033203125; `H` = 8 + (10 +
+- `W` = 8 + (10 + 478.34033203125) = 496.34033203125; `H` = 8 + (10 +
   73.453125) = 91.453125.
-- Page 523.84033203125 × 123.453125 → **523.8403 × 123.4531**.
+- Page 528.34033203125 × 123.453125 → **528.3403 × 123.4531**.

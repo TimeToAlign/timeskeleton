@@ -317,6 +317,11 @@ then halved, exactly when the sum is exact and as a binary64 division by 2
 when it is a float. On a float axis it is therefore the double sum halved,
 not the exact midpoint of the two doubles rounded once.
 
+The format and both validators accept a child whose offset is negative,
+which starts before its parent's zero. The readers of timetoalign and
+TimeLineEditor refuse such a child as not supported yet, and this version
+of the specification does not draw it.
+
 ### 3.2 From the axis to the canvas
 
 A position `t` on the root's axis, with `λ` the root's length, or its reach
@@ -336,7 +341,7 @@ show the exact coordinate, never the double.
 Every other number of a drawing is a double, computed in IEEE 754 binary64
 in the order its formula is written, left to right, multiplications and
 divisions before additions and subtractions, and a constant factor such as
-`4/3`, `8w`, `4w`, `2w`, `1.5w`, `1.2w` or `2.5w` formed before it multiplies
+`4/3`, `9.5w`, `8w`, `5.5w`, `4w`, `2w`, `1.5w`, `1.2w` or `2.5w` formed before it multiplies
 (`1.2w` is the double nearest the exact product of 6/5 and `w`, not the
 binary64 product of the double `1.2` and `w`). A distance outwards is
 summed whole, left to right as written and a label gap of 2 included,
@@ -388,13 +393,20 @@ at a position on the root's axis, and its end is either **known** or
    line ends; known or open as that end is.
 5. Otherwise: `T` ends at `S` plus its reach; open.
 
+The reach does not follow these rules. A segment of unknown length that is
+followed by another counts towards its segment line's reach as every child
+of unknown length does, with its offset plus its own reach, never with the
+end rule 3 gives it; so when its content runs past the next segment's
+start, that content counts towards the reach all the same, and is drawn
+where it lies, past the segment's end.
+
 `Xe`, `x` of the end, is `x` of the end's position (section 3.2), except
 for an end that is the root's under rule 2, directly or through rule 4,
 where `Xe = x0 + L` whatever the reach. So the reach of a
 root of unknown length lies at the end of the graphical length, and a root
 whose reach is 0 is still drawn `L` long, every position of it at `u = 0`
-(section 3.2). A line whose end is open ends in the double chevron
-(section 6.6), never in a mark that would assert a position.
+(section 3.2). A line whose end is open ends in three chevrons (section
+6.6), never in a mark that would assert a position.
 
 ## 4. Defaults
 
@@ -511,8 +523,8 @@ conversion map has no name or label in the drawing. A region's label is its `nam
 `label`, and a break whose `label` is null has none; a segment's label is
 its `name`, and a segment whose `name` is null has none. The title of a
 group, or of the manifest, is its `name`, or, when `name` is null, its `id`
-without its scope. A manifest with neither a `name` nor an `id` has no
-title.
+without its scope. A manifest with neither a `name` nor an `id`, an
+anonymous bundle, has no title.
 
 ## 6. Layout
 
@@ -667,15 +679,23 @@ band above and below, reaching at least `k`, even on a side that holds no
 wedge, map or segment label. The
 wedges reach `w / 2 + 13`, or `w / 2 + 13 + 2 + T × h(9)` (left to right)
 when the labels fill `T ≥ 1` tiers, `w` the root's stroke width; the band reaches the larger of that reach (when a
-wedge is drawn) and the root's stack's reach `e`. Wedges are drawn over the
-stack.
+wedge is drawn) and the root line's reach on that side, which is the
+root's stack's reach `e`, or, when the root is a segment line, the line's
+reach of the segment lines paragraph above: the larger of `e` and, when
+the line has a drawn boundary, `k`, plus, above, its segment-label tiers.
+Wedges are drawn over the stack.
 
 **Children.** Every displayed child that is not a segment, and every
 displayed segment that is a segment line, in traversal order, is placed on
 its side by first fit with the extent from its start to its end; when its
-end is open (section 3.4), the extent runs on to `L × u + 8w`, `u` the
-proportion of its end and `w` its stroke width, so that its chevrons
-(section 6.6) take room in its row. Its minimum row is
+end is open (section 3.4), the extent runs on to `L × u + 9.5w`, `u` the
+proportion of its end and `w` its stroke width, so that its three
+chevrons (section 6.6) take room in its row: `9.5w` is the distance from
+the end to the outer chevron's tip. This end of the extent is summed as
+written, `L × u` plus the constant `9.5w` (section 3.3), measured from the
+root's start like every extent and only compared, never computed from
+`Xr`; the drawn tip, and the right edge of section 6.7, is `Xr + 5.5w`.
+Its minimum row is
 one more than its parent's **anchor** on that side: the root's anchor is 0
 on both sides, a placed child's anchor on its own side is its row, and
 every other anchor of a child is its parent's; the anchors of a segment
@@ -745,19 +765,35 @@ above side and down below.
 - **Root and children.** A line with stroke width `w` from `Xs`; a filled
   circle of radius `w` centred at the start. The end tells what the
   timeline is; the first of these that applies draws it:
-  - a timeline whose end is open (section 3.4) ends with the **double
-    chevron**: the line runs on past `Xe` to `Xr = Xe + 4w` and stops
-    there; the inner chevron passes through `(Xr + w, y − 1.5w)`, `(Xr +
-    2.5w, y)` and `(Xr + w, y + 1.5w)`, the outer one, `1.5w` further
-    right, through `(Xr + 2.5w, y − 1.5w)`, `(Xr + 4w, y)` and `(Xr +
-    2.5w, y + 1.5w)`, so its tip is at `Xr + 4w`. These are the chevrons
-    of an ancestor line that runs on to the right (section 8.3), placed at
-    the timeline's own end: the line runs on `4w` past its end and the
-    glyph ends `8w` past it, 12 and 24 with the default stroke width 3 of a
-    `timeline` or `child` line. The chevrons stand for a root, a child, a
-    segment line or a member alike, locked or not: an end that is not known
-    has no position for a circle, an arrowhead or a diamond to mark. Such a
-    root has no end wedge and no end label (section 6.4);
+  - a timeline whose end is open (section 3.4) ends with **three
+    chevrons**: the line runs on past `Xe` to `Xr = Xe + 4w` and stops
+    there, and three chevrons pointing right follow it, each `1.5w` long
+    and `3w` high, each `1.5w` further right than the one before, so
+    that the inner and the middle chevron each have their tip at the x of
+    the next one's arms:
+    - the inner chevron through `(Xr + w, y − 1.5w)`, `(Xr + 2.5w, y)`
+      and `(Xr + w, y + 1.5w)`;
+    - the middle chevron through `(Xr + 2.5w, y − 1.5w)`, `(Xr + 4w, y)`
+      and `(Xr + 2.5w, y + 1.5w)`;
+    - the outer chevron through `(Xr + 4w, y − 1.5w)`, `(Xr + 5.5w, y)`
+      and `(Xr + 4w, y + 1.5w)`, so its tip is at `Xr + 5.5w`.
+
+    Each x is `Xr` plus its own constant multiple of `w`, each ordinate
+    `y` minus or plus `1.5w`, or `y` itself, and `Xr` is `Xe` plus `4w`
+    (section 3.3); no point is computed from another chevron's.
+    The line runs on `4w` past its end and the glyph ends `9.5w` past it,
+    12 and 28.5 with the default stroke width 3 of a `timeline` or `child`
+    line; these are distances, and the tip is written, and is the right
+    edge (section 6.7), as `Xr + 5.5w`. Relative to `Xr`, the inner and middle chevrons lie where an
+    ancestor line that runs on to the right draws its two (section 8.3),
+    and the outer chevron is what tells the marks apart: **three
+    chevrons** say that a timeline's length is unknown, **two** that an
+    ancestor line runs on beyond the member it is clipped to. An ancestor line never ends in
+    three chevrons, whatever its length or the member's, and an open end
+    never in two. The three chevrons stand for a root, a child, a segment
+    line or a member alike, locked or not: an end that is not known has no
+    position for a circle, an arrowhead or a diamond to mark. Such a root
+    has no end wedge and no end label (section 6.4);
   - a top-level timeline (a root of the manifest) whose end is known and
     whose `locked` is false ends with an **arrowhead** of length `3w` and half-width `1.5w` whose base is
     at `Xe` and whose tip is at `Xe + 3w`, the line ending at `Xe`, so that
@@ -795,7 +831,10 @@ above side and down below.
 - **Regions.** A brace from `Xs` to `Xe`, arms at `yb`, tip 6 further out
   at `Xm`, `x` of the midpoint (section 3.1) of the region's start and end, so it
   opens towards the root; its label centred on `Xm` beyond the tip, 2
-  further out.
+  further out. The arms lie at the distance `r0 + (k − 1) × pr` of their
+  row (section 6.4), the tip at that distance plus 6, and the label's
+  ordinate at that distance plus 6 plus 2, each distance summed whole
+  before it becomes an ordinate (section 3.3), never computed from `yb`.
 - **Jumps.** An arrow from `(Xf, yf)` to `(Xt, yf)`, `Xf = x(from)`, `Xt =
   x(to)`, `yf` the flow row, `w` the jump's stroke width. Its **curve** is
   the cubic Bézier curve from `P0 = (Xf, yf)` to `P3 = (Xt, yf)` with
@@ -845,9 +884,12 @@ mark on an ancestor line is centred at the member's start (`ui = 0`) or end
 draws (lines, markers, wedges, braces, arcs, labels and names). Right
 edges are geometric, no stroke width counted: a timeline's start circle
 `Xs + w`, its arrowhead's tip `Xe + 3w`, its end circle `Xe + w` or its
-diamond's corner `Xe + 1.5w`, the outer chevron's tip `Xr + 4w` of an open
-end (section 6.6) or of an ancestor line that runs on to the right
-(section 8.3), a map's `Xe`, a boundary's `X`, a wedge's `X + 3`, the largest x of
+diamond's corner `Xe + 1.5w`, the outer chevron's tip of an open end's
+three chevrons `Xr + 5.5w`, with `Xr = Xe + 4w` computed first (section
+6.6; `9.5w` past `Xe` only as a distance, never as the sum `Xe + 9.5w`),
+the outer chevron's tip of the two chevrons of an ancestor line that runs
+on to the right `Xr + 4w`, with `Xr = x0 + L + 4w` computed first (section
+8.3; `8w` past `x0 + L` only as a distance), a map's `Xe`, a boundary's `X`, a wedge's `X + 3`, the largest x of
 the points written in a brace's or a jump's descriptors (control points and
 a jump's arrowhead corners included), and a text's end from its advance
 widths.
@@ -882,10 +924,19 @@ element; the several descriptors of one element carry the same address. An edito
 screen; the SVG writer serializes them. An element's hit area is the
 painted geometry of its descriptors, each standing for the element whose
 address it carries; this specification gives no element a hit area beyond
-them. So the chevrons of an open end, part of their line like an
+them. So the three chevrons of an open end, part of their line like an
 arrowhead, carry the line's address `T` and hit the timeline, and an open end, which
 draws no end wedge and no end label, has no descriptor with `T/end` or
 `T/end/label` and nothing there to hit.
+
+A point in a template (`{p1}`, `{P0}`, `{P3}`, `{Bh − 2w × n}`, …) is
+written by where it stands. In a `points` attribute it is `{x},{y}`, its
+two numbers formatted by section 7.3 and joined by a comma without a
+space, and the points are separated by one space, as the polygon templates
+spell out; this holds for the chevrons' polylines and the jump's arrowhead
+too. In path data (`d`) it is its two numbers separated by one space, as
+the brace below writes them, so a jump's shaft `M{P0}C{C1} {C2} {Bh}`
+opens like `M290.9775 63.8555C253.4775 74.5221`.
 
 | Element | Descriptors |
 |---|---|
@@ -897,7 +948,8 @@ draws no end wedge and no end label, has no descriptor with `T/end` or
 | open arrowhead | the line stops at `Xe`; the same `<polygon>` with `fill="none"`, stroked in the line's `stroke` with width `w/2` and no dash |
 | end circle | the line stops at `Xe`; `<circle cx="{Xe}" cy="{y}" r="{w}">` |
 | diamond | the line stops at `Xe − 1.5w`; `<polygon points="{Xe−1.5w},{y} {Xe},{y−1.2w} {Xe+1.5w},{y} {Xe},{y+1.2w}" fill="none">` stroked in the line's `stroke` with width `w/2` and no dash |
-| chevrons | the line stops at `Xr` (an open end, section 6.6, or an ancestor line running on to the right, section 8.3) or starts at `Xa` (an ancestor line running on to the left); two `<polyline points="{p1} {p2} {p3}" fill="none">`, inner one first, each through its three points in the order sections 6.6 and 8.3 list them, stroked in the line's `stroke` with width `w/2` and no dash |
+| three chevrons | an open end (section 6.6): the line stops at `Xr`; three `<polyline points="{p1} {p2} {p3}" fill="none">`, the inner one, the middle one, then the outer one, each through its three points in the order section 6.6 lists them, stroked in the line's `stroke` with width `w/2` and no dash |
+| two chevrons | an ancestor line running on (section 8.3): the line stops at `Xr` (to the right) or starts at `Xa` (to the left); two `<polyline points="{p1} {p2} {p3}" fill="none">`, inner one first, each through its three points in the order section 8.3 lists them, stroked as three chevrons are |
 | wedge | `<polygon points="{X},{yt} {X−3},{yb} {X+3},{yb}">`, `yt` its tip and `yb` its base (section 6.6) |
 | map | `<polygon points="{Xs},{yc−d/2} {Xe},{yc−d/2} {Xe},{yc+d/2} {Xs},{yc+d/2}" fill="none">` stroked |
 | region | `<path d="{brace}">` |
@@ -1018,18 +1070,19 @@ written `\ `, so that TeX keeps it.
 
 ## 8. The box: frames and cards
 
-Every manifest is drawn as one **box**, the bundle box, whatever it holds:
-a manifest of one root as a box holding that root as an ungrouped root, a
-manifest of one group as a box holding that group's frame, and every other
-manifest alike. The box opens with the manifest's title (section 5.3),
-which a manifest with neither a `name` nor an `id` does not have.
+Every manifest is an alignment bundle and is drawn as one **box**, the
+bundle box, whatever it holds: a manifest of one root as a box holding that
+root as an ungrouped root, a manifest of one group as a box holding that
+group's frame, and every other manifest alike. The box opens with the
+manifest's title (section 5.3), which an anonymous bundle, with neither a
+`name` nor an `id`, does not have.
 Every timeline drawn as a root (a member or an ungrouped root) is drawn as
 sections 3 to 6 draw a root, in its own **card**, and all of them share
 one graphical length `L` and one start `x0`, so that by definition they
 start and end at the same points. The **shared end** is `x0 + L`, found
 from `x0` and `L` alone and never from a length: a member or ungrouped
 root of unknown length is drawn with its reach at the shared end (section
-3.4), and its line runs on past it into its chevrons (section 6.6).
+3.4), and its line runs on past it into its three chevrons (section 6.6).
 
 ### 8.1 What is drawn
 
@@ -1053,8 +1106,8 @@ root of unknown length is drawn with its reach at the shared end (section
   its length is `null`), and positions are on `M`'s axis (section 3.1). A
   member that is a child timeline in `timelines` is still a `timeline`
   element in its member drawing, so statements selecting `child` do not
-  reach its line, and it ends with the diamond, or with the chevrons when
-  its length is `null` (section 6.6). Such a member's drawing also has an
+  reach its line, and it ends with the diamond, or with three chevrons
+  when its length is `null` (section 6.6). Such a member's drawing also has an
   **ancestor band** (section 8.3).
 - **Titles.** A group's title, a `name` element with the address `G/name`,
   opens its frame. The manifest's title, a `name` element with the
@@ -1119,9 +1172,13 @@ the line's stroke width and `y` its ordinate:
   and ends in a double chevron pointing right, mirrored: the inner one
   through `(Xr + w, y − 1.5w)`, `(Xr + 2.5w, y)` and `(Xr + w, y + 1.5w)`,
   the outer one `1.5w` further right, through `(Xr + 2.5w, y − 1.5w)`, `(Xr
-  + 4w, y)` and `(Xr + 2.5w, y + 1.5w)`, its tip at `x0 + L + 8w`: where
+  + 4w, y)` and `(Xr + 2.5w, y + 1.5w)`, its tip at `Xr + 4w`, `8w` past
+  `x0 + L` (section 6.7): where
   either end is not known, the drawing does not claim that the ancestor
-  ends with the member. When `te =
+  ends with the member. A running-on ancestor line has two chevrons on
+  either side, also when its own length or `M`'s is `null`: the three
+  chevrons of an open end (section 6.6) mark a line's own unknown length
+  and are never drawn on an ancestor line. When `te =
   λ` the line ends at `x0 + L` with `Aj`'s own end (section 6.6): the
   arrowhead, open arrowhead or circle of a top-level timeline, the diamond
   of a child. When `te < λ`, which a manifest allows only where a timeline
