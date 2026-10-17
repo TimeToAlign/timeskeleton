@@ -30,8 +30,9 @@ ungrouped roots as cards. Terms in `code` are JSON members.
   8).
 - `placement`: chosen by whoever places the drawing, such as an editor's
   canvas or a script:
-  - `length`, the **graphical length** `L` of the root, in canvas units
-    (default 400): the distance from the root's start to its end;
+  - `length`, the **graphical length** `L` of every item of the box
+    without a length of its own (section 8.6), in canvas units (default
+    400): the distance from a root's start to its end;
   - `spacing`, the **vertical stretch** `v`, a positive number (default 1)
     that multiplies the vertical distances of section 6.2;
   - `width` and `height`, the requested **box size** in canvas units, or
@@ -39,8 +40,18 @@ ungrouped roots as cards. Terms in `code` are JSON members.
   - `order`, the **band order**: the groups `children`, `regions` and
     `flow`, each once, in the order their bands lie outwards from the root
     on either side (default `["children", "regions", "flow"]`; section
-    6.4). An editor changes it by dragging a group. Conversion maps are not
-    a group: each timeline's maps lie against its own line (section 6.4).
+    6.4). Conversion maps are not a group: each timeline's maps lie against
+    its own line (section 6.4);
+  - `bands`, band orders for lower levels: an object whose keys are group
+    ids and timeline ids, each value a band order (default `{}`). A member
+    drawing's root takes the band order of its own id, else that of the
+    group whose frame holds it, else `order`; it never takes the band order
+    of an ancestor timeline. A key naming no group and no root drawn in a
+    card is not used;
+  - `places`, the **places** of the box's items (section 8.6): an object
+    whose keys are the ids of groups and of ungrouped roots, each value an
+    object with any of the members `x`, `y`, `length`, `width` and
+    `height` (default `{}`).
 - `layers`: the statement lists that style the drawing, from the lowest to
   the highest precedence: the defaults of section 4, then any lists an
   application supplies below the manifest (such as an editor's settings),
@@ -51,8 +62,10 @@ ungrouped roots as cards. Terms in `code` are JSON members.
 
 The drawing is a **box** of width `W` and height `H` and a list of drawn
 **elements** in box-local canvas units, origin at the box's top-left corner,
-y downwards. Every element carries its **address** (section 2.2) and, where
-it shows a coordinate, the exact coordinate it shows. Canvas units become
+y downwards, and the box-local position `(Ox, Oy)` of the **place origin**,
+from which places are measured (section 8.6). Every element carries its
+**address** (section 2.2) and, where it shows a coordinate, the exact
+coordinate it shows. Canvas units become
 pixels in SVG and points in TikZ (section 7).
 
 A drawing does not depend on its position on a canvas, nor on its scale: a
@@ -71,6 +84,11 @@ it adds, so the box follows the stretched content: `width` (or `height`)
 becomes the stretched content's size plus the request minus the content's
 size before the stretch. A request no larger than the content before the
 stretch becomes `null`, and `null` stays `null`.
+
+An item of the box (section 8.6) is resized in two of these ways, changing
+its place only: Box changes its `width` and `height`, Stretch its `length`,
+its `width` following the stretched content as the box's does. Scale and
+`spacing` belong to the whole drawing.
 
 ## 2. The `graphical` block
 
@@ -610,8 +628,8 @@ rows.
 Each side of the root, above and below, is filled outwards from the root's
 line in **bands**, each present only when it holds a drawn element of that
 side: first the **root band** (the root's map stack and the wedges of that
-side, with their label tiers); then the bands of the three groups in the
-placement's `order` (section 1):
+side, with their label tiers); then the bands of the three groups in
+the root's band order (`order` and `bands`, section 1):
 
 - `children`: the **children band**, the children whose `side` it is;
 - `regions`: the **region band**, the regions whose `side` it is;
@@ -623,7 +641,8 @@ A distance `o` outwards from the root's line lies at `y_root − o` above and
 children band, which starts no nearer than `p0 / 2` wherever it lies in the
 order, `p0` the row pitch of the root's row, so that the rows of a side, the root's included, lie one
 pitch apart when no map stack widens them. Each following band starts at
-the outer edge of the one before plus `B`. A band's outer edge is its start
+the outer edge of the present band before it plus `B`; an absent band adds
+no `B`. A band's outer edge is its start
 plus its width, the width summed first; the root band starts at 0, so its
 outer edge is its reach.
 
@@ -731,7 +750,7 @@ reaches its **apex** at the distance `f0 + 8 × v + (k − 1) × pj` from the
 root's line, `f0` that of the flow row, so a jump enclosing another lies
 further out. The band is `T × h(9) + 8 × v + (K − 1) × pj + 2 + h(9)` wide
 for `K ≥ 1` levels, and `T × h(9)` wide for none. Jump descriptors and
-labels follow this placement order.
+labels follow this order of first fit.
 
 **Breaks.** A displayed break is a vertical line from the flow row of its
 side across every band to the padding of the opposite side: from `(x, yf)`
@@ -1077,9 +1096,12 @@ group's frame, and every other manifest alike. The box opens with the
 manifest's title (section 5.3), which an anonymous bundle, with neither a
 `name` nor an `id`, does not have.
 Every timeline drawn as a root (a member or an ungrouped root) is drawn as
-sections 3 to 6 draw a root, in its own **card**, and all of them share
-one graphical length `L` and one start `x0`, so that by definition they
-start and end at the same points. The **shared end** is `x0 + L`, found
+sections 3 to 6 draw a root, in its own **card**. The box's **items** are
+its frames and its ungrouped roots' cards; each lies at its own place
+(section 8.6) and has its own graphical length `L`. The member drawings of
+one item share its `L` and one start `x0`, so that the members of a group
+by definition start and end at the same points. The **shared end** is
+`x0 + L`, found
 from `x0` and `L` alone and never from a length: a member or ungrouped
 root of unknown length is drawn with its reach at the shared end (section
 3.4), and its line runs on past it into its three chevrons (section 6.6).
@@ -1124,28 +1146,30 @@ marks of the member's start and end, each mark holding its `label`.
 
 ### 8.2 Horizontal
 
-The **name column** of the whole box starts at `xn = P + Q + K` when the
-box holds a frame and at `xn = P + K` otherwise: inside the cards, at the
-same x for every card. Every row name of every member drawing, ancestor
-names included, is drawn at `x = xn`. `N` is the width of the widest name
-of any member drawing (section 6.7), and `G' = 8` when any such name is
+Each item is laid out horizontally on its own, its left edge at the `x`
+of its place (section 8.6). Its **name column** starts at `xn = x + Q + K`
+in a frame and at `xn = x + K` in an ungrouped root's card: inside the
+cards, at the same x for every card of the item. Every row name of every member drawing of the
+item, ancestor names included, is drawn at `x = xn`. `N` is the width of
+the widest name of any of its member drawings (section 6.7), and `G' = 8` when any such name is
 drawn and 0 otherwise; titles are not names of rows and count for neither.
 The shared start is
 
     x0 = max(xn + N + G', max over i of (xn + wi / 2 − L × ui), max over a of (xn + N + G' + 8 × wa))
 
-where `i` runs over every centred label of every member drawing (section
-6.7, with the member's own proportions) and `a` over every ancestor line
-that runs on to the left (section 8.3), `wa` its stroke width. So no label
+where `i` runs over every centred label of every member drawing of the
+item (section 6.7, with the member's own proportions) and `a` over every
+ancestor line of the item that runs on to the left (section 8.3), `wa` its
+stroke width. So no label
 crosses the name column's left edge, and no chevron crosses the gap after
 the names.
 
-Let `R` be the largest right edge of every member drawing (section 6.7)
-and of every title, a group's title starting at `P + Q` and the manifest's at
-`P`, or `x0` when none of them draws anything. A card inside a frame spans `x = P + Q` to `R + K`; a frame spans `x =
-P` to `R + K + Q`; an ungrouped root's card spans `x = P` to `R + K + Q`
-when the box holds a frame and to `R + K` otherwise, so that every frame
-and every ungrouped card of a box ends at one x.
+Let `R` be the largest right edge of every member drawing of the item
+(section 6.7) and of its group's title, which starts at `x + Q`, or `x0`
+when none of them draws anything; section 8.6 widens it on request. A card
+inside a frame spans `x + Q` to `R + K`, so that every card of a frame
+ends at one x; a frame spans `x` to `R + K + Q`; an ungrouped root's card
+spans `x` to `R + K`.
 
 ### 8.3 Ancestor lines
 
@@ -1236,19 +1260,32 @@ and `height`, and its right and bottom edges are `b + 2` and `d + 2`.
   The frame is `Q + h(s) + 4 + Hm1 + F + Hm2 + … + F + Hmn + Q` high,
   summed in that order, without `h(s) + 4` when the title is not displayed.
 - **The box.** The manifest's title, when there is one, is drawn at `x = P`,
-  with its baseline at `P + a(s)`; the first frame or ungrouped card starts
-  at `P + h(s) + F` (at `P` when there is no title or it is not
-  displayed), and each further one `F` below the previous one's bottom.
+  with its baseline at `P + a(s)`, both in place coordinates (below); every
+  frame and ungrouped card lies at its place (section 8.6).
 
 Within a member drawing, the root's line lies at the drawing's top plus the
 `y_root` of section 6.5, computed in that order; every other ordinate
 follows from that line as section 3.3 states. The box's padding `P` is
-not stretched by `v`. The box's content is `Wb = P` plus
-the largest right edge of any frame or card, a card's shadow included, or
-of the manifest's displayed title, wide, and `Hb = P` plus the largest bottom
-edge of any frame or card, a card's shadow included, or of the manifest's
-displayed title, whose slot ends at `P + h(s)`, high (`P + x0` and `P` when
-the box holds none of these). A frame or card that is not displayed is not drawn but keeps
+not stretched by `v`.
+
+The box grows in every direction to hold its content, with the padding `P`
+on every side. Every position is first computed in **place coordinates**,
+measured from the place origin, as sections 6 and 8 write it. In place
+coordinates the content runs from `Xl`, the smaller of 0 and the smallest
+left edge of any frame or card minus `P`, to `Xr`, `P` plus the largest
+right edge of any frame or card, a card's shadow included, or of the
+manifest's displayed title; and from `Yt`, the smaller of 0 and the smallest top of any frame or card minus `P`, to `Yb`, `P`
+plus the largest bottom edge of any frame or card, a card's shadow
+included, or of the manifest's displayed title, whose slot ends at
+`P + h(s)` (`Xr = 2P + K` and `Yb = P` when the box holds none of these).
+The content is `Wb = Xr − Xl` wide and `Hb = Yb − Yt` high, the sum with
+`P` taken first: `Wb = (P + max(b + 2, …)) − Xl`, and `Hb` likewise. The place origin lies at
+`(Ox, Oy) = (0 − Xl, 0 − Yt)` in the box, so an origin of 0 is `+0`; it is
+`(0, 0)` unless an item reaches left of or above the padding. Each finished
+position is then drawn in the box with `Ox` added to its x and `Oy` to its
+y, the last sum of each: the manifest's title has its baseline at
+`(P + a(s)) + Oy`. A width or height, the difference of two positions, is
+taken in place coordinates. A frame or card that is not displayed is not drawn but keeps
 its place, since member drawings lie in it: the layout, `xn`, `Wb` and `Hb`
 are as when it is displayed, except that a hidden card's shadow is not
 drawn and does not count. The
@@ -1271,3 +1308,43 @@ mark labels, from `A1` to `Ak`, each ancestor's start label before its end
 label, first among its wedge labels. A title is a text descriptor of section 7.2, anchored at `start`;
 its `content` and `max-width` apply as section 6.6 applies them to a row's
 name.
+
+### 8.6 Places
+
+Every item of the box, a group's frame or an ungrouped root's card, lies at
+a **place**: its left edge `x` and its top `y`, measured from the place
+origin in canvas units, its graphical length `length`, and its requested
+size `width` and `height` (positive, or left out for its content's own
+size). `places` (section 1) states any of these
+members for the item whose id is its key; a key naming no item is not
+used. A member that is not stated takes its default:
+
+- `length`: the placement's `length`;
+- `width` and `height`: none, the content's own size;
+- `x`: `P`;
+- `y`: for the first item in drawing order (section 8.5), `P + h(s) + F`
+  below the manifest's title, `s` its font size, or `P` when there is no
+  title or it is not displayed; for every further item, `F` below the
+  largest bottom edge `d` of the items before it. That edge is the frame's
+  or card's `d` of section 8.4, its place `y` plus its height, summed in
+  place coordinates before any shift; a card's shadow does not count, and
+  an item that a `height` request makes higher ends at its requested
+  bottom.
+
+So with `places` empty the items lie one under the other, as an editor
+first shows them.
+
+An item is laid out by sections 8.2 and 8.4 with its own `length` as `L`,
+its left edge at `x` and its top at `y`, in place coordinates (section
+8.4), every sum written as those sections write it. Its frame or card is wider when `width` asks for more:
+for a frame, `R` is taken as the larger of its `R` and `x + width − K −
+Q`, so its cards still end at one x inside it; for a card, as the larger
+of its `R` and `x + width − K`. It is higher when
+`height` asks for more: the frame or card is the larger of its own height
+and `height` high, every card and member drawing keeping its top.
+
+The members of a group are never placed: they lie one under the other in
+their frame, in the group's display order (section 8.1), and only that order
+changes. The bands of a member drawing likewise lie outwards from its line
+in its band order (section 6.4).
+

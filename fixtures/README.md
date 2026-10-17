@@ -189,7 +189,7 @@ current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
 The drawings of 0.7.0 are every fixture in the complete form but the corpus
-ones (`corpus_*`) at the default placement, and eleven variants. The
+ones (`corpus_*`) at the default placement, and sixteen variants. The
 drawing of a manifest directly under `fixtures/0.7.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
@@ -198,18 +198,26 @@ and 800 (`nested__length-<L>`), the spacings 0.5, 1 and 2
 (`nested__spacing-<v>`), both 800 and 2 (`nested__length-800-spacing-2`),
 in a box 120 wider and 60 higher than its content (`nested__box`), at scale
 2 (`nested__scale-2`) and with the band order `["flow", "regions",
-"children"]` (`nested__order-flow-regions-children`), and `map` with an
+"children"]` (`nested__order-flow-regions-children`); `map` with an
 application layer that moves the child's map `ticks` below its line,
-selecting it by its address `melody/ticks` (`map__child-map-below`): 54
-drawings in all. Each directory holds:
+selecting it by its address `melody/ticks` (`map__child-map-below`);
+`bundle_mixed` with the places `{group_2: {x: 40, y: 200, width: 700},
+annotations: {x: -30, length: 300}}` (`bundle_mixed__places`) and
+`bundle_ungrouped` with the place `{score: {x: -60, y: -150, height: 120}}`
+(`bundle_ungrouped__places`); and `styled__score` with the band order
+`["flow", "regions", "children"]` (`styled__score__bands-block`), with the
+`bands` `{score: ["flow", "children", "regions"]}`
+(`styled__score__bands-timeline`), and with both, its root's `bands`
+`{score: ["regions", "children", "flow"]}` outranking that order
+(`styled__score__bands-both`): 59 drawings in all. Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
   the font, written with `dumps`:
   - `manifest`: the path of the manifest relative to the same version's
     directory (`nested.json`, `groups/group_child_member.json`);
-  - `placement`: `length`, `spacing`, `width`, `height` and `order`, all
-    five always written, defaults included (400, 1, `null`, `null`,
-    `["children", "regions", "flow"]`);
+  - `placement`: `length`, `spacing`, `width`, `height`, `order`, `bands`
+    and `places`, all seven always written, defaults included (400, 1,
+    `null`, `null`, `["children", "regions", "flow"]`, `{}`, `{}`);
   - `scale`: the scale `z` at which the writers place the drawing;
   - `layers`: the statement lists an application supplies, lowest
     precedence first. The defaults and the manifest's own `graphical` block
@@ -222,9 +230,10 @@ drawings in all. Each directory holds:
   the font directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Eighteen `figure.svg` files are derived by hand from the
+for byte. Twenty `figure.svg` files are derived by hand from the
 specification alone and are never regenerated, the six figures of
-timelines of unknown length among them; `drawings/README.md` lists them
+timelines of unknown length, `bundle_ungrouped__places` and
+`styled__score__bands-timeline` among them; `drawings/README.md` lists them
 with their arithmetic. Every other figure, and every `inputs.json`, is emitted by
 TimeLineEditor's writers with `pnpm emit-drawings --into <timeskeleton
 checkout>` (run in its `app/packages/writers/`), which compares the

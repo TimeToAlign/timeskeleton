@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Eighteen of the 54 drawings in this directory are derived by hand from the
+Twenty of the 59 drawings in this directory are derived by hand from the
 [drawing specification](../../../docs/drawing.md) and the font metrics
 alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
@@ -39,12 +39,16 @@ given in full; a value as the writer prints it (§7.3) follows an arrow
 | `unknown_length_child` | `unknown_length_child.json` | none |
 | `group__group_unknown_length` | `groups/group_unknown_length.json` | none |
 | `unknown_length_segments` | `unknown_length_segments.json` | none |
+| `bundle_ungrouped__places` | `bundles/bundle_ungrouped.json` | `places` `{score: {x: -60, y: -150, height: 120}}` |
+| `styled__score__bands-timeline` | `styled__score.json` | `bands` `{score: ["flow", "children", "regions"]}` |
 
 ## Shared quantities
 
-Every manifest is drawn as one box (§8). Fourteen of these manifests hold
-one ungrouped root, drawn in its card, and four hold one group, drawn as a
-frame. None has a `name` or an `id`, so no box has a title.
+Every manifest is drawn as one box (§8). Fifteen of these drawings show
+one ungrouped root, drawn in its card, four one group, drawn as a frame,
+and `bundle_ungrouped__places` three ungrouped roots, each in its own
+card. Only that drawing's manifest has a `name`, so only its box has a
+title; no other manifest has a `name` or an `id`.
 
 Every `data-address` follows §2.2: an element other than a timeline or a
 group is addressed through the root whose tree holds it, also in a manifest
@@ -56,19 +60,28 @@ addressed `name`.
   drawing's content), card padding `K` = 8, frame padding `Q` = 8, gap
   between cards `F` = 8, gap after the names `G'` = 8 whenever a name is
   drawn, card shadow offset 2.
-- The name column (§8.2) starts at `xn = P + K` = 16 without a frame and at
-  `xn = P + Q + K` = 24 with one. `N` is the widest row name of any member
-  drawing; a group's title is not a row name.
-- The shared start (§8.2) is the largest of `xn + N + G'`, of
-  `xn + wi / 2 − L × ui` for every centred label `i`, and of
-  `xn + N + G' + 8 × wa` for every ancestor line `a` that runs on to the
-  left. Each candidate is listed below only when it decides or comes
+- Each item, a group's frame or an ungrouped root's card, is laid out on
+  its own at its place (§8.2, §8.6), whose `x` is `P` = 8 unless `places`
+  states another. Its name column starts at `xn = x + K` in an ungrouped
+  root's card, 16 at the default place, and at `xn = x + Q + K` in a
+  frame, 24 at the default place. `N` is the widest row name of any member
+  drawing of the item; a group's title is not a row name.
+- An item's shared start (§8.2) is the largest of `xn + N + G'`, of
+  `xn + wi / 2 − L × ui` for every centred label `i` of the item, and of
+  `xn + N + G' + 8 × wa` for every ancestor line `a` of the item that runs
+  on to the left. Each candidate is listed below only when it decides or comes
   close.
-- An ungrouped card spans `x = P` to `R + K`; in a frame, a card spans
-  `x = P + Q` to `R + K` and the frame `x = P` to `R + K + Q`. `Wb = P` plus
-  the largest right edge, a card's shadow (`+ 2`) included; `Hb = P` plus
-  the largest bottom edge, likewise (§8.4). No drawing here requests a box
-  size, so `W = Wb` and `H = Hb`.
+- An ungrouped card spans its place's `x` to `R + K`; in a frame, a card
+  spans `x + Q` to `R + K` and the frame `x` to `R + K + Q`, `R` the
+  item's own largest right edge. Every position is computed in place
+  coordinates (§8.4): `Wb` = (`P` plus the largest right edge, a card's
+  shadow (`+ 2`) included) − `Xl`, and `Hb` = (`P` plus the largest bottom
+  edge, likewise) − `Yt`; the place origin `(Ox, Oy)` = (0 − `Xl`,
+  0 − `Yt`) is added to every position last. Only in
+  `bundle_ungrouped__places` does an item reach left of or above the
+  padding; everywhere else `Xl` = `Yt` = 0 and the origin is (0, 0), so
+  `Wb = P` plus the largest right edge and `Hb = P` plus the largest bottom
+  edge. No drawing here requests a box size, so `W = Wb` and `H = Hb`.
 - Font measures (§5.1) at size 9: `a(9)` = 8.35400390625, `d(9)` =
   2.12255859375, `h(9)` = 10.4765625; at size 11: `h(11)` = 12.8046875.
   With both wedges below and their labels at `u` = 0 and 1 in one tier,
@@ -397,3 +410,71 @@ holding the region `region_1` (0 to 4); `b` (6 at 8); `c` at 14, of length
 - `W` = 8 + (10 + 478.34033203125) = 496.34033203125; `H` = 8 + (10 +
   73.453125) = 91.453125.
 - Page 528.34033203125 × 123.453125 → **528.3403 × 123.4531**.
+
+## `bundle_ungrouped__places`
+
+The box "Sketches" of three ungrouped roots, in drawing order the segment
+line `pages` ("Pages", 5262 pixels, the segments `Page 1` to `Page 3` of
+1754 each), the root `recording` ("Recording", 441000 samples) and the
+root `score` ("Score", 16 quarters), with the place of `score` stated as
+`{x: -60, y: -150, height: 120}`, left of and above the padding. Each card
+is laid out on its own at its place, with its own `x0` and `R`; every
+place not stated takes its default (§8.6). Every position below is in
+place coordinates until the place origin is added, last (§8.4).
+
+- Places (§8.6): `pages` at (8, 28.8046875), the first item, `P + h(11) +
+  F` below the title; `recording` at (8, 100.2578125), `F` below the
+  bottom edge `d` = 28.8046875 + 63.453125 = 92.2578125 of `pages`' card,
+  its shadow not counted; `score` at (−60, −150), its card max(49.37890625,
+  120) = 120 high. Every `length` is 400.
+- `pages`: `xn` = 8 + 8 = 16; `x0` = 16 + w(`Pages`, 11) + 8 = 16 +
+  32.85498046875 + 8 = 56.85498046875; `R` = the end label `5262 px` at
+  456.85498046875 + 18.402099609375 = 475.257080078125; `Hm` = 28.4765625
+  + 26.9765625 + 8 = 63.453125; the card spans x 8 to 483.257080078125 and
+  y 28.8046875 to 92.2578125.
+- `recording`: `xn` = 16; `x0` = 16 + w(`Recording`, 11) + 8 = 16 +
+  55.70361328125 + 8 = 79.70361328125; `R` = the end label `441000 smp` at
+  479.70361328125 + 28.193115234375 = 507.896728515625; `Hm` =
+  49.37890625; the card spans x 8 to 515.896728515625 and y 100.2578125 to
+  149.63671875.
+- `score`: `xn` = −60 + 8 = −52; `x0` = −52 + w(`Score`, 11) + 8 = −52 +
+  31.05029296875 + 8 = −12.94970703125; `R` = the end label `16 ♩` at
+  387.05029296875 + 9.279052734375 = 396.329345703125; the card spans x
+  −60 to 404.329345703125 and y −150 to −30.
+- The title `Sketches`: `x` = 8, baseline 8 + `a(11)` = 8 +
+  10.21044921875, right edge 8 + 49.951171875 = 57.951171875, slot ending
+  at 8 + `h(11)` = 20.8046875.
+- The box: `Xl` = min(0, −60 − 8) = −68 and `Yt` = min(0, −150 − 8) =
+  −158, so `(Ox, Oy)` = (68, 158). `W` = (8 + (515.896728515625 + 2)) −
+  (−68) = 593.896728515625 and `H` = (8 + (149.63671875 + 2)) − (−158) =
+  317.63671875, both from `recording`'s shadow.
+- Drawn, each position plus (68, 158): the shared starts 124.85498046875 →
+  124.855 (`pages`), 147.70361328125 → 147.7036 (`recording`) and
+  55.05029296875 → 55.0503 (`score`); the cards at (76, 186.8046875),
+  (76, 258.2578125) and (8, 8); the boundaries of `pages` at `u` = 1/3 and
+  2/3 → 258.1883 and 391.5216; the title at `x` 76 with its baseline at
+  (8 + 10.21044921875) + 158 = 176.21044921875 → 176.2104. The shadow of
+  `score`'s card ends 36 above the title's slot, and no card overlaps
+  another or the title.
+- Page 625.896728515625 × 349.63671875 → **625.8967 × 349.6367**.
+
+## `styled__score__bands-timeline`
+
+`styled__score` with the `bands` `{"score": ["flow", "children",
+"regions"]}`: the root's own band order outranks `order`, which keeps its
+default (§1, §6.4). Below the root, the flow band now lies next to the root
+band and the region band beyond it; above, the children band follows the
+root band as before, since the region and flow bands are absent there and
+add no `B`.
+
+- Band order: `flow`, `children`, `regions`, from the root's own id.
+- Above, unchanged: the root band to 28.640625, the children band from
+  max(28.640625 + 4, `p0 / 2` = 7) = 32.640625 to 46.640625 = `Ea`.
+- Below: the root band to 7 (the map `ticks`); the flow band 11 to
+  32.640625, the flow row at 62.640625 + 11 = 73.640625 → 73.6406 and the
+  jump's apex at 81.640625; the region band 36.640625 to 56.28125 = `Eb`,
+  the region's arms at 99.28125 → 99.2812. The two bands' widths swap, so
+  `Eb` and the height stay those of `styled__score`.
+- `x0` = 98.080078125 → 98.0801, `R` = 510.080078125, `Hm` = 118.921875,
+  `W` = 528.080078125, `H` = 136.921875.
+- Page 560.080078125 × 168.921875 → **560.0801 × 168.9219**.

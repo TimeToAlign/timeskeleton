@@ -2,6 +2,7 @@
   "layers": [],
   "manifest": "groups/group_parent_exact.json",
   "placement": {
+    "bands": {},
     "height": null,
     "length": 400,
     "order": [
@@ -9,6 +10,7 @@
       "regions",
       "flow"
     ],
+    "places": {},
     "spacing": 1,
     "width": null
   },
