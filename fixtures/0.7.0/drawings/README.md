@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Twenty-one of the 61 drawings in this directory are derived by hand from
+Twenty-two of the 62 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the font metrics
 alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
@@ -40,15 +40,17 @@ are given in full; a value as the writer prints it (§7.3) follows an arrow
 | `unknown_length_segments` | `unknown_length_segments.json` | none |
 | `bundle_ungrouped__places` | `bundles/bundle_ungrouped.json` | `places` `{score: {x: -60, y: -150, height: 120}}` |
 | `bundle_ungrouped__scale` | `bundles/bundle_ungrouped.json` | `places` `{recording: {scale: 1.5}}` |
+| `bundle_ungrouped__spacing` | `bundles/bundle_ungrouped.json` | `places` `{recording: {spacing: 2}}` |
 | `styled__score__bands-timeline` | `styled__score.json` | `bands` `{score: ["flow", "children", "regions"]}` |
 
 ## Shared quantities
 
 Every manifest is drawn as one box (§8). Fifteen of these drawings show
 one ungrouped root, drawn in its card, four one group, drawn as a frame,
-and `bundle_ungrouped__places` and `bundle_ungrouped__scale` three
-ungrouped roots, each in its own card. Only the manifest of these two has a
-`name`, so only their box has a title; no other manifest has a `name` or an
+and `bundle_ungrouped__places`, `bundle_ungrouped__scale` and
+`bundle_ungrouped__spacing` three ungrouped roots, each in its own card.
+Only the manifest of these three has a `name`, so only their box has a
+title; no other manifest has a `name` or an
 `id`.
 
 Every `data-address` follows §2.2: an element other than a timeline or a
@@ -74,9 +76,12 @@ addressed `name`.
   Li + Mr` or its group's title's right edge when that is larger.
 - Each item, a group's frame or an ungrouped root's card, lies at its place
   (§8.6), whose `x` is `P` = 8 unless `places` states another, and whose
-  `scale` is 1 except for `recording` in `bundle_ungrouped__scale`. A
-  position `u` in item coordinates is drawn at `x + u` at scale 1 and at
-  `x + scale × u` otherwise, and every length of a scaled item (widths,
+  `scale` is 1 except for `recording` in `bundle_ungrouped__scale`, and
+  whose `spacing` is 1 except for `recording` in
+  `bundle_ungrouped__spacing`; the vertical stretch `v` of a member drawing
+  is the placement's `spacing` times its item's (§8.6). A
+  position `px` in item coordinates is drawn at `x + px` at scale 1 and at
+  `x + scale × px` otherwise, and every length of a scaled item (widths,
   heights, radii, stroke widths, dashes, font sizes) is multiplied by its
   scale. In a box of one item `Mr` is that item's own `R − (s0 + L)`, so
   `Ri` is its largest right edge `R`, its group's title included.
@@ -461,7 +466,7 @@ in place coordinates until the place origin is added, last (§8.4).
   F`; `recording` at (8, 100.2578125), `F` below the bottom edge `d` =
   28.8046875 + 63.453125 = 92.2578125 of `pages`' card, its shadow not
   counted; `score` at (−60, −150). Every `length` is 400 and every `scale`
-  1, so an item-coordinate position `u` lies at `x + u`.
+  1, so an item-coordinate position `px` lies at `x + px`.
 - The box: `Pt` = 28.8046875, `Xl` = min(0, −60 − 8) = −68 and `Yt` =
   min(0, −150 − 28.8046875) = −178.8046875, so `(Ox, Oy)` = (68,
   178.8046875). `Xr` = 8 + (515.896728515625 + 2) = 525.896728515625, from
@@ -505,7 +510,7 @@ items after a scaled one start below its drawn bottom (§8.6).
   scale 1.5, its drawn bottom 100.2578125 + 1.5 × 49.37890625 =
   174.326171875; `score` at (8, 182.326171875), `F` below that. Every
   `length` is 400.
-- `recording`, drawn at `(8 + 1.5 × u, 100.2578125 + 1.5 × v)`: its card
+- `recording`, drawn at `(8 + 1.5 × px, 100.2578125 + 1.5 × py)`: its card
   at (8, 100.2578125), 1.5 × 507.896728515625 = 761.8450927734375 →
   761.8451 wide and 1.5 × 49.37890625 = 74.068359375 → 74.0684 high, `rx`
   7.5, stroke width 1.125; its shadow at the item position (2, 2), drawn
@@ -530,6 +535,53 @@ items after a scaled one start below its drawn bottom (§8.6).
   + (49.37890625 + 2)) = 8 + 233.705078125 = 241.705078125, from `score`'s
   shadow. No card overlaps another or the title.
 - Page 812.8450927734375 × 273.705078125 → **812.8451 × 273.7051**.
+
+## `bundle_ungrouped__spacing`
+
+The manifest of `bundle_ungrouped__places` with `places` `{recording:
+{spacing: 2}}` and nothing else stated: every item at its default place,
+`recording` stretched vertically. Its vertical stretch is `v` = 1 × 2 = 2,
+the placement's `spacing` times its item's (§8.6); `pages` and `score` keep
+`v` = 1. A vertical stretch changes neither the horizontal layout nor any
+size that §6.2 does not mark "× v": `recording` draws only its root band,
+whose wedges and labels keep their size, so only its padding above and
+below, `P × v` = 16, grows. Its row pitch `p0` = max(14 × 2, `h(11)`) = 28
+places no row, since it has no children band.
+
+- The layout is that of `bundle_ungrouped__places`, which no place
+  changes: `n` = 8, `s0` = 71.70361328125, `Mr` = 28.193115234375, `Ri` =
+  499.896728515625, every card 0 to 507.896728515625 in item coordinates,
+  `Hm` = 63.453125 (`pages`) and 49.37890625 (`score`).
+- `recording` (§6.5): `Ea` = 0, so `y_root` = max(16 + 0, 16 +
+  6.40234375) = 22.40234375; the root band below reaches 26.9765625, so
+  `Hm` = 22.40234375 + 26.9765625 + 16 = 65.37890625 → 65.3789, 16 more
+  than at `v` = 1.
+- Places: `pages` at (8, 28.8046875); `recording` at (8, 100.2578125), its
+  bottom 100.2578125 + 65.37890625 = 165.63671875; `score` at (8,
+  173.63671875 → 173.6367), `F` below that, 16 lower than in a box with no
+  places. Every `length` is 400 and every `scale` 1.
+- `recording`, drawn at `(8 + px, 100.2578125 + py)`, `(px, py)` a
+  position in item coordinates (§8.6): its card at (8, 100.2578125),
+  507.896728515625 → 507.8967 wide and 65.3789 high, its shadow at (10, 102.2578125); its
+  line at `y` 100.2578125 + 22.40234375 = 122.66015625 → 122.6602, from
+  79.70361328125 → 79.7036 to 479.70361328125 → 479.7036, the arrowhead's
+  base from 118.16015625 → 118.1602 to 127.16015625 → 127.1602; its wedges
+  from 100.2578125 + 23.90234375 = 124.16015625 → 124.1602 to 100.2578125 +
+  36.90234375 = 137.16015625 → 137.1602; its name at `x` 16, baseline
+  100.2578125 + (22.40234375 + 3.80810546875) = 126.46826171875 → 126.4683;
+  its labels at baseline 100.2578125 + (22.40234375 + 24.85400390625) =
+  147.51416015625 → 147.5142. Each of these ordinates lies 8 = `P × (v −
+  1)` below its place in a box with no places, and the card ends 16 lower.
+- `pages` is drawn as in a box with no places; `score` 16 lower: its line
+  at 173.63671875 + 14.40234375 = 188.0390625 → 188.0391, its name's
+  baseline at 191.84716796875 → 191.8472, its labels' at 212.89306640625
+  → 212.8931.
+- The box: `Xl` = `Yt` = 0, so the origin is (0, 0) and the title at (8,
+  18.21044921875 → 18.2104). `W` = 8 + (8 + (507.896728515625 + 2)) =
+  525.896728515625, from the shadows of all three cards; `H` = 8 +
+  (173.63671875 + (49.37890625 + 2)) = 8 + 225.015625 = 233.015625, from
+  `score`'s shadow. No card overlaps another or the title.
+- Page 557.896728515625 × 265.015625 → **557.8967 × 265.0156**.
 
 ## `styled__score__bands-timeline`
 

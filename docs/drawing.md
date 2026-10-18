@@ -33,8 +33,10 @@ ungrouped roots as cards. Terms in `code` are JSON members.
   - `length`, the **graphical length** `L` of every item of the box
     without a length of its own (section 8.6), in canvas units (default
     400): the distance from a root's start to its end;
-  - `spacing`, the **vertical stretch** `v`, a positive number (default 1)
-    that multiplies the vertical distances of section 6.2;
+  - `spacing`, the box's **vertical stretch**, a positive number (default
+    1); the vertical stretch `v` of a member drawing, which multiplies the
+    vertical distances of section 6.2, is this times its item's `spacing`,
+    and for a member also its card's (section 8.6);
   - `width` and `height`, the requested **box size** in canvas units, or
     `null` (the default) for the content's own size;
   - `order`, the **band order**: the groups `children`, `regions` and
@@ -51,8 +53,8 @@ ungrouped roots as cards. Terms in `code` are JSON members.
   - `places`, the **places** of the box's items and the sizes of its
     members' cards (section 8.6): an object whose keys are the ids of
     groups, of ungrouped roots and of members, each value an object with
-    any of the members `x`, `y`, `length`, `scale`, `width` and `height`
-    (default `{}`).
+    any of the members `x`, `y`, `length`, `scale`, `spacing`, `width` and
+    `height` (default `{}`).
 - `layers`: the statement lists that style the drawing, from the lowest to
   the highest precedence: the defaults of section 4, then any lists an
   application supplies below the manifest (such as an editor's settings),
@@ -80,23 +82,39 @@ change one input each:
 | Box | `width`, `height` | only the box changes; the content keeps its place at the top left; the box never becomes smaller than the content (section 8.4) |
 | Stretch | `length` (horizontal), `spacing` (vertical), both (a corner); `width`, `height` where a box size is requested | distances stretch: along time horizontally, between rows and bands vertically; markers, line widths and text keep their size; the box follows the content (below) |
 
-On a stretch, a requested box size larger than the content keeps the space
-it adds, so the box follows the stretched content: `width` (or `height`)
-becomes the stretched content's size plus the request minus the content's
-size before the stretch. A request no larger than the content before the
-stretch becomes `null`, and `null` stays `null`.
+On a stretch, a requested box size larger than the content keeps its
+proportion to the content, so the box follows the stretched content and
+every margin it adds stretches with it: `width` (or `height`) becomes the
+request times the stretched content's size divided by the content's size
+before the stretch, multiplied first, in binary64 (an editor may round the
+result to the grid it stores numbers on). A request no larger than the
+content before the stretch becomes `null`, and `null` stays `null`. A
+Stretch of the box scales every `x`, `length` and `width` that `places`
+states by the ratio of the lengths and every `y` and `height` by the ratio
+of the spacings, and keeps every `scale` and `spacing`, so the items keep
+their arrangement.
 
 Every frame and card of the box is resized in the same three ways,
-changing its entry of `places` only (section 8.6). An item, a group's
-frame or an ungrouped root's card: Scale changes its `scale`, Box its
-`width` and `height`, Stretch its `length`, its `width` following the
-stretched content as the box's does. A member's card: Scale and Stretch
+changing entries of `places` only (section 8.6). An item, a group's frame
+or an ungrouped root's card: Scale changes its `scale`, Box its `width`
+and `height`, Stretch its `length` (horizontal), its `spacing` (vertical)
+or both (a corner), its `width` and `height` following the stretched
+content as the box's do. A member's card: Scale and the horizontal Stretch
 change its group's `scale` and `length`, since the members of a group
-share them, and Box changes the card's own `width` and `height`; a Stretch
-on a member's card changes the `length` alone, so a requested width, the
-frame's or the card's, stays as stated, and the frame or card grows once
-its content passes it.
-`spacing` belongs to the whole drawing.
+share them; the vertical Stretch changes the card's own `spacing`; Box
+changes the card's own `width` and `height`. An item's or card's content,
+for this rule, is its frame or card without its own request (for a
+member's card, without its frame's request too, since the frame's width
+widens its cards), in item coordinates: for `width` its right edge less its left (section 8.2), for
+`height` its height of section 8.4. Every requested `width` or `height`
+of a frame or card whose content a Stretch of an item or a member's card
+changes keeps its proportion to
+that content by the rule above: a horizontal Stretch of a group, from its
+frame or a member's card, rescales every requested width of the frame and
+of its members' cards, so the members' lines keep one length and every
+margin stretches with them; a vertical Stretch of a frame rescales its own
+and its members' cards' requested heights, and of a card its own and its
+frame's.
 
 ## 2. The `graphical` block
 
@@ -574,8 +592,8 @@ open diamond of the other (section 6.6).
 
 ### 6.2 Constants
 
-Distances marked "× v" are multiplied by the vertical stretch `v`
-(section 1); every other size is fixed.
+Distances marked "× v" are multiplied by the member drawing's vertical
+stretch `v` (section 8.6); every other size is fixed.
 
 | Constant | Canvas units |
 |---|---|
@@ -1345,14 +1363,16 @@ name.
 Every item of the box, a group's frame or an ungrouped root's card, lies at
 a **place**: its left edge `x` and its top `y`, measured from the place
 origin in canvas units, its graphical length `length`, its **scale**
-`scale` (positive), and its requested size `width` and `height` (positive,
-or left out for its content's own size). `places` (section 1) states any of
+`scale` (positive), its vertical stretch `spacing` (positive), and its
+requested size `width` and `height` (positive, or left out for its
+content's own size). `places` (section 1) states any of
 these members for the item whose id is its key; a key naming nothing drawn
 is not used, and so is any of a value's members that this section gives
-no use for (a member's card uses only `width` and `height`). A member that is not stated takes its default:
+no use for (a member's card uses only `width`, `height` and `spacing`). A member that is not stated takes its default:
 
 - `length`: the placement's `length`;
 - `scale`: 1;
+- `spacing`: 1;
 - `width` and `height`: none, the content's own size;
 - `x`: `P`;
 - `y`: for the first item in drawing order (section 8.5), `P + h(s) + F`
@@ -1378,9 +1398,20 @@ frame or card is the larger of its own height and `height` high, every card
 and member drawing keeping its top. `width` and `height` are in item
 coordinates, before the scale.
 
-A **member's card** may request a size of its own: the entry of `places`
-under the member's id states its `width` and `height`, in item coordinates,
-before its group's scale, and nothing else of it is used. The card is then the larger of its own width and `width` wide,
+The vertical stretch `v` of a member drawing (sections 6.2 and 6.5) is the
+placement's `spacing` times its item's `spacing` (its group's frame's, or
+its own card's for an ungrouped root), and for a member, that
+product times its card's `spacing` (below), multiplied in that order. So an
+item's or card's vertical stretch, like the box's, widens the distances
+between rows and bands and the drawing's padding above and below alike. A
+frame's padding `Q`, its title's slot and the gap `F` between its cards
+are the frame's, not a member drawing's, and do not stretch, as the box's
+padding `P` does not.
+
+A **member's card** may request a size and a vertical stretch of its own:
+the entry of `places` under the member's id states its `width` and
+`height`, in item coordinates, before its group's scale, and its
+`spacing`, and nothing else of it is used. The card is then the larger of its own width and `width` wide,
 spanning `Q` to `max(Ri + K, Q + width)`, and the larger of `Hm` and
 `height` high; its member drawing keeps its place at the card's top left,
 so the request adds a margin to its right and below. The frame holding it
@@ -1388,8 +1419,8 @@ grows with it: the frame spans `0` to the largest right edge of its cards
 plus `Q`, and its height sums its cards' heights.
 
 The item is then drawn at its place: every position of its elements, its
-frame's or card's included, is the item-coordinate position `(u, v)`
-taken to `(x + scale × u, y + scale × v)`, and every length of them, a
+frame's or card's included, is the item-coordinate position `(px, py)`
+taken to `(x + scale × px, y + scale × py)`, and every length of them, a
 width or height, a radius (a frame's or card's corner radius `rx`
 included), a stroke width, every dash of a dash array, a font size, a
 text's `max-width` and the size of every marker, is multiplied by `scale`;
@@ -1398,7 +1429,7 @@ item-coordinate `b − a` and `d − c`; a card's shadow is written at its
 card's written `x` and `y` plus `scale × 2`, with the card's `width` and
 `height`, its right and bottom edges for the box being `x + scale × (b +
 2)` and `y + scale × (d + 2)`; with
-`scale` 1 that is `(x + u, y + v)` and every length unchanged. So an item's
+`scale` 1 that is `(x + px, y + py)` and every length unchanged. So an item's
 scale scales everything in it, proportions kept, text included, about its
 top left corner, as the box's scale `z` scales the box (section 1). Its
 edges for the box (section 8.4) and for the default `y` above are its
@@ -1406,6 +1437,6 @@ drawn edges, after the scale.
 
 The members of a group are never placed: they lie one under the other in
 their frame, in the group's display order (section 8.1), and only that order
-changes; their cards may only request a size. The bands of a member drawing likewise lie outwards from its line
+changes; their cards may only request a size and a vertical stretch. The bands of a member drawing likewise lie outwards from its line
 in its band order (section 6.4).
 
