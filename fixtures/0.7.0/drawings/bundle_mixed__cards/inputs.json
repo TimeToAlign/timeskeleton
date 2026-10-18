@@ -1,0 +1,26 @@
+{
+  "layers": [],
+  "manifest": "bundles/bundle_mixed.json",
+  "placement": {
+    "bands": {},
+    "height": null,
+    "length": 400,
+    "order": [
+      "children",
+      "regions",
+      "flow"
+    ],
+    "places": {
+      "group_1": {
+        "scale": 1.25
+      },
+      "performance": {
+        "height": 120,
+        "width": 650
+      }
+    },
+    "spacing": 1,
+    "width": null
+  },
+  "scale": 1
+}

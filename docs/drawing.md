@@ -48,10 +48,11 @@ ungrouped roots as cards. Terms in `code` are JSON members.
     group whose frame holds it, else `order`; it never takes the band order
     of an ancestor timeline. A key naming no group and no root drawn in a
     card is not used;
-  - `places`, the **places** of the box's items (section 8.6): an object
-    whose keys are the ids of groups and of ungrouped roots, each value an
-    object with any of the members `x`, `y`, `length`, `width` and
-    `height` (default `{}`).
+  - `places`, the **places** of the box's items and the sizes of its
+    members' cards (section 8.6): an object whose keys are the ids of
+    groups, of ungrouped roots and of members, each value an object with
+    any of the members `x`, `y`, `length`, `scale`, `width` and `height`
+    (default `{}`).
 - `layers`: the statement lists that style the drawing, from the lowest to
   the highest precedence: the defaults of section 4, then any lists an
   application supplies below the manifest (such as an editor's settings),
@@ -85,10 +86,17 @@ becomes the stretched content's size plus the request minus the content's
 size before the stretch. A request no larger than the content before the
 stretch becomes `null`, and `null` stays `null`.
 
-An item of the box (section 8.6) is resized in two of these ways, changing
-its place only: Box changes its `width` and `height`, Stretch its `length`,
-its `width` following the stretched content as the box's does. Scale and
-`spacing` belong to the whole drawing.
+Every frame and card of the box is resized in the same three ways,
+changing its entry of `places` only (section 8.6). An item, a group's
+frame or an ungrouped root's card: Scale changes its `scale`, Box its
+`width` and `height`, Stretch its `length`, its `width` following the
+stretched content as the box's does. A member's card: Scale and Stretch
+change its group's `scale` and `length`, since the members of a group
+share them, and Box changes the card's own `width` and `height`; a Stretch
+on a member's card changes the `length` alone, so a requested width, the
+frame's or the card's, stays as stated, and the frame or card grows once
+its content passes it.
+`spacing` belongs to the whole drawing.
 
 ## 2. The `graphical` block
 
@@ -346,7 +354,7 @@ A position `t` on the root's axis, with `λ` the root's length, or its reach
 when its length is `null` (section 3.4), becomes the **proportion** `u = t
 / λ`: an exact quotient when both are exact, then
 rounded once to the nearest double; a binary64 division when either is a
-float; 0 when `λ` is 0. Its x in the box is
+float; 0 when `λ` is 0. Its x in item coordinates (section 8.2) is
 
     x(t) = x0 + L × u
 
@@ -882,7 +890,7 @@ above side and down below.
   text instead (an editor sets it to give a row its own name, and resets it
   to `none`). When the text is wider than that name's `max-width`, it is cut
   to its longest prefix that, followed by `…` (U+2026), fits, and the cut
-  text is shown. It is drawn starting at `x = xn` (section 8.2), vertically
+  text is shown. It is drawn starting at `x = n` (section 8.2), vertically
   centred on the row: baseline at `y + (a(s) − d(s)) / 2`, `s` the font size of that first
   name, whose address the text carries. Name descriptors are ordered from
   the top row down.
@@ -1146,30 +1154,43 @@ marks of the member's start and end, each mark holding its `label`.
 
 ### 8.2 Horizontal
 
-Each item is laid out horizontally on its own, its left edge at the `x`
-of its place (section 8.6). Its **name column** starts at `xn = x + Q + K`
-in a frame and at `xn = x + K` in an ungrouped root's card: inside the
-cards, at the same x for every card of the item. Every row name of every member drawing of the
-item, ancestor names included, is drawn at `x = xn`. `N` is the width of
-the widest name of any of its member drawings (section 6.7), and `G' = 8` when any such name is
+The box has **one horizontal layout**, which every item applies at its own
+place: the name column, the line's start and the right margin are found
+once over all items, so that items of one length are equally wide wherever
+they lie. Each quantity below is computed in **item coordinates**, measured
+from the item's left edge, before the item's scale (section 8.6); `Li` is
+the graphical length of item `i`.
+
+The **name column** starts at `n = Q + K` when the box holds a frame and at
+`n = K` otherwise: inside the cards, at the same offset for every card of
+every item. Every row name of every member drawing, ancestor names
+included, is drawn at `x = n`. `N` is the width of the widest name of any
+member drawing of the box (section 6.7), and `G' = 8` when any such name is
 drawn and 0 otherwise; titles are not names of rows and count for neither.
-The shared start is
+The **start** is
 
-    x0 = max(xn + N + G', max over i of (xn + wi / 2 − L × ui), max over a of (xn + N + G' + 8 × wa))
+    s0 = max(n + N + G', max over i, j of (n + wj / 2 − Li × uj), max over a of (n + N + G' + 8 × wa))
 
-where `i` runs over every centred label of every member drawing of the
-item (section 6.7, with the member's own proportions) and `a` over every
-ancestor line of the item that runs on to the left (section 8.3), `wa` its
-stroke width. So no label
-crosses the name column's left edge, and no chevron crosses the gap after
-the names.
+where `j` runs over every centred label of every member drawing of item
+`i` (section 6.7, with the member's own proportions and the item's length
+`Li`) and `a` over every ancestor line of the box that runs on to the left
+(section 8.3), `wa` its stroke width. So no label crosses the name column's
+left edge, and no chevron crosses the gap after the names. Every member
+drawing of item `i` starts at `s0`, its shared end is `s0 + Li`, and the
+`x0` of sections 3 and 8.3 is `s0` in item coordinates.
 
-Let `R` be the largest right edge of every member drawing of the item
-(section 6.7) and of its group's title, which starts at `x + Q`, or `x0`
-when none of them draws anything; section 8.6 widens it on request. A card
-inside a frame spans `x + Q` to `R + K`, so that every card of a frame
-ends at one x; a frame spans `x` to `R + K + Q`; an ungrouped root's card
-spans `x` to `R + K`.
+The **right margin** `Mr` is the largest of `e − (s0 + Li)` over every
+member drawing of every item `i` that draws anything, `e` its right edge
+(section 6.7); it may be negative. Item `i`'s right edge is `Ri =
+max(s0 + Li + Mr, t)`, `t` the right edge of its group's title, which
+starts at `Q` (none for an ungrouped root's card), or `Ri = max(s0, t)`
+when no member drawing of the box draws anything; section 8.6 widens it on
+request. A box of one item so has the right edge of its widest content. A card
+inside a frame spans `Q` to `Ri + K`, so that every card of a frame ends
+at one x, unless its own request widens it (section 8.6); a frame spans `0`
+to `Ri + K + Q`; an ungrouped root's card spans `0` to `Ri + K + Q` when
+the box holds a frame and to `Ri + K` otherwise, so that the frames and
+ungrouped cards of one length end at one x.
 
 ### 8.3 Ancestor lines
 
@@ -1259,9 +1280,13 @@ and `height`, and its right and bottom edges are `b + 2` and `d + 2`.
   not displayed), and each further one `F` below the previous one's bottom.
   The frame is `Q + h(s) + 4 + Hm1 + F + Hm2 + … + F + Hmn + Q` high,
   summed in that order, without `h(s) + 4` when the title is not displayed.
-- **The box.** The manifest's title, when there is one, is drawn at `x = P`,
-  with its baseline at `P + a(s)`, both in place coordinates (below); every
-  frame and ungrouped card lies at its place (section 8.6).
+- **The box.** The manifest's title, when there is one, lies at the box's
+  top left corner: drawn at `x = Xl + P`, with its baseline at `Yt + P +
+  a(s)`, both in place coordinates (below), so in the box at `P` and `P +
+  a(s)` wherever the box grows. Its slot, `h(s)` high, is the top border
+  of the items: no item rises into it, and an item placed higher pushes it
+  up with the box's top. Every frame and ungrouped card lies at its place
+  (section 8.6).
 
 Within a member drawing, the root's line lies at the drawing's top plus the
 `y_root` of section 6.5, computed in that order; every other ordinate
@@ -1270,23 +1295,29 @@ not stretched by `v`.
 
 The box grows in every direction to hold its content, with the padding `P`
 on every side. Every position is first computed in **place coordinates**,
-measured from the place origin, as sections 6 and 8 write it. In place
+measured from the place origin, as sections 6 and 8 write it (an item's
+positions through its item coordinates and its place, section 8.6). In place
 coordinates the content runs from `Xl`, the smaller of 0 and the smallest
 left edge of any frame or card minus `P`, to `Xr`, `P` plus the largest
 right edge of any frame or card, a card's shadow included, or of the
-manifest's displayed title; and from `Yt`, the smaller of 0 and the smallest top of any frame or card minus `P`, to `Yb`, `P`
-plus the largest bottom edge of any frame or card, a card's shadow
-included, or of the manifest's displayed title, whose slot ends at
-`P + h(s)` (`Xr = 2P + K` and `Yb = P` when the box holds none of these).
+manifest's displayed title, whose right edge is `Xl + P` plus its width;
+and from `Yt`, the smaller of 0 and the smallest top of any frame or card
+minus `Pt`, to `Yb`, `P` plus the largest bottom edge of any frame or card,
+a card's shadow included, or of the manifest's displayed title, whose slot
+ends at `Yt + P + h(s)` (`Xr = 2P + K` and `Yb = P` when the box holds none
+of these). `Pt` is `P + h(s) + F` when the manifest's title is displayed,
+`s` its font size, and `P` otherwise, so that an item never rises above
+`F` below the title's slot.
 The content is `Wb = Xr − Xl` wide and `Hb = Yb − Yt` high, the sum with
 `P` taken first: `Wb = (P + max(b + 2, …)) − Xl`, and `Hb` likewise. The place origin lies at
 `(Ox, Oy) = (0 − Xl, 0 − Yt)` in the box, so an origin of 0 is `+0`; it is
 `(0, 0)` unless an item reaches left of or above the padding. Each finished
 position is then drawn in the box with `Ox` added to its x and `Oy` to its
-y, the last sum of each: the manifest's title has its baseline at
-`(P + a(s)) + Oy`. A width or height, the difference of two positions, is
-taken in place coordinates. A frame or card that is not displayed is not drawn but keeps
-its place, since member drawings lie in it: the layout, `xn`, `Wb` and `Hb`
+y, the last sum of each: the manifest's title is drawn at `(Xl + P) + Ox`
+with its baseline at `((Yt + P) + a(s)) + Oy`. A frame's or card's width and height are
+taken in item coordinates (section 8.6); the box's `Wb` and `Hb` in place
+coordinates, as above. A frame or card that is not displayed is not drawn but keeps
+its place, since member drawings lie in it: the layout, `n`, `Wb` and `Hb`
 are as when it is displayed, except that a hidden card's shadow is not
 drawn and does not count. The
 box is `W = max(Wb, width)` wide and `H = max(Hb, height)` high (`W = Wb`
@@ -1313,21 +1344,23 @@ name.
 
 Every item of the box, a group's frame or an ungrouped root's card, lies at
 a **place**: its left edge `x` and its top `y`, measured from the place
-origin in canvas units, its graphical length `length`, and its requested
-size `width` and `height` (positive, or left out for its content's own
-size). `places` (section 1) states any of these
-members for the item whose id is its key; a key naming no item is not
-used. A member that is not stated takes its default:
+origin in canvas units, its graphical length `length`, its **scale**
+`scale` (positive), and its requested size `width` and `height` (positive,
+or left out for its content's own size). `places` (section 1) states any of
+these members for the item whose id is its key; a key naming nothing drawn
+is not used, and so is any of a value's members that this section gives
+no use for (a member's card uses only `width` and `height`). A member that is not stated takes its default:
 
 - `length`: the placement's `length`;
+- `scale`: 1;
 - `width` and `height`: none, the content's own size;
 - `x`: `P`;
 - `y`: for the first item in drawing order (section 8.5), `P + h(s) + F`
   below the manifest's title, `s` its font size, or `P` when there is no
   title or it is not displayed; for every further item, `F` below the
   largest bottom edge `d` of the items before it. That edge is the frame's
-  or card's `d` of section 8.4, its place `y` plus its height, summed in
-  place coordinates before any shift; a card's shadow does not count, and
+  or card's `d` of section 8.4, its place `y` plus `scale` times its
+  height, summed in place coordinates before any shift; a card's shadow does not count, and
   an item that a `height` request makes higher ends at its requested
   bottom.
 
@@ -1335,16 +1368,44 @@ So with `places` empty the items lie one under the other, as an editor
 first shows them.
 
 An item is laid out by sections 8.2 and 8.4 with its own `length` as `L`,
-its left edge at `x` and its top at `y`, in place coordinates (section
-8.4), every sum written as those sections write it. Its frame or card is wider when `width` asks for more:
-for a frame, `R` is taken as the larger of its `R` and `x + width − K −
-Q`, so its cards still end at one x inside it; for a card, as the larger
-of its `R` and `x + width − K`. It is higher when
-`height` asks for more: the frame or card is the larger of its own height
-and `height` high, every card and member drawing keeping its top.
+in item coordinates, its left edge and top at 0, every sum written as those
+sections write it. Its frame or card is wider when `width` asks for more:
+for a frame, `Ri` is taken as the larger of its `Ri` and `width − K − Q`,
+so its cards still end at one x inside it; for an ungrouped root's card,
+as the larger of its `Ri` and `width − K − Q` when the box holds a frame
+and `width − K` otherwise. It is higher when `height` asks for more: the
+frame or card is the larger of its own height and `height` high, every card
+and member drawing keeping its top. `width` and `height` are in item
+coordinates, before the scale.
+
+A **member's card** may request a size of its own: the entry of `places`
+under the member's id states its `width` and `height`, in item coordinates,
+before its group's scale, and nothing else of it is used. The card is then the larger of its own width and `width` wide,
+spanning `Q` to `max(Ri + K, Q + width)`, and the larger of `Hm` and
+`height` high; its member drawing keeps its place at the card's top left,
+so the request adds a margin to its right and below. The frame holding it
+grows with it: the frame spans `0` to the largest right edge of its cards
+plus `Q`, and its height sums its cards' heights.
+
+The item is then drawn at its place: every position of its elements, its
+frame's or card's included, is the item-coordinate position `(u, v)`
+taken to `(x + scale × u, y + scale × v)`, and every length of them, a
+width or height, a radius (a frame's or card's corner radius `rx`
+included), a stroke width, every dash of a dash array, a font size, a
+text's `max-width` and the size of every marker, is multiplied by `scale`;
+a frame's or card's `width` and `height` are `scale` times its
+item-coordinate `b − a` and `d − c`; a card's shadow is written at its
+card's written `x` and `y` plus `scale × 2`, with the card's `width` and
+`height`, its right and bottom edges for the box being `x + scale × (b +
+2)` and `y + scale × (d + 2)`; with
+`scale` 1 that is `(x + u, y + v)` and every length unchanged. So an item's
+scale scales everything in it, proportions kept, text included, about its
+top left corner, as the box's scale `z` scales the box (section 1). Its
+edges for the box (section 8.4) and for the default `y` above are its
+drawn edges, after the scale.
 
 The members of a group are never placed: they lie one under the other in
 their frame, in the group's display order (section 8.1), and only that order
-changes. The bands of a member drawing likewise lie outwards from its line
+changes; their cards may only request a size. The bands of a member drawing likewise lie outwards from its line
 in its band order (section 6.4).
 
