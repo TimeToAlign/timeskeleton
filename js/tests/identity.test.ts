@@ -117,7 +117,8 @@ describe("identity", () => {
     ]);
   });
 
-  const partWordDocuments = (word: string): [JsonObject, (string | number)[]][] => {
+  /** A document for each place an id is checked, with the path of `word` in it. */
+  const idDocuments = (word: string): [JsonObject, (string | number)[]][] => {
     const shift = { type: "ShiftMap", id: word, source_unit: null, target_unit: null, offset: 1 };
     const flow: Record<string, JsonObject[]> = {
       breaks: [{ id: word, coordinate: [1, 1] }],
@@ -126,6 +127,14 @@ describe("identity", () => {
     };
     return [
       [manifest([timeline(word)]), ["timelines", 0, "id"]],
+      [
+        manifest([
+          timeline("s", "quarters", [8, 1], {
+            children: [timeline(word, "quarters", [8, 1], { offset: [0, 1] })],
+          }),
+        ]),
+        ["timelines", 0, "children", 0, "id"],
+      ],
       [
         manifest([timeline("s", "quarters", [8, 1], { conversion_maps: [shift] })]),
         ["timelines", 0, "conversion_maps", 0, "id"],
@@ -150,7 +159,7 @@ describe("identity", () => {
   it.each(["start", "end", "name", "label", "card"])(
     "refuses the part word %s as any id",
     (word) => {
-      for (const [document, path] of partWordDocuments(word)) {
+      for (const [document, path] of idDocuments(word)) {
         expect(only(document)).toEqual([
           path,
           `id ${JSON.stringify(word)} is reserved for the parts of an address`,
@@ -159,8 +168,33 @@ describe("identity", () => {
     },
   );
 
-  it.each(["starts", "Start"])("accepts %s as any id", (word) => {
-    for (const [document] of partWordDocuments(word)) validate(document);
+  it.each(["regions_1", "children_10", "markers_7", "conversion_maps_1", "flow_control_2"])(
+    "refuses the band id %s as any id",
+    (word) => {
+      for (const [document, path] of idDocuments(word)) {
+        expect(only(document)).toEqual([
+          path,
+          `id ${JSON.stringify(word)} is reserved for the bands of a timeline`,
+        ]);
+      }
+    },
+  );
+
+  it.each([
+    "starts",
+    "Start",
+    "markers",
+    "conversion_maps",
+    "children",
+    "regions",
+    "flow_control",
+    "regions_0",
+    "regions_01",
+    "Regions_1",
+    "regions_1x",
+    "band_1",
+  ])("accepts %s as any id", (word) => {
+    for (const [document] of idDocuments(word)) validate(document);
   });
 
   it("keeps timeline ids unique across roots", () => {
@@ -261,7 +295,7 @@ describe("identity", () => {
     order(value).g9 = [];
     expect(only(value)).toEqual([
       ["graphical", "order", "g9"],
-      '"g9" names no group of this manifest',
+      '"g9" names no group or timeline of this manifest',
     ]);
     value = bundle();
     order(value).group_1 = ["score", "page", "performance"];
@@ -278,6 +312,127 @@ describe("identity", () => {
     value = bundle();
     delete order(value).group_2;
     validate(value);
+  });
+
+  /** `score` with a child `take` holding a child `bar`, with these orders. */
+  const banded = (order: JsonObject, rest: JsonObject = {}) =>
+    manifest(
+      [
+        timeline("score", "quarters", [8, 1], {
+          children: [
+            timeline("take", "quarters", [4, 1], {
+              offset: [0, 1],
+              children: [timeline("bar", "quarters", [2, 1], { offset: [0, 1] })],
+            }),
+          ],
+        }),
+      ],
+      { ...rest, graphical: { order } },
+    );
+
+  it("accepts a band order at a root and at a descendant", () => {
+    for (const value of [
+      banded({
+        score: [
+          "score/children_1",
+          "score/conversion_maps_1",
+          "score",
+          "score/markers_1",
+          "score/regions_1",
+          "score/flow_control_1",
+        ],
+      }),
+      banded({
+        score: [
+          "score/children_1",
+          "score/markers_1",
+          "score",
+          "score/conversion_maps_1",
+          "score/regions_1",
+          "score/flow_control_1",
+        ],
+      }),
+      banded({
+        take: [
+          "take/flow_control_1",
+          "take/regions_1",
+          "take/markers_1",
+          "take",
+          "take/conversion_maps_1",
+          "take/children_1",
+        ],
+        bar: [
+          "bar",
+          "bar/children_1",
+          "bar/conversion_maps_1",
+          "bar/markers_1",
+          "bar/regions_1",
+          "bar/flow_control_1",
+        ],
+      }),
+    ]) {
+      expect(problems(value)).toEqual([]);
+      validate(value);
+    }
+  });
+
+  it("checks band orders", () => {
+    expect(problems(banded({ score: ["score"] }))).toEqual(
+      [
+        "score/children_1",
+        "score/conversion_maps_1",
+        "score/markers_1",
+        "score/regions_1",
+        "score/flow_control_1",
+      ].map((address) => [
+        ["graphical", "order", "score"],
+        `${JSON.stringify(address)} is missing from the band order of "score"`,
+      ]),
+    );
+    const strangers = banded({
+      score: [
+        "take/regions_1",
+        "score/children_1",
+        "score/conversion_maps_1",
+        "score",
+        "take",
+        "score/markers_1",
+        "score/regions_1",
+        "score/flow_control_1",
+        "score/regions_2",
+      ],
+    });
+    expect(problems(strangers)).toEqual([
+      [["graphical", "order", "score", 0], '"take/regions_1" is not "score" or one of its bands'],
+      [["graphical", "order", "score", 4], '"take" is not "score" or one of its bands'],
+      [["graphical", "order", "score", 8], '"score/regions_2" is not "score" or one of its bands'],
+    ]);
+    const swapped = banded({
+      bar: [
+        "bar/children_1",
+        "bar/conversion_maps_1",
+        "bar",
+        "bar/markers_1",
+        "take/regions_1",
+        "bar/flow_control_1",
+      ],
+    });
+    expect(problems(swapped)).toEqual([
+      [["graphical", "order", "bar", 4], '"take/regions_1" is not "bar" or one of its bands'],
+      [["graphical", "order", "bar"], '"bar/regions_1" is missing from the band order of "bar"'],
+    ]);
+    expect(only(banded({ nothing: [] }))).toEqual([
+      ["graphical", "order", "nothing"],
+      '"nothing" names no group or timeline of this manifest',
+    ]);
+  });
+
+  it("reads a key naming a group and a timeline as the group's", () => {
+    const value = banded({ score: ["score"] }, { groups: [group("score", [])] });
+    expect(problems(value)).toEqual([
+      [["groups", 0, "id"], 'duplicate id "score", first at #/timelines/0/id'],
+      [["graphical", "order", "score", 0], '"score" is not a member of group "score"'],
+    ]);
   });
 
   it("requires a child to share its parent's unit", () => {
@@ -441,6 +596,10 @@ describe("identity", () => {
   });
 
   it.each([
+    ["band_id_region", 'id "regions_1" is reserved for the bands of a timeline'],
+    ["band_order_missing_band", '"score/markers_1" is missing from the band order of "score"'],
+    ["band_order_unknown_entry", '"score/regions_2" is not "score" or one of its bands'],
+    ["order_unknown_group", '"group_9" names no group or timeline of this manifest'],
     ["child_unit_differs", "child 'take' has unit 'seconds', its parent 'score' has 'quarters'"],
     [
       "child_offset_beyond_parent",
@@ -460,7 +619,10 @@ describe("identity", () => {
       flow_control: {
         jumps: [{ id: "j", from_coordinate: [1, 1], to_coordinate: [0, 1], target: "nowhere" }],
       },
-      regions: [{ id: "end", start: [0, 1], end: [1, 1] }],
+      regions: [
+        { id: "end", start: [0, 1], end: [1, 1] },
+        { id: "regions_3", start: [0, 1], end: [1, 1] },
+      ],
       children: [
         timeline("kid", "seconds", 1, { offset: [-1, 1] }),
         timeline("gone", "quarters", null, { offset: [9, 1] }),
@@ -470,7 +632,20 @@ describe("identity", () => {
     const value = manifest([first, timeline("second"), timeline("second")], {
       id: "g2",
       groups: [group("first", ["ghost", "second"]), group("g2", ["second"])],
-      graphical: { order: { zz: [], g2: ["stranger"] } },
+      graphical: {
+        order: {
+          zz: [],
+          kid: [
+            "kid/children_1",
+            "kid/conversion_maps_1",
+            "kid",
+            "kid/markers_1",
+            "kid/regions_2",
+            "kid/flow_control_1",
+          ],
+          g2: ["stranger"],
+        },
+      },
     });
     expect(problems(value)).toEqual([
       [
@@ -490,6 +665,10 @@ describe("identity", () => {
         "child 'late' ends at [14, 1], beyond the length [8, 1] of its parent 'first'",
       ],
       [["timelines", 0, "regions", 0, "id"], 'id "end" is reserved for the parts of an address'],
+      [
+        ["timelines", 0, "regions", 1, "id"],
+        'id "regions_3" is reserved for the bands of a timeline',
+      ],
       [["timelines", 2, "id"], 'duplicate id "second", first at #/timelines/1/id'],
       [["groups", 0, "id"], 'duplicate id "first", first at #/timelines/0/id'],
       [["id"], 'duplicate id "g2", first at #/groups/1/id'],
@@ -497,7 +676,9 @@ describe("identity", () => {
       [["groups", 1, "members", 0], 'duplicate member "second", first at #/groups/0/members/1'],
       [["graphical", "order", "g2", 0], '"stranger" is not a member of group "g2"'],
       [["graphical", "order", "g2"], 'member "second" of group "g2" is missing'],
-      [["graphical", "order", "zz"], '"zz" names no group of this manifest'],
+      [["graphical", "order", "kid", 4], '"kid/regions_2" is not "kid" or one of its bands'],
+      [["graphical", "order", "kid"], '"kid/regions_1" is missing from the band order of "kid"'],
+      [["graphical", "order", "zz"], '"zz" names no group or timeline of this manifest'],
     ]);
   });
 });

@@ -58,9 +58,12 @@ parses it. What proves its shape (`test_schema.py`):
 - **Groups and the graphical block.** `Group` declares `id`, `name`, `meta`
   and `members` and requires `id` and `members`; `Graphical` declares
   `styles`, `statements` and `order`, and `order` is an object whose keys are
-  ids and whose values are `MemberOrder`s. No definition names
-  `support_policy`. Every conversion-map definition requires its own members
-  but not `name`.
+  ids and whose values are `Order`s: arrays of distinct strings, each an id
+  or an id followed by `/` and a band's id, the pattern
+  `^[^/\u0000-\u001f]+(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$`,
+  so one definition holds a group's display order and a timeline's band
+  order; `MemberOrder` is gone. No definition names `support_policy`.
+  Every conversion-map definition requires its own members but not `name`.
 - **Open objects.** No node anywhere has `additionalProperties: false`;
   `meta` (on the manifest, a timeline, a region, a break, a jump, a group)
   and `metric_hierarchy` say `additionalProperties: true`. Every node with
@@ -78,12 +81,14 @@ parses it. What proves its shape (`test_schema.py`):
   has no `default` (it depends on the unit). The JavaScript suite holds its
   table to the same schema, so the two tables are equal.
 - **The vocabulary.** `TimeUnit` lists the sixteen units, `NumberType` the
-  three number types, `ElementType` the fourteen element types (`block`,
-  `timeline`, `child`, `map`, `region`, `break`, `jump`, `wedge`, `name`,
-  `label`, `boundary`, `ancestor`, `group`, `card`), `Selector` declares
-  `element`, `ids`, `domain`, `modality`, `class` (the six timeline classes
-  followed by the 21 conversion-map types), `within` and `inside`;
-  `Declaration` the twelve presentation properties with their bounds.
+  three number types, `ElementType` the fifteen element types (`block`,
+  `timeline`, `child`, `band`, `map`, `region`, `break`, `jump`, `wedge`,
+  `name`, `label`, `boundary`, `ancestor`, `group`, `card`), `Selector`
+  declares `element`, `ids`, `domain`, `modality`, `class` (the six timeline
+  classes, the 21 conversion-map types, then the five band kinds `markers`,
+  `conversion_maps`, `children`, `regions`, `flow_control`), `within` and
+  `inside`; `Declaration` the eleven presentation properties of
+  `docs/drawing.md` section 2.4 with their bounds, `side` not among them.
 
 ## The version marker
 
@@ -166,6 +171,11 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `graphical`, a selector's `kind`, a declaration's `colour` and
   `show-projections`, a measure-map row's `tempo` and `offset`, and a
   `MetricalPositionMap`'s `maps` and `names`.
+- **A former property.** `side` is no property: a manifest whose statement
+  sets `{"fill": "#000000", "side": "above"}` on maps and whose style
+  `below` is `{"side": "below"}` validates, and `unknown_keys` lists exactly
+  `{"path": ["graphical", "statements", 0, "set"], "key": "side"}` and
+  `{"path": ["graphical", "styles", "below"], "key": "side"}`.
 - **What is not reported.** Keys inside `meta` and `metric_hierarchy` (free
   objects), keys inside the value of an unknown key, keys of `styles` and of
   `graphical.order` (maps keyed by data), and a known key whose value is
@@ -218,8 +228,10 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
 The identity rules hold after the schema and the representation check
 (`test_identity.py`). Timeline ids (of roots and descendants), group ids and
 the manifest id are unique together; every other id is unique within its
-root's tree; the part words are no id anywhere. `identity_problems` returns,
-in this order, one problem per finding (Python quotes ids as `repr`):
+root's tree; the part words and the ids of bands (a match of
+`^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`)
+are no id anywhere. `identity_problems` returns, in this order, one problem
+per finding (Python quotes ids as `repr`):
 
 1. root by root: a repeated id within the root's tree (any two of timeline,
    map, region, break, jump, marker), at the later occurrence in identity
@@ -236,8 +248,10 @@ in this order, one problem per finding (Python quotes ids as `repr`):
    the length [10, 1] of its parent 'score'` (the three messages the same
    text in the JavaScript package); a negative offset is no problem, on a
    child as on a root; then the segment lines;
-2. part words: the manifest's `id`, then every id of every root's tree, then
-   each group id, `id 'start' is reserved for the parts of an address`;
+2. reserved ids: the manifest's `id`, then every id of every root's tree in
+   identity order, then each group id, a part word as `id 'start' is
+   reserved for the parts of an address`, a band's id as `id 'regions_1' is
+   reserved for the bands of a timeline`;
 3. a timeline id repeating one of an earlier root;
 4. a group id equal to a timeline id or an earlier group's id;
 5. the manifest id equal to a timeline id or a group id (first at the
@@ -245,33 +259,64 @@ in this order, one problem per finding (Python quotes ids as `repr`):
 6. members: naming no timeline (`'tempo' names no timeline of this
    manifest`), already in an earlier group (`duplicate member`), nested with
    an earlier member of the same group (`lies inside` / `contains`);
-7. `graphical.order` keys in code-point order: naming no group (`'g9' names
-   no group of this manifest`), entries that are no member, members missing.
+7. `graphical.order` keys in code-point order, group keys and timeline keys
+   alike: a key naming no group and no timeline (`'g9' names no group or
+   timeline of this manifest`); a group's display order, its entries that
+   are no member, then its missing members in the order of `members`; a
+   timeline's band order, its entries that are neither the timeline's id
+   nor one of its five bands (`'score/regions_2' is not 'score' or one of
+   its bands`), at the entry, then its missing addresses in the default band
+   order `T/children_1`, `T/conversion_maps_1`, `T`, `T/markers_1`,
+   `T/regions_1`, `T/flow_control_1` (`'score/flow_control_1' is missing
+   from the band order of 'score'`), at the order.
 
 What proves it: each rule has an inline document with exactly that one
 problem, path and message stated; a marker `m` in two roots is no problem
 (scopes are per root), while a region `perf` in root `score` beside a child
 timeline `perf` of root `take` is no problem either; a timeline id repeated
 inside one root is reported once (step 1); every part word is refused as the
-id of a timeline, a map, a region, a break, a jump, a marker, a group and the
-manifest, in a one-root manifest, while `starts` and `Start` are accepted;
-a child sharing its parent's unit at offset 0 is no problem, and a negative
-offset is none either, on a root (`-1700000000.25` seconds, `[-3, 2]`
-quarters), where it places the origin, or on a child, which then starts
-before its parent's origin: children at `-1.5` seconds, `[-1, 1000000]`,
-`[0, 1]` and `[-3, 2]` quarters (the last of length `[4, 1]` in a parent of
-`[32, 1]`), at `-0.0` seconds and a grandchild at `[-1, 2]` quarters all
-validate, the same documents in both packages; yet a child at `[-3, 2]` of
-length `[40, 1]` in that parent ends at `[77, 2]`, beyond its length, and is
-reported at its `length`, so the end rule still applies to a child that
-starts before the origin; a child in
+id of a timeline, a map, a region, a break, a jump, a marker, a group and
+the manifest, in a one-root manifest, while `starts` and `Start` are
+accepted; so is each band id (the five kinds numbered 1, `regions_12` and
+`flow_control_907`) at the same eight places with the band message, while
+the bare kind words `markers`, `conversion_maps`, `children`, `regions` and
+`flow_control`, the numbers no band carries (`regions_0`, `regions_01`), and
+`region_1`, `Regions_1` and `regions_1a` are accepted, since the pattern
+names a whole id; a band order validates at a root and at a descendant (the
+default band order and the README's order for `score`, and for its child `b`
+the reverse of the default, `b/flow_control_1`, `b/regions_1`,
+`b/markers_1`, `b`, `b/conversion_maps_1`, `b/children_1`), beside a group's
+display order; each of `score/regions_2` (a band `score` does not have),
+`regions_1` (a band id without its timeline), `b/regions_1` (a band of
+another timeline), `b` (another timeline) and `ghost`, added to the six
+entries of `score`'s band order, is one problem at its entry; leaving
+`score/flow_control_1` out of it is one problem at the order; an empty band
+order yields its six missing addresses in the default band order; the band
+order of the child `b` is held to `b`'s own bands, `b/regions_1` missing and
+`score/regions_1` a stranger there; a child sharing its parent's unit at
+offset 0 is no problem, and a negative offset is none either, on a root
+(`-1700000000.25` seconds, `[-3, 2]` quarters), where it places the origin,
+or on a child, which then starts before its parent's origin: children at
+`-1.5` seconds, `[-1, 1000000]`, `[0, 1]` and `[-3, 2]` quarters (the last
+of length `[4, 1]` in a parent of `[32, 1]`), at `-0.0` seconds and a
+grandchild at `[-1, 2]` quarters all validate, the same documents in both
+packages; yet a child at `[-3, 2]` of length `[40, 1]` in that parent ends
+at `[77, 2]`, beyond its length, and is reported at its `length`, so the end
+rule still applies to a child that starts before the origin; a child in
 `number` under a parent in `quarters`, both continuous logical, is still
 reported, since the rule compares units, not classes; the unit rule reaches
 a grandchild at its own path; one manifest carrying a finding of every step
-yields exactly the problems in the stated order, with paths and messages; a child of one group with its root
-in another, or ungrouped, is no problem; a group without members stays valid;
-every shared rejection pins its path, `child_unit_differs`,
-`child_offset_beyond_parent` and `child_end_beyond_parent` with their
+yields exactly the problems in the stated order, with paths and messages, a
+part word before a band id in identity order, and the keys of
+`graphical.order` (a group, a timeline and a key naming neither) in
+code-point order, each order's strangers before its missing entries; a child
+of one group with its root in another, or ungrouped, is no problem; a group
+without members stays valid; every shared rejection pins its path,
+`child_unit_differs`, `child_offset_beyond_parent`,
+`child_end_beyond_parent`, `band_id_region` (a region `regions_1`),
+`band_order_unknown_entry` (`score/regions_2` after the six entries of
+`score`'s default band order), `band_order_missing_band` (that order without
+`score/markers_1`) and `order_unknown_group` (a key `group_9`) with their
 messages too.
 
 **A child lies within its parent's known length.** A child's end is its
@@ -337,7 +382,7 @@ step 1) need the parent's length and are skipped where it is unknown.
 
 ## Shared rejection cases
 
-`fixtures/rejections/0.7.0/` holds 85 cases `{manifest, path, reason}`, one
+`fixtures/rejections/0.7.0/` holds 88 cases `{manifest, path, reason}`, one
 rule each, written by `dumps`; `version_unknown` adds `"error":
 "UnsupportedVersionError"` and its `path` is `["timeskeleton"]`. For every
 other case `validate` raises `SchemaValidationError` at exactly the stored
@@ -391,17 +436,28 @@ it, `unknown_keys` lists nothing, `dumps` reproduces it, and the two round
 trips of `complete` and `minimal` hold. `fixture_paths()` lists every
 `*.json` under `fixtures/0.7.0/` except the drawings. The styled fixtures
 `styled__score.json` and `styled__performance.json` carry the literally
-stated `graphical` blocks (21 and 5 statements), the score's element
-addresses in the one address rule (`score/intro/label`,
+stated `graphical` blocks (20 and 3 statements, and the score's band order
+with its start and end wedges above its line and its map below), the
+score's element addresses in the one address rule (`score/intro/label`,
 `score/da-capo/label`); the thirteen drawn items of the score resolve, by the
 cascade ranking of `docs/drawing.md`, to thirteen distinct colours, and no
 statement hides anything but child `a`.
 
 ## The graphical block
 
-`docs/drawing.md` section 4's defaults block (three styles, 28 statements),
+`docs/drawing.md` section 4's defaults block (three styles, 30 statements),
 read from the file, validates as the `graphical` of the smallest file; the
-statements naming `card`, `inside: ancestor` and `shadow` validate; property
+statements naming `card`, `inside: ancestor` and `shadow` validate; so do
+the band selectors of section 2.3, `{"element": "band"}`, `{"element":
+"band", "class": <kind>}` for each of the five kinds `markers`,
+`conversion_maps`, `children`, `regions` and `flow_control`, `{"ids":
+["score/regions_1"]}` and `{"inside": "band"}`, each setting `display:
+none`, while the class `band` is refused at the selector's `class`. The
+schema shapes each entry of an order, an id or an id followed by `/` and a
+band's id: `score/foo`, `score/regions_0` and, after two valid entries,
+`score/region_1` are refused at the entry, and a repeated entry
+(`score`, `score/markers_1`, `score`) at the order, before any identity
+rule is read; property
 bounds accept `stroke-width` and `rx` 0, `opacity` 0 and 1, positive
 `font-size` and `max-width`, both forms of `stroke-dasharray`, and reject a
 negative width and radius, opacity outside [0, 1], zero font size and maximum

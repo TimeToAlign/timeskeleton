@@ -155,7 +155,7 @@ export type FractionPositive = [number, number];
  */
 export type Paint = string;
 /**
- * The type of a drawn element: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
+ * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -164,6 +164,7 @@ export type ElementType =
   | "block"
   | "timeline"
   | "child"
+  | "band"
   | "map"
   | "region"
   | "break"
@@ -176,12 +177,12 @@ export type ElementType =
   | "group"
   | "card";
 /**
- * The display order of one group's members: a permutation of its members. It is never re-ordered by a writer.
+ * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's id `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an id, or an id, `/` and a band's id: its kind, `_` and its number.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "MemberOrder".
+ * via the `definition` "Order".
  */
-export type MemberOrder = Id[];
+export type Order = string[];
 /**
  * A position on a named timeline axis: the axis unit, the number type, and the value in the representation that number type selects. A position on the timeline's own axis is a bare Number instead; this form is for positions on other axes.
  *
@@ -796,7 +797,7 @@ export interface Group {
   members: Id[];
 }
 /**
- * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements and the display order of each group's members. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or a display order. An absent block draws every element with the other style layers alone.
+ * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members and the band order of each timeline. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent block draws every element with the other style layers alone.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Graphical".
@@ -813,10 +814,10 @@ export interface Graphical {
    */
   statements?: Statement[];
   /**
-   * The display order of each group's members, keyed by group id; each value is a permutation of that group's members. A group without an entry is displayed in the order of its members.
+   * The order of what a group or a timeline stacks, top to bottom, keyed by a group's id (the display order of its members) or by a timeline's id, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, band by band id, and a root without one the default band order.
    */
   order?: {
-    [k: string]: MemberOrder;
+    [k: string]: Order;
   };
 }
 /**
@@ -837,7 +838,6 @@ export interface Declaration {
   "font-size"?: number;
   rx?: number;
   display?: "inline" | "none";
-  side?: "above" | "below";
   content?: string;
   "max-width"?: number | "none";
   shadow?: Paint;
@@ -875,7 +875,7 @@ export interface Selector {
    */
   modality?: "continuous" | "discrete";
   /**
-   * The class of the element: the timeline class its unit decides, or a conversion map's type.
+   * The class of the element: the timeline class its unit decides, a conversion map's type, or a band's kind.
    */
   class?:
     | "ContinuousLogicalTimeline"
@@ -904,18 +904,24 @@ export interface Selector {
     | "SecondsToSamples"
     | "ShiftMap"
     | "TableMap"
-    | "TicksToQuarters";
+    | "TicksToQuarters"
+    | "markers"
+    | "conversion_maps"
+    | "children"
+    | "regions"
+    | "flow_control";
   /**
    * A timeline id: the element must belong to that timeline or to one of its descendants.
    */
   within?: string;
   /**
-   * The type of a drawn element: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
+   * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
    */
   inside?:
     | "block"
     | "timeline"
     | "child"
+    | "band"
     | "map"
     | "region"
     | "break"

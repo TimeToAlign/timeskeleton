@@ -104,7 +104,6 @@
           },
           "set": {
             "fill": "#65A30D",
-            "side": "above",
             "stroke": "#65A30D"
           }
         },

@@ -89,6 +89,22 @@ def test_free_objects_maps_and_unknown_values_are_not_looked_into() -> None:
     assert unknown_keys(value) == [{"path": [], "key": "x"}]
 
 
+def test_side_is_no_property() -> None:
+    statement = {
+        "select": {"element": "map"},
+        "set": {"fill": "#000000", "side": "above"},
+    }
+    value = manifest(
+        timeline("score"),
+        graphical={"styles": {"below": {"side": "below"}}, "statements": [statement]},
+    )
+    validate(value)
+    assert unknown_keys(value) == [
+        {"path": ["graphical", "statements", 0, "set"], "key": "side"},
+        {"path": ["graphical", "styles", "below"], "key": "side"},
+    ]
+
+
 def test_unknown_keys_are_sorted() -> None:
     roots = [timeline(f"t{index}") for index in range(11)]
     roots[2]["zz"] = 1

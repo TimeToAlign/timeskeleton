@@ -85,6 +85,19 @@ describe("unknown keys", () => {
     expect(unknownKeys(value)).toEqual([{ path: [], key: "x" }]);
   });
 
+  it("reports side as an unknown key of a declaration", () => {
+    const value = manifest([timeline("score")], {
+      graphical: {
+        styles: { below: { side: "below" } },
+        statements: [{ select: { element: "map" }, set: { fill: "#000000", side: "above" } }],
+      },
+    });
+    expect(unknownKeys(value)).toEqual([
+      { path: ["graphical", "statements", 0, "set"], key: "side" },
+      { path: ["graphical", "styles", "below"], key: "side" },
+    ]);
+  });
+
   it("sorts keys by code point and indices by number", () => {
     const roots = Array.from({ length: 11 }, (_, index) => timeline(`t${index}`));
     (roots[2] as JsonObject).zz = 1;

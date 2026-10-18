@@ -5,26 +5,20 @@
         {
           "select": {
             "ids": [
-              "melody/ticks"
+              "verse/flow_control_1"
             ]
           },
           "set": {
-            "side": "below"
+            "display": "inline"
           }
         }
       ]
     }
   ],
-  "manifest": "map.json",
+  "manifest": "child_flow_control.json",
   "placement": {
-    "bands": {},
     "height": null,
     "length": 400,
-    "order": [
-      "children",
-      "regions",
-      "flow"
-    ],
     "places": {},
     "spacing": 1,
     "width": null

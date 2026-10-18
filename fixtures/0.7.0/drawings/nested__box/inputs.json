@@ -2,14 +2,8 @@
   "layers": [],
   "manifest": "nested.json",
   "placement": {
-    "bands": {},
     "height": 155.9765625,
     "length": 400,
-    "order": [
-      "children",
-      "regions",
-      "flow"
-    ],
     "places": {},
     "spacing": 1,
     "width": 597.194580078125

@@ -2,14 +2,8 @@
   "layers": [],
   "manifest": "bundles/bundle_ungrouped.json",
   "placement": {
-    "bands": {},
     "height": null,
     "length": 400,
-    "order": [
-      "children",
-      "regions",
-      "flow"
-    ],
     "places": {
       "recording": {
         "scale": 1.5

@@ -1,0 +1,31 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (496.3403,91.4531);
+\path[rounded corners=5pt,fill=tsB8BEC8] (10,8) rectangle (488.3403,81.4531);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (8,10) rectangle (486.3403,83.4531);
+\path[draw=ts000000,line width=1pt] (49.8403,36.4766) .. controls (49.8403,34.4766) and (50.8403,33.4766) .. (52.8403,33.4766) -- (93.8992,33.4766) .. controls (95.8992,33.4766) and (96.8992,32.4766) .. (96.8992,30.4766) .. controls (96.8992,32.4766) and (97.8992,33.4766) .. (99.8992,33.4766) -- (140.958,33.4766) .. controls (142.958,33.4766) and (143.958,34.4766) .. (143.958,36.4766);
+\path[draw=ts000000,line width=1pt] (379.2521,36.4766) .. controls (379.2521,34.4766) and (380.2521,33.4766) .. (382.2521,33.4766) -- (411.5462,33.4766) .. controls (413.5462,33.4766) and (414.5462,32.4766) .. (414.5462,30.4766) .. controls (414.5462,32.4766) and (415.5462,33.4766) .. (417.5462,33.4766) -- (446.8403,33.4766) .. controls (448.8403,33.4766) and (449.8403,34.4766) .. (449.8403,36.4766);
+\path[draw=ts00CC00,line width=3pt] (49.8403,67.4531) -- (461.8403,67.4531);
+\path[fill=ts00CC00] (49.8403,67.4531) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (464.8403,71.9531) -- (469.3403,67.4531) -- (464.8403,62.9531);
+\path[draw=ts00CC00,line width=1.5pt] (469.3403,71.9531) -- (473.8403,67.4531) -- (469.3403,62.9531);
+\path[draw=ts00CC00,line width=1.5pt] (473.8403,71.9531) -- (478.3403,67.4531) -- (473.8403,62.9531);
+\path[draw=ts000000,line width=1pt] (238.0756,75.4531) -- (238.0756,59.4531);
+\path[draw=ts000000,line width=1pt] (379.2521,75.4531) -- (379.2521,59.4531);
+\path[fill=ts000000] (49.8403,65.9531) -- (46.8403,52.9531) -- (52.8403,52.9531) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,63.645) {form};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (49.8403,42.5991) {0 ♩};
+\end{scope}
+\end{tikzpicture}
+\end{document}

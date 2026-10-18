@@ -25,9 +25,7 @@
           "select": {
             "element": "map"
           },
-          "set": {
-            "side": "below"
-          }
+          "set": {}
         },
         {
           "select": {
@@ -106,7 +104,6 @@
           },
           "set": {
             "fill": "#65A30D",
-            "side": "above",
             "stroke": "#65A30D"
           }
         },
@@ -346,5 +343,5 @@
     "select",
     "element"
   ],
-  "reason": "An element type is one of the fourteen types of the drawing."
+  "reason": "An element type is one of the fifteen types of the drawing."
 }

@@ -1,0 +1,93 @@
+{
+  "groups": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [
+              {
+                "condition": "after_dc_ds",
+                "control_type": "fine",
+                "coordinate": [
+                  4,
+                  1
+                ],
+                "id": "fine",
+                "label": "Fine",
+                "meta": {},
+                "name": null,
+                "repeat_count": 1
+              }
+            ],
+            "jumps": [
+              {
+                "condition": "after_first",
+                "control_type": "da_capo_al_fine",
+                "from_coordinate": [
+                  8,
+                  1
+                ],
+                "id": "da_capo_al_fine",
+                "label": "D.C. al Fine",
+                "meta": {},
+                "repeat_count": 1,
+                "target": null,
+                "to_coordinate": [
+                  0,
+                  1
+                ]
+              }
+            ],
+            "markers": []
+          },
+          "id": "verse",
+          "is_segment_line": false,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Verse",
+          "number_type": "fraction",
+          "offset": [
+            4,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "piece",
+      "is_segment_line": false,
+      "length": [
+        16,
+        1
+      ],
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Piece",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

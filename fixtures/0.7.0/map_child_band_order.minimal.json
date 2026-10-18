@@ -1,0 +1,69 @@
+{
+  "graphical": {
+    "order": {
+      "phrase": [
+        "phrase/children_1",
+        "phrase",
+        "phrase/conversion_maps_1",
+        "phrase/markers_1",
+        "phrase/regions_1",
+        "phrase/flow_control_1"
+      ]
+    }
+  },
+  "meta": {
+    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "conversion_maps": [
+            {
+              "id": "ticks",
+              "name": "Ticks",
+              "ppq": 480,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "QuartersToTicks"
+            }
+          ],
+          "id": "phrase",
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "name": "Phrase",
+          "offset": [
+            2,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "tempo",
+          "name": "Tempo",
+          "scalar": [
+            1,
+            2
+          ],
+          "source_unit": "quarters",
+          "target_unit": "seconds",
+          "type": "ScalarMap"
+        }
+      ],
+      "id": "melody",
+      "length": [
+        8,
+        1
+      ],
+      "name": "Melody",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

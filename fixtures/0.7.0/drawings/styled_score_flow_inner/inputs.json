@@ -1,15 +1,9 @@
 {
   "layers": [],
-  "manifest": "nested.json",
+  "manifest": "styled_score_flow_inner.json",
   "placement": {
-    "bands": {},
     "height": null,
     "length": 400,
-    "order": [
-      "flow",
-      "regions",
-      "children"
-    ],
     "places": {},
     "spacing": 1,
     "width": null

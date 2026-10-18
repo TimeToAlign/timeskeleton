@@ -1,0 +1,27 @@
+{
+  "layers": [
+    {
+      "statements": [
+        {
+          "select": {
+            "ids": [
+              "movement/regions_1"
+            ]
+          },
+          "set": {
+            "display": "inline"
+          }
+        }
+      ]
+    }
+  ],
+  "manifest": "unknown_length_child.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 1,
+    "width": null
+  },
+  "scale": 1
+}

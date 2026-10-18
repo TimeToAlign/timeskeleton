@@ -7,21 +7,22 @@ root timeline and no group directly in it, one group in its ``groups/``, and
 alignment bundles in its ``bundles/`` directory. Every timeline, group and
 bundle is built with public constructors or a public loader and written with
 its ``to_dict()``. The script adds the manifest's provenance to its free
-``meta`` (``meta.generator``) and, for a styled manifest, the ``graphical``
-styles and statements of ``GRAPHICAL``; the class that reads the directory's
-manifests as a whole reads the result back, and its ``to_dict()`` writes the
-fixture in the complete form and ``to_dict(minimal=True)`` its minimal twin
-``<name>.minimal.json``. Both are written with ``timeskeleton.dumps``, read
-back, validated, checked against ``timeskeleton.complete`` and
-``timeskeleton.minimal``, and round-tripped through the library; a manifest
-whose array order differs from the canonical order fails. Every builder
-entry emits exactly the files it builds. The current schema version is
-``timeskeleton.SCHEMA_VERSION``. The fixtures of a released version are
-frozen: the script refuses to write into ``fixtures/<version>/`` once the tag
-``v<version>`` exists. An id the script does not give is minted by
-timetoalign as ``<prefix>_<N>`` with N the smallest positive integer not yet
-taken in its scope, so it depends on the construction order in the script
-and on nothing built before, and every run emits the same files.
+``meta`` (``meta.generator``) and, for a manifest it styles or gives band
+orders, the ``graphical`` block of ``GRAPHICAL``; the class that reads the
+directory's manifests as a whole reads the result back, and its ``to_dict()``
+writes the fixture in the complete form and ``to_dict(minimal=True)`` its
+minimal twin ``<name>.minimal.json``. Both are written with
+``timeskeleton.dumps``, read back, validated, checked against
+``timeskeleton.complete`` and ``timeskeleton.minimal``, and round-tripped
+through the library; a manifest whose array order differs from the canonical
+order fails. Every builder entry emits exactly the files it builds. The
+current schema version is ``timeskeleton.SCHEMA_VERSION``. The fixtures of a
+released version are frozen: the script refuses to write into
+``fixtures/<version>/`` once the tag ``v<version>`` exists. An id the script
+does not give is minted by timetoalign as ``<prefix>_<N>`` with N the smallest
+positive integer not yet taken in its scope, so it depends on the construction
+order in the script and on nothing built before, and every run emits the same
+files.
 """
 
 from __future__ import annotations
@@ -287,7 +288,17 @@ def drawing_manifests() -> dict[str, list[Timeline]]:
     piece.add_child(ContinuousLogicalTimeline(length=3, unit="quarters", uid="a"), 0)
     piece.add_child(ContinuousLogicalTimeline(length=5, unit="quarters", uid="b"), 3)
     piece.add_child(ContinuousLogicalTimeline(length=2, unit="quarters", uid="c"), 1)
+    return {"bare": [bare], "contiguous": [piece], "map": [_melody()]}
 
+
+def _melody() -> Timeline:
+    """Build the root of ``map``: maps on a root and on its child.
+
+    The root ``melody`` ("Melody", 8 quarters) carries the tempo map ``tempo``
+    ("Tempo", half a second per quarter) and holds the child ``phrase``
+    ("Phrase", 4 quarters) at 2, which carries the map to ticks ``ticks``
+    ("Ticks", 480 per quarter).
+    """
     melody = ContinuousLogicalTimeline(
         length=8, unit="quarters", uid="melody", name="Melody"
     )
@@ -305,11 +316,29 @@ def drawing_manifests() -> dict[str, list[Timeline]]:
         )
     )
     phrase.add_conversion_map(QuartersToTicks(ppq=480, uid="ticks", name="Ticks"))
-    return {"bare": [bare], "contiguous": [piece], "map": [melody]}
+    return melody
 
 
 def styled_timelines() -> list[Timeline]:
     """Build the two timelines of the styled fixture, one per domain."""
+    score = _styled_score()
+    performance = ContinuousPhysicalTimeline(
+        length=10.0, unit="seconds", uid="performance", name="Performance"
+    )
+    performance.add_child(
+        ContinuousPhysicalTimeline(length=4.0, unit="seconds", uid="excerpt"), 1.0
+    )
+    return [score, performance]
+
+
+def _styled_score() -> Timeline:
+    """Build the root of ``styled__score``: children, a map, a region and a jump.
+
+    The root ``score`` ("Score", 8 quarters) holds the children ``a`` and ``b``
+    (4 quarters each) at 0 and 4, and carries the map to ticks ``ticks``
+    ("Ticks"), the region ``intro`` from 0 to 2 and the da capo ``da-capo``
+    ("D.C.") from 8 back to 0.
+    """
     score = ContinuousLogicalTimeline(
         length=8, unit="quarters", uid="score", name="Score"
     )
@@ -330,13 +359,7 @@ def styled_timelines() -> list[Timeline]:
             meta={},
         )
     )
-    performance = ContinuousPhysicalTimeline(
-        length=10.0, unit="seconds", uid="performance", name="Performance"
-    )
-    performance.add_child(
-        ContinuousPhysicalTimeline(length=4.0, unit="seconds", uid="excerpt"), 1.0
-    )
-    return [score, performance]
+    return score
 
 
 def segment_line_timeline() -> Timeline:
@@ -483,83 +506,83 @@ _GREY = {"stroke": "#404040", "fill": "#404040"}
 _SHARED_STATEMENTS: list[dict[str, Any]] = [
     {"select": {"element": "label"}, "set": _GREY},
     {"select": {"element": "name"}, "set": _GREY},
-    {"select": {"element": "map"}, "set": {"side": "below"}},
-    {"select": {"ids": ["a"]}, "set": {"display": "none"}},
 ]
 _VIOLET = {"stroke": "#7F00FF", "fill": "#7F00FF"}
 _ACCENT = {"stroke": "#1D4ED8", "fill": "#1D4ED8", "stroke-width": 4, "opacity": 0.8}
+_STYLED_SCORE: dict[str, Any] = {
+    "styles": {"accent": _ACCENT},
+    "statements": [
+        *_SHARED_STATEMENTS,
+        {"select": {"ids": ["a"]}, "set": {"display": "none"}},
+        {"select": {"element": "block"}, "set": {"rx": 4}},
+        {
+            "select": {"class": "ContinuousLogicalTimeline", "element": "timeline"},
+            "set": "accent",
+        },
+        {
+            "select": {"class": "QuartersToTicks"},
+            "set": {"stroke": "#7C3AED", "stroke-width": 1.5},
+        },
+        {
+            "select": {"element": "map", "modality": "discrete"},
+            "set": {"stroke-dasharray": "4 2"},
+        },
+        {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
+        {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
+        {
+            "select": {"element": "jump", "domain": "logical"},
+            "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
+        },
+        {
+            "select": {"element": "wedge", "within": "score"},
+            "set": {"stroke": "#65A30D", "fill": "#65A30D"},
+        },
+        {
+            "select": {"ids": ["score/end"]},
+            "set": {"stroke": "#B45309", "fill": "#B45309"},
+        },
+        {
+            "select": {"element": "child", "within": "score"},
+            "set": {"display": "inline"},
+        },
+        {
+            "select": {"element": "child", "within": "b"},
+            "set": {"stroke": "#EA580C", "fill": "#EA580C"},
+        },
+        {
+            "select": {"element": "label", "within": "score"},
+            "set": {"fill": "#4D7C0F", "font-size": 10},
+        },
+        {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
+        {"select": {"ids": ["score/intro/label"]}, "set": {"fill": "#0E7490"}},
+        {"select": {"ids": ["score/da-capo/label"]}, "set": {"fill": "#9D174D"}},
+        {
+            "select": {"ids": ["score/name"]},
+            "set": {
+                "fill": "#111827",
+                "font-size": 12,
+                "content": "Styled score",
+                "max-width": 120,
+            },
+        },
+        {"select": {"element": "name", "within": "b"}, "set": {"fill": "#0369A1"}},
+    ],
+}
 
 GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
     "styled": {
         "score": {
-            "styles": {"accent": _ACCENT},
-            "statements": [
-                *_SHARED_STATEMENTS,
-                {"select": {"element": "block"}, "set": {"rx": 4}},
-                {
-                    "select": {
-                        "class": "ContinuousLogicalTimeline",
-                        "element": "timeline",
-                    },
-                    "set": "accent",
-                },
-                {
-                    "select": {"class": "QuartersToTicks"},
-                    "set": {"stroke": "#7C3AED", "stroke-width": 1.5},
-                },
-                {
-                    "select": {"element": "map", "modality": "discrete"},
-                    "set": {"stroke-dasharray": "4 2"},
-                },
-                {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
-                {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
-                {
-                    "select": {"element": "jump", "domain": "logical"},
-                    "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
-                },
-                {
-                    "select": {"element": "wedge", "within": "score"},
-                    "set": {"side": "above", "stroke": "#65A30D", "fill": "#65A30D"},
-                },
-                {
-                    "select": {"ids": ["score/end"]},
-                    "set": {"stroke": "#B45309", "fill": "#B45309"},
-                },
-                {
-                    "select": {"element": "child", "within": "score"},
-                    "set": {"display": "inline"},
-                },
-                {
-                    "select": {"element": "child", "within": "b"},
-                    "set": {"stroke": "#EA580C", "fill": "#EA580C"},
-                },
-                {
-                    "select": {"element": "label", "within": "score"},
-                    "set": {"fill": "#4D7C0F", "font-size": 10},
-                },
-                {"select": {"ids": ["score/end/label"]}, "set": {"fill": "#A16207"}},
-                {
-                    "select": {"ids": ["score/intro/label"]},
-                    "set": {"fill": "#0E7490"},
-                },
-                {
-                    "select": {"ids": ["score/da-capo/label"]},
-                    "set": {"fill": "#9D174D"},
-                },
-                {
-                    "select": {"ids": ["score/name"]},
-                    "set": {
-                        "fill": "#111827",
-                        "font-size": 12,
-                        "content": "Styled score",
-                        "max-width": 120,
-                    },
-                },
-                {
-                    "select": {"element": "name", "within": "b"},
-                    "set": {"fill": "#0369A1"},
-                },
-            ],
+            **_STYLED_SCORE,
+            "order": {
+                "score": [
+                    "score/children_1",
+                    "score/markers_1",
+                    "score",
+                    "score/conversion_maps_1",
+                    "score/regions_1",
+                    "score/flow_control_1",
+                ]
+            },
         },
         "performance": {
             "statements": [
@@ -591,15 +614,61 @@ GRAPHICAL: dict[str, dict[str, dict[str, Any]]] = {
             ],
         },
     },
+    "map_child_band_order": {
+        "melody": {
+            "order": {
+                "phrase": [
+                    "phrase/children_1",
+                    "phrase",
+                    "phrase/conversion_maps_1",
+                    "phrase/markers_1",
+                    "phrase/regions_1",
+                    "phrase/flow_control_1",
+                ]
+            }
+        },
+    },
+    "map_root_band_order": {
+        "melody": {
+            "order": {
+                "melody": [
+                    "melody/children_1",
+                    "melody",
+                    "melody/conversion_maps_1",
+                    "melody/markers_1",
+                    "melody/regions_1",
+                    "melody/flow_control_1",
+                ]
+            }
+        },
+    },
+    "styled_score_flow_inner": {
+        "score": {
+            **_STYLED_SCORE,
+            "order": {
+                "score": [
+                    "score/children_1",
+                    "score/markers_1",
+                    "score",
+                    "score/conversion_maps_1",
+                    "score/flow_control_1",
+                    "score/regions_1",
+                ]
+            },
+        },
+    },
 }
-"""The ``graphical`` styles and statements of each styled manifest, by fixture
-name and the id of its root (a manifest of one root) or of its group (a
-manifest of one group).
+"""The ``graphical`` block of each manifest the script styles or gives band
+orders, by fixture name and the id of its root (a manifest of one root) or of
+its group (a manifest of one group).
 
-The script adds an entry to the manifest's ``graphical``; the library reads it
-back as styling it keeps unread and writes it beside its own
-``graphical.order``. An element other than a timeline, a group or the
-manifest is addressed ``<root id>/<element id>`` (``score/intro``).
+The script adds an entry to the manifest's ``graphical``. The library reads
+its ``styles`` and ``statements`` back as styling it keeps unread, and each
+entry of its ``order``, a band order keyed by a timeline's id, as an order
+it keeps unchecked; it writes both back, the band orders beside the display
+orders of its own groups. An element other than a timeline, a group or the
+manifest is addressed ``<root id>/<element id>`` (``score/intro``), and a
+band by its timeline's id and its own (``score/regions_1``).
 
 ``group_styled`` gives every group frame the named style ``frame-highlight``
 (a violet stroke), fills the group's title, ``group_1/name``, violet, and
@@ -608,29 +677,44 @@ radius of 2.
 
 In ``styled__score`` every drawn element and every text takes its own colour
 under the cascade of ``docs/drawing.md`` (statements numbered from 0 in the
-list, the four shared ones first):
+list, the two shared ones first):
 
 ==========================  =========  ==========================================
 Item                        Colour     Set by
 ==========================  =========  ==========================================
-root line ``score``         #1D4ED8    5, the style ``accent`` (class and element)
-child line ``b``            #EA580C    14 (element ``child`` within ``b``)
-map ``score/ticks``         #7C3AED    6 (class ``QuartersToTicks``)
-brace ``score/intro``       #0F766E    9, which outranks 8 by its position
-jump ``score/da-capo``      #DB2777    10 (element ``jump``, domain ``logical``)
-wedge ``score/start``       #65A30D    11 (element ``wedge`` within ``score``)
-wedge ``score/end``         #B45309    12 (``ids``)
-name ``score/name``         #111827    19 (``ids``; also ``content``)
-name ``b/name``             #0369A1    20 (element ``name`` within ``b``)
-label of ``score/start``    #4D7C0F    15 (element ``label`` within ``score``)
-label of ``score/end``      #A16207    16 (``ids``)
-label of ``score/intro``    #0E7490    17 (``ids``)
-label of ``score/da-capo``  #9D174D    18 (``ids``)
+root line ``score``         #1D4ED8    4, the style ``accent`` (class and element)
+child line ``b``            #EA580C    13 (element ``child`` within ``b``)
+map ``score/ticks``         #7C3AED    5 (class ``QuartersToTicks``)
+brace ``score/intro``       #0F766E    8, which outranks 7 by its position
+jump ``score/da-capo``      #DB2777    9 (element ``jump``, domain ``logical``)
+wedge ``score/start``       #65A30D    10 (element ``wedge`` within ``score``)
+wedge ``score/end``         #B45309    11 (``ids``)
+name ``score/name``         #111827    18 (``ids``; also ``content``)
+name ``b/name``             #0369A1    19 (element ``name`` within ``b``)
+label of ``score/start``    #4D7C0F    14 (element ``label`` within ``score``)
+label of ``score/end``      #A16207    15 (``ids``)
+label of ``score/intro``    #0E7490    16 (``ids``)
+label of ``score/da-capo``  #9D174D    17 (``ids``)
 ==========================  =========  ==========================================
 
-A stroke and the fill of one element share its colour. Statement 13 displays
-every child of ``score``; the shared ``ids`` statement 3 outranks it and hides
-the child ``a``.
+A stroke and the fill of one element share its colour. Statement 12 displays
+every child of ``score``; statement 2, which names ``ids``, outranks it and
+hides the child ``a``. The band order of ``score`` lays its start and end wedges
+against its line above it and its children beyond them, and its map against
+its line below it, then its region and its jump.
+
+``styled_score_flow_inner`` holds the same root with the same styles and
+statements, so every colour above, and a band order that differs only in its
+last two bands: below the line, the jump lies nearer the line than the
+region.
+
+``map_child_band_order`` and ``map_root_band_order`` hold the timelines of
+``map`` and one band order each, which lays a line's conversion maps against
+it below it, its markers below them and its children above it. The first
+gives it to the child ``phrase`` alone, so that the map of ``phrase`` lies
+below its line and that of ``melody`` above; the second to the root
+``melody`` and none to ``phrase``, which follows the order of ``melody``, so
+that the maps of both lie below their lines.
 """
 
 
@@ -675,16 +759,20 @@ def corpus_manifests() -> dict[str, list[Timeline]]:
     }
 
 
-def _ticks() -> QuartersToTicks:
-    """Return a map of quarters to ticks, 480 per quarter, its id minted."""
-    return QuartersToTicks(ppq=480)
-
-
-def _tempo() -> ScalarMap:
-    """Return a tempo map of quarters to seconds, half a second per quarter, its
-    id minted.
+def _ticks(uid: str | None = None) -> QuartersToTicks:
+    """Return a map of quarters to ticks, 480 per quarter, its id ``uid`` or
+    minted.
     """
-    return ScalarMap(Fraction(1, 2), source_unit="quarters", target_unit="seconds")
+    return QuartersToTicks(ppq=480, uid=uid)
+
+
+def _tempo(uid: str | None = None) -> ScalarMap:
+    """Return a tempo map of quarters to seconds, half a second per quarter, its
+    id ``uid`` or minted.
+    """
+    return ScalarMap(
+        Fraction(1, 2), source_unit="quarters", target_unit="seconds", uid=uid
+    )
 
 
 def _to_samples() -> SecondsToSamples:
@@ -774,8 +862,10 @@ def group_constructions() -> dict[str, list[TimelineGroup]]:
     """Build the groups constructed directly, one manifest each.
 
     ``group_number_types`` is the group of ``number_types_group``.
-    ``group_child_member`` groups the second half of a score, a child of the
-    score placed at its exact offset, with a whole performance.
+    ``group_child_member`` ("Second half") groups the child ``second-half``
+    ("Second half", 8 quarters), the second half of the root ``piece``
+    ("Piece", 16 quarters) placed at offset 8, with the whole recording
+    ``recording`` ("Recording", 10.0 seconds).
     ``group_styled`` is the group of ``styled_group``, which adds conversion
     maps, a region and a jump to that of ``number_types_group``, and carries
     the styles and statements of ``GRAPHICAL``.
@@ -1108,12 +1198,13 @@ def bundle_ungrouped() -> AlignmentBundle:
     The bundle "Sketches" holds the score ``score`` ("Score", 16 quarters),
     the recording ``recording`` ("Recording", 441000 samples) and the
     segment line ``pages`` of ``pages_timeline`` with three pages (5262
-    pixels), in that order, and no group. The score carries a map to ticks
-    and a da capo al fine: the break "Fine" at 8 (``fine``, taken after a
-    da capo or dal segno) and the jump "D.C. al Fine" from 16 back to 0
-    (``da_capo_al_fine``, taken after the first pass, one repeat). The
-    recording carries a map to seconds, the segment line ``pages`` a map to
-    points; its pages carry none. Every id of a map, break or jump is minted.
+    pixels), and no group; the manifest writes them by id, ``pages`` first.
+    The score carries a map to ticks and a da capo al fine: the break "Fine"
+    at 8 (control type ``fine``, taken after a da capo or dal segno) and the
+    jump "D.C. al Fine" from 16 back to 0 (control type ``da_capo_al_fine``,
+    taken after the first pass, one repeat). The recording carries a map to
+    seconds, the segment line ``pages`` a map to points; its pages carry
+    none. Every id of a map, break or jump is minted.
     """
     score = _with_maps(
         _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(16)), _ticks()
@@ -1313,6 +1404,101 @@ def group_unknown_length() -> TimelineGroup:
     )
 
 
+def band_order_manifests() -> dict[str, list[Timeline]]:
+    """Build the manifests whose band orders ``GRAPHICAL`` gives.
+
+    ``map_child_band_order`` and ``map_root_band_order`` hold the timelines of
+    ``map``, and ``styled_score_flow_inner`` the root of ``styled__score``, to
+    which ``GRAPHICAL`` also gives that fixture's styles and statements. Every
+    id is given.
+    """
+    return {
+        "map_child_band_order": [_melody()],
+        "map_root_band_order": [_melody()],
+        "styled_score_flow_inner": [_styled_score()],
+    }
+
+
+def joint_rows_timeline() -> Timeline:
+    """Build a root of two children whose own children share rows at two depths.
+
+    The root ``piece`` ("Piece", 16 quarters) holds ``b`` ("B", 6 quarters) at
+    0 and ``d`` ("D", 8 quarters) at 8; ``b`` holds ``b1`` ("B1", 4 quarters)
+    at 1, which holds ``b11`` ("B11", 2 quarters) at 1, and ``d`` holds ``d1``
+    ("D1", 4 quarters) at 2, which holds ``d11`` ("D11", 2 quarters) at 1.
+    ``b`` carries the map to ticks ``ticks_b``; ``d1`` the map to ticks
+    ``ticks_d1`` and the tempo map ``tempo_d1``, ``d11`` likewise ``ticks_d11``
+    and ``tempo_d11``; no other timeline carries a map. Each depth's two lines
+    lie in one row, so their children bands are laid out together: the one map
+    of ``b`` against none on ``d`` sets the common start of the children bands
+    of ``b`` and ``d``, the two maps of ``d1`` against none on ``b1`` that of
+    ``b1`` and ``d1``, and the maps of ``d11`` widen the row of ``b11`` and
+    ``d11``. Every id is given.
+    """
+
+    def quarters(uid: str, name: str, length: int) -> Timeline:
+        return _timeline(ContinuousLogicalTimeline, uid, name, Fraction(length))
+
+    piece = quarters("piece", "Piece", 16)
+    b = _holding(
+        piece, _with_maps(quarters("b", "B", 6), _ticks("ticks_b")), Fraction(0)
+    )
+    d = _holding(piece, quarters("d", "D", 8), Fraction(8))
+    b1 = _holding(b, quarters("b1", "B1", 4), Fraction(1))
+    _holding(b1, quarters("b11", "B11", 2), Fraction(1))
+    d1 = _holding(
+        d,
+        _with_maps(quarters("d1", "D1", 4), _ticks("ticks_d1"), _tempo("tempo_d1")),
+        Fraction(2),
+    )
+    _holding(
+        d1,
+        _with_maps(quarters("d11", "D11", 2), _ticks("ticks_d11"), _tempo("tempo_d11")),
+        Fraction(1),
+    )
+    return piece
+
+
+def child_flow_control_timeline() -> Timeline:
+    """Build a root whose one child holds flow control, the root none.
+
+    The root ``piece`` ("Piece", 16 quarters) holds the child ``verse``
+    ("Verse", 8 quarters) at 4, which carries a da capo al fine: the break
+    ``fine`` ("Fine") at 4, a fine taken after a da capo or dal segno, and the
+    jump ``da_capo_al_fine`` ("D.C. al Fine") from 8 back to 0, taken after
+    the first pass, one repeat. The defaults hide the flow control band of a
+    child, so a drawing shows them only under a statement that displays the
+    band ``verse/flow_control_1``.
+    """
+    piece = _timeline(ContinuousLogicalTimeline, "piece", "Piece", Fraction(16))
+    verse = _holding(
+        piece,
+        _timeline(ContinuousLogicalTimeline, "verse", "Verse", Fraction(8)),
+        Fraction(4),
+    )
+    verse.flow_control.add_break(
+        Break(
+            coordinate=verse.make_coordinate(4),
+            control_type=FlowControlElement.fine,
+            condition=ActivationCondition.after_dc_ds,
+            label="Fine",
+            id="fine",
+        )
+    )
+    verse.flow_control.add_jump(
+        Jump(
+            from_coordinate=verse.make_coordinate(8),
+            to_coordinate=verse.make_coordinate(0),
+            control_type=FlowControlElement.da_capo_al_fine,
+            condition=ActivationCondition.after_first,
+            repeat_count=1,
+            label="D.C. al Fine",
+            id="da_capo_al_fine",
+        )
+    )
+    return piece
+
+
 def build_groups() -> dict[str, list[Any]]:
     """Return the names and groups of the manifests of one group.
 
@@ -1339,7 +1525,8 @@ def build_timelines() -> dict[str, list[Any]]:
     """Return the names and objects of the manifests of one root and no group.
 
     The synthetic manifests come first, then the corpus manifests, then the
-    manifests of the manifest's own keys and of unknown lengths.
+    manifests of the manifest's own keys and of unknown lengths, then those of
+    band orders, of rows laid out together and of a child's flow control.
     """
     manifests: dict[str, list[Any]] = {}
     manifests["continuous_logical"] = [
@@ -1409,6 +1596,9 @@ def build_timelines() -> dict[str, list[Any]]:
     manifests["negative_offset"] = [negative_offset_timeline()]
     manifests["named_without_id"] = [named_without_id_bundle()]
     manifests.update(unknown_length_timelines())
+    manifests.update(band_order_manifests())
+    manifests["joint_rows"] = [joint_rows_timeline()]
+    manifests["child_flow_control"] = [child_flow_control_timeline()]
     return manifests
 
 

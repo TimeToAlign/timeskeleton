@@ -2,14 +2,8 @@
   "layers": [],
   "manifest": "continuous_graphical.json",
   "placement": {
-    "bands": {},
     "height": null,
     "length": 400,
-    "order": [
-      "children",
-      "regions",
-      "flow"
-    ],
     "places": {},
     "spacing": 1,
     "width": null

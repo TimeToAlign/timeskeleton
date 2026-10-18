@@ -1,0 +1,55 @@
+{
+  "manifest": {
+    "graphical": {
+      "order": {
+        "score": [
+          "score/children_1",
+          "score/conversion_maps_1",
+          "score",
+          "score/markers_1",
+          "score/regions_1",
+          "score/flow_control_1",
+          "score/regions_2"
+        ]
+      },
+      "statements": [],
+      "styles": {}
+    },
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "graphical",
+    "order",
+    "score",
+    6
+  ],
+  "reason": "A band order names only its timeline's id and the timeline's five bands, each numbered 1; score/regions_2 is none of them."
+}

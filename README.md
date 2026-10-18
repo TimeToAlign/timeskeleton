@@ -34,7 +34,7 @@ groups beside ungrouped timelines. The smallest manifest is
 | `name` | no | the manifest's displayed name |
 | `meta` | no | an object of anything an application wants to record |
 | `groups` | no | timeline groups whose members name timelines of the manifest |
-| `graphical` | no | the styling and display order of the manifest's drawing |
+| `graphical` | no | the styling of the manifest's drawing, its groups' display orders and its timelines' band orders |
 | `$schema` | no | a string naming the schema, for editors; never read |
 
 A single timeline is a bundle of one root, and a group is a bundle of one
@@ -203,11 +203,35 @@ manifest holding a group always holds its members' roots, so a member that
 is a child keeps its parent.
 
 `graphical` is `{styles?, statements?, order?}`, at the manifest's top
-level only, never on a timeline. `styles` and `statements` style the
-drawing ([Drawing a manifest](#drawing-a-manifest)). `order` maps a group's
-id to the display order of its members, a permutation of them; writers never
-reorder it, and a group without an entry is displayed in the order of
-`members`. A manifest carries no MatchClaims.
+level only, never on a timeline: a timeline holds time, and what is
+graphical lies in this block. `styles` and `statements` style the drawing
+([Drawing a manifest](#drawing-a-manifest)). `order` maps the id of a group
+or of a timeline to the order of what it stacks, top to bottom, and
+writers never reorder it:
+
+- a group's id to the **display order** of its members, a permutation of
+  them; a group without an entry is displayed in the order of `members`;
+- a timeline's id `T`, of a root or a descendant, to its **band order**, a
+  permutation of its five bands `T/markers_1`, `T/conversion_maps_1`,
+  `T/children_1`, `T/regions_1` and `T/flow_control_1`
+  ([Identity](#identity)) and of `T` itself: the bands before `T` lie
+  above its line, the nearest last, and those after it below, the nearest
+  first. Every timeline, root or child, has these bands at its own line. A
+  timeline without an entry follows its parent's band order, band by band
+  id (the parent's `P/regions_1` becomes `T/regions_1`), a member that is
+  a child included, and a root without one the default
+  `["T/children_1", "T/conversion_maps_1", "T", "T/markers_1",
+  "T/regions_1", "T/flow_control_1"]`; changing a timeline's band order so
+  changes that of every descendant without an entry of its own.
+
+```json
+"order": {"score": ["score/children_1", "score/markers_1", "score", "score/conversion_maps_1", "score/regions_1", "score/flow_control_1"]}
+```
+
+draws the start and end marks of `score` against its line above it, its
+children beyond them, and its conversion maps against its line below it;
+its descendants follow it, so their conversion maps lie below their lines
+too. A manifest carries no MatchClaims.
 
 ### Unknown keys
 
@@ -245,10 +269,17 @@ One address rule holds in every manifest. A timeline, a group or the
 manifest is addressed by its bare id; a conversion map, region, break, jump
 or marker by the id of the root whose tree holds it, `/`, and its own id
 (`score/region_1`); the parts of an element follow its address: `…/start`,
-`…/end`, `…/name`, `…/label`, and a timeline's card `…/card`. These five
-words are therefore reserved: no id of a manifest may be one of them. The
-manifest's title, the top label of its drawing, is addressed `name`,
-whether or not the manifest has an `id`, and a group's title `G/name`.
+`…/end`, `…/name`, `…/label` and a timeline's card `…/card`. The five
+**bands** every timeline has, root or child, follow the timeline's id
+too, each by its kind and number: `…/markers_1`, `…/conversion_maps_1`,
+`…/children_1`, `…/regions_1` and `…/flow_control_1`, which hold its
+markers, conversion maps, children, regions and flow control in its
+drawing. The five part words are therefore reserved, and so is every id
+that matches `^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`,
+whatever its number: no id of a manifest may be one of them or match the
+pattern. The manifest's title, the top label of its drawing, is addressed
+`name`, whether or not the manifest has an `id`, and a group's title
+`G/name`.
 
 The JSON Schema cannot express these rules, nor that a member names a
 timeline of the manifest, nor that no member of a group lies inside
@@ -268,16 +299,18 @@ manifest:
 | A segment's `is_segment_line` differs from the first segment's | the segment's `is_segment_line`, or the segment when it leaves the key out | `segment '<id>' of segment line '<id>' differs from segment '<first id>' in is_segment_line` |
 | A segment does not start where the one before it ends, or the first at 0 | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length, both known | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
-| An id is `start`, `end`, `name`, `label` or `card` | the `id` | `id '<id>' is reserved for the parts of an address` |
+| An id is `start`, `end`, `name`, `label` or `card`, or matches the band pattern above | the `id` | `id '<id>' is reserved for the parts of an address` (`id '<id>' is reserved for the bands of a timeline`) |
 | A timeline id repeats one of an earlier root's tree | the later occurrence | `duplicate id '<id>', first at <pointer>` |
 | A group id equals a timeline id or an earlier group's id | the group's `id` | `duplicate id '<id>', first at <pointer>` |
 | The manifest's id equals a timeline id or a group id | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group |
 | A member names no timeline of the manifest | the member | `'<id>' names no timeline of this manifest` |
 | A member is already a member of an earlier group | the later member | `duplicate member '<id>', first at <pointer>` |
 | A member lies inside an earlier member of its group, or contains one | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
-| A key of `graphical.order` names no group | the key | `'<key>' names no group of this manifest` |
+| A key of `graphical.order` names no group and no timeline | the key | `'<key>' names no group or timeline of this manifest` |
 | An entry of a display order is not a member of its group | the entry | `'<id>' is not a member of group '<group id>'` |
 | A member of a group is missing from its display order | the order | `member '<id>' of group '<group id>' is missing` |
+| An entry of a band order is neither its timeline's id nor one of its bands | the entry | `'<entry>' is not '<id>' or one of its bands` |
+| A band, or the timeline's own id, is missing from its band order | the order | `'<address>' is missing from the band order of '<id>'` |
 
 Within one root's tree, ids are visited in identity order (a timeline,
 then its conversion maps, regions, breaks, jumps and markers, then its
@@ -286,11 +319,13 @@ then children off their parent's axis (child by child, each followed by its
 own children: its unit, then an offset beyond its parent's known length
 or else an end beyond it), then segment lines, whose
 segments are visited in canonical order and compared by exact value. Across the manifest, the problems come in this
-order: each root's own problems, roots in array order; then reserved words
+order: each root's own problems, roots in array order; then reserved ids
 (the manifest's id, then root by root in identity order, then the group
 ids); repeated timeline ids, group ids, the manifest's id, members (member by member: dangling, repeated, nested), and
-the display orders in code-point order of their keys. `<pointer>` is a JSON
-pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
+the entries of `graphical.order` in code-point order of their keys: an
+order's strangers first, in its order, then its missing entries, in the
+order of the group's `members` or of the default band order. `<pointer>`
+is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. The
 messages above quote ids as Python does; the TypeScript package quotes them
 as JSON (`duplicate id "piece", first at #/timelines/0/id`), except the
@@ -300,8 +335,13 @@ both packages, every value spelled as the standard writer spells it (`720`,
 segment of unknown length its successor's offset, is compared exactly and
 spelled as its parent's number type writes it, or as a `[numerator,
 denominator]` pair where that type cannot write it exactly. A repeated
-entry within one display order or within one group's `members` is refused by
-the schema.
+entry within one display or band order or within one group's `members` is
+refused by the schema, and so is, at the entry, an entry of an order that
+is neither an id nor an id followed by `/` and a band's id, its kind, `_`
+and its number (`score/foo`, `score/region_1`); an entry of that shape in
+the band order of `score` that is neither `score` nor one of its bands,
+such as `score/regions_2` or `other`, is refused by the table's band-order
+row above.
 
 ### The schema document
 
@@ -355,13 +395,19 @@ Every manifest is drawn as one box, opened by its title: its `name`, or its
 frame, and each member and each ungrouped root lies in its own card; a
 member that is a child timeline is drawn with the faded lines of its
 ancestors. The element types are `block`,
-`card`, `timeline`, `child`, `boundary` (a segment's start on its segment
-line), `ancestor`, `group` (a frame), `map`, `region`, `break`, `jump`,
-`wedge`, `name` and `label`. Besides `element`, a selector may name `ids`,
-`domain`, `modality`, `class`, `within` (a timeline and its descendants)
-and `inside` (an element type that holds the element at any depth); the
-selector's `class` names the class a timeline's unit decides, such as
-`ContinuousPhysicalTimeline` for `seconds`. The property `shadow` colours
+`card`, `timeline`, `child`, `band` (one of a timeline's five bands, which
+its band order places above or below its own line; a band that is not
+displayed hides everything it holds, and by default the markers, regions
+and flow control bands are hidden on every timeline but the one a card
+holds),
+`boundary` (a segment's start on its segment line), `ancestor`, `group` (a
+frame), `map`, `region`, `break`, `jump`, `wedge`, `name` and `label`.
+Besides `element`, a selector may name `ids`, `domain`, `modality`,
+`class`, `within` (a timeline and its descendants) and `inside` (an element
+type that holds the element at any depth); the selector's `class` names
+the class a timeline's unit decides, such as `ContinuousPhysicalTimeline`
+for `seconds`, a conversion map's type, or a band's kind, such as
+`regions`. The property `shadow` colours
 a card's offset shadow. The group fixture `group_styled` frames its group in violet, fills the group's title violet,
 and gives every card in a frame a light violet shadow:
 

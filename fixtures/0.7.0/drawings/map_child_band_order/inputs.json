@@ -1,0 +1,12 @@
+{
+  "layers": [],
+  "manifest": "map_child_band_order.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 1,
+    "width": null
+  },
+  "scale": 1
+}

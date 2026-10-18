@@ -1,0 +1,63 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "flow_control": {
+            "breaks": [
+              {
+                "condition": "after_dc_ds",
+                "control_type": "fine",
+                "coordinate": [
+                  4,
+                  1
+                ],
+                "id": "fine",
+                "label": "Fine"
+              }
+            ],
+            "jumps": [
+              {
+                "condition": "after_first",
+                "control_type": "da_capo_al_fine",
+                "from_coordinate": [
+                  8,
+                  1
+                ],
+                "id": "da_capo_al_fine",
+                "label": "D.C. al Fine",
+                "to_coordinate": [
+                  0,
+                  1
+                ]
+              }
+            ]
+          },
+          "id": "verse",
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "name": "Verse",
+          "offset": [
+            4,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "piece",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Piece",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

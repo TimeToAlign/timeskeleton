@@ -17,6 +17,7 @@ checkout alike.
 from __future__ import annotations
 
 import json
+import re
 from collections import defaultdict
 from collections.abc import Iterable, Iterator, Mapping
 from fractions import Fraction
@@ -659,32 +660,69 @@ def _segment_problems(
 _PART_WORDS = ("start", "end", "name", "label", "card")
 """The part words, which follow an element's address as its parts and so are no id."""
 
+_BAND_ID = re.compile(
+    r"(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*"
+)
+"""The ids of a timeline's bands, which follow its id in an address and so are no id."""
 
-def _reserved(identifier: str, path: _Path) -> SchemaValidationError:
-    return SchemaValidationError(
-        path, f"id {identifier!r} is reserved for the parts of an address"
-    )
+_DEFAULT_BAND_ORDER = (
+    "children_1",
+    "conversion_maps_1",
+    "",
+    "markers_1",
+    "regions_1",
+    "flow_control_1",
+)
+"""A root's band order where ``graphical.order`` has none, ``""`` the root itself."""
+
+_DISPLAY_ORDER = (
+    "{entry} is not a member of group {owner}",
+    "member {entry} of group {owner} is missing",
+)
+_BAND_ORDER = (
+    "{entry} is not {owner} or one of its bands",
+    "{entry} is missing from the band order of {owner}",
+)
+
+
+def _reserved(identifier: Any, path: _Path) -> Iterator[SchemaValidationError]:
+    """Yield the problem of an id that is a part word or a band's id."""
+    if identifier in _PART_WORDS:
+        yield SchemaValidationError(
+            path, f"id {identifier!r} is reserved for the parts of an address"
+        )
+    elif isinstance(identifier, str) and _BAND_ID.fullmatch(identifier):
+        yield SchemaValidationError(
+            path, f"id {identifier!r} is reserved for the bands of a timeline"
+        )
 
 
 def _order_problems(
-    group: Mapping[str, Any], order: list[str], path: _Path
+    owner: str,
+    order: list[str],
+    expected: list[str],
+    path: _Path,
+    messages: tuple[str, str],
 ) -> Iterator[SchemaValidationError]:
-    """Yield the problems of a display order that is no permutation of members.
+    """Yield the problems of an order that is no permutation of ``expected``.
 
-    Each entry that is not a member is one problem at the entry; then each
-    member missing from the order is one problem at the order.
+    Each entry that is not expected is one problem at the entry; then each
+    expected entry missing from the order, in the order of ``expected``, is
+    one problem at the order. ``messages`` holds the two messages, the entry
+    and the owner's id filled in.
     """
-    members = set(group["members"])
+    stranger, missing = messages
+    allowed = set(expected)
     listed = set(order)
     for index, entry in enumerate(order):
-        if entry not in members:
+        if entry not in allowed:
             yield SchemaValidationError(
-                (*path, index), f"{entry!r} is not a member of group {group['id']!r}"
+                (*path, index), stranger.format(entry=repr(entry), owner=repr(owner))
             )
-    for member in group["members"]:
-        if member not in listed:
+    for entry in expected:
+        if entry not in listed:
             yield SchemaValidationError(
-                path, f"member {member!r} of group {group['id']!r} is missing"
+                path, missing.format(entry=repr(entry), owner=repr(owner))
             )
 
 
@@ -768,9 +806,13 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
        (see ``_child_problems``); then the segment lines (see
        ``_segment_problems``);
     2. every id that is a part word (``start``, ``end``, ``name``, ``label``,
-       ``card``), which follow an address as its parts: the manifest's ``id``,
-       then root by root every id of the tree in identity order, then each
-       group's id;
+       ``card``), which follow an address as its parts, ``id '<id>' is
+       reserved for the parts of an address``, or a band's id, a kind
+       (``markers``, ``conversion_maps``, ``children``, ``regions``,
+       ``flow_control``), ``_`` and a number from 1 without leading zeros,
+       which follows a timeline's id in an address, ``id '<id>' is reserved
+       for the bands of a timeline``: the manifest's ``id``, then root by
+       root every id of the tree in identity order, then each group's id;
     3. a timeline id (of a root or a descendant) repeating a timeline id of an
        earlier root, at the later occurrence;
     4. a group id equal to a timeline id (first at the timeline) or to the id
@@ -782,8 +824,15 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
        member``; a member nested with an earlier member of the same group
        (inside it or containing it), each at the member;
     7. each key of ``graphical.order`` in code-point order: a key naming no
-       group, at the key; each entry that is not a member of the group, at the
-       entry; then each member missing from the order, at the order.
+       group and no timeline, ``'<key>' names no group or timeline of this
+       manifest``, at the key; for a group's display order, each entry that
+       is not a member of the group, at the entry, then each member missing
+       from the order, in the order of ``members``, at the order; for a
+       timeline's band order, each entry that is neither the timeline's id
+       nor one of its five band addresses, ``'<entry>' is not '<id>' or one
+       of its bands``, at the entry, then each of these six missing from the
+       order, in the default band order, ``'<address>' is missing from the
+       band order of '<id>'``, at the order.
 
     A key with a default may be absent; its default applies.
     """
@@ -793,15 +842,12 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     for index, root in enumerate(roots):
         problems.extend(_root_problems(root, ("timelines", index)))
     manifest_id = value.get("id")
-    if manifest_id in _PART_WORDS:
-        problems.append(_reserved(manifest_id, ("id",)))
+    problems.extend(_reserved(manifest_id, ("id",)))
     for index, root in enumerate(roots):
         for identifier, at in _element_ids(root, ("timelines", index)):
-            if identifier in _PART_WORDS:
-                problems.append(_reserved(identifier, at))
+            problems.extend(_reserved(identifier, at))
     for index, group in enumerate(groups):
-        if group["id"] in _PART_WORDS:
-            problems.append(_reserved(group["id"], ("groups", index, "id")))
+        problems.extend(_reserved(group["id"], ("groups", index, "id")))
     timelines: dict[str, _Path] = {}
     for index, root in enumerate(roots):
         seen: dict[str, _Path] = {}
@@ -840,12 +886,18 @@ def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     orders = (value.get("graphical") or {}).get("order") or {}
     for key in sorted(orders):
         path = ("graphical", "order", key)
-        if key not in first_group:
-            problems.append(
-                SchemaValidationError(path, f"{key!r} names no group of this manifest")
-            )
-        else:
+        if key in first_group:
+            members = groups[first_group[key]]["members"]
             problems.extend(
-                _order_problems(groups[first_group[key]], orders[key], path)
+                _order_problems(key, orders[key], members, path, _DISPLAY_ORDER)
+            )
+        elif key in timelines:
+            bands = [f"{key}/{band}" if band else key for band in _DEFAULT_BAND_ORDER]
+            problems.extend(_order_problems(key, orders[key], bands, path, _BAND_ORDER))
+        else:
+            problems.append(
+                SchemaValidationError(
+                    path, f"{key!r} names no group or timeline of this manifest"
+                )
             )
     return problems

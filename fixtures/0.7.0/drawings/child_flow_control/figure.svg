@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="514.5925" height="113.9766" viewBox="0 0 514.5925 113.9766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="482.5925" height="81.9766" rx="10" fill="#F3F4F6"/>
+<rect data-address="piece/card" x="10" y="10" width="464.5925" height="63.9766" rx="5" fill="#B8BEC8"/>
+<rect data-address="piece/card" x="8" y="8" width="464.5925" height="63.9766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="piece" x1="55.3135" y1="37" x2="455.3135" y2="37" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="piece" cx="55.3135" cy="37" r="3" fill="#00CC00"/>
+<polygon data-address="piece" points="464.3135,37 455.3135,32.5 455.3135,41.5" fill="#00CC00"/>
+<line data-address="verse" x1="155.3135" y1="23" x2="350.8135" y2="23" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="verse" cx="155.3135" cy="23" r="3" fill="#00CC00"/>
+<polygon data-address="verse" points="350.8135,23 355.3135,19.4 359.8135,23 355.3135,26.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="piece/start" points="55.3135,38.5 52.3135,51.5 58.3135,51.5" fill="#000000"/>
+<polygon data-address="piece/end" points="455.3135,38.5 452.3135,51.5 458.3135,51.5" fill="#000000"/>
+<text data-address="verse/name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">Verse</text>
+<text data-address="piece/name" x="16" y="40.8081" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<text data-address="piece/start/label" x="55.3135" y="61.854" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="piece/end/label" x="455.3135" y="61.854" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+</g>
+</svg>

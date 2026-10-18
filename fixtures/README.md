@@ -16,9 +16,9 @@ The directories sort the manifests by content only:
 - under `bundles/`, manifests of several groups, several ungrouped roots,
   or both.
 
-Version 0.7.0 has 36 manifests directly under `fixtures/0.7.0/`, 10 under
-`groups/` and 9 under `bundles/`, 55 in all, each with its minimal twin, so
-110 files. Beside them lie 85 rejection cases and 11 warning cases.
+Version 0.7.0 has 41 manifests directly under `fixtures/0.7.0/`, 10 under
+`groups/` and 9 under `bundles/`, 60 in all, each with its minimal twin, so
+120 files. Beside them lie 88 rejection cases and 11 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -62,9 +62,11 @@ is stable through the library: read by the class that holds its content
 for one group, `AlignmentBundle.from_dict` otherwise) and written back with
 `to_dict()`, compared with sorted keys and arrays as they stand. A library
 whose array order differs from the canonical order therefore fails the
-round trip. A group's `graphical.order` is the library's own member order
-and takes part in the round trip; a single timeline's `graphical` block is
-composed by the script and does not. Every timeline, conversion map,
+round trip. A group's display order in `graphical.order` is the library's
+own member order. The `graphical` block the script composes for a manifest,
+its styles, statements and band orders, is read back by the library, which
+keeps it as written, and takes part in the round trip too: the library must
+write the composed manifest back unchanged. Every timeline, conversion map,
 region, break, jump and marker carries an id; ids the script does not give
 are minted by timetoalign and depend on the construction order in the
 script, which is part of the fixture contract.
@@ -100,7 +102,7 @@ The structural fixtures add focused examples:
 | `bare.json` | one named timeline |
 | `contiguous.json` | children that touch and overlap |
 | `map.json` | conversion maps on a root and a child |
-| `styled__score.json`, `styled__performance.json` | `graphical.statements` selecting elements by type, id, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score |
+| `styled__score.json`, `styled__performance.json` | `graphical.statements` selecting elements by type, id, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score; the score's band order in `graphical.order` lays its markers band against its line above it and its conversion maps band against its line below it |
 | `locked_root.json` | a root of 16 quarters locked at construction, with a child `coda` of 4 quarters at 12 |
 | `segment_line.json` | a nested segment line of quarters: `form` (32) of the segments `a` (8), `b` (12) and `c` (12), each a segment line itself, `b` of `b1` and `b2` (6 each) |
 | `segment_pages.json` | an unlocked segment line `pages` of four pages of 1754 pixels |
@@ -156,6 +158,17 @@ each:
 | `groups/group_unknown_length.json` | a group with a member of unknown length |
 | `unknown_length_segments.json` | a segment line whose last segment has an unknown length |
 
+Five manifests cover band orders and the bands of children (drawing
+specification, section 6.4):
+
+| File | Coverage |
+| --- | --- |
+| `map_child_band_order.json` | the timelines of `map`, with a band order for the child `phrase` alone that lays its conversion maps against its line below it |
+| `map_root_band_order.json` | the timelines of `map`, with such a band order for the root `melody` and none for `phrase`, which follows the order of `melody` band by band |
+| `styled_score_flow_inner.json` | `styled__score` with a band order whose flow control band lies nearer the line than its regions band |
+| `joint_rows.json` | a root `piece` of 16 quarters whose children `b` and `d` each hold a child holding one more, so that each depth's two lines share a row and their children bands are laid out together, at two depths; `b` carries one map, `d1` and `d11` two each |
+| `child_flow_control.json` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the break "Fine" at 4 and the jump "D.C. al Fine" from 8 back to 0, while the root holds no flow control |
+
 ## Coverage of groups and bundles
 
 Every builder writes its files; the constructed files are built first. The
@@ -189,8 +202,9 @@ MPM performance, an IEEE 1599 document, a Listen Here! export and a TiLiA
 export. No bundle fixture carries MatchClaims.
 
 Conversion maps, regions and flow control are spread over the constructed
-groups and bundles and the single-timeline fixture `styled__score` so that
-each case below occurs in one of them at least.
+groups and bundles and the single-timeline fixtures `styled__score`,
+`unknown_length_child`, `unknown_length_segments` and `child_flow_control`
+so that each case below occurs in one of them at least.
 `group_number_types`, `group_child_member`, the three `group_parent_*` and
 `group_grandchild` hold none of them, and `group_unknown_length` holds only
 a region. The segment lines of the single-timeline fixtures
@@ -217,6 +231,18 @@ segment line carries a map only in `bundle_shared_parent`.
 | a map, a region and flow control on a root that contains group members and is drawn only as an ancestor line of each, kept in the manifest and not drawn | `score` of `bundle_shared_parent` |
 | a break and a jump together | `score` of `bundle_ungrouped` |
 | a map, a region and flow control inside a styled frame | `score` of `group_styled` |
+| a region on a child | `movement` of `unknown_length_child` |
+| regions on segments without a line of their own, joining their segment line's regions band | `a` and `c` of `unknown_length_segments` |
+| a break and a jump on a child, its root holding none | `verse` of `child_flow_control` |
+
+The defaults hide the markers, regions and flow control bands of every
+timeline held by a band, every timeline of a member drawing but its root
+(drawing specification, section 4). So a child's regions or flow control,
+or a segment's, is drawn in a figure only where a statement of the manifest
+or an application layer displays its band: the drawings
+`unknown_length_child__regions-shown`,
+`unknown_length_segments__regions-shown` and
+`child_flow_control__flow-shown` add such a layer (Drawings, below).
 
 ## Drawings
 
@@ -227,39 +253,38 @@ current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
 The drawings of 0.7.0 are every fixture in the complete form but the corpus
-ones (`corpus_*`) at the default placement, and nineteen variants. The
+ones (`corpus_*`) at the default placement, and seventeen variants. The
 drawing of a manifest directly under `fixtures/0.7.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
 `bundle__bundle_mixed`). The variants draw `nested` at the lengths 200, 400
 and 800 (`nested__length-<L>`), the spacings 0.5, 1 and 2
 (`nested__spacing-<v>`), both 800 and 2 (`nested__length-800-spacing-2`),
-in a box 120 wider and 60 higher than its content (`nested__box`), at scale
-2 (`nested__scale-2`) and with the band order `["flow", "regions",
-"children"]` (`nested__order-flow-regions-children`); `map` with an
-application layer that moves the child's map `ticks` below its line,
-selecting it by its address `melody/ticks` (`map__child-map-below`);
-`bundle_mixed` with the places `{group_2: {x: 40, y: 200, width: 700},
-annotations: {x: -30, length: 300}}` (`bundle_mixed__places`) and with the
-places `{group_1: {scale: 1.25}, performance: {width: 650, height: 120}}`
-(`bundle_mixed__cards`); `bundle_ungrouped` with the place `{score: {x: -60,
-y: -150, height: 120}}` (`bundle_ungrouped__places`), with the place
-`{recording: {scale: 1.5}}` (`bundle_ungrouped__scale`) and with the place
-`{recording: {spacing: 2}}` (`bundle_ungrouped__spacing`); and `styled__score`
-with the band order `["flow", "regions", "children"]`
-(`styled__score__bands-block`), with the
-`bands` `{score: ["flow", "children", "regions"]}`
-(`styled__score__bands-timeline`), and with both, its root's `bands`
-`{score: ["regions", "children", "flow"]}` outranking that order
-(`styled__score__bands-both`): 62 drawings in all. Each directory holds:
+in a box 120 wider and 60 higher than its content (`nested__box`) and at
+scale 2 (`nested__scale-2`); `bundle_mixed` with the places `{group_2: {x:
+40, y: 200, width: 700}, annotations: {x: -30, length: 300}}`
+(`bundle_mixed__places`) and with the places `{group_1: {scale: 1.25},
+performance: {width: 650, height: 120}}` (`bundle_mixed__cards`);
+`bundle_ungrouped` with the place `{score: {x: -60, y: -150, height: 120}}`
+(`bundle_ungrouped__places`), with the place `{recording: {scale: 1.5}}`
+(`bundle_ungrouped__scale`) and with the place `{recording: {spacing: 2}}`
+(`bundle_ungrouped__spacing`); and three manifests with an application
+layer of one statement that sets `display` to `inline` on bands the
+defaults hide: `unknown_length_child` on the band `movement/regions_1`
+(`unknown_length_child__regions-shown`), `unknown_length_segments` on every
+regions band, `{"element": "band", "class": "regions"}`
+(`unknown_length_segments__regions-shown`), and `child_flow_control` on the
+band `verse/flow_control_1` (`child_flow_control__flow-shown`): 65 drawings
+in all. No variant sets a band order: band orders are the manifests' own,
+in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
+`map_child_band_order`, `map_root_band_order`). Each directory holds:
 
 - `inputs.json`, everything a drawing needs besides the manifest itself and
   the font, written with `dumps`:
   - `manifest`: the path of the manifest relative to the same version's
     directory (`nested.json`, `groups/group_child_member.json`);
-  - `placement`: `length`, `spacing`, `width`, `height`, `order`, `bands`
-    and `places`, all seven always written, defaults included (400, 1,
-    `null`, `null`, `["children", "regions", "flow"]`, `{}`, `{}`);
+  - `placement`: `length`, `spacing`, `width`, `height` and `places`, all
+    five always written, defaults included (400, 1, `null`, `null`, `{}`);
   - `scale`: the scale `z` at which the writers place the drawing;
   - `layers`: the statement lists an application supplies, lowest
     precedence first. The defaults and the manifest's own `graphical` block
@@ -272,17 +297,18 @@ with the band order `["flow", "regions", "children"]`
   the font directory `.`.
 
 Two implementations that follow the specification write both figures byte
-for byte. Twenty-two `figure.svg` files are derived by hand from the
-specification alone and are never regenerated, the six figures of
-timelines of unknown length, `bundle_ungrouped__places`,
-`bundle_ungrouped__scale`, `bundle_ungrouped__spacing` and
-`styled__score__bands-timeline` among them;
-`drawings/README.md` lists them with their arithmetic. Every other figure, and every `inputs.json`, is emitted by
-TimeLineEditor's writers with `pnpm emit-drawings --into <timeskeleton
-checkout>` (run in its `app/packages/writers/`), which compares the
-hand-derived SVGs with its own output instead of writing them. The script
-refuses to replace the drawings of a version whose tag `v<version>`
-exists.
+for byte. Twenty-eight `figure.svg` files are derived by hand from the
+specification alone and are never regenerated, among them every drawing of
+a timeline of unknown length, the three variants of `bundle_ungrouped`, the
+three variants that display a band the defaults hide, the band orders of
+`styled_score_flow_inner`, `map_child_band_order` and
+`map_root_band_order`, and `joint_rows`; `drawings/README.md` lists them
+with their arithmetic. Every other figure, and every `inputs.json`, is
+emitted by TimeLineEditor's writers with `pnpm emit-drawings --into
+<timeskeleton checkout>` (run in its `app/packages/writers/`), which
+compares the hand-derived SVGs with its own output instead of writing them.
+The script refuses to replace the drawings of a version whose tag
+`v<version>` exists.
 
 ## Rejection coverage
 
@@ -303,13 +329,18 @@ value, a segment that leaves a gap or
 does not start at 0, segments that fall short of a known length), and the
 identity rules `validate` checks beyond the schema: ids unique within a
 root's tree, timeline ids, group ids and the manifest's id unique together,
-the part words `start`, `end`, `name`, `label` and `card` refused as an id,
-in a manifest of one root as in any other, jump targets naming a marker of
-their own timeline, members naming timelines of the manifest, a timeline a
-member of at most one group, no member of a group lying inside another, and
-display orders that are permutations of their group's members. Tests in
-both packages load the same files and compare the reported path with the
-case's expected path.
+the part words `start`, `end`, `name`, `label` and `card` and every id
+matching the band pattern
+`^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$` (a
+region `regions_1`) refused as an id, in a manifest of one root as in any
+other, jump targets naming a marker of their own timeline, members naming
+timelines of the manifest, a timeline a member of at most one group, no
+member of a group lying inside another, display orders that are
+permutations of their group's members, keys of `order` naming a group or a
+timeline, and band orders that are permutations of their timeline's id and
+its five bands (an entry that is no band of the timeline, a missing band).
+Tests in both packages load the same files and compare the reported path
+with the case's expected path.
 
 ## Warning cases
 

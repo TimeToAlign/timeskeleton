@@ -40,6 +40,7 @@ CONVERSION_MAP_TYPES = [
     "TableMap",
     "TicksToQuarters",
 ]
+BAND_KINDS = ["markers", "conversion_maps", "children", "regions", "flow_control"]
 TIME_UNITS = [
     "number",
     "floating_measures",
@@ -134,6 +135,7 @@ def test_the_public_definitions() -> None:
         "GroupGraphical",
         "BundleGraphical",
         "CoordinateNonnegative",
+        "MemberOrder",
     ):
         assert gone not in defs
 
@@ -209,7 +211,18 @@ def test_groups_and_the_graphical_block() -> None:
     assert "required" not in graphical
     order = graphical["properties"]["order"]
     assert order["propertyNames"] == {"$ref": "#/$defs/Id"}
-    assert order["additionalProperties"] == {"$ref": "#/$defs/MemberOrder"}
+    assert order["additionalProperties"] == {"$ref": "#/$defs/Order"}
+    entry = (
+        r"^[^/\u0000-\u001f]+"
+        r"(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$"
+    )
+    assert {
+        key: value for key, value in defs["Order"].items() if key != "description"
+    } == {
+        "type": "array",
+        "items": {"type": "string", "pattern": entry},
+        "uniqueItems": True,
+    }
     assert not [node for node, _ in _nodes(load_schema()) if "support_policy" in node]
     for name in CONVERSION_MAP_TYPES:
         definition = defs[name]
@@ -306,6 +319,7 @@ def test_the_vocabulary() -> None:
         "block",
         "timeline",
         "child",
+        "band",
         "map",
         "region",
         "break",
@@ -328,7 +342,9 @@ def test_the_vocabulary() -> None:
         "within",
         "inside",
     ]
-    assert selector["class"]["enum"] == TIMELINE_CLASSES + CONVERSION_MAP_TYPES
+    assert selector["class"]["enum"] == (
+        TIMELINE_CLASSES + CONVERSION_MAP_TYPES + BAND_KINDS
+    )
     assert selector["ids"]["minItems"] == 1
     assert selector["ids"]["uniqueItems"] is True
     assert selector["domain"]["enum"] == ["graphical", "logical", "physical"]
@@ -350,7 +366,6 @@ def test_the_vocabulary() -> None:
         "font-size": {"type": "number", "exclusiveMinimum": 0},
         "rx": {"type": "number", "minimum": 0},
         "display": {"type": "string", "enum": ["inline", "none"]},
-        "side": {"type": "string", "enum": ["above", "below"]},
         "content": {"type": "string"},
         "max-width": {
             "oneOf": [

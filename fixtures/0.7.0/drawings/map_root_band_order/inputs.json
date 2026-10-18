@@ -1,15 +1,9 @@
 {
   "layers": [],
-  "manifest": "styled__score.json",
+  "manifest": "map_root_band_order.json",
   "placement": {
-    "bands": {},
     "height": null,
     "length": 400,
-    "order": [
-      "flow",
-      "regions",
-      "children"
-    ],
     "places": {},
     "spacing": 1,
     "width": null

@@ -190,5 +190,5 @@
     "order",
     "group_9"
   ],
-  "reason": "Each key of the display order names a group."
+  "reason": "Each key of the order names a group or a timeline of the manifest; group_9 names no group or timeline."
 }

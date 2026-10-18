@@ -1,0 +1,12 @@
+{
+  "layers": [],
+  "manifest": "child_flow_control.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 1,
+    "width": null
+  },
+  "scale": 1
+}

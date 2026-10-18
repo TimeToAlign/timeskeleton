@@ -21,24 +21,6 @@
       },
       {
         "select": {
-          "element": "map"
-        },
-        "set": {
-          "side": "below"
-        }
-      },
-      {
-        "select": {
-          "ids": [
-            "a"
-          ]
-        },
-        "set": {
-          "display": "none"
-        }
-      },
-      {
-        "select": {
           "domain": "physical",
           "element": "wedge",
           "within": "performance"
@@ -51,7 +33,7 @@
     ]
   },
   "meta": {
-    "generator": "timetoalign 1.2.0 (1d90e3ff)"
+    "generator": "timetoalign 1.2.0 (4aacfe8e)"
   },
   "timelines": [
     {

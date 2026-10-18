@@ -1,0 +1,26 @@
+{
+  "layers": [
+    {
+      "statements": [
+        {
+          "select": {
+            "class": "regions",
+            "element": "band"
+          },
+          "set": {
+            "display": "inline"
+          }
+        }
+      ]
+    }
+  ],
+  "manifest": "unknown_length_segments.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 1,
+    "width": null
+  },
+  "scale": 1
+}

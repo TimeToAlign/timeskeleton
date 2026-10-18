@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="542.7693" height="130.9531" viewBox="0 0 542.7693 130.9531" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="510.7693" height="98.9531" rx="10" fill="#F3F4F6"/>
+<rect data-address="score/card" x="10" y="10" width="492.7693" height="80.9531" rx="5" fill="#B8BEC8"/>
+<rect data-address="score/card" x="8" y="8" width="492.7693" height="80.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<path data-address="score/region_1" d="M183.4902 28.5Q183.4902 31.5 186.4902 31.5L217.9902 31.5Q220.9902 31.5 220.9902 34.5Q220.9902 31.5 223.9902 31.5L255.4902 31.5Q258.4902 31.5 258.4902 28.5" fill="none" stroke="#000000" stroke-width="1"/>
+<line data-address="score" x1="83.4902" y1="53.9766" x2="483.4902" y2="53.9766" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="score" cx="83.4902" cy="53.9766" r="3" fill="#00CC00"/>
+<polygon data-address="score" points="492.4902,53.9766 483.4902,49.4766 483.4902,58.4766" fill="#00CC00"/>
+<line data-address="movement" x1="183.4902" y1="23" x2="270.4902" y2="23" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="movement" cx="183.4902" cy="23" r="3" fill="#00CC00"/>
+<polyline data-address="movement" points="273.4902,18.5 277.9902,23 273.4902,27.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polyline data-address="movement" points="277.9902,18.5 282.4902,23 277.9902,27.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polyline data-address="movement" points="282.4902,18.5 286.9902,23 282.4902,27.5" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="score/start" points="83.4902,55.4766 80.4902,68.4766 86.4902,68.4766" fill="#000000"/>
+<polygon data-address="score/end" points="483.4902,55.4766 480.4902,68.4766 486.4902,68.4766" fill="#000000"/>
+<text data-address="movement/name" x="16" y="26.8081" text-anchor="start" font-size="11" fill="#000000">movement</text>
+<text data-address="score/name" x="16" y="57.7847" text-anchor="start" font-size="11" fill="#000000">score</text>
+<text data-address="score/start/label" x="83.4902" y="78.8306" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="score/end/label" x="483.4902" y="78.8306" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
+</g>
+</svg>

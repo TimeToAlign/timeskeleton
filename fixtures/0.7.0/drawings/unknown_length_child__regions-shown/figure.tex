@@ -1,0 +1,34 @@
+\documentclass{standalone}
+\usepackage{fontspec}
+\setsansfont{DejaVuSans.ttf}[Path=./,Kerning=Off,Ligatures={TeXOff,NoCommon}]
+\usepackage{tikz}
+\begin{document}
+\begin{tikzpicture}[x=1pt,y=1pt,miter limit=4,font=\sffamily]
+\definecolor{ts000000}{HTML}{000000}
+\definecolor{ts00CC00}{HTML}{00CC00}
+\definecolor{tsB8BEC8}{HTML}{B8BEC8}
+\definecolor{tsC4C9D1}{HTML}{C4C9D1}
+\definecolor{tsF3F4F6}{HTML}{F3F4F6}
+\definecolor{tsFFFFFF}{HTML}{FFFFFF}
+\begin{scope}[shift={(16,16)}]
+\path[rounded corners=10pt,fill=tsF3F4F6] (0,0) rectangle (510.7693,98.9531);
+\path[rounded corners=5pt,fill=tsB8BEC8] (10,8) rectangle (502.7693,88.9531);
+\path[rounded corners=5pt,fill=tsFFFFFF,draw=tsC4C9D1,line width=0.75pt] (8,10) rectangle (500.7693,90.9531);
+\path[draw=ts000000,line width=1pt] (183.4902,70.4531) .. controls (183.4902,68.4531) and (184.4902,67.4531) .. (186.4902,67.4531) -- (217.9902,67.4531) .. controls (219.9902,67.4531) and (220.9902,66.4531) .. (220.9902,64.4531) .. controls (220.9902,66.4531) and (221.9902,67.4531) .. (223.9902,67.4531) -- (255.4902,67.4531) .. controls (257.4902,67.4531) and (258.4902,68.4531) .. (258.4902,70.4531);
+\path[draw=ts00CC00,line width=3pt] (83.4902,44.9766) -- (483.4902,44.9766);
+\path[fill=ts00CC00] (83.4902,44.9766) circle[radius=3];
+\path[fill=ts00CC00] (492.4902,44.9766) -- (483.4902,49.4766) -- (483.4902,40.4766) -- cycle;
+\path[draw=ts00CC00,line width=3pt] (183.4902,75.9531) -- (270.4902,75.9531);
+\path[fill=ts00CC00] (183.4902,75.9531) circle[radius=3];
+\path[draw=ts00CC00,line width=1.5pt] (273.4902,80.4531) -- (277.9902,75.9531) -- (273.4902,71.4531);
+\path[draw=ts00CC00,line width=1.5pt] (277.9902,80.4531) -- (282.4902,75.9531) -- (277.9902,71.4531);
+\path[draw=ts00CC00,line width=1.5pt] (282.4902,80.4531) -- (286.9902,75.9531) -- (282.4902,71.4531);
+\path[fill=ts000000] (83.4902,43.4766) -- (80.4902,30.4766) -- (86.4902,30.4766) -- cycle;
+\path[fill=ts000000] (483.4902,43.4766) -- (480.4902,30.4766) -- (486.4902,30.4766) -- cycle;
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,72.145) {movement};
+\node[anchor=base west,inner sep=0,font=\sffamily\fontsize{11}{12.8047}\selectfont,text=ts000000] at (16,41.1685) {score};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (83.4902,20.1226) {0 ♩};
+\node[anchor=base,inner sep=0,font=\sffamily\fontsize{9}{10.4766}\selectfont,text=ts000000] at (483.4902,20.1226) {32 ♩};
+\end{scope}
+\end{tikzpicture}
+\end{document}

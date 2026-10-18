@@ -2,14 +2,8 @@
   "layers": [],
   "manifest": "bundles/bundle_mixed.json",
   "placement": {
-    "bands": {},
     "height": null,
     "length": 400,
-    "order": [
-      "children",
-      "regions",
-      "flow"
-    ],
     "places": {
       "group_1": {
         "scale": 1.25

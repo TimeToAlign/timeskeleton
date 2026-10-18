@@ -26,7 +26,6 @@
             "element": "map"
           },
           "set": {
-            "side": "below",
             "stroke-dasharray": "3,3"
           }
         },
@@ -107,7 +106,6 @@
           },
           "set": {
             "fill": "#65A30D",
-            "side": "above",
             "stroke": "#65A30D"
           }
         },

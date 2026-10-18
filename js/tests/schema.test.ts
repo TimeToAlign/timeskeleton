@@ -36,6 +36,7 @@ const MAP_TYPES = [
   "TableMap",
   "TicksToQuarters",
 ];
+const BAND_KINDS = ["markers", "conversion_maps", "children", "regions", "flow_control"];
 const PUBLIC = [
   "TimeSkeleton",
   "Timeline",
@@ -169,7 +170,15 @@ describe("the schema document", () => {
     expect(defs.Graphical?.required).toBeUndefined();
     expect(properties("Graphical").order?.propertyNames).toEqual({ $ref: "#/$defs/Id" });
     expect(properties("Graphical").order?.additionalProperties).toEqual({
-      $ref: "#/$defs/MemberOrder",
+      $ref: "#/$defs/Order",
+    });
+    expect(defs.MemberOrder).toBeUndefined();
+    expect(defs.Order?.type).toBe("array");
+    expect(defs.Order?.uniqueItems).toBe(true);
+    expect(defs.Order?.items).toEqual({
+      type: "string",
+      pattern:
+        "^[^/\\u0000-\\u001f]+(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$",
     });
     expect([...nodes(document)].filter(([node]) => "support_policy" in node)).toEqual([]);
     for (const name of MAP_TYPES) {
@@ -271,6 +280,7 @@ describe("the schema document", () => {
       "block",
       "timeline",
       "child",
+      "band",
       "map",
       "region",
       "break",
@@ -293,7 +303,7 @@ describe("the schema document", () => {
       "within",
       "inside",
     ]);
-    expect(selector.class?.enum).toEqual([...TIMELINE_CLASSES, ...MAP_TYPES]);
+    expect(selector.class?.enum).toEqual([...TIMELINE_CLASSES, ...MAP_TYPES, ...BAND_KINDS]);
     expect(Object.keys(properties("Declaration"))).toEqual([
       "stroke",
       "stroke-width",
@@ -303,7 +313,6 @@ describe("the schema document", () => {
       "font-size",
       "rx",
       "display",
-      "side",
       "content",
       "max-width",
       "shadow",

@@ -24,6 +24,9 @@ SMALLEST = {
 }
 
 REJECTIONS = [
+    "band_id_region",
+    "band_order_missing_band",
+    "band_order_unknown_entry",
     "break_control_type_unknown",
     "child_end_beyond_parent",
     "child_id_control_character_newline",
@@ -415,6 +418,49 @@ def test_card_inside_and_shadow_validate(statement: dict) -> None:
     validate(manifest(timeline("score"), graphical={"statements": [statement]}))
 
 
+@pytest.mark.parametrize(
+    "select",
+    [
+        {"element": "band"},
+        {"element": "band", "class": "markers"},
+        {"element": "band", "class": "conversion_maps"},
+        {"element": "band", "class": "children"},
+        {"element": "band", "class": "regions"},
+        {"element": "band", "class": "flow_control"},
+        {"ids": ["score/regions_1"]},
+        {"inside": "band"},
+    ],
+)
+def test_band_selectors_validate(select: dict) -> None:
+    statement = {"select": select, "set": {"display": "none"}}
+    validate(manifest(timeline("score"), graphical={"statements": [statement]}))
+
+
+@pytest.mark.parametrize(
+    ("order", "index"),
+    [
+        (["score/foo"], 0),
+        (["score/regions_0"], 0),
+        (["score", "score/regions_1", "score/region_1"], 2),
+    ],
+)
+def test_the_schema_shapes_each_order_entry(order: list[str], index: int) -> None:
+    value = manifest(timeline("score"), graphical={"order": {"score": order}})
+    assert _problem(value)[0] == ("graphical", "order", "score", index)
+
+
+def test_the_schema_refuses_a_repeated_order_entry() -> None:
+    order = ["score", "score/markers_1", "score"]
+    value = manifest(timeline("score"), graphical={"order": {"score": order}})
+    assert _problem(value)[0] == ("graphical", "order", "score")
+
+
+def test_band_is_an_element_type_and_no_class() -> None:
+    statement = {"select": {"class": "band"}, "set": {"display": "none"}}
+    value = manifest(timeline("score"), graphical={"statements": [statement]})
+    assert _problem(value)[0] == ("graphical", "statements", 0, "select", "class")
+
+
 def _defaults_block() -> dict:
     """The JSON block of section 4 of the drawing specification."""
     text = (REPOSITORY_ROOT / "docs" / "drawing.md").read_text(encoding="utf-8")
@@ -426,7 +472,7 @@ def _defaults_block() -> dict:
 def test_the_defaults_are_a_valid_graphical_block() -> None:
     defaults = _defaults_block()
     assert len(defaults["styles"]) == 3
-    assert len(defaults["statements"]) == 28
+    assert len(defaults["statements"]) == 30
     validate({**SMALLEST, "graphical": defaults})
 
 

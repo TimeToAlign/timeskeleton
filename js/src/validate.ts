@@ -661,43 +661,92 @@ function* segmentProblems(
 /** The part words, which follow an element's address as its parts and so are no id. */
 const PART_WORDS: ReadonlySet<string> = new Set(["start", "end", "name", "label", "card"]);
 
-function reserved(id: string, path: readonly PathSegment[]): SchemaValidationError {
-  return new SchemaValidationError(
-    path,
-    `id ${JSON.stringify(id)} is reserved for the parts of an address`,
-  );
+/** The kinds of a timeline's five bands; a band's id is its kind, `_` and its number. */
+const BAND_KINDS = ["markers", "conversion_maps", "children", "regions", "flow_control"] as const;
+
+/** The ids of bands, which follow a timeline's id and so are no id, whatever their number. */
+const BAND_ID = new RegExp(`^(${BAND_KINDS.join("|")})_[1-9][0-9]*$`);
+
+/** The problem of an id reserved for the parts of an address or for the bands of a timeline. */
+function* reserved(id: string, path: readonly PathSegment[]): Generator<SchemaValidationError> {
+  const what = PART_WORDS.has(id)
+    ? "the parts of an address"
+    : BAND_ID.test(id)
+      ? "the bands of a timeline"
+      : null;
+  if (what !== null) {
+    yield new SchemaValidationError(path, `id ${JSON.stringify(id)} is reserved for ${what}`);
+  }
+}
+
+/** The default band order of the timeline `id`, which a root without an entry follows. */
+function defaultBandOrder(id: string): string[] {
+  return [
+    `${id}/children_1`,
+    `${id}/conversion_maps_1`,
+    id,
+    `${id}/markers_1`,
+    `${id}/regions_1`,
+    `${id}/flow_control_1`,
+  ];
 }
 
 /**
- * The problems of a display order that is no permutation of a group's
- * members: each entry that is not a member at the entry, then each member
- * missing from the order at the order.
+ * The problems of an order that is no permutation of `expected`: each entry
+ * not in `expected`, at the entry, then each item of `expected` missing from
+ * the order, at the order, in the order of `expected`.
  */
-function* orderProblems(
+function* permutationProblems(
+  order: readonly string[],
+  expected: readonly string[],
+  path: readonly PathSegment[],
+  stranger: (entry: string) => string,
+  missing: (item: string) => string,
+): Generator<SchemaValidationError> {
+  const wanted = new Set(expected);
+  const listed = new Set(order);
+  for (const [index, entry] of order.entries()) {
+    if (!wanted.has(entry)) yield new SchemaValidationError([...path, index], stranger(entry));
+  }
+  for (const item of expected) {
+    if (!listed.has(item)) yield new SchemaValidationError(path, missing(item));
+  }
+}
+
+/** The problems of a group's display order, a permutation of its members. */
+function displayOrderProblems(
   group: JsonObject,
   order: readonly string[],
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
-  const members = group.members as string[];
-  const memberSet = new Set(members);
-  const listed = new Set(order);
   const id = JSON.stringify(group.id);
-  for (const [index, entry] of order.entries()) {
-    if (!memberSet.has(entry)) {
-      yield new SchemaValidationError(
-        [...path, index],
-        `${JSON.stringify(entry)} is not a member of group ${id}`,
-      );
-    }
-  }
-  for (const member of members) {
-    if (!listed.has(member)) {
-      yield new SchemaValidationError(
-        path,
-        `member ${JSON.stringify(member)} of group ${id} is missing`,
-      );
-    }
-  }
+  return permutationProblems(
+    order,
+    group.members as string[],
+    path,
+    (entry) => `${JSON.stringify(entry)} is not a member of group ${id}`,
+    (member) => `member ${JSON.stringify(member)} of group ${id} is missing`,
+  );
+}
+
+/**
+ * The problems of a timeline's band order, a permutation of the timeline's
+ * id and its five band addresses; missing items come in the default band
+ * order's order.
+ */
+function bandOrderProblems(
+  timeline: string,
+  order: readonly string[],
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  const id = JSON.stringify(timeline);
+  return permutationProblems(
+    order,
+    defaultBandOrder(timeline),
+    path,
+    (entry) => `${JSON.stringify(entry)} is not ${id} or one of its bands`,
+    (address) => `${JSON.stringify(address)} is missing from the band order of ${id}`,
+  );
 }
 
 /**
@@ -782,8 +831,11 @@ function* memberProblems(
  *    at <e>, beyond the length <pl> of its parent '<pid>'` (see
  *    `childProblems`); then the segment lines (see `segmentProblems`);
  * 2. every id that is a part word (`start`, `end`, `name`, `label`, `card`),
- *    which follow an address as its parts: the manifest's `id`, then root by
- *    root every id of the tree in identity order, then each group's id;
+ *    which follow an address as its parts, `id "<id>" is reserved for the
+ *    parts of an address`, or a band's id (its kind, `_` and a number from
+ *    1 without leading zero), which follows a timeline's id, `id "<id>" is
+ *    reserved for the bands of a timeline`: the manifest's `id`, then root
+ *    by root every id of the tree in identity order, then each group's id;
  * 3. a timeline id (of a root or a descendant) repeating a timeline id of an
  *    earlier root, at the later occurrence;
  * 4. a group id equal to a timeline id (first at the timeline) or to the id
@@ -795,8 +847,16 @@ function* memberProblems(
  *    member`; a member nested with an earlier member of the same group
  *    (inside it or containing it), each at the member;
  * 7. each key of `graphical.order` in code-point order: a key naming no
- *    group, at the key; each entry that is not a member of the group, at the
- *    entry; then each member missing from the order, at the order.
+ *    group and no timeline, at the key; for a group's display order, each
+ *    entry that is not a member of the group, at the entry, then each member
+ *    missing from the order, at the order, in the order of `members`; for a
+ *    timeline's band order, each entry that is neither the timeline's id nor
+ *    one of its five band addresses, at the entry, then each of them missing
+ *    from the order, at the order, in the default band order's order
+ *    (`T/children_1`, `T/conversion_maps_1`, `T`, `T/markers_1`,
+ *    `T/regions_1`, `T/flow_control_1`). A key that is a group's id is read
+ *    as the group's: it can be a timeline's id as well only where step 4
+ *    has refused the group's id.
  *
  * A key with a default may be absent; its default applies. Python's
  * `identity_problems` gives the same problems at the same paths, quoting ids
@@ -814,16 +874,13 @@ export function identityProblems(
     problems.push(...rootProblems(root, ["timelines", index]));
   }
   const manifestId = typeof manifest.id === "string" ? manifest.id : null;
-  if (manifestId !== null && PART_WORDS.has(manifestId))
-    problems.push(reserved(manifestId, ["id"]));
+  if (manifestId !== null) problems.push(...reserved(manifestId, ["id"]));
   for (const [index, root] of roots.entries()) {
-    for (const [id, at] of elementIds(root, ["timelines", index])) {
-      if (PART_WORDS.has(id)) problems.push(reserved(id, at));
-    }
+    for (const [id, at] of elementIds(root, ["timelines", index]))
+      problems.push(...reserved(id, at));
   }
   for (const [index, group] of groups.entries()) {
-    const id = text(group, "id");
-    if (PART_WORDS.has(id)) problems.push(reserved(id, ["groups", index, "id"]));
+    problems.push(...reserved(text(group, "id"), ["groups", index, "id"]));
   }
   const timelines = new Map<string, PathSegment[]>();
   for (const [index, root] of roots.entries()) {
@@ -862,13 +919,19 @@ export function identityProblems(
   const orders = isJsonObject(graphical.order) ? (graphical.order as Record<string, string[]>) : {};
   for (const key of Object.keys(orders).sort(compareCodePoints)) {
     const path = ["graphical", "order", key];
+    const order = orders[key] ?? [];
     const index = firstGroup.get(key);
-    if (index === undefined) {
-      problems.push(
-        new SchemaValidationError(path, `${JSON.stringify(key)} names no group of this manifest`),
-      );
+    if (index !== undefined) {
+      problems.push(...displayOrderProblems(groups[index] as JsonObject, order, path));
+    } else if (timelines.has(key)) {
+      problems.push(...bandOrderProblems(key, order, path));
     } else {
-      problems.push(...orderProblems(groups[index] as JsonObject, orders[key] ?? [], path));
+      problems.push(
+        new SchemaValidationError(
+          path,
+          `${JSON.stringify(key)} names no group or timeline of this manifest`,
+        ),
+      );
     }
   }
   return problems;

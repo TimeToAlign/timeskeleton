@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="534.283" height="158.4766" viewBox="0 0 534.283 158.4766" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<g transform="translate(16 16)">
+<rect x="0" y="0" width="502.283" height="126.4766" rx="10" fill="#F3F4F6"/>
+<rect data-address="piece/card" x="10" y="10" width="484.283" height="108.4766" rx="5" fill="#B8BEC8"/>
+<rect data-address="piece/card" x="8" y="8" width="484.283" height="108.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-address="piece/ticks_b" points="75.0039,61 225.0039,61 225.0039,63 75.0039,63" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="piece/tempo_d1" points="325.0039,43.5 425.0039,43.5 425.0039,45.5 325.0039,45.5" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="piece/ticks_d1" points="325.0039,38.5 425.0039,38.5 425.0039,40.5 325.0039,40.5" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="piece/tempo_d11" points="350.0039,21 400.0039,21 400.0039,23 350.0039,23" fill="none" stroke="#0050EF" stroke-width="1"/>
+<polygon data-address="piece/ticks_d11" points="350.0039,16 400.0039,16 400.0039,18 350.0039,18" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<line data-address="piece" x1="75.0039" y1="81.5" x2="475.0039" y2="81.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="piece" cx="75.0039" cy="81.5" r="3" fill="#00CC00"/>
+<polygon data-address="piece" points="484.0039,81.5 475.0039,77 475.0039,86" fill="#00CC00"/>
+<line data-address="b" x1="75.0039" y1="67.5" x2="220.5039" y2="67.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="b" cx="75.0039" cy="67.5" r="3" fill="#00CC00"/>
+<polygon data-address="b" points="220.5039,67.5 225.0039,63.9 229.5039,67.5 225.0039,71.1" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="b1" x1="100.0039" y1="50" x2="195.5039" y2="50" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="b1" cx="100.0039" cy="50" r="3" fill="#00CC00"/>
+<polygon data-address="b1" points="195.5039,50 200.0039,46.4 204.5039,50 200.0039,53.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="b11" x1="125.0039" y1="27.5" x2="170.5039" y2="27.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="b11" cx="125.0039" cy="27.5" r="3" fill="#00CC00"/>
+<polygon data-address="b11" points="170.5039,27.5 175.0039,23.9 179.5039,27.5 175.0039,31.1" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="d" x1="275.0039" y1="67.5" x2="470.5039" y2="67.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="d" cx="275.0039" cy="67.5" r="3" fill="#00CC00"/>
+<polygon data-address="d" points="470.5039,67.5 475.0039,63.9 479.5039,67.5 475.0039,71.1" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="d1" x1="325.0039" y1="50" x2="420.5039" y2="50" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="d1" cx="325.0039" cy="50" r="3" fill="#00CC00"/>
+<polygon data-address="d1" points="420.5039,50 425.0039,46.4 429.5039,50 425.0039,53.6" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<line data-address="d11" x1="350.0039" y1="27.5" x2="395.5039" y2="27.5" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="d11" cx="350.0039" cy="27.5" r="3" fill="#00CC00"/>
+<polygon data-address="d11" points="395.5039,27.5 400.0039,23.9 404.5039,27.5 400.0039,31.1" fill="none" stroke="#00CC00" stroke-width="1.5"/>
+<polygon data-address="piece/start" points="75.0039,83 72.0039,96 78.0039,96" fill="#000000"/>
+<polygon data-address="piece/end" points="475.0039,83 472.0039,96 478.0039,96" fill="#000000"/>
+<text data-address="b11/name" x="16" y="31.3081" text-anchor="start" font-size="11" fill="#000000">B11, D11</text>
+<text data-address="b1/name" x="16" y="53.8081" text-anchor="start" font-size="11" fill="#000000">B1, D1</text>
+<text data-address="b/name" x="16" y="71.3081" text-anchor="start" font-size="11" fill="#000000">B, D</text>
+<text data-address="piece/name" x="16" y="85.3081" text-anchor="start" font-size="11" fill="#000000">Piece</text>
+<text data-address="piece/start/label" x="75.0039" y="106.354" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="piece/end/label" x="475.0039" y="106.354" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+</g>
+</svg>

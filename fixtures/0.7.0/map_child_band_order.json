@@ -1,0 +1,97 @@
+{
+  "graphical": {
+    "order": {
+      "phrase": [
+        "phrase/children_1",
+        "phrase",
+        "phrase/conversion_maps_1",
+        "phrase/markers_1",
+        "phrase/regions_1",
+        "phrase/flow_control_1"
+      ]
+    },
+    "statements": [],
+    "styles": {}
+  },
+  "groups": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [
+            {
+              "id": "ticks",
+              "name": "Ticks",
+              "ppq": 480,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "QuartersToTicks"
+            }
+          ],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "phrase",
+          "is_segment_line": false,
+          "length": [
+            4,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "Phrase",
+          "number_type": "fraction",
+          "offset": [
+            2,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "tempo",
+          "name": "Tempo",
+          "scalar": [
+            1,
+            2
+          ],
+          "source_unit": "quarters",
+          "target_unit": "seconds",
+          "type": "ScalarMap"
+        }
+      ],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "melody",
+      "is_segment_line": false,
+      "length": [
+        8,
+        1
+      ],
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Melody",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

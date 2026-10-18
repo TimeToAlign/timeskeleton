@@ -30,6 +30,9 @@ const SMALLEST = {
 };
 
 const REJECTIONS = [
+  "band_id_region",
+  "band_order_missing_band",
+  "band_order_unknown_entry",
   "break_control_type_unknown",
   "child_end_beyond_parent",
   "child_id_control_character_newline",
@@ -411,8 +414,40 @@ describe("the graphical block", () => {
     { select: { element: "card" }, set: { rx: 5 } },
     { select: { inside: "ancestor" }, set: { opacity: 0.35 } },
     { select: { element: "card" }, set: { shadow: "#B8BEC8" } },
+    { select: { element: "band" }, set: { display: "none" } },
+    { select: { inside: "band" }, set: { opacity: 0.5 } },
+    { select: { ids: ["score/regions_1"] }, set: { display: "inline" } },
+    ...["markers", "conversion_maps", "children", "regions", "flow_control"].map((kind) => ({
+      select: { element: "band", class: kind },
+      set: { display: "none" },
+    })),
   ])("accepts %o", (statement) => {
     validate(manifest([timeline("score")], { graphical: { statements: [statement] } }));
+  });
+
+  const ENTRY =
+    "^[^/\\u0000-\\u001f]+(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$";
+
+  it.each([
+    [["score/foo"], 0],
+    [["score/regions_0"], 0],
+    [["score", "score/regions_1", "score/region_1"], 2],
+  ])("refuses the order entry of %o by the schema", (order, index) => {
+    const value = manifest([timeline("score")], { graphical: { order: { score: order } } });
+    expect(problem(value)).toEqual([
+      ["graphical", "order", "score", index],
+      `must match pattern "${ENTRY}"`,
+    ]);
+  });
+
+  it("refuses a repeated band order entry by the schema", () => {
+    const value = manifest([timeline("score")], {
+      graphical: { order: { score: ["score", "score/markers_1", "score"] } },
+    });
+    expect(problem(value)).toEqual([
+      ["graphical", "order", "score"],
+      "must NOT have duplicate items (items ## 2 and 0 are identical)",
+    ]);
   });
 
   it("accepts the defaults of the drawing specification", () => {
@@ -421,7 +456,7 @@ describe("the graphical block", () => {
     const block = (section.split("```json\n", 2)[1] as string).split("\n```", 1)[0] as string;
     const defaults = parseJson(block) as JsonObject;
     expect(Object.keys(defaults.styles as JsonObject).length).toBe(3);
-    expect((defaults.statements as unknown[]).length).toBe(28);
+    expect((defaults.statements as unknown[]).length).toBe(30);
     validate({ ...SMALLEST, graphical: defaults });
   });
 

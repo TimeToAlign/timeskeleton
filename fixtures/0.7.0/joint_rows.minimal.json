@@ -1,0 +1,161 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "id": "b11",
+                  "length": [
+                    2,
+                    1
+                  ],
+                  "locked": true,
+                  "name": "B11",
+                  "offset": [
+                    1,
+                    1
+                  ],
+                  "unit": "quarters"
+                }
+              ],
+              "id": "b1",
+              "length": [
+                4,
+                1
+              ],
+              "locked": true,
+              "name": "B1",
+              "offset": [
+                1,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [
+            {
+              "id": "ticks_b",
+              "ppq": 480,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "QuartersToTicks"
+            }
+          ],
+          "id": "b",
+          "length": [
+            6,
+            1
+          ],
+          "locked": true,
+          "name": "B",
+          "offset": [
+            0,
+            1
+          ],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "conversion_maps": [
+                    {
+                      "id": "tempo_d11",
+                      "scalar": [
+                        1,
+                        2
+                      ],
+                      "source_unit": "quarters",
+                      "target_unit": "seconds",
+                      "type": "ScalarMap"
+                    },
+                    {
+                      "id": "ticks_d11",
+                      "ppq": 480,
+                      "scalar": 480,
+                      "source_unit": "quarters",
+                      "target_unit": "ticks",
+                      "type": "QuartersToTicks"
+                    }
+                  ],
+                  "id": "d11",
+                  "length": [
+                    2,
+                    1
+                  ],
+                  "locked": true,
+                  "name": "D11",
+                  "offset": [
+                    1,
+                    1
+                  ],
+                  "unit": "quarters"
+                }
+              ],
+              "conversion_maps": [
+                {
+                  "id": "tempo_d1",
+                  "scalar": [
+                    1,
+                    2
+                  ],
+                  "source_unit": "quarters",
+                  "target_unit": "seconds",
+                  "type": "ScalarMap"
+                },
+                {
+                  "id": "ticks_d1",
+                  "ppq": 480,
+                  "scalar": 480,
+                  "source_unit": "quarters",
+                  "target_unit": "ticks",
+                  "type": "QuartersToTicks"
+                }
+              ],
+              "id": "d1",
+              "length": [
+                4,
+                1
+              ],
+              "locked": true,
+              "name": "D1",
+              "offset": [
+                2,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "id": "d",
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "name": "D",
+          "offset": [
+            8,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "piece",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Piece",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

@@ -240,7 +240,7 @@
     },
     "Graphical": {
       "type": "object",
-      "description": "How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements and the display order of each group's members. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or a display order. An absent block draws every element with the other style layers alone.",
+      "description": "How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members and the band order of each timeline. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent block draws every element with the other style layers alone.",
       "properties": {
         "styles": {
           "type": "object",
@@ -260,12 +260,12 @@
         },
         "order": {
           "type": "object",
-          "description": "The display order of each group's members, keyed by group id; each value is a permutation of that group's members. A group without an entry is displayed in the order of its members.",
+          "description": "The order of what a group or a timeline stacks, top to bottom, keyed by a group's id (the display order of its members) or by a timeline's id, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, band by band id, and a root without one the default band order.",
           "propertyNames": {
             "$ref": "#/$defs/Id"
           },
           "additionalProperties": {
-            "$ref": "#/$defs/MemberOrder"
+            "$ref": "#/$defs/Order"
           },
           "default": {}
         }
@@ -873,11 +873,12 @@
       "minItems": 1,
       "description": "Compressed rows from the Measure Map standard. A row equal to its predecessor's default successor is omitted as a whole."
     },
-    "MemberOrder": {
+    "Order": {
       "type": "array",
-      "description": "The display order of one group's members: a permutation of its members. It is never re-ordered by a writer.",
+      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's id `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an id, or an id, `/` and a band's id: its kind, `_` and its number.",
       "items": {
-        "$ref": "#/$defs/Id"
+        "type": "string",
+        "pattern": "^[^/\\u0000-\\u001f]+(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$"
       },
       "uniqueItems": true
     },
@@ -970,9 +971,14 @@
             "SecondsToSamples",
             "ShiftMap",
             "TableMap",
-            "TicksToQuarters"
+            "TicksToQuarters",
+            "markers",
+            "conversion_maps",
+            "children",
+            "regions",
+            "flow_control"
           ],
-          "description": "The class of the element: the timeline class its unit decides, or a conversion map's type."
+          "description": "The class of the element: the timeline class its unit decides, a conversion map's type, or a band's kind."
         },
         "within": {
           "type": "string",
@@ -989,11 +995,12 @@
     },
     "ElementType": {
       "type": "string",
-      "description": "The type of a drawn element: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
+      "description": "The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
       "enum": [
         "block",
         "timeline",
         "child",
+        "band",
         "map",
         "region",
         "break",
@@ -1049,13 +1056,6 @@
           "enum": [
             "inline",
             "none"
-          ]
-        },
-        "side": {
-          "type": "string",
-          "enum": [
-            "above",
-            "below"
           ]
         },
         "content": {

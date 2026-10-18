@@ -26,8 +26,7 @@ ungrouped roots as cards. Terms in `code` are JSON members.
   key the manifest leaves out taking its default (README, "Defaults"), and
   in canonical order (README, "Canonical order"), whatever form and order it
   was written in. Its `graphical` block holds the manifest's own style
-  statements and the display order `order` of its groups' members (section
-  8).
+  statements and its `order` (section 2).
 - `placement`: chosen by whoever places the drawing, such as an editor's
   canvas or a script:
   - `length`, the **graphical length** `L` of every item of the box
@@ -39,17 +38,6 @@ ungrouped roots as cards. Terms in `code` are JSON members.
     and for a member also its card's (section 8.6);
   - `width` and `height`, the requested **box size** in canvas units, or
     `null` (the default) for the content's own size;
-  - `order`, the **band order**: the groups `children`, `regions` and
-    `flow`, each once, in the order their bands lie outwards from the root
-    on either side (default `["children", "regions", "flow"]`; section
-    6.4). Conversion maps are not a group: each timeline's maps lie against
-    its own line (section 6.4);
-  - `bands`, band orders for lower levels: an object whose keys are group
-    ids and timeline ids, each value a band order (default `{}`). A member
-    drawing's root takes the band order of its own id, else that of the
-    group whose frame holds it, else `order`; it never takes the band order
-    of an ancestor timeline. A key naming no group and no root drawn in a
-    card is not used;
   - `places`, the **places** of the box's items and the sizes of its
     members' cards (section 8.6): an object whose keys are the ids of
     groups, of ungrouped roots and of members, each value an object with
@@ -137,7 +125,10 @@ The block is optional; an absent block draws with the other layers alone.
 each a selector (`select`, section 2.3) and either a declaration or the name
 of a style in the same layer's `styles` (`set`). The order of the
 statements matters, so writers never reorder them. Every layer of section 1
-has this shape.
+has this shape. The manifest's own block also holds `order`, which no other
+layer holds: it maps a group's id to the display order of the group's
+members (section 8.1) and a timeline's id to the timeline's band order
+(section 6.4).
 
 A reader that meets statements naming styles its `styles` does not hold
 issues one warning naming every missing style, and adds each to `styles` as
@@ -146,7 +137,8 @@ valid.
 
 ### 2.1 Elements
 
-Every drawn thing is an **element** of one **type**:
+Every drawn thing is an **element** of one **type**, and so is every band
+of a timeline, which draws nothing of its own:
 
 | Type | What it is |
 |---|---|
@@ -154,6 +146,7 @@ Every drawn thing is an **element** of one **type**:
 | `card` | the raised container of a timeline drawn in its own card: a group member or an ungrouped root (section 8) |
 | `timeline` | the line of a timeline drawn in its own card (section 8) |
 | `child` | a child timeline's line, at any depth |
+| `band` | one of the five bands of a timeline, holding its markers, conversion maps, children, regions or flow control (below; section 6.4) |
 | `boundary` | the start of a segment on its segment line, drawn as a thin vertical rule (section 6.4) |
 | `ancestor` | the faded line of an ancestor of a member that is a child timeline, clipped to the member (section 8.3) |
 | `group` | a group's frame (section 8) |
@@ -168,7 +161,10 @@ Every drawn thing is an **element** of one **type**:
 An element **belongs** to a timeline (section 2.2); the `block`, a `group`
 and the titles of a group or of the manifest belong to none, and have no
 domain, modality or class. A card belongs to the timeline it holds, and so
-has its domain, modality and class. An element has the **domain**
+has its domain, modality and class. A band belongs to its timeline but has
+no domain and no modality, so no selector naming them matches it, and what
+it holds inherits through it its timeline's values unless a statement
+matches the band itself (section 2.5). An element has the **domain**
 (`graphical`, `logical` or `physical`) and the **modality** (`continuous`
 or `discrete`) of its timeline's `unit`. A map instead has the domain and
 modality of the map's `target_unit`, so a map is drawn in the style of the
@@ -182,25 +178,32 @@ timelines it converts to:
 
 `ticks`, `samples`, `frames` and `pixels` are discrete, every other unit
 continuous. A map whose `target_unit` is null has no domain and no
-modality, so no selector naming them matches it and it inherits its
-timeline's style (section 2.5). An element's **class** is the timeline
+modality, so no selector naming them matches it and it inherits its style
+through its band (section 2.5). An element's **class** is the timeline
 class its timeline's unit decides: `Continuous` or `Discrete` for the
 modality, then `Logical`, `Physical` or `Graphical` for the domain, then
 `Timeline` (`seconds` decides `ContinuousPhysicalTimeline`, `ticks`
 `DiscreteLogicalTimeline`). A manifest writes no class; the unit decides
-it. A map instead has the map's `type` (`QuartersToTicks`, …).
+it. A map instead has the map's `type` (`QuartersToTicks`, …), and a band
+its **kind**: `markers`, `conversion_maps`, `children`, `regions` or
+`flow_control`.
 
 Elements form a **tree** that carries inheritance (section 2.5): the
-`block` holds the `timeline`; a `timeline` or `child` holds its maps,
-regions, breaks, jumps, wedges and child timelines; a segment line holds
-its segments, each holding its `boundary`, its label and its own
-descendants; an element holds its own `name` and `label` where it has one
-(section 5.3; a map has neither). A segment that is not a segment line is a
-node of the tree although no line of its own is drawn, and has no element
-type, so `inside` never names it; a segment that is a segment line is drawn
-as a `child` (section 6.1), and so holds its boundary as a `child` although
-the boundary lies on its segment line's line. Section 8 states the top
-of the tree: the block, frames, cards and ancestor lines.
+`block` holds the `timeline`; a `timeline` or `child` holds its five
+bands, and each band what it holds: the markers band the timeline's
+wedges, the conversion maps band its maps, the children band its child
+timelines, the regions band its regions, and the flow control band its
+breaks and jumps; an element holds its own `name` and `label` where it has
+one (section 5.3; a map and a band have neither), except that a segment's
+label and its `boundary` are held by its segment line, directly and in no
+band, as parts of that line (section 6.4). A segment is a child timeline of
+its segment line, held by its children band. One that is not a segment
+line is a node of the tree although no line of its own is drawn, holding
+its five bands as a line does, whose content is drawn at its segment
+line's line (section 6.4), and has no element type, so `inside` never names
+it; one that is a segment line is drawn as a `child` (section 6.1).
+Section 8 states the top of the tree: the block, frames, cards and
+ancestor lines.
 
 ### 2.2 Addresses
 
@@ -217,9 +220,15 @@ every element of every manifest, one timeline or many:
   break, jump or marker) is addressed by the id of the root of `timelines`
   whose tree holds it, `/`, and its own id;
 - a part of an element is addressed by that element's address, `/`, and
-  the part's word: `start`, `end`, `name`, `label` or `card`. These five
-  words are reserved: no id of a manifest may be one of them, so an address
-  is read without ambiguity.
+  the part's word: `start`, `end`, `name`, `label` or `card`;
+- a band of a timeline, root or child, is addressed by the timeline's id,
+  `/`, and the band's id: its kind (section 2.1), `_` and its number.
+  Every timeline has five bands, one of each kind, each numbered 1.
+
+The five part words are reserved, and so is every id that matches
+`^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`,
+whatever its number: no id of a manifest may be one of them or match the
+pattern, so an address is read without ambiguity.
 
 An address is compared as a whole string. In this table `T` is a
 timeline's id, `r` the id of the root whose tree holds the element, and `C`
@@ -228,6 +237,7 @@ an element's address:
 | Element | Address | Belongs to |
 |---|---|---|
 | the root, or a child timeline with id `T` | `T` | `T` |
+| the bands of a timeline with id `T` | `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1`, `T/flow_control_1` | `T` |
 | a conversion map with id `M` on `T` | `r/M` | `T` |
 | a region with id `R` of `T`'s `regions` | `r/R` | `T` |
 | a break with id `B` of `T`'s `flow_control.breaks` | `r/B` | `T` |
@@ -248,7 +258,9 @@ So a region `region_1` of a timeline in the tree of root `score` is
 `score/region_1` and its label `score/region_1/label`, whether the manifest
 holds `score` alone or many roots, and also when a member below `score` is
 drawn as the root of its own member drawing; a jump `jump_1` of the root
-`score` itself is `score/jump_1`, its label `score/jump_1/label`. The
+`score` itself is `score/jump_1`, its label `score/jump_1/label`. A band
+follows its timeline's own address, as a card does: the regions band of a
+child `b` of `score` is `b/regions_1`. The
 manifest's title is addressed `name` whether or not the manifest has an
 `id`, so naming a manifest, or giving it an id, changes no address. The
 manifest's own id addresses the manifest, which draws no element of its
@@ -267,7 +279,8 @@ A selector is an object with any of these members:
 - `element`: an element type;
 - `ids`: a non-empty list of distinct addresses;
 - `domain`, `modality`: a domain, a modality;
-- `class`: a timeline class (section 2.1) or a conversion-map type;
+- `class`: a timeline class (section 2.1), a conversion-map type or a
+  band's kind;
 - `within`: a timeline id; it matches the elements belonging to that
   timeline or to any of its descendants;
 - `inside`: an element type; it matches the elements held, at any depth,
@@ -276,7 +289,12 @@ A selector is an object with any of these members:
   lines and no other name).
 
 An element matches a selector when it matches every member present. The
-empty selector `{}` matches every element.
+empty selector `{}` matches every element. A band is selected as every
+element is: `{"element": "band"}` matches every band, `{"element": "band",
+"class": "regions"}` every regions band, `{"ids": ["score/regions_1"]}` the
+regions band of `score`, and `{"inside": "band"}` everything that bands
+hold, the bands of every timeline but a member drawing's root included,
+since a child is held by its parent's children band.
 
 ### 2.4 Properties
 
@@ -285,22 +303,55 @@ to TikZ (section 7.4).
 
 | Property | Values | Inherited | Read by |
 |---|---|---|---|
-| `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `wedge`, `name` and `label` |
+| `stroke` | `#RRGGBB` (upper-case) or `none` | yes | every type but `block`, `band`, `wedge`, `name` and `label` |
 | `stroke-width` | a number ≥ 0 | yes | as `stroke` |
 | `stroke-dasharray` | `none`, or numbers separated by single spaces | yes | as `stroke` |
 | `fill` | `#RRGGBB` or `none` | yes | `block`, `group`, `card`, `timeline`, `child`, `ancestor` (the circles at their start and end, the arrowhead at their end), `jump` (its arrowhead), `wedge`, `name`, `label` |
-| `opacity` | a number from 0 to 1 | no | every type |
+| `opacity` | a number from 0 to 1 | no | every type but `band` |
 | `font-size` | a number > 0 | yes | `name`, `label` |
 | `rx` | a number ≥ 0 | no | `block`, `group`, `card` (the corner radius) |
 | `shadow` | `#RRGGBB` or `none` | no | `card` (the colour of its offset shadow, section 8.4) |
 | `display` | `inline` or `none` | no | every type but `block` |
-| `side` | `above` or `below` | no | `child`, `map`, `region`, `jump`, `wedge`, `break` |
 | `content` | a text, or `none` | no | `name` (a row's own name, section 6.6) |
 | `max-width` | a number > 0, or `none` | no | `name` (section 6.6) |
 
 A statement may set any property on any element; an element ignores the
 properties its type does not read. `display: none` is the filter: an element
-that is not displayed is not drawn and takes no room.
+that is not displayed is not drawn and takes no room. An element is
+**displayed** when its `display` is `inline` and no rule of this list hides
+it. The list holds every way in which one element hides another, and the
+other sections refer to it:
+
+- **A band hides everything it holds.** A band that is not displayed hides
+  every element it holds, at any depth of the tree of section 2.1.
+- **An element hides its label.** The label of a wedge, region, jump or
+  break is displayed only when that element is displayed.
+- **A line hides its timeline's whole drawing.** A line that is not
+  displayed, the root's and a child's alike, hides its name, the maps,
+  boundaries and segment labels on it (section 6.4), and its five bands
+  with everything they hold, at any depth, its children and its segments
+  with everything of theirs included. It takes no room, its stroke
+  included: a child whose line is not displayed is not placed and has no
+  row (section 6.4, Children), and section 6.5 states what a member
+  drawing whose root's line is not displayed still draws.
+- **A segment without a line hides its bands.** A segment that is not a
+  segment line has no line of its own (section 6.1); when it is not
+  displayed, its five bands and everything they hold are not displayed
+  either, so it adds nothing to its segment line's bands (section 6.4,
+  Segments without a line). The boundary and the label of a segment, of
+  either kind, are parts of its segment line's line (section 2.1): that
+  line hides them, the segment never does.
+- **An ancestor line hides its name and its marks.** An ancestor line
+  (section 8.3) that is not displayed hides its name and its marks of the
+  member's start and end, with their labels, and has no row.
+
+No other element hides another. A frame or card that is not displayed
+keeps everything drawn in it (section 8.4); a member's line keeps its
+ancestor lines, which are no part of its timeline's drawing; and no band
+takes its `display` from another: hiding `score/regions_1` hides the
+regions of `score` alone, and the regions of a child of `score` are drawn,
+at the child's own line, only when the child's own regions band is
+displayed. The defaults hide some bands (section 4).
 
 ### 2.5 The cascade
 
@@ -312,8 +363,8 @@ The value of a property on an element is found per property:
    parent's value in the tree of section 2.1.
 3. Otherwise the property's initial value applies: `stroke` `none`,
    `stroke-width` 1, `stroke-dasharray` `none`, `fill` `none`, `opacity` 1,
-   `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `side`
-   `below`, `content` `none`, `max-width` `none`.
+   `font-size` 9, `rx` 0, `shadow` `none`, `display` `inline`, `content`
+   `none`, `max-width` `none`.
 
 The rank of a statement is, from the most to the least significant:
 
@@ -389,9 +440,10 @@ divisions before additions and subtractions, and a constant factor such as
 (`1.2w` is the double nearest the exact product of 6/5 and `w`, not the
 binary64 product of the double `1.2` and `w`). A distance outwards is
 summed whole, left to right as written and a label gap of 2 included,
-before it becomes an ordinate `y_root − o` or `y_root + o`; a map's centre
-is offset from its timeline's line instead, the boundaries and segment
-labels of a line from that line (section 6.4), the marks of an ancestor
+before it becomes an ordinate `yl − o` or `yl + o`, `yl` the ordinate of
+the line of the timeline whose band it lies in (section 6.4); the
+boundaries and segment labels of a line are offset from that line (section
+6.4), the marks of an ancestor
 line and their labels from that line (section 8.3), and a break label from
 the flow row (section 6.4). A label's baseline is then that ordinate plus
 `a(9)` or minus `d(9)`. `max` and `min` compare exactly.
@@ -400,7 +452,9 @@ the flow row (section 6.4). A label's baseline is then that ordinate plus
 
 A timeline whose `length` is `null` has an unknown length: the manifest
 does not say where it ends, and the drawing never invents an end for it.
-It is scaled to its reach, and its end is marked as open.
+A root of unknown length is scaled to its reach; the end of a timeline of
+unknown length is found by the rules below, and is marked as open where
+they say so.
 
 **The reach** of a timeline `T` is a value on `T`'s own axis: the largest
 of the zero of `T`'s number type and of every coordinate its content
@@ -475,8 +529,7 @@ between them and the manifest's own `graphical` block (section 1).
     {"select": {"element": "timeline", "modality": "discrete"}, "set": {"stroke-dasharray": "3 3"}},
     {"select": {"element": "child", "modality": "continuous"}, "set": {"stroke-dasharray": "none"}},
     {"select": {"element": "child", "modality": "discrete"}, "set": {"stroke-dasharray": "3 3"}},
-    {"select": {"element": "child"}, "set": {"side": "above"}},
-    {"select": {"element": "map"}, "set": {"stroke-width": 1, "side": "above"}},
+    {"select": {"element": "map"}, "set": {"stroke-width": 1}},
     {"select": {"element": "map", "modality": "continuous"}, "set": {"stroke-dasharray": "none"}},
     {"select": {"element": "map", "modality": "discrete"}, "set": {"stroke-dasharray": "1 1"}},
     {"select": {"element": "wedge"}, "set": {"fill": "#000000"}},
@@ -492,7 +545,10 @@ between them and the manifest's own `graphical` block (section 1).
     {"select": {"inside": "ancestor"}, "set": {"opacity": 0.35}},
     {"select": {"element": "label"}, "set": {"fill": "#000000", "font-size": 9}},
     {"select": {"element": "name"}, "set": {"fill": "#000000", "font-size": 11, "max-width": 160}},
-    {"select": {"element": "name", "inside": "ancestor"}, "set": {"fill": "#6B7280", "font-size": 9, "opacity": 1}}
+    {"select": {"element": "name", "inside": "ancestor"}, "set": {"fill": "#6B7280", "font-size": 9, "opacity": 1}},
+    {"select": {"element": "band", "class": "markers", "inside": "band"}, "set": {"display": "none"}},
+    {"select": {"element": "band", "class": "regions", "inside": "band"}, "set": {"display": "none"}},
+    {"select": {"element": "band", "class": "flow_control", "inside": "band"}, "set": {"display": "none"}}
   ]
 }
 ```
@@ -501,14 +557,33 @@ So a timeline takes the colour of its domain, dotted when discrete and
 solid when continuous (dotted: dashes and gaps as long as the stroke is
 wide); a conversion map takes the colour and pattern of the domain and
 modality it converts to; wedges and braces are black and solid; jumps are
-thin, black and dotted, and breaks dotted red. Children and maps lie above their timelines, everything
-else below the root; a name longer than 160 is cut (section 6.6). Segment
+thin, black and dotted, and breaks dotted red; a name longer than 160 is
+cut (section 6.6). Segment
 boundaries are thin black rules; an ancestor line is its timeline's line,
 faded, with faded marks and labels, and its name small and grey; a group's
 frame is white with a light grey outline; a card is white with a grey
 outline and a grey offset shadow, so that it stands out from the grey box
 and from a frame alike. A card has its timeline's domain and modality, so
-a statement can style the cards of one domain.
+a statement can style the cards of one domain. The last three statements
+hide the markers, regions and flow control bands of every timeline that is
+held by a band, which is every timeline of a member drawing but its root
+(a child is held by its parent's children band, a segment without a line
+of its own too); every conversion maps band and every children band is
+shown, so the nesting of a member drawing and every timeline's maps stay
+visible.
+
+The **default band order** of a root of `timelines` with the id `T`, when
+`graphical.order` has no entry for it (section 6.4), is
+
+```json
+["T/children_1", "T/conversion_maps_1", "T", "T/markers_1", "T/regions_1", "T/flow_control_1"]
+```
+
+So by default a root's conversion maps lie against its line above it and
+its children beyond them, its start and end wedges against its line below
+it, then its regions and its flow control; its descendants follow it, so
+every child's maps lie against the child's line above it and its own
+children beyond them.
 
 ## 5. Text
 
@@ -581,12 +656,13 @@ compared by Unicode code point, whatever the order of the `children` keys), each
 A timeline whose `is_segment_line` is true is a **segment line**; its
 children are its **segments**, contiguous from its start to its end. Every
 segment lies on its segment line's line, which shows where it starts by a
-**boundary** and its name by a label (section 6.4). A segment that is not a
+**boundary** and its name by a label (section 6.4), both hidden with that
+line (section 2.4). A segment that is not a
 segment line has no line of its own: wherever this section speaks of its
-line, it is its segment line's line. The boundaries and segment labels on
-a line that is not displayed are not drawn and take no room, as its maps.
-A segment that is itself a segment line is drawn as a child line (section 6.4, children), in the row beyond
-its segment line, and its own segments lie on that line; neighbouring
+line, it is its segment line's line.
+A segment that is itself a segment line is drawn as a child line in its
+segment line's children band (section 6.4, Children), and its own segments
+lie on that line; neighbouring
 segments drawn so meet end to start, the start circle of one inside the
 open diamond of the other (section 6.6).
 
@@ -609,7 +685,7 @@ stretch `v` (section 8.6); every other size is fixed.
 | brace height | 6 |
 | region row pitch `pr` | 6 + 2 + h(9) + 4 × v |
 | first jump depth | 8 × v |
-| jump level pitch `pj` | 10 × v + h(9) |
+| jump row pitch `pj` | 10 × v + h(9) |
 | break label offset | 3 |
 | boundary half-height `k` | 8 |
 | group frame padding `Q` | 8 |
@@ -618,26 +694,34 @@ stretch `v` (section 8.6); every other size is fixed.
 | gap after a frame's title | 4 |
 | card shadow offset | 2 |
 
-`s` is the name font size of a band: the largest font size of the names of
-its rows, displayed or not (section 6.6); a child whose line is not
-displayed has no row. A row whose lines contribute no name (a row of
-segment lines, section 6.6) counts the font size the `name` of its first
-line has under the cascade. The root's row is a band of its own, so `p0` (section
-6.4) takes the root's name size alone and a children band its own rows'. Wherever `h(9)`, `a(9)` or `d(9)` appears in section 3.3, anywhere
-in section 6 or in section 8, 9 stands for the largest font size of the drawn labels of the band in
-question, and is 9 when the band draws no label. So a region band whose
-regions have no drawn label still keeps the label room `2 + h(9)` in its
-row pitch `pr`, and is as wide as one with labels of size 9. The labels of a flow band are its drawn jump labels
-and break labels together, so its jump levels and break-label tiers share one
-size.
+`s` is the name font size of children bands laid out together (section
+6.4, Children): the largest font size of the names of the lines in their
+rows, displayed or not (section 6.6); a child whose line is not displayed
+has no row. A row whose lines contribute
+no name (a row of segment lines, section 6.6) counts the font size the
+`name` of its first line has under the cascade. The root's row counts on
+its own: its pitch `p0` takes the root's name size alone. A row's **name
+size** and **pitch** are the `s` and `p` of the children bands laid out
+together whose row it is, at any depth, and the root's name size and `p0`
+for the root's row; so all rows of children bands laid out together have
+one pitch. Wherever `h(9)`, `a(9)` or `d(9)`
+appears in section 3.3, anywhere in section 6 or in section 8, 9 stands
+for the largest font size of the drawn labels of the band in question, and
+is 9 when the band draws no label; every line at level 0 (section 6.4)
+counts as a band of its own, whose labels are its segment labels. So a
+regions band whose regions have no drawn label still keeps the label room
+`2 + h(9)` in its row pitch `pr`, and is as wide as one with labels of size
+9. The labels of a flow
+control band are its drawn jump labels and break labels together, so its
+jump rows and break-label tiers share one size.
 
 ### 6.3 First fit
 
 Several steps below place items one at a time, in a given order, into
-numbered **rows** (or tiers) 1, 2, 3, …: an item goes to the lowest row, at
-or above its own minimum (1 unless stated), holding no item whose extent
-**conflicts** with its own. Extents are x intervals measured from the
-root's start, each end computed as `L × u` (section 3.2) and never as a
+numbered **rows** (or tiers) 1, 2, 3, …: an item goes to the lowest row
+holding no item whose extent **conflicts** with its own. Extents are x
+intervals measured from the root's start, at any depth of the member
+drawing, each end computed as `L × u` (section 3.2) and never as a
 difference `x − x0`, so no row depends on `x0`; an extent named by
 positions below runs from `L × u` of the one to `L × u` of the other.
 `[a1, b1]` and `[a2, b2]` conflict when `a1 < b2` and `a2 < b1`, or when
@@ -646,45 +730,107 @@ two items starting at the same point never do. The extent of a label is
 `[left − 1, right + 1]`, so labels keep the label separation apart: for a
 label of width `wi` centred on a position of proportion `u`, `[L × u − wi /
 2 − 1, L × u + wi / 2 + 1]`, and for a break label, `[L × u + 3 − 1, L × u
-+ 3 + wi + 1]`, each end computed left to right. Every side fills its own
++ 3 + wi + 1]`, each end computed left to right. Every band fills its own
 rows.
 
-### 6.4 Sides and bands
+### 6.4 Levels and bands
 
-Each side of the root, above and below, is filled outwards from the root's
-line in **bands**, each present only when it holds a drawn element of that
-side: first the **root band** (the root's map stack and the wedges of that
-side, with their label tiers); then the bands of the three groups in
-the root's band order (`order` and `bands`, section 1):
+**Every timeline's bands.** Every timeline drawn with a line of its own,
+the root and every child at any depth alike, has its five bands (section
+2.2) at its own line, and this section lays them out for each such
+timeline whose line is displayed (section 2.4) as for the root: a band's **timeline** is the timeline it belongs
+to, and "its line", "above" and "below" are that timeline's. `yl` is the
+ordinate of a timeline's line: `y_root` for the root (section 6.5), and for
+a child the ordinate its row gives it (Children). A segment that is not a
+segment line has its bands at its segment line's line (Segments without a
+line).
 
-- `children`: the **children band**, the children whose `side` it is;
-- `regions`: the **region band**, the regions whose `side` it is;
-- `flow`: the **flow band**, the jumps and breaks whose `side` it is,
-  with the breaks' labels.
+**The band order.** The **band order** of a timeline with the id `T` lists
+its five bands and `T` itself, from top to bottom: the entry of the
+manifest's `graphical.order` under `T` (section 2; README, "Groups and the
+`graphical` block"); without one, its parent's band order with each of the
+parent's bands replaced by `T`'s band of the same id (the parent's
+`P/regions_1` by `T/regions_1`) and the parent's id by `T`; and for a root
+of `timelines` without one, the default band order of section 4. A member
+that is a child timeline follows its parent so too. Changing a timeline's
+band order therefore changes that of every descendant without an entry of
+its own. The bands listed before `T` lie **above** its line, those after
+it **below**: up and down, whichever side of its parent's line it lies on.
 
-A distance `o` outwards from the root's line lies at `y_root − o` above and
-`y_root + o` below. The first band of a side starts at `o = 0`, except a
-children band, which starts no nearer than `p0 / 2` wherever it lies in the
-order, `p0` the row pitch of the root's row, so that the rows of a side, the root's included, lie one
-pitch apart when no map stack widens them. Each following band starts at
-the outer edge of the present band before it plus `B`; an absent band adds
-no `B`. A band's outer edge is its start
-plus its width, the width summed first; the root band starts at 0, so its
-outer edge is its reach.
+**What a band holds.** A band draws what its own timeline holds of its
+kind (section 2.1), and what another timeline holds only where a segment
+without a line of its own joins its segment line's bands (below):
 
-**Map stacks.** A timeline's maps lie against its own line. Its **map
-stack** on a side is its displayed maps whose `side` it is, in canonical
-order; for a map, `above` is up and `below` is down, whichever side of the
-root its timeline lies on. With `w` the timeline's stroke width, map `j`
-(from 1) is centred `w / 2 + j × (g + d) − d / 2` from the timeline's line
-on that side, so the gap between the line and the first map, and between
-two maps, is `g`; a stack of `J` maps **reaches** `e = w / 2 + J × (g + d)`
-from the line (0 when `J = 0`). A map spans its timeline, from `Xs` to
-`Xe`. A map is drawn only when its timeline's line is drawn: the maps of a
-timeline that is not displayed are not drawn and take no room. The maps of
-a segment that is not a segment line join its segment line's stack, after
-the segment line's own maps, in traversal order, each spanning its
-segment.
+- the **markers band** the wedges of the root's start and end (Markers);
+  no other timeline's start or end is marked and no marker of
+  `flow_control` is drawn (section 2.2), so the markers band of every
+  other timeline draws nothing;
+- the **conversion maps band** its maps (Conversion maps);
+- the **children band** its children (Children);
+- the **regions band** its regions (Regions);
+- the **flow control band** its jumps and breaks, with the breaks' labels
+  (Flow control, Breaks).
+
+An element that is not displayed (section 2.4) is drawn in no band and
+takes no room.
+
+**Levels.** A timeline's line lies at **level** 0. A band is **present**
+when it draws an element; the present bands above the line are the levels
+1, 2, … outwards, level 1 being the present band listed nearest before the
+timeline's id in its band order, and those below it the levels −1, −2, …,
+level −1 being the present band listed nearest after it. An absent band
+has no level and takes no room. A distance `o` outwards from a timeline's
+line lies at `yl − o` above and `yl + o` below.
+
+**Where a band lies.** Each band is laid out from its **start** `c`, a
+distance outwards from its timeline's line, so that a band starting at `c
+= 0` lies against the line; the paragraphs below place its content from
+`c`. A band's **width** is the distance its content reaches outwards from
+`c`, and its **outer edge** is `c` plus its width, the width summed first.
+The band at level 1, and the one at level −1, starts
+
+- at `c = 0` when it is the markers band or the conversion maps band, each
+  of which lies against the line and shares its room with the line's own
+  reach (Level 0, below): its outer edge is then the larger of `c` plus its
+  width and the line's reach on that side;
+- otherwise at `B` beyond the larger of the line's reach on that side and
+  `w / 2`, `w` the line's stroke width, so that its content keeps the gap
+  `B` from the line's stroke even where the line reaches nothing.
+
+Each further band starts at the outer edge of the band at the level before
+it plus `B`. A children band's **own start** is instead the larger of the
+start these rules give it and `pl / 2`, wherever it lies, `pl` the **row
+pitch** of its timeline, the pitch of the row its line lies in (section
+6.2; `p0` for the root), so that the rows of a side, its timeline's
+included, lie one pitch apart when nothing widens them; the band starts
+as Children lays it out, together with the children bands of the other
+lines of that row. The markers band
+and the conversion maps band are two bands, never over each other: on one
+side they lie at two levels, the outer starting at least `B` beyond the
+outer edge of the inner. The **outer edge of a side** of a timeline is
+that of its outermost band there, or, when no band is present there, the
+line's reach on that side.
+
+**Level 0.** A timeline's line reaches out on each side as every line does
+(Segment lines, below): by its map stack (Conversion maps) and, when it is
+a segment line, by its boundaries, `k` both ways, and above by its segment
+labels, which belong to the line and to no band, so its segment labels lie
+beyond the maps against it. A drawn boundary spans `k` to either side of
+the line, so a line with a drawn boundary reaches at least `k` on both
+sides. A markers or conversion maps band at level 1 or −1 thus lies over
+the line's boundaries, and every other band beyond them and its segment
+labels.
+
+**Conversion maps.** The conversion maps band of a timeline holds its
+displayed maps (section 2.4), in canonical order. With `w` the stroke width of the
+timeline's line and `c` the start of the band, map `j` (from 1) is centred
+`c + w / 2 + j × (g + d) − d / 2` from that line on the band's side, so
+that the first map lies `g` beyond `c + w / 2`, the line's edge when `c`
+is 0, and each next one `g` beyond the one before. `J` maps are `e = w / 2
++ J × (g + d)` wide (0 when `J = 0`). At level 1 or −1 the band is the
+line's **map stack** on that side, which **reaches** `e` from the line; on
+every other side the line's map stack is empty. A map spans its timeline,
+from `Xs` to `Xe`.
 
 **Segment lines.** Every segment of a segment line except its first (in
 canonical order) has a **boundary**: a thin vertical rule at `x` of the
@@ -698,114 +844,200 @@ centred on `x` of the midpoint (section 3.1) of its segment's start and end (the
 end of section 3.4, so a segment of unknown length ends where the next
 segment starts, and the last where its segment line ends). Tier
 `n` has its baseline at `y − (m + 2 + (n − 1) × h(9)) − d(9)`, `y` the
-line's ordinate and `m` the larger of the reach `e` of the line's stack
-above and, when the line has a drawn boundary, `k`. A segment
+line's ordinate and `m` the largest of the reach `e` of the line's stack
+above, the width of its markers band when that band lies at level 1, and,
+when the line has a drawn boundary, `k`, so that the segment labels lie
+beyond the band against the line above, whichever of the two it is. A segment
 that is not a segment line has no row, no name in the name column, and no
 element type: a selector naming `element` never matches it, only its
-boundary or label. A line therefore **reaches** above the larger of `e`
-and, when it has a drawn boundary, `k`, plus `2 + T × h(9)` when its labels
-fill `T ≥ 1` tiers; and below the larger of its stack's reach below and,
-when it has a drawn boundary, `k`. "Above" is up whichever side of the
-root the line lies on, as for maps. Wherever this section uses a stack's
-reach on a side, it uses the line's reach instead.
+boundary or label. A line therefore **reaches** above `m` plus `2 + T ×
+h(9)` when its labels fill `T ≥ 1` tiers, and `m` when they fill none; and below the larger of its stack's reach below and,
+when it has a drawn boundary, `k`. "Above" is up whichever side of its
+parent's line the line lies on, as for every band.
 
-**The root band.** The root's map stack on the side, and the root's wedges
-whose `side` it is, each wedge labelled with the coordinate it marks in the
-root's unit (section 5.2): the zero of its number type, which is `0`, or
-`0.0` on a float axis (section 3.1), and `length`. A root whose end is open
-(section 3.4) has its start wedge and that zero's label only (`0 ♩` in
-quarters, `0.0 s` in seconds). The labels of one side are placed by first
-fit, start before end, into tiers centred on their wedge's `X`. Only wedge labels fill these tiers. When
-the root is a segment line, its boundaries and segment labels belong to
-the root band too, and the band reaches at least the root line's reach on
-that side. A drawn boundary spans `k` to either side of the line, so it is
-a drawn element of both sides: a root with a drawn boundary has a root
-band above and below, reaching at least `k`, even on a side that holds no
-wedge, map or segment label. The
-wedges reach `w / 2 + 13`, or `w / 2 + 13 + 2 + T × h(9)` (left to right)
-when the labels fill `T ≥ 1` tiers, `w` the root's stroke width; the band reaches the larger of that reach (when a
-wedge is drawn) and the root line's reach on that side, which is the
-root's stack's reach `e`, or, when the root is a segment line, the line's
-reach of the segment lines paragraph above: the larger of `e` and, when
-the line has a drawn boundary, `k`, plus, above, its segment-label tiers.
-Wedges are drawn over the stack.
+**Segments without a line.** A segment that is not a segment line has no
+line of its own, and its bands lie at its segment line's line: what each of
+its displayed bands holds joins its segment line's band with the same kind
+and number, after the segment line's own content, segment after segment in
+traversal order, and that band draws it and lays it out as it lays out its
+own. So the segment's maps lie in its segment line's conversion maps band,
+each spanning the segment, its children in the children band, its regions
+in the regions band, and its jumps and breaks in the flow control band;
+its own band order places nothing, and its markers band draws nothing.
+Section 2.4 states when a segment adds nothing. A band of a segment line
+is present when it draws anything, of its own or of its segments, also
+when its own `display` is `none`, since each segment's bands are displayed
+or hidden on their own (section 2.4).
 
-**Children.** Every displayed child that is not a segment, and every
-displayed segment that is a segment line, in traversal order, is placed on
-its side by first fit with the extent from its start to its end; when its
-end is open (section 3.4), the extent runs on to `L × u + 9.5w`, `u` the
-proportion of its end and `w` its stroke width, so that its three
-chevrons (section 6.6) take room in its row: `9.5w` is the distance from
-the end to the outer chevron's tip. This end of the extent is summed as
-written, `L × u` plus the constant `9.5w` (section 3.3), measured from the
-root's start like every extent and only compared, never computed from
-`Xr`; the drawn tip, and the right edge of section 6.7, is `Xr + 5.5w`.
-Its minimum row is
-one more than its parent's **anchor** on that side: the root's anchor is 0
-on both sides, a placed child's anchor on its own side is its row, and
-every other anchor of a child is its parent's; the anchors of a segment
-that is not a segment line are its parent's. Since an item that starts
-where another ends shares its row (section 6.3), the segment lines among
-one segment line's segments lie in one row. So a nested child lies beyond its
-parent when both are on one side. Row `k` has an **inner** half (towards
-the root) and an **outer** half: each is `p / 2`, or the largest reach of
-the row's children's lines on that half's side when it is larger. The outer half's side is the row's own side and the inner half's
-the opposite one, so a child above the root has its `above` maps in its
-outer half. With `ik` and `ok` the inner and outer halves of row `k`, row 1's
-line lies at `l1 = c0 + i1` outwards, `c0` the start of the band, and row
-`k + 1`'s at `l(k+1) = lk + (ok + i(k+1))`; the band is `i1 + o1 + i2 + o2
-+ … + iC + oC` wide for `C` rows, summed left to right.
+**Markers.** The root's markers band draws its wedges, each labelled with
+the coordinate it marks in the root's unit (section 5.2): the zero of its
+number type, which is `0`, or `0.0` on a float axis (section 3.1), and
+`length`. A root whose end is open (section 3.4) has its start wedge and
+that zero's label only (`0 ♩` in quarters, `0.0 s` in seconds). The labels
+are placed by first fit, start before end, into tiers centred on their
+wedge's `X`; only wedge labels fill these tiers. The band is `w / 2 + 13`
+wide, or `w / 2 + 13 + 2 + T × h(9)` (left to right) when the labels fill
+`T ≥ 1` tiers, `w` the root's stroke width; section 6.6 places the wedges
+and their labels from the band's start.
 
-**Regions.** The displayed regions of every timeline, in traversal order
-and each timeline's regions in canonical order, are placed on their side by
-first fit with the extent from the smaller to the larger of their start
-and end, widened to the extent of their label when it is drawn. Row
-`k` has its brace's arms at `r0 + (k − 1) × pr`, `r0` the start of the
-band; the band is `R × pr − 4 ×
-v` wide.
+**Children.** The children band of a timeline places its displayed
+children that have a line of their own, every child that is not a segment
+and every segment that is a segment line, in canonical order, by first
+fit. Each is placed **as a whole**: its line together with everything its
+own bands draw, at any depth, laid out from its line by this section. The
+**extent** of a child is the smallest interval that holds the extent of its
+line, the extent of every item that a first fit of its own drawing places
+at any depth (its segment labels, the regions, jumps and break labels of
+its bands, and its own children, each with its extent by this rule), and
+the position `L × u` of every break it draws. The extent of a line runs
+from its start to its end; when its end is open (section 3.4), it runs on
+to `L × u + 9.5w`, `u` the proportion of its end and `w`
+its stroke width, so that its three chevrons (section 6.6) take room in its
+row: `9.5w` is the distance from the end to the outer chevron's tip. This
+end of the extent is summed as written, `L × u` plus the constant `9.5w`
+(section 3.3), measured from the root's start like every extent and only
+compared, never computed from `Xr`; the drawn tip, and the right edge of
+section 6.7, is `Xr + 5.5w`. So a child takes the room of its whole
+drawing, also where that reaches beyond its span, as a label wider than the child
+does, or the content of a segment of unknown length that runs on past the
+next segment's start (section 3.4). Since an item that starts where
+another ends shares its row (section 6.3), the segment lines among one
+segment line's segments lie in one row when nothing of theirs reaches
+beyond their spans.
 
-**Flow.** A flow band holds first the **break-label tiers** of its side,
-`T × h(9)` wide for `T` tiers (0 when it has no drawn break label), and
-then the **flow row**, where jumps leave and arrive and breaks end: the
-flow row lies `T × h(9)` beyond the start of the band. The displayed jumps of every timeline are listed in traversal order, each
-timeline's in canonical order, sorted stably by span (the absolute exact
-difference of their to and from positions), smallest first, and placed on
-their side by first fit with the extent from the smaller to the larger of
-their from and to, widened to the extent of their label. Level `k`
-reaches its **apex** at the distance `f0 + 8 × v + (k − 1) × pj` from the
-root's line, `f0` that of the flow row, so a jump enclosing another lies
-further out. The band is `T × h(9) + 8 × v + (K − 1) × pj + 2 + h(9)` wide
-for `K ≥ 1` levels, and `T × h(9)` wide for none. Jump descriptors and
-labels follow this order of first fit.
+A child's **edge** on a side is the outer edge of that side of its own
+drawing (Where a band lies). The lines of a **row** lie at one ordinate:
+the root's row holds the root, and every other row is a row of children
+bands laid out together. The present children bands of the lines of one
+row that lie on one side of those lines, above or below, are laid out
+**together**, also when there is only one:
 
-**Breaks.** A displayed break is a vertical line from the flow row of its
-side across every band to the padding of the opposite side: from `(x, yf)`
-to `(x, P × v)` below the root and to `(x, Hc − P × v)` above it (section 6.5),
-ordinates of the member drawing counted from its top (section 8.4). Its label sits
-at the line's end on the flow row, alongside the line on the root's side of
-the flow row: the break labels of a side are placed by first fit, in
-traversal order and each timeline's breaks in canonical order, into the
-break-label tiers of the side. Tier 1 touches the flow row: its baseline is
-at `yf − d(9)` below the root and at `yf + a(9)` above it, `yf` the flow
+- They start at one distance `c0` outwards from their timelines' lines,
+  the largest of their own starts (Where a band lies).
+- Each places its own children by its own first fit, and their rows are
+  numbered together: row `k` holds every child that any of them places in
+  its row `k`, and lies at one distance `lk` outwards from their
+  timelines' lines.
+- Row `k` has an **inner** half (towards their timelines' lines) and an
+  **outer** half: each is `p / 2`, `p` their row pitch (section 6.2), or
+  the largest edge of row `k`'s children on that half's side, whichever
+  band places them, when it is larger. The outer half's side is the bands'
+  own side and the inner half's the opposite one, so a child in a band
+  above its parent's line has its own above side in its row's outer half.
+- With `ik` and `ok` the inner and outer halves of row `k`, row 1 lies at
+  `l1 = c0 + i1` and row `k + 1` at `l(k+1) = lk + (ok + i(k+1))`. A band
+  whose children fill `C` rows is `i1 + o1 + i2 + o2 + … + iC + oC` wide,
+  summed left to right: its own rows, with the halves they have together.
+
+A child in row `k` has its line at `yl − lk`, `yl` its parent's, when its
+band lies above its parent's line and at `yl + lk` when it lies below, and
+its own bands lie outwards from its line. The lines of a row lay out their
+own children bands together in turn, at every depth, so the sections of a
+row of movements share their rows whichever movement holds them.
+
+The layout takes three passes. First every first fit, which uses extents
+alone (section 6.3), so that which row holds which line, and every row's
+name size and pitch (section 6.2), are known before any distance is. Then
+the distances, from the deepest rows up: once every row of the children
+bands of a row's lines has its halves, each of those lines has the starts
+and widths of its bands and so its edges, and the row its halves (the
+root's row the outer edges of the root's sides, section 6.5). Last the
+ordinates, from the root's line (section 6.5) down.
+
+No two children's drawings overlap, and no two names of rows (section 6.6)
+do. The extents of two lines of a row never overlap, and meet at most
+where one ends and the other starts: one band places both by one first
+fit, or the bands of two lines of one row place them within those lines'
+extents; and each row takes on each side the room that its children's
+drawings take there. Rows laid out together lie at least a pitch apart,
+since every half is at least half the pitch, and the rows of the children
+bands of a row's lines lie within that row's room on their side (its half,
+or the root's side) and at least half that row's pitch beyond its
+ordinate; so any two rows lie at least half the sum of their pitches
+apart, and a row's name is at most its row's pitch high (section 6.2).
+
+A child that is not displayed is not placed; section 2.4 states what it
+hides.
+
+**Regions.** The regions band of a timeline places its displayed regions,
+in canonical order, by first fit with the extent from the smaller to the
+larger of their start and end, widened to the extent of their label when
+it is drawn. Row `k` has its brace's arms at `r0 + (k − 1) × pr` from the
+timeline's line, `r0` the start of the band; the band is `R × pr − 4 × v`
+wide.
+
+**Flow control.** The flow control band of a timeline holds first the
+**break-label tiers**, `T × h(9)` wide for `T` tiers (0 when it has no
+drawn break label), and then the **flow row**, where jumps leave and
+arrive and breaks end: the flow row lies `T × h(9)` beyond the start of
+the band. The timeline's displayed jumps, in canonical order, are sorted
+stably by span (the absolute exact difference of their to and from
+positions), smallest first, and placed by first fit with the extent from
+the smaller to the larger of their from and to, widened to the extent of
+their label, into **jump rows**. Row `k` reaches its **apex** at the
+distance `f0 + 8 × v + (k − 1) × pj` from the timeline's line, `f0` that
+of the flow row, so a jump enclosing another lies further out. The band is
+`T × h(9) + 8 × v + (K − 1) × pj + 2 + h(9)` wide for `K ≥ 1` jump rows,
+and `T × h(9)` wide for none. Its jump descriptors and labels follow this
+order of first fit (section 7.2).
+
+**Breaks.** A displayed break is a vertical line at `x` of the break, from
+the flow row across the line of the band's timeline to the far side of
+that timeline's own drawing. For the root it runs across every band to the
+padding of the opposite side: from `(x, yf)` to `(x, P × v)` when the flow
+control band lies below the root's line and to `(x, Hc − P × v)` when it
+lies above it (section 6.5), ordinates of the member drawing counted from
+its top (section 8.4). For every other timeline it runs from `(x, yf)` to
+`(x, yl − mb)` when the band lies below the timeline's line and to `(x, yl +
+mb)` when it lies above it, `mb = max(E, h(s) / 2)`, `E` the outer edge of
+the timeline's opposite side and `s` the name size of the row its line
+lies in (section 6.2): the distance at which the root's
+padding lies beyond the root's line, `s` there the root's name size
+(section 6.5). So a break crosses its own timeline's drawing from its flow
+row to the far side, as the root's crosses the member drawing, and stays
+inside the room the timeline's row takes (Children): of other timelines'
+drawings it crosses only those of its own descendants that lie in its way. Its label sits at the line's end on the flow row, alongside the
+line on the timeline's side of the flow row: the break labels are placed
+by first fit, in canonical order, into the break-label tiers. Tier 1
+touches the flow row: its baseline is at `yf − d(9)` when the band lies
+below the line and at `yf + a(9)` when it lies above it, `yf` the flow
 row's ordinate, and tier `k` lies `(k − 1) × h(9)` further in, towards the
-root.
+timeline's line.
 
 ### 6.5 Heights
 
 The root's line lies at `y_root = max(P × v + Ea, P × v + h(s) / 2)`, `Ea`
-the outer edge of the above side (0 when it has no band). The content's
-height is `Hc = y_root + max(Eb, h(s) / 2) + P × v`, `Eb` the outer edge of
-the below side. Here `s` is the root's row's name font size. The padding
-above and below is stretched by `v` so that the vertical stretch also works
+the outer edge of the root's above side (section 6.4), its descendants'
+drawings included in its children band. The content's height is
+`Hc = y_root + max(Eb, h(s) / 2) + P × v`, `Eb` the outer edge of the below
+side. Here `s` is the root's row's name font size. The padding above and
+below is stretched by `v` so that the vertical stretch also works
 on a single timeline, by growing the room above and below it; with `v = 1`
 it is `P`.
+
+**A root whose line is not displayed** hides its whole drawing (section
+2.4): none of its bands is present and its line reaches nothing, so the
+outer edges of both its sides are 0. Its row remains, with the name size
+`s` and the pitch `p0` of section 6.2, which count its name although the
+name is hidden. The formulas above then hold with `Eb = 0` and with `Ea`
+the outer edge of its ancestor band (section 8.3), or 0 when it has none:
+`y_root = max(P × v + Ea, P × v + h(s) / 2)` and `Hc = y_root + h(s) / 2 +
+P × v`. Its ancestor band, when it has one, starts at `p0 / 2`, since its
+line's stroke takes no room and `p0 / 2 ≥ 7 × v > B` (section 8.3). Such a member
+drawing draws its displayed ancestor lines, with their displayed names,
+marks and mark labels, and nothing else, and lies in its card, `Hm = Hc`
+high, as every member drawing does (section 8.4). One without a displayed
+ancestor line draws nothing: `y_root = P × v + h(s) / 2` and `Hc = y_root
++ h(s) / 2 + P × v`, and it gives section 8.2 no name, no centred label
+and no right edge.
 
 ### 6.6 Elements
 
 Every element below is drawn only when it is displayed, with the cascaded
 values of its element. `Xs`, `Xe` are `x` of an element's start and end;
-`y` is its row's line; "outwards" points away from the root, up on the
-above side and down below.
+`y` is the ordinate of its line (section 6.4); "outwards" points away from
+the line of the band's timeline, up in a band above that line and down in
+one below it.
 
 - **Root and children.** A line with stroke width `w` from `Xs`; a filled
   circle of radius `w` centred at the start. The end tells what the
@@ -865,18 +1097,21 @@ above side and down below.
   over the line.
 - **Segment labels.** Centred on `x` of the midpoint of the segment's start and end,
   in its tier (section 6.4).
-- **Wedges.** A filled triangle, not stroked, with its tip on the root
-  line's edge on its side (`y_root ± w / 2`) and its base 13 further out
-  (`y_root ± (w / 2 + 13)`), 6 wide. Its label is centred on `X`, in its
-  tier beyond the base: tier `k` starts `w / 2 + 13 + 2 + (k − 1) × h(9)`
-  out, the label gap included, and its baseline lies beyond that start.
+- **Wedges.** A filled triangle, not stroked, 6 wide, with its tip at the
+  distance `c + w / 2` outwards from the root's line and its base 13
+  further out, at `c + w / 2 + 13`, `c` the start of the markers band
+  (section 6.4) and `w` the root's stroke width, so that with `c = 0` the
+  tip lies on the line's edge. Its label is
+  centred on `X`, in its tier beyond the base: tier `k` starts `c + w / 2 +
+  13 + 2 + (k − 1) × h(9)` out, the label gap included, and its baseline
+  lies beyond that start.
 - **Maps.** A closed double line: the outline of the rectangle from `Xs`
   to `Xe` of the map's timeline between the ordinates `yc − d / 2` and `yc
   + d / 2`, `yc` the map's centre (section 6.4), stroked and not filled.
 - **Regions.** A brace from `Xs` to `Xe`, arms at `yb`, tip 6 further out
   at `Xm`, `x` of the midpoint (section 3.1) of the region's start and end, so it
-  opens towards the root; its label centred on `Xm` beyond the tip, 2
-  further out. The arms lie at the distance `r0 + (k − 1) × pr` of their
+  opens towards its timeline's line; its label centred on `Xm` beyond the
+  tip, 2 further out. The arms lie at the distance `r0 + (k − 1) × pr` of their
   row (section 6.4), the tip at that distance plus 6, and the label's
   ordinate at that distance plus 6 plus 2, each distance summed whole
   before it becomes an ordinate (section 3.3), never computed from `yb`.
@@ -884,7 +1119,7 @@ above side and down below.
   x(to)`, `yf` the flow row, `w` the jump's stroke width. Its **curve** is
   the cubic Bézier curve from `P0 = (Xf, yf)` to `P3 = (Xt, yf)` with
   controls `C1 = (Xf + q, yc)` and `C2 = (Xt − q, yc)`, `q = (Xt − Xf) / 4`
-  and `yc = yf + 4/3 × (ya − yf)`, `ya` the ordinate of its level's apex:
+  and `yc = yf + 4/3 × (ya − yf)`, `ya` the ordinate of its jump row's apex:
   the controls lie a quarter of the span inwards, so the curve reaches its
   apex halfway, and a short jump arrives steeply and a long one flatly. The
   arrow is placed as TikZ places an arrow tip on a curve: the head points
@@ -899,9 +1134,11 @@ above side and down below.
   the midpoint of from and to, beyond the apex, 2 further out.
 - **Breaks.** The line of section 6.4 at `x` of the break; its label
   starting at `x + 3`, in its tier (section 6.4).
-- **Names.** For each row holding lines (the root's row and the child
-  rows), the names (section 5.3) of its drawn lines whose names are
-  displayed, in traversal order, joined by `, `; the line of a segment
+- **Names.** For each **row** of lines (section 6.4, Children: the root's
+  row and every row of children bands laid out together, at any depth, so
+  that all lines at one ordinate form one row), the names (section 5.3) of
+  its drawn lines whose names are displayed, in traversal order, joined by
+  `, `; the line of a segment
   contributes no name, since its name is its label, so a row of segment
   lines alone has no name. When the
   `content` of the first of these names is not `none`, the row shows that
@@ -955,8 +1192,9 @@ drawing at `(X, Y)` lies at the page position `(X − left + 16, Y − top +
 ### 7.2 Element descriptors
 
 A member drawing becomes a list of SVG **element descriptors**, in this
-order: the breaks; the maps (in traversal order, each timeline's in
-canonical order, whatever their side); the regions; the jumps; the root and
+order: the breaks; the maps; the regions; the jumps, each of these four
+band by band in the traversal order of the bands' timelines, and each
+band's in the order it places them (section 6.4); the root and
 then the children in traversal order; the boundaries, in the traversal order
 of their segments (a nested segment line's boundaries thus follow its own
 boundary, not its siblings'); the wedges, start before end; the names, the
@@ -1250,29 +1488,35 @@ the line's stroke width and `y` its ordinate:
 - **Marks.** Two wedges mark `M`'s start and end on `Aj`'s axis: `wedge`
   elements with the addresses `M/start` and `M/end`; when `M`'s length is
   `null`, its end is not known and only `M/start` and its label are drawn.
-  The marks lie always on the line's
-  above side, whatever their `side`, each with its tip on the line's edge (`y − w / 2`) and its base 13
-  further up, at `x0` and `x0 + L`. Each is labelled with the coordinate it
+  The marks lie always above the line, outside every band, each with its
+  tip on the line's edge (`y − w / 2`) and its base 13 further up, at `x0`
+  and `x0 + L`. Each is labelled with the coordinate it
   marks in `Aj`'s unit: `−ts` and `−ts + λ`, combined as section 3.1
   combines values. The labels are placed by first fit, start before
-  end, into tiers above the base, as the root band places its wedge
+  end, into tiers above the base, as the markers band places its wedge
   labels (section 6.4).
-- **Nothing else** of `Aj` is drawn: no maps, regions, flow, boundaries or
-  other descendants. Its name is drawn in the name column on its row
+- **Nothing else** of `Aj` is drawn: no maps, regions, flow control,
+  boundaries or other descendants. Its name is drawn in the name column on its row
   (section 6.6, names).
 
 The **ancestor band** is the outermost band of the member drawing's above
-side, after the bands of section 6.4. It starts at the larger of `p0 / 2`
-and, when a band precedes it on that side, that band's outer edge plus `B`.
+side, beyond the root's bands and outside every band order; it is not an
+element and has no address. It starts at the larger of `p0 / 2` and `B`
+beyond the larger of the outer edge `Ea` of the above side (section 6.4)
+and half the stroke width `wm` of the member's line, `wm` being 0 when
+that line is not displayed (section 6.5): at `max(p0 / 2, max(Ea, wm / 2)
++ B)`, so that the band keeps the gap `B` from the line's stroke, as a
+band at level 1 does.
 It holds one row per ancestor, `Ak` nearest the member's line and `A1`
-outermost. Row `j` (counted from `Ak`) has the row pitch `qj` of its name's
+outermost; an ancestor line that is not displayed has no row (section 2.4
+states what it hides), and a member drawing without a displayed ancestor
+line has no ancestor band. Row `j` (counted from `Ak`) has the row pitch `qj` of its name's
 font size (`p` of section 6.2), an inner half `ij = qj / 2` and an outer half `oj`, the larger of
 `qj / 2` and the reach of its marks, `w / 2 + 13`, or `w / 2 + 13 + 2 + T ×
 h(9)` (left to right) when their labels fill `T ≥ 1` tiers (9 standing for
-its labels' largest font size), or `qj / 2` alone when no mark is drawn. An
-ancestor line that is not displayed draws neither its name nor its marks
-and has no row, as the maps of an undisplayed timeline take no room. Its line lies at `c0 + i1` for the first row,
-`c0` the start of the band, and `oj + i(j + 1)` beyond the row before. The
+its labels' largest font size), or `qj / 2` alone when no mark is drawn.
+The line of the first row lies at `c0 + i1`, `c0` the start of the band,
+and that of row `j + 1` at `oj + i(j + 1)` beyond the row before. The
 band is `i1 + o1 + … + ik + ok` wide, summed in that order.
 
 ### 8.4 Vertical
@@ -1437,6 +1681,6 @@ drawn edges, after the scale.
 
 The members of a group are never placed: they lie one under the other in
 their frame, in the group's display order (section 8.1), and only that order
-changes; their cards may only request a size and a vertical stretch. The bands of a member drawing likewise lie outwards from its line
+changes; their cards may only request a size and a vertical stretch. The bands of every timeline likewise lie outwards from its own line
 in its band order (section 6.4).
 

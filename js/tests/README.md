@@ -78,6 +78,65 @@ and unknown length", with the same documents, paths and messages, except:
   `bigint`, so on a float axis it is "an int … write a float" as in Python;
   `9007199254740992n` and `10n ** 20n` are exactly floats and validate.
 
+## Bands: reserved ids and band orders
+
+Every timeline has five bands, addressed `T/markers_1`,
+`T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`
+(README, "Identity"), and `graphical.order` maps a timeline's id to its band
+order as it maps a group's id to its display order (README, "Groups and the
+`graphical` block"). `identity.test.ts` proves the rows of the identity
+table these add, `validate.test.ts` the schema's part:
+
+- **The band pattern reserves ids, and nothing else.** An id matching
+  `^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`
+  is refused wherever a part word is: the manifest's id, a root's, a
+  child's, a conversion map's, a region's, a break's, a jump's, a marker's
+  and a group's id each give the one problem `id "regions_1" is reserved
+  for the bands of a timeline` at that id, and `children_10`,
+  `markers_7`, `conversion_maps_1` and `flow_control_2` (every kind, other
+  numbers) are refused as `regions_1` is. Ids just outside the pattern
+  stay valid, which proves it is no wider than stated: the bare kind words
+  (a marker `markers`, a root `regions`), `regions_0` and `regions_01`
+  (numbers start at 1 and have no leading zero), `Regions_1`,
+  `regions_1x` and `band_1`. The shared case `band_id_region` refuses a
+  region `regions_1`.
+- **A key names a group or a timeline.** A key naming neither gives
+  `"<key>" names no group or timeline of this manifest` at the key.
+- **A band order is a permutation of the timeline's id and its five
+  bands.** The default band order and the README's example are accepted at
+  a root, and a permutation at a descendant (a child and a grandchild).
+  Each entry that is neither the timeline's id nor one of its five band
+  addresses gives `"<entry>" is not "<id>" or one of its bands` at the
+  entry: another band number (`score/regions_2`), another timeline's band
+  (`take/regions_1`), another timeline's id; each item missing gives
+  `"<address>" is missing from the band order of "<id>"` at the order, in
+  the default band order's order, so an order holding only `score` lists
+  `score/children_1`, `score/conversion_maps_1`, `score/markers_1`,
+  `score/regions_1` and `score/flow_control_1` in that order. The shared
+  cases `band_order_unknown_entry` and `band_order_missing_band` pin one
+  of each.
+- **The schema shapes each entry; the validator the rest.** An entry is an
+  id or an id followed by `/` and a band id, so `score/foo`,
+  `score/regions_0` and a region's address `score/region_1` are refused by
+  the schema at the entry (`must match pattern …`), and a repeated entry at
+  the order (`must NOT have duplicate items …`), Ajv's messages;
+  `score/regions_2` passes the schema and is the validator's.
+- **The problem order.** Keys come in code-point order, each key's
+  strangers before its missing entries; a reserved band id lies among the
+  part words. The test of every step in order holds a timeline key, a
+  group key and a key naming neither, and a band id.
+- **A key is never both.** A group id equal to a timeline id is refused
+  first (`duplicate id`), so `validate` never reads an order under both
+  meanings; `identityProblems`, which lists every problem, reads such a key
+  as the group's display order.
+- **The selector and the declaration.** `{"element": "band"}`, each of the
+  five kinds as `class` beside it, and `{"inside": "band"}` validate;
+  `side` is no property of a declaration, so `unknownKeys` reports it as
+  an unknown key of the declaration, in a statement and in a style, and
+  `validate` accepts it. The defaults of the drawing specification
+  (section 4: three styles and 30 statements, the last three hiding bands)
+  validate.
+
 ## Unknown keys
 
 `unknown-keys.test.ts`: every shared warning case validates, its text is the
@@ -105,7 +164,7 @@ objects of `DEFAULTS` itself (two completions of one manifest hold distinct
 
 ## Shared rejection cases
 
-For each of the 85 cases (`validate.test.ts`), read by `parseJson`: its text
+For each of the 88 cases (`validate.test.ts`), read by `parseJson`: its text
 is the standard writer's; `version_unknown` raises `UnsupportedVersionError`
 and stores `["timeskeleton"]`; every other case raises
 `SchemaValidationError` at its stored path, through `validate` on the parsed

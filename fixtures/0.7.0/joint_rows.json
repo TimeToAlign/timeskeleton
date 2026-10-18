@@ -1,0 +1,252 @@
+{
+  "groups": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "conversion_maps": [],
+                  "flow_control": {
+                    "breaks": [],
+                    "jumps": [],
+                    "markers": []
+                  },
+                  "id": "b11",
+                  "is_segment_line": false,
+                  "length": [
+                    2,
+                    1
+                  ],
+                  "locked": true,
+                  "measure_map": null,
+                  "meta": {},
+                  "metric_hierarchy": null,
+                  "name": "B11",
+                  "number_type": "fraction",
+                  "offset": [
+                    1,
+                    1
+                  ],
+                  "regions": [],
+                  "unit": "quarters"
+                }
+              ],
+              "conversion_maps": [],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "b1",
+              "is_segment_line": false,
+              "length": [
+                4,
+                1
+              ],
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "B1",
+              "number_type": "fraction",
+              "offset": [
+                1,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [
+            {
+              "id": "ticks_b",
+              "name": null,
+              "ppq": 480,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "QuartersToTicks"
+            }
+          ],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "b",
+          "is_segment_line": false,
+          "length": [
+            6,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "B",
+          "number_type": "fraction",
+          "offset": [
+            0,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        },
+        {
+          "children": [
+            {
+              "children": [
+                {
+                  "children": [],
+                  "conversion_maps": [
+                    {
+                      "id": "tempo_d11",
+                      "name": null,
+                      "scalar": [
+                        1,
+                        2
+                      ],
+                      "source_unit": "quarters",
+                      "target_unit": "seconds",
+                      "type": "ScalarMap"
+                    },
+                    {
+                      "id": "ticks_d11",
+                      "name": null,
+                      "ppq": 480,
+                      "scalar": 480,
+                      "source_unit": "quarters",
+                      "target_unit": "ticks",
+                      "type": "QuartersToTicks"
+                    }
+                  ],
+                  "flow_control": {
+                    "breaks": [],
+                    "jumps": [],
+                    "markers": []
+                  },
+                  "id": "d11",
+                  "is_segment_line": false,
+                  "length": [
+                    2,
+                    1
+                  ],
+                  "locked": true,
+                  "measure_map": null,
+                  "meta": {},
+                  "metric_hierarchy": null,
+                  "name": "D11",
+                  "number_type": "fraction",
+                  "offset": [
+                    1,
+                    1
+                  ],
+                  "regions": [],
+                  "unit": "quarters"
+                }
+              ],
+              "conversion_maps": [
+                {
+                  "id": "tempo_d1",
+                  "name": null,
+                  "scalar": [
+                    1,
+                    2
+                  ],
+                  "source_unit": "quarters",
+                  "target_unit": "seconds",
+                  "type": "ScalarMap"
+                },
+                {
+                  "id": "ticks_d1",
+                  "name": null,
+                  "ppq": 480,
+                  "scalar": 480,
+                  "source_unit": "quarters",
+                  "target_unit": "ticks",
+                  "type": "QuartersToTicks"
+                }
+              ],
+              "flow_control": {
+                "breaks": [],
+                "jumps": [],
+                "markers": []
+              },
+              "id": "d1",
+              "is_segment_line": false,
+              "length": [
+                4,
+                1
+              ],
+              "locked": true,
+              "measure_map": null,
+              "meta": {},
+              "metric_hierarchy": null,
+              "name": "D1",
+              "number_type": "fraction",
+              "offset": [
+                2,
+                1
+              ],
+              "regions": [],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [],
+          "flow_control": {
+            "breaks": [],
+            "jumps": [],
+            "markers": []
+          },
+          "id": "d",
+          "is_segment_line": false,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "measure_map": null,
+          "meta": {},
+          "metric_hierarchy": null,
+          "name": "D",
+          "number_type": "fraction",
+          "offset": [
+            8,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": {
+        "breaks": [],
+        "jumps": [],
+        "markers": []
+      },
+      "id": "piece",
+      "is_segment_line": false,
+      "length": [
+        16,
+        1
+      ],
+      "locked": false,
+      "measure_map": null,
+      "meta": {},
+      "metric_hierarchy": null,
+      "name": "Piece",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

@@ -305,9 +305,22 @@ def test_a_child_lies_within_its_parents_known_length() -> None:
             "child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent "
             "'score'",
         ),
+        ("band_id_region", "id 'regions_1' is reserved for the bands of a timeline"),
+        (
+            "band_order_unknown_entry",
+            "'score/regions_2' is not 'score' or one of its bands",
+        ),
+        (
+            "band_order_missing_band",
+            "'score/markers_1' is missing from the band order of 'score'",
+        ),
+        (
+            "order_unknown_group",
+            "'group_9' names no group or timeline of this manifest",
+        ),
     ],
 )
-def test_the_shared_child_rejections_carry_their_messages(
+def test_the_shared_identity_rejections_carry_their_messages(
     name: str, message: str
 ) -> None:
     (path,) = [path for path in rejection_paths() if path.stem == name]
@@ -315,7 +328,8 @@ def test_the_shared_child_rejections_carry_their_messages(
     assert _only(case["manifest"]) == (tuple(case["path"]), message)
 
 
-def _part_word_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
+def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
+    """``word`` as the id of each kind, with the path of that id."""
     region = {"id": word, "start": [0, 1], "end": [1, 1]}
     shift = {
         "type": "ShiftMap",
@@ -354,16 +368,53 @@ def _part_word_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
 
 @pytest.mark.parametrize("word", ["start", "end", "name", "label", "card"])
 def test_part_words_are_no_id_anywhere(word: str) -> None:
-    for document, path in _part_word_documents(word):
+    for document, path in _id_documents(word):
         assert _only(document) == (
             path,
             f"id '{word}' is reserved for the parts of an address",
         )
 
 
-@pytest.mark.parametrize("word", ["starts", "Start"])
+@pytest.mark.parametrize(
+    "word",
+    [
+        "markers_1",
+        "conversion_maps_1",
+        "children_1",
+        "regions_1",
+        "flow_control_1",
+        "regions_12",
+        "flow_control_907",
+    ],
+)
+def test_band_ids_are_no_id_anywhere(word: str) -> None:
+    for document, path in _id_documents(word):
+        assert _only(document) == (
+            path,
+            f"id '{word}' is reserved for the bands of a timeline",
+        )
+
+
+@pytest.mark.parametrize(
+    "word",
+    [
+        "starts",
+        "Start",
+        "markers",
+        "conversion_maps",
+        "children",
+        "regions",
+        "flow_control",
+        "regions_0",
+        "regions_01",
+        "region_1",
+        "Regions_1",
+        "regions_1a",
+    ],
+)
 def test_other_words_are_ids(word: str) -> None:
-    for document, _ in _part_word_documents(word):
+    for document, _ in _id_documents(word):
+        assert _problems(document) == []
         validate(document)
 
 
@@ -461,7 +512,7 @@ def test_display_orders() -> None:
     value["graphical"]["order"]["g9"] = []
     assert _only(value) == (
         ("graphical", "order", "g9"),
-        "'g9' names no group of this manifest",
+        "'g9' names no group or timeline of this manifest",
     )
     value = bundle()
     value["graphical"]["order"]["group_1"] = ["score", "page", "performance"]
@@ -480,6 +531,108 @@ def test_display_orders() -> None:
     validate(value)
 
 
+SCORE_BANDS = [
+    "score/children_1",
+    "score/markers_1",
+    "score",
+    "score/conversion_maps_1",
+    "score/regions_1",
+    "score/flow_control_1",
+]
+"""The band order of the README's example."""
+
+B_BANDS = [
+    "b/flow_control_1",
+    "b/regions_1",
+    "b/markers_1",
+    "b",
+    "b/conversion_maps_1",
+    "b/children_1",
+]
+"""The reverse of the default band order, for the child ``b``."""
+
+
+def _band_orders(**orders: list[str]) -> dict:
+    """``score`` with its child ``b`` grouped with ``perf``, and the given orders."""
+    return manifest(
+        timeline("score", children=[timeline("b", length=(4, 1), offset=(0, 1))]),
+        timeline("perf", "seconds", 61.5),
+        groups=[group("g", "perf", "score")],
+        graphical={"order": {"g": ["score", "perf"], **orders}},
+    )
+
+
+def test_band_orders_at_a_root_and_at_a_descendant() -> None:
+    default = [
+        "score/children_1",
+        "score/conversion_maps_1",
+        "score",
+        "score/markers_1",
+        "score/regions_1",
+        "score/flow_control_1",
+    ]
+    for value in (
+        _band_orders(score=default),
+        _band_orders(score=SCORE_BANDS),
+        _band_orders(b=B_BANDS),
+        _band_orders(score=SCORE_BANDS, b=B_BANDS),
+    ):
+        assert _problems(value) == []
+        validate(value)
+
+
+@pytest.mark.parametrize(
+    "stranger", ["score/regions_2", "regions_1", "b/regions_1", "b", "ghost"]
+)
+def test_a_band_order_entry_that_is_no_band_of_its_timeline(stranger: str) -> None:
+    assert _only(_band_orders(score=[*SCORE_BANDS, stranger])) == (
+        ("graphical", "order", "score", 6),
+        f"'{stranger}' is not 'score' or one of its bands",
+    )
+
+
+def test_a_band_order_missing_an_address() -> None:
+    assert _only(_band_orders(score=SCORE_BANDS[:-1])) == (
+        ("graphical", "order", "score"),
+        "'score/flow_control_1' is missing from the band order of 'score'",
+    )
+    assert _problems(_band_orders(score=[])) == [
+        (
+            ("graphical", "order", "score"),
+            f"'{address}' is missing from the band order of 'score'",
+        )
+        for address in [
+            "score/children_1",
+            "score/conversion_maps_1",
+            "score",
+            "score/markers_1",
+            "score/regions_1",
+            "score/flow_control_1",
+        ]
+    ]
+
+
+def test_a_band_order_is_held_to_its_own_timelines_bands() -> None:
+    order = [
+        "b/flow_control_1",
+        "score/regions_1",
+        "b/markers_1",
+        "b",
+        "b/conversion_maps_1",
+        "b/children_1",
+    ]
+    assert _problems(_band_orders(b=order)) == [
+        (
+            ("graphical", "order", "b", 1),
+            "'score/regions_1' is not 'b' or one of its bands",
+        ),
+        (
+            ("graphical", "order", "b"),
+            "'b/regions_1' is missing from the band order of 'b'",
+        ),
+    ]
+
+
 def test_every_step_in_order() -> None:
     def jump(target: str) -> dict:
         return {
@@ -492,7 +645,10 @@ def test_every_step_in_order() -> None:
     first = timeline(
         "first",
         flow_control={"jumps": [jump("nowhere")]},
-        regions=[{"id": "end", "start": [0, 1], "end": [1, 1]}],
+        regions=[
+            {"id": "end", "start": [0, 1], "end": [1, 1]},
+            {"id": "regions_1", "start": [0, 1], "end": [1, 1]},
+        ],
         children=[
             timeline("kid", "seconds", 1.0, offset=(-1, 1)),
             timeline("gone", length=None, offset=(9, 1)),
@@ -504,8 +660,25 @@ def test_every_step_in_order() -> None:
         timeline("second"),
         timeline("second"),
         id="g2",
-        groups=[group("first", "ghost", "second"), group("g2", "second")],
-        graphical={"order": {"zz": [], "g2": ["stranger"]}},
+        groups=[
+            group("first", "ghost", "second"),
+            group("g2", "second"),
+            group("children_2"),
+        ],
+        graphical={
+            "order": {
+                "zz": [],
+                "kid": [
+                    "kid/regions_2",
+                    "kid",
+                    "kid/children_1",
+                    "kid/conversion_maps_1",
+                    "kid/markers_1",
+                    "kid/regions_1",
+                ],
+                "g2": ["stranger"],
+            }
+        },
     )
     assert _problems(value) == [
         (
@@ -529,6 +702,14 @@ def test_every_step_in_order() -> None:
             ("timelines", 0, "regions", 0, "id"),
             "id 'end' is reserved for the parts of an address",
         ),
+        (
+            ("timelines", 0, "regions", 1, "id"),
+            "id 'regions_1' is reserved for the bands of a timeline",
+        ),
+        (
+            ("groups", 2, "id"),
+            "id 'children_2' is reserved for the bands of a timeline",
+        ),
         (("timelines", 2, "id"), "duplicate id 'second', first at #/timelines/1/id"),
         (("groups", 0, "id"), "duplicate id 'first', first at #/timelines/0/id"),
         (("id",), "duplicate id 'g2', first at #/groups/1/id"),
@@ -539,5 +720,16 @@ def test_every_step_in_order() -> None:
         ),
         (("graphical", "order", "g2", 0), "'stranger' is not a member of group 'g2'"),
         (("graphical", "order", "g2"), "member 'second' of group 'g2' is missing"),
-        (("graphical", "order", "zz"), "'zz' names no group of this manifest"),
+        (
+            ("graphical", "order", "kid", 0),
+            "'kid/regions_2' is not 'kid' or one of its bands",
+        ),
+        (
+            ("graphical", "order", "kid"),
+            "'kid/flow_control_1' is missing from the band order of 'kid'",
+        ),
+        (
+            ("graphical", "order", "zz"),
+            "'zz' names no group or timeline of this manifest",
+        ),
     ]

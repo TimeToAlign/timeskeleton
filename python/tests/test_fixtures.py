@@ -53,8 +53,6 @@ _GREY = {"stroke": "#404040", "fill": "#404040"}
 _SHARED = [
     {"select": {"element": "label"}, "set": _GREY},
     {"select": {"element": "name"}, "set": _GREY},
-    {"select": {"element": "map"}, "set": {"side": "below"}},
-    {"select": {"ids": ["a"]}, "set": {"display": "none"}},
 ]
 _STYLED_SCORE = {
     "styles": {
@@ -67,6 +65,7 @@ _STYLED_SCORE = {
     },
     "statements": [
         *_SHARED,
+        {"select": {"ids": ["a"]}, "set": {"display": "none"}},
         {"select": {"element": "block"}, "set": {"rx": 4}},
         {
             "select": {"class": "ContinuousLogicalTimeline", "element": "timeline"},
@@ -88,7 +87,7 @@ _STYLED_SCORE = {
         },
         {
             "select": {"element": "wedge", "within": "score"},
-            "set": {"side": "above", "stroke": "#65A30D", "fill": "#65A30D"},
+            "set": {"stroke": "#65A30D", "fill": "#65A30D"},
         },
         {
             "select": {"ids": ["score/end"]},
@@ -120,6 +119,16 @@ _STYLED_SCORE = {
         },
         {"select": {"element": "name", "within": "b"}, "set": {"fill": "#0369A1"}},
     ],
+    "order": {
+        "score": [
+            "score/children_1",
+            "score/markers_1",
+            "score",
+            "score/conversion_maps_1",
+            "score/regions_1",
+            "score/flow_control_1",
+        ]
+    },
 }
 
 
@@ -148,7 +157,8 @@ def test_the_styled_manifests_carry_their_statements() -> None:
         styled = _styled(name)
         assert styled["statements"] == block["statements"]
         assert styled["styles"] == block.get("styles", {})
-    assert [len(value["statements"]) for value in expected.values()] == [21, 5]
+        assert styled["order"] == block.get("order", {})
+    assert [len(value["statements"]) for value in expected.values()] == [20, 3]
 
 
 # The drawn elements and texts of styled__score: (type, address, timeline it
