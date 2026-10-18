@@ -18,8 +18,10 @@ whose array order differs from the canonical order fails. Every builder
 entry emits exactly the files it builds. The current schema version is
 ``timeskeleton.SCHEMA_VERSION``. The fixtures of a released version are
 frozen: the script refuses to write into ``fixtures/<version>/`` once the tag
-``v<version>`` exists. Map identifiers come from a per-process counter, so
-every run in a fresh interpreter emits the same files.
+``v<version>`` exists. An id the script does not give is minted by
+timetoalign as ``<prefix>_<N>`` with N the smallest positive integer not yet
+taken in its scope, so it depends on the construction order in the script
+and on nothing built before, and every run emits the same files.
 """
 
 from __future__ import annotations
@@ -673,6 +675,66 @@ def corpus_manifests() -> dict[str, list[Timeline]]:
     }
 
 
+def _ticks() -> QuartersToTicks:
+    """Return a map of quarters to ticks, 480 per quarter, its id minted."""
+    return QuartersToTicks(ppq=480)
+
+
+def _tempo() -> ScalarMap:
+    """Return a tempo map of quarters to seconds, half a second per quarter, its
+    id minted.
+    """
+    return ScalarMap(Fraction(1, 2), source_unit="quarters", target_unit="seconds")
+
+
+def _to_samples() -> SecondsToSamples:
+    """Return a map of seconds to samples, 44100 per second, its id minted."""
+    return SecondsToSamples(sample_rate=44100)
+
+
+def _to_seconds() -> SamplesToSeconds:
+    """Return a map of samples to seconds, 44100 per second, its id minted."""
+    return SamplesToSeconds(sample_rate=44100)
+
+
+def _to_points() -> ScalarMap:
+    """Return a map of pixels to points, 3/4 of a point each, its id minted."""
+    return ScalarMap(Fraction(3, 4), source_unit="pixels", target_unit="points")
+
+
+def _with_maps(timeline: Timeline, *maps: Any) -> Timeline:
+    """Attach ``maps`` to ``timeline`` in order and return the timeline."""
+    for conversion_map in maps:
+        timeline.add_conversion_map(conversion_map)
+    return timeline
+
+
+def _with_repeat(timeline: Timeline, source: Any, destination: Any) -> Timeline:
+    """Give ``timeline`` a jump from ``source`` back to ``destination``.
+
+    The jump is a repeat end taken the first time only (``first_n``, one
+    repeat), labelled "Repeat", its id minted.
+    """
+    timeline.flow_control.add_jump(
+        Jump(
+            from_coordinate=timeline.make_coordinate(source),
+            to_coordinate=timeline.make_coordinate(destination),
+            control_type=FlowControlElement.repeat_end,
+            condition=ActivationCondition.first_n,
+            repeat_count=1,
+            label="Repeat",
+        )
+    )
+    return timeline
+
+
+def _segments(line: Timeline, *segments: Timeline) -> Timeline:
+    """Append ``segments`` in order to the segment line ``line`` and return it."""
+    for segment in segments:
+        line.append_segment(segment)
+    return line
+
+
 def number_types_group() -> TimelineGroup:
     """Build a group of three timelines whose axes have different number types.
 
@@ -691,14 +753,32 @@ def number_types_group() -> TimelineGroup:
     return TimelineGroup(name="Edition", timelines=[score, page, performance])
 
 
+def styled_group() -> TimelineGroup:
+    """Build the group of ``number_types_group`` with maps, a region and a jump.
+
+    The score ``score`` carries a map to ticks, the region "Theme" from 0 to 8
+    and a repeat jump from 8 back to 0; the performance ``performance`` a map
+    to samples; the page ``page`` a map to points. Every id of a map, region or
+    jump is minted.
+    """
+    group = number_types_group()
+    score = _with_maps(group.get_timeline("score"), _ticks())
+    score.create_region(0, 8, name="Theme")
+    _with_repeat(score, 8, 0)
+    _with_maps(group.get_timeline("performance"), _to_samples())
+    _with_maps(group.get_timeline("page"), _to_points())
+    return group
+
+
 def group_constructions() -> dict[str, list[TimelineGroup]]:
     """Build the groups constructed directly, one manifest each.
 
-    ``group_number_types`` and ``group_styled`` are two groups built by
-    ``number_types_group``; ``group_styled`` also carries the styles and
-    statements of ``GRAPHICAL``. ``group_child_member`` groups the second half
-    of a score, a child of the score placed at its exact offset, with a whole
-    performance.
+    ``group_number_types`` is the group of ``number_types_group``.
+    ``group_child_member`` groups the second half of a score, a child of the
+    score placed at its exact offset, with a whole performance.
+    ``group_styled`` is the group of ``styled_group``, which adds conversion
+    maps, a region and a jump to that of ``number_types_group``, and carries
+    the styles and statements of ``GRAPHICAL``.
     """
     piece = ContinuousLogicalTimeline(
         length=Fraction(16), unit="quarters", uid="piece", name="Piece"
@@ -714,36 +794,64 @@ def group_constructions() -> dict[str, list[TimelineGroup]]:
     return {
         "group_number_types": [number_types_group()],
         "group_child_member": [child_member],
-        "group_styled": [number_types_group()],
+        "group_styled": [styled_group()],
     }
 
 
 def bundle_constructions() -> dict[str, list[AlignmentBundle]]:
     """Build the bundle constructed directly.
 
-    ``bundle_mixed`` holds two groups, a score with its performance and a page
-    with an excerpt of a recording (a child of the recording, whose root
-    joins the bundle ungrouped), and one more ungrouped timeline.
+    ``bundle_mixed`` ("Mixed") holds two groups, a score with its performance
+    and a page with an excerpt of a recording, and one ungrouped timeline. The
+    score ``score`` (12 quarters) carries a map to ticks, then a tempo map to
+    seconds (half a second per quarter), and a repeat jump from 8 back to 0;
+    the performance ``performance`` (12.5 seconds) a map to samples; the page
+    ``page`` (1920 pixels) a map to points; the recording ``recording``
+    (441000 samples) and its excerpt ``excerpt`` (88200 samples at 44100) a
+    map to seconds each; the ungrouped ``annotations`` (12 quarters) the
+    regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map. No
+    group names ``recording``, but it contains the member ``excerpt`` and so
+    is drawn only as its ancestor line: its map is kept in the manifest but
+    not drawn. Every id of a map, region or jump is minted.
     """
-    score = ContinuousLogicalTimeline(
-        length=Fraction(12), unit="quarters", uid="score", name="Score"
+    score = _with_maps(
+        ContinuousLogicalTimeline(
+            length=Fraction(12), unit="quarters", uid="score", name="Score"
+        ),
+        _ticks(),
+        _tempo(),
     )
-    performance = ContinuousPhysicalTimeline(
-        length=12.5, unit="seconds", uid="performance", name="Performance"
+    _with_repeat(score, 8, 0)
+    performance = _with_maps(
+        ContinuousPhysicalTimeline(
+            length=12.5, unit="seconds", uid="performance", name="Performance"
+        ),
+        _to_samples(),
     )
-    page = DiscreteGraphicalTimeline(
-        length=Fraction(1920), unit="pixels", uid="page", name="Page"
+    page = _with_maps(
+        DiscreteGraphicalTimeline(
+            length=Fraction(1920), unit="pixels", uid="page", name="Page"
+        ),
+        _to_points(),
     )
-    recording = DiscretePhysicalTimeline(
-        length=Fraction(441000), unit="samples", uid="recording", name="Recording"
+    recording = _with_maps(
+        DiscretePhysicalTimeline(
+            length=Fraction(441000), unit="samples", uid="recording", name="Recording"
+        ),
+        _to_seconds(),
     )
-    excerpt = DiscretePhysicalTimeline(
-        length=Fraction(88200), unit="samples", uid="excerpt", name="Excerpt"
+    excerpt = _with_maps(
+        DiscretePhysicalTimeline(
+            length=Fraction(88200), unit="samples", uid="excerpt", name="Excerpt"
+        ),
+        _to_seconds(),
     )
     recording.add_child(excerpt, Fraction(44100))
     annotations = ContinuousLogicalTimeline(
         length=Fraction(12), unit="quarters", uid="annotations", name="Annotations"
     )
+    annotations.create_region(0, 4, name="Verse")
+    annotations.create_region(4, 12, name="Chorus")
     bundle = AlignmentBundle(name="Mixed")
     bundle.add_timeline(score, as_group="Performance")
     bundle.add_timeline(performance, grouped_with=score.id)
@@ -819,10 +927,11 @@ def group_parents_mixed() -> TimelineGroup:
     The sonata ``sonata`` ("Sonata", 48 quarters, ``locked=True``) holds the
     exposition ``exposition`` ("Exposition", 32 quarters) at 16; the session
     ``session`` ("Session", 90.0 seconds) holds the take ``take`` ("Take",
-    25.5 seconds) at 30.0; the page ``page`` ("Page", 1754 pixels) holds the
-    system ``system`` ("System", 600 pixels) at 0. The group "Exposition"
-    lists ``exposition``, ``take``, ``system`` and the root ``audio``
-    ("Audio", 1323000 samples).
+    25.5 seconds) at 30.0, which carries a map to samples; the page ``page``
+    ("Page", 1754 pixels) holds the system ``system`` ("System", 600 pixels)
+    at 0. The group "Exposition" lists ``exposition``, ``take``, ``system``
+    and the root ``audio`` ("Audio", 1323000 samples), which carries a map to
+    seconds. Both map ids are minted.
     """
     sonata = ContinuousLogicalTimeline(
         length=Fraction(48), unit="quarters", uid="sonata", name="Sonata", locked=True
@@ -834,7 +943,11 @@ def group_parents_mixed() -> TimelineGroup:
     )
     session = _timeline(ContinuousPhysicalTimeline, "session", "Session", 90.0)
     take = _holding(
-        session, _timeline(ContinuousPhysicalTimeline, "take", "Take", 25.5), 30.0
+        session,
+        _with_maps(
+            _timeline(ContinuousPhysicalTimeline, "take", "Take", 25.5), _to_samples()
+        ),
+        30.0,
     )
     page = _timeline(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
     system = _holding(
@@ -842,7 +955,10 @@ def group_parents_mixed() -> TimelineGroup:
         _timeline(DiscreteGraphicalTimeline, "system", "System", Fraction(600)),
         Fraction(0),
     )
-    audio = _timeline(DiscretePhysicalTimeline, "audio", "Audio", Fraction(1323000))
+    audio = _with_maps(
+        _timeline(DiscretePhysicalTimeline, "audio", "Audio", Fraction(1323000)),
+        _to_seconds(),
+    )
     return TimelineGroup(name="Exposition", timelines=[exposition, take, system, audio])
 
 
@@ -884,29 +1000,97 @@ def parent_groups() -> dict[str, list[TimelineGroup]]:
 def bundle_shared_parent() -> AlignmentBundle:
     """Build a bundle whose two groups hold two children of one root.
 
-    The score ``score`` ("Score", 32 quarters) holds the exposition
-    ``exposition`` ("Exposition", 12 quarters) at 0 and the recapitulation
-    ``recapitulation`` ("Recapitulation", 12 quarters) at 20. The bundle
-    "Sonata" groups ``exposition`` with the take ``take_1`` ("Take 1", 30.0
-    seconds) as "Exposition" and ``recapitulation`` with the take ``take_2``
-    ("Take 2", 28.5 seconds) as "Recapitulation"; the page ``page`` ("Page",
-    1754 pixels) is ungrouped, and so is ``score``, which joins as the root
-    of the two children.
+    The score ``score`` ("Score", 32 quarters) carries a map to ticks, the
+    region "Development" from 12 to 20 and a repeat jump from 12 back to 0. It
+    holds two segment lines: the exposition ``exposition`` ("Exposition", 12
+    quarters) at 0, which carries a map to ticks, of the segments
+    ``exposition_first`` ("First theme") and ``exposition_second`` ("Second
+    theme"), 6 quarters each, the second carrying a tempo map to seconds (half
+    a second per quarter); and the recapitulation ``recapitulation``
+    ("Recapitulation", 12 quarters) at 20, of two segment lines of 6 quarters,
+    each of two segments of 3 quarters: ``recapitulation_first`` ("First
+    theme") of ``recapitulation_first_1`` ("Phrase 1") and
+    ``recapitulation_first_2`` ("Phrase 2"), and ``recapitulation_second``
+    ("Second theme"), which carries a map to ticks, of
+    ``recapitulation_second_1`` ("Phrase 1") and ``recapitulation_second_2``
+    ("Phrase 2"). The bundle "Sonata" groups ``exposition`` with the take
+    ``take_1`` ("Take 1", 30.0 seconds) as "Exposition" and ``recapitulation``
+    with the take ``take_2`` ("Take 2", 28.5 seconds) as "Recapitulation".
+    ``take_1`` is a segment line, which carries a map to samples, of
+    ``take_1_first`` ("First theme", 14.0 seconds) and ``take_1_second``
+    ("Second theme", 16.0 seconds); ``take_2`` is a plain timeline. The page
+    ``page`` ("Page", 1754 pixels) is ungrouped. No group names ``score``, but
+    it contains both members and so is drawn only as their ancestor line: its
+    map, region and repeat are kept in the manifest but not drawn. Every id of
+    a map, region or jump is minted.
     """
-    score = _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(32))
+
+    def quarters(uid: str, name: str, length: int) -> Timeline:
+        return _timeline(ContinuousLogicalTimeline, uid, name, Fraction(length))
+
+    def line(uid: str, name: str, *segments: Timeline) -> Timeline:
+        return _segments(
+            SegmentLine[ContinuousLogicalTimeline](
+                length=0, unit="quarters", uid=uid, name=name
+            ),
+            *segments,
+        )
+
+    score = _with_maps(
+        _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(32)), _ticks()
+    )
+    score.create_region(12, 20, name="Development")
+    _with_repeat(score, 12, 0)
     exposition = _holding(
         score,
-        _timeline(ContinuousLogicalTimeline, "exposition", "Exposition", Fraction(12)),
+        _with_maps(
+            line(
+                "exposition",
+                "Exposition",
+                quarters("exposition_first", "First theme", 6),
+                _with_maps(quarters("exposition_second", "Second theme", 6), _tempo()),
+            ),
+            _ticks(),
+        ),
         Fraction(0),
+    )
+    recapitulation_first = line(
+        "recapitulation_first",
+        "First theme",
+        quarters("recapitulation_first_1", "Phrase 1", 3),
+        quarters("recapitulation_first_2", "Phrase 2", 3),
+    )
+    recapitulation_second = _with_maps(
+        line(
+            "recapitulation_second",
+            "Second theme",
+            quarters("recapitulation_second_1", "Phrase 1", 3),
+            quarters("recapitulation_second_2", "Phrase 2", 3),
+        ),
+        _ticks(),
     )
     recapitulation = _holding(
         score,
-        _timeline(
-            ContinuousLogicalTimeline, "recapitulation", "Recapitulation", Fraction(12)
+        line(
+            "recapitulation",
+            "Recapitulation",
+            recapitulation_first,
+            recapitulation_second,
         ),
         Fraction(20),
     )
-    take_1 = _timeline(ContinuousPhysicalTimeline, "take_1", "Take 1", 30.0)
+    take_1 = _with_maps(
+        _segments(
+            SegmentLine[ContinuousPhysicalTimeline](
+                length=0.0, unit="seconds", uid="take_1", name="Take 1"
+            ),
+            _timeline(ContinuousPhysicalTimeline, "take_1_first", "First theme", 14.0),
+            _timeline(
+                ContinuousPhysicalTimeline, "take_1_second", "Second theme", 16.0
+            ),
+        ),
+        _to_samples(),
+    )
     take_2 = _timeline(ContinuousPhysicalTimeline, "take_2", "Take 2", 28.5)
     page = _timeline(DiscreteGraphicalTimeline, "page", "Page", Fraction(1754))
     bundle = AlignmentBundle(name="Sonata")
@@ -924,16 +1108,45 @@ def bundle_ungrouped() -> AlignmentBundle:
     The bundle "Sketches" holds the score ``score`` ("Score", 16 quarters),
     the recording ``recording`` ("Recording", 441000 samples) and the
     segment line ``pages`` of ``pages_timeline`` with three pages (5262
-    pixels), in that order, and no group.
+    pixels), in that order, and no group. The score carries a map to ticks
+    and a da capo al fine: the break "Fine" at 8 (``fine``, taken after a
+    da capo or dal segno) and the jump "D.C. al Fine" from 16 back to 0
+    (``da_capo_al_fine``, taken after the first pass, one repeat). The
+    recording carries a map to seconds, the segment line ``pages`` a map to
+    points; its pages carry none. Every id of a map, break or jump is minted.
     """
+    score = _with_maps(
+        _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(16)), _ticks()
+    )
+    score.flow_control.add_break(
+        Break(
+            coordinate=score.make_coordinate(8),
+            control_type=FlowControlElement.fine,
+            condition=ActivationCondition.after_dc_ds,
+            label="Fine",
+        )
+    )
+    score.flow_control.add_jump(
+        Jump(
+            from_coordinate=score.make_coordinate(16),
+            to_coordinate=score.make_coordinate(0),
+            control_type=FlowControlElement.da_capo_al_fine,
+            condition=ActivationCondition.after_first,
+            repeat_count=1,
+            label="D.C. al Fine",
+        )
+    )
     bundle = AlignmentBundle(name="Sketches")
+    bundle.add_timeline(score)
     bundle.add_timeline(
-        _timeline(ContinuousLogicalTimeline, "score", "Score", Fraction(16))
+        _with_maps(
+            _timeline(
+                DiscretePhysicalTimeline, "recording", "Recording", Fraction(441000)
+            ),
+            _to_seconds(),
+        )
     )
-    bundle.add_timeline(
-        _timeline(DiscretePhysicalTimeline, "recording", "Recording", Fraction(441000))
-    )
-    bundle.add_timeline(pages_timeline(3))
+    bundle.add_timeline(_with_maps(pages_timeline(3), _to_points()))
     return bundle
 
 

@@ -1,9 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="557.8967" height="265.0156" viewBox="0 0 557.8967 265.0156" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="557.8967" height="300.1641" viewBox="0 0 557.8967 300.1641" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="525.8967" height="233.0156" rx="10" fill="#F3F4F6"/>
+<rect x="0" y="0" width="525.8967" height="268.1641" rx="10" fill="#F3F4F6"/>
 <text data-address="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sketches</text>
 <rect data-address="pages/card" x="10" y="30.8047" width="507.8967" height="63.4531" rx="5" fill="#B8BEC8"/>
 <rect data-address="pages/card" x="8" y="28.8047" width="507.8967" height="63.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-address="pages/cmap_1" points="79.7036,50.7812 479.7036,50.7812 479.7036,52.7812 79.7036,52.7812" fill="none" stroke="#FF0000" stroke-width="1"/>
 <line data-address="pages" x1="79.7036" y1="57.2812" x2="479.7036" y2="57.2812" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
 <circle data-address="pages" cx="79.7036" cy="57.2812" r="3" fill="#FF0000"/>
 <polygon data-address="pages" points="488.7036,57.2812 479.7036,52.7812 479.7036,61.7812" fill="none" stroke="#FF0000" stroke-width="1.5"/>
@@ -17,25 +18,32 @@
 <text data-address="page_1/label" x="146.3703" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Page 1</text>
 <text data-address="page_2/label" x="279.7036" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Page 2</text>
 <text data-address="page_3/label" x="413.0369" y="45.1587" text-anchor="middle" font-size="9" fill="#000000">Page 3</text>
-<rect data-address="recording/card" x="10" y="102.2578" width="507.8967" height="65.3789" rx="5" fill="#B8BEC8"/>
-<rect data-address="recording/card" x="8" y="100.2578" width="507.8967" height="65.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-address="recording" x1="79.7036" y1="122.6602" x2="479.7036" y2="122.6602" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
-<circle data-address="recording" cx="79.7036" cy="122.6602" r="3" fill="#0050EF"/>
-<polygon data-address="recording" points="488.7036,122.6602 479.7036,118.1602 479.7036,127.1602" fill="#0050EF"/>
-<polygon data-address="recording/start" points="79.7036,124.1602 76.7036,137.1602 82.7036,137.1602" fill="#000000"/>
-<polygon data-address="recording/end" points="479.7036,124.1602 476.7036,137.1602 482.7036,137.1602" fill="#000000"/>
-<text data-address="recording/name" x="16" y="126.4683" text-anchor="start" font-size="11" fill="#000000">Recording</text>
-<text data-address="recording/start/label" x="79.7036" y="147.5142" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
-<text data-address="recording/end/label" x="479.7036" y="147.5142" text-anchor="middle" font-size="9" fill="#000000">441000 smp</text>
-<rect data-address="score/card" x="10" y="175.6367" width="507.8967" height="49.3789" rx="5" fill="#B8BEC8"/>
-<rect data-address="score/card" x="8" y="173.6367" width="507.8967" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-address="score" x1="79.7036" y1="188.0391" x2="479.7036" y2="188.0391" stroke="#00CC00" stroke-width="3"/>
-<circle data-address="score" cx="79.7036" cy="188.0391" r="3" fill="#00CC00"/>
-<polygon data-address="score" points="488.7036,188.0391 479.7036,183.5391 479.7036,192.5391" fill="#00CC00"/>
-<polygon data-address="score/start" points="79.7036,189.5391 76.7036,202.5391 82.7036,202.5391" fill="#000000"/>
-<polygon data-address="score/end" points="479.7036,189.5391 476.7036,202.5391 482.7036,202.5391" fill="#000000"/>
-<text data-address="score/name" x="16" y="191.8472" text-anchor="start" font-size="11" fill="#000000">Score</text>
-<text data-address="score/start/label" x="79.7036" y="212.8931" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-address="score/end/label" x="479.7036" y="212.8931" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<rect data-address="recording/card" x="10" y="102.2578" width="507.8967" height="65.4766" rx="5" fill="#B8BEC8"/>
+<rect data-address="recording/card" x="8" y="100.2578" width="507.8967" height="65.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-address="recording/cmap_1" points="79.7036,116.2578 479.7036,116.2578 479.7036,118.2578 79.7036,118.2578" fill="none" stroke="#0050EF" stroke-width="1"/>
+<line data-address="recording" x1="79.7036" y1="122.7578" x2="479.7036" y2="122.7578" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="recording" cx="79.7036" cy="122.7578" r="3" fill="#0050EF"/>
+<polygon data-address="recording" points="488.7036,122.7578 479.7036,118.2578 479.7036,127.2578" fill="#0050EF"/>
+<polygon data-address="recording/start" points="79.7036,124.2578 76.7036,137.2578 82.7036,137.2578" fill="#000000"/>
+<polygon data-address="recording/end" points="479.7036,124.2578 476.7036,137.2578 482.7036,137.2578" fill="#000000"/>
+<text data-address="recording/name" x="16" y="126.5659" text-anchor="start" font-size="11" fill="#000000">Recording</text>
+<text data-address="recording/start/label" x="79.7036" y="147.6118" text-anchor="middle" font-size="9" fill="#000000">0 smp</text>
+<text data-address="recording/end/label" x="479.7036" y="147.6118" text-anchor="middle" font-size="9" fill="#000000">441000 smp</text>
+<rect data-address="score/card" x="10" y="175.7344" width="507.8967" height="84.4297" rx="5" fill="#B8BEC8"/>
+<rect data-address="score/card" x="8" y="173.7344" width="507.8967" height="84.4297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<line data-address="score/break_1" x1="279.7036" y1="229.6875" x2="279.7036" y2="181.7344" stroke="#FF0000" stroke-width="1.5" stroke-dasharray="2 2"/>
+<polygon data-address="score/cmap_1" points="79.7036,181.7344 479.7036,181.7344 479.7036,183.7344 79.7036,183.7344" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<path data-address="score/jump_1" d="M479.7036 229.6875C379.7036 240.3542 179.7036 240.3542 83.6811 230.1118" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="score/jump_1" points="79.7036,229.6875 83.4689,232.1005 83.8932,228.123" fill="#000000"/>
+<line data-address="score" x1="79.7036" y1="188.2344" x2="479.7036" y2="188.2344" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="score" cx="79.7036" cy="188.2344" r="3" fill="#00CC00"/>
+<polygon data-address="score" points="488.7036,188.2344 479.7036,183.7344 479.7036,192.7344" fill="#00CC00"/>
+<polygon data-address="score/start" points="79.7036,189.7344 76.7036,202.7344 82.7036,202.7344" fill="#000000"/>
+<polygon data-address="score/end" points="479.7036,189.7344 476.7036,202.7344 482.7036,202.7344" fill="#000000"/>
+<text data-address="score/name" x="16" y="192.0425" text-anchor="start" font-size="11" fill="#000000">Score</text>
+<text data-address="score/start/label" x="79.7036" y="213.0884" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="score/end/label" x="479.7036" y="213.0884" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
+<text data-address="score/jump_1/label" x="279.7036" y="248.0415" text-anchor="middle" font-size="9" fill="#000000">D.C. al Fine</text>
+<text data-address="score/break_1/label" x="282.7036" y="227.5649" text-anchor="start" font-size="9" fill="#000000">Fine</text>
 </g>
 </svg>

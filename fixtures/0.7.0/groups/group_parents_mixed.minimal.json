@@ -26,6 +26,19 @@
   },
   "timelines": [
     {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
       "id": "audio",
       "length": 1323000,
       "name": "Audio",
@@ -50,6 +63,16 @@
     {
       "children": [
         {
+          "conversion_maps": [
+            {
+              "id": "cmap_1",
+              "sample_rate": 44100,
+              "scalar": 44100,
+              "source_unit": "seconds",
+              "target_unit": "samples",
+              "type": "SecondsToSamples"
+            }
+          ],
           "id": "take",
           "length": 25.5,
           "locked": true,

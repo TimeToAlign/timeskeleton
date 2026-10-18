@@ -43,7 +43,58 @@
     {
       "children": [
         {
+          "children": [
+            {
+              "id": "exposition_first",
+              "length": [
+                6,
+                1
+              ],
+              "name": "First theme",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "conversion_maps": [
+                {
+                  "id": "cmap_3",
+                  "scalar": [
+                    1,
+                    2
+                  ],
+                  "source_unit": "quarters",
+                  "target_unit": "seconds",
+                  "type": "ScalarMap"
+                }
+              ],
+              "id": "exposition_second",
+              "length": [
+                6,
+                1
+              ],
+              "name": "Second theme",
+              "offset": [
+                6,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
+          "conversion_maps": [
+            {
+              "id": "cmap_2",
+              "ppq": 480,
+              "scalar": 480,
+              "source_unit": "quarters",
+              "target_unit": "ticks",
+              "type": "QuartersToTicks"
+            }
+          ],
           "id": "exposition",
+          "is_segment_line": true,
           "length": [
             12,
             1
@@ -57,7 +108,106 @@
           "unit": "quarters"
         },
         {
+          "children": [
+            {
+              "children": [
+                {
+                  "id": "recapitulation_first_1",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 1",
+                  "offset": [
+                    0,
+                    1
+                  ],
+                  "unit": "quarters"
+                },
+                {
+                  "id": "recapitulation_first_2",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 2",
+                  "offset": [
+                    3,
+                    1
+                  ],
+                  "unit": "quarters"
+                }
+              ],
+              "id": "recapitulation_first",
+              "is_segment_line": true,
+              "length": [
+                6,
+                1
+              ],
+              "locked": true,
+              "name": "First theme",
+              "offset": [
+                0,
+                1
+              ],
+              "unit": "quarters"
+            },
+            {
+              "children": [
+                {
+                  "id": "recapitulation_second_1",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 1",
+                  "offset": [
+                    0,
+                    1
+                  ],
+                  "unit": "quarters"
+                },
+                {
+                  "id": "recapitulation_second_2",
+                  "length": [
+                    3,
+                    1
+                  ],
+                  "name": "Phrase 2",
+                  "offset": [
+                    3,
+                    1
+                  ],
+                  "unit": "quarters"
+                }
+              ],
+              "conversion_maps": [
+                {
+                  "id": "cmap_4",
+                  "ppq": 480,
+                  "scalar": 480,
+                  "source_unit": "quarters",
+                  "target_unit": "ticks",
+                  "type": "QuartersToTicks"
+                }
+              ],
+              "id": "recapitulation_second",
+              "is_segment_line": true,
+              "length": [
+                6,
+                1
+              ],
+              "locked": true,
+              "name": "Second theme",
+              "offset": [
+                6,
+                1
+              ],
+              "unit": "quarters"
+            }
+          ],
           "id": "recapitulation",
+          "is_segment_line": true,
           "length": [
             12,
             1
@@ -71,17 +221,85 @@
           "unit": "quarters"
         }
       ],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "ppq": 480,
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "QuartersToTicks"
+        }
+      ],
+      "flow_control": {
+        "jumps": [
+          {
+            "from_coordinate": [
+              12,
+              1
+            ],
+            "id": "jump_1",
+            "label": "Repeat",
+            "to_coordinate": [
+              0,
+              1
+            ]
+          }
+        ]
+      },
       "id": "score",
       "length": [
         32,
         1
       ],
       "name": "Score",
+      "regions": [
+        {
+          "end": [
+            20,
+            1
+          ],
+          "id": "region_1",
+          "name": "Development",
+          "start": [
+            12,
+            1
+          ]
+        }
+      ],
       "unit": "quarters"
     },
     {
+      "children": [
+        {
+          "id": "take_1_first",
+          "length": 14.0,
+          "name": "First theme",
+          "offset": 0.0,
+          "unit": "seconds"
+        },
+        {
+          "id": "take_1_second",
+          "length": 16.0,
+          "name": "Second theme",
+          "offset": 14.0,
+          "unit": "seconds"
+        }
+      ],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": 44100,
+          "source_unit": "seconds",
+          "target_unit": "samples",
+          "type": "SecondsToSamples"
+        }
+      ],
       "id": "take_1",
+      "is_segment_line": true,
       "length": 30.0,
+      "locked": true,
       "name": "Take 1",
       "unit": "seconds"
     },

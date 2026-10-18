@@ -158,27 +158,65 @@ each:
 
 ## Coverage of groups and bundles
 
-Every builder writes its files; the constructed files are built first:
+Every builder writes its files; the constructed files are built first. The
+conversion maps of the constructed groups and bundles are of five kinds,
+each id minted and no name given: a map to ticks (`QuartersToTicks`, 480 per
+quarter), a tempo map to seconds (a `ScalarMap` of half a second per
+quarter), a map to samples (`SecondsToSamples`, 44100 per second), a map to
+seconds (`SamplesToSeconds`, 44100 per second) and a map to points (a
+`ScalarMap` of 3/4 of a point per pixel). A repeat is a jump labelled
+"Repeat" back to an earlier coordinate (`repeat_end`, `first_n`,
+`repeat_count` 1).
 
 | Builder | Construction |
 | --- | --- |
 | `group_number_types` | a group of three timelines whose axes have different number types (quarters as fractions, seconds as floats, pixels as integers), in a display order that differs from their id order |
 | `group_child_member` | a group of the second half of a score, a child of the score placed at its exact offset, with a whole recording |
-| `group_styled` | the group of `group_number_types` with `styles` and `statements`: every group frame takes the style `frame-highlight` (a violet stroke), the group's title `group_1/name` is filled violet, and every card inside a frame has a light violet `shadow` and a corner radius `rx` of 2 |
+| `group_styled` | the group of `group_number_types` with conversion maps, a region, a jump and styling: the score has a map to ticks, the region "Theme" from 0 to 8 and a repeat from 8 back to 0, the performance a map to samples and the page a map to points; its `styles` and `statements` give every group frame the style `frame-highlight` (a violet stroke), fill the group's title `group_1/name` violet, and give every card inside a frame a light violet `shadow` and a corner radius `rx` of 2 |
 | `group_parent_right` | a child `first-half` (8 quarters at 0) of a piece of 16 quarters, with a whole recording; the piece runs on to the right of the member |
 | `group_parent_both` | as above with the child `middle` (8 quarters at 4); the piece runs on to both sides |
 | `group_parent_exact` | as above with the child `whole` (16 quarters at 0); the piece coincides with the member |
-| `group_parents_mixed` | three child members of different parents (an exposition of 32 quarters at 16 in a locked sonata of 48, a take of 25.5 seconds at 30.0 in a session of 90.0 seconds, a system of 600 pixels at 0 in a page of 1754) and the root `audio` of 1323000 samples |
+| `group_parents_mixed` | three child members of different parents (an exposition of 32 quarters at 16 in a locked sonata of 48; a take of 25.5 seconds at 30.0 in a session of 90.0 seconds, with a map to samples; a system of 600 pixels at 0 in a page of 1754) and the root `audio` of 1323000 samples, with a map to seconds |
 | `group_grandchild` | a grandchild `theme` (8 quarters at 8 in a movement of 16 quarters at 16 in a score of 64) with a recording of 12.0 seconds |
-| `bundle_mixed` | a bundle of two groups, a score with its performance and a page with an excerpt of a recording (a child of the recording, whose root joins the bundle ungrouped), and one more ungrouped timeline |
-| `bundle_shared_parent` | a bundle of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; the score and a page are ungrouped |
-| `bundle_ungrouped` | a bundle of three ungrouped roots and no group: a score, a recording and a segment line of three pages |
+| `bundle_mixed` | the bundle "Mixed" of two groups, a score with its performance and a page with an excerpt (a child of a recording); `annotations` is ungrouped, and the recording, which no group names, contains the member `excerpt` and is drawn only as its ancestor line. The score has a map to ticks, then a tempo map to seconds, and a repeat from 8 back to 0; the performance a map to samples; the page a map to points; the excerpt a map to seconds; the recording a map to seconds, kept in the manifest and not drawn; `annotations` the regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map |
+| `bundle_shared_parent` | the bundle "Sonata" of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; a page is ungrouped, and the score, which no group names, contains both members and is drawn only as an ancestor line of each. Both children are segment lines: the exposition, with a map to ticks, of the segments "First theme" and "Second theme" of 6 quarters, the second with a tempo map to seconds; the recapitulation, with no map, of the segment lines "First theme" and "Second theme" of 6 quarters, each of the segments "Phrase 1" and "Phrase 2" of 3 quarters, and only its "Second theme" has a map to ticks. The take `take_1` is a segment line, with a map to samples, of "First theme" (14.0 seconds) and "Second theme" (16.0 seconds); the take `take_2` and the page carry no map. The score has a map to ticks, the region "Development" from 12 to 20 and a repeat from 12 back to 0, kept in the manifest and not drawn. A segment's id begins with its segment line's (`exposition_first`, `recapitulation_second_1`) |
+| `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the break "Fine" at 8 (`fine`, `after_dc_ds`) and the jump "D.C. al Fine" from 16 back to 0 (`da_capo_al_fine`, `after_first`, `repeat_count` 1); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
 
 The corpus builders, prefixed `corpus_`, write the groups and bundles that
 public timetoalign loaders create from corpus specimens: the group of a
 TiLiA export, and the bundles of a Parangonada alignment, a Matchfile, an
 MPM performance, an IEEE 1599 document, a Listen Here! export and a TiLiA
 export. No bundle fixture carries MatchClaims.
+
+Conversion maps, regions and flow control are spread over the constructed
+groups and bundles and the single-timeline fixture `styled__score` so that
+each case below occurs in one of them at least.
+`group_number_types`, `group_child_member`, the three `group_parent_*` and
+`group_grandchild` hold none of them, and `group_unknown_length` holds only
+a region. The segment lines of the single-timeline fixtures
+(`segment_line`, `segment_pages`, `segment_pages_locked`,
+`segment_pages_accolades`, `segment_children` and
+`unknown_length_segments`) and their segments carry no conversion map;
+among the constructed fixtures, segment lines with maps occur only in
+`bundle_shared_parent` and `bundle_ungrouped`, and a segment that is not a
+segment line carries a map only in `bundle_shared_parent`.
+
+| Case | Timeline |
+| --- | --- |
+| a logical segment line with a map, the child of a timeline that is not a segment line, and a group member | `exposition` of `bundle_shared_parent` |
+| a segment line whose segments are segment lines, the child of a timeline that is not a segment line | `recapitulation` of `bundle_shared_parent` |
+| a segment line that is a segment of a segment line, with a map, beside one without | `recapitulation_second` and `recapitulation_first` of `bundle_shared_parent` |
+| a map on a segment that is not a segment line, joining its segment line's stack after the line's own map | `exposition_second` of `bundle_shared_parent` |
+| a physical segment line with a map, a root and a group member | `take_1` of `bundle_shared_parent` |
+| a graphical segment line with a map, an unlocked ungrouped root | `pages` of `bundle_ungrouped` |
+| a map stack of two maps on one timeline, and flow control on a group member | `score` of `bundle_mixed` |
+| a map on a root member and on a child member of a group | `performance` and `excerpt` of `bundle_mixed`; `audio` and `take` of `group_parents_mixed` |
+| a map on a pixel axis | `page` of `bundle_mixed` and of `group_styled`; `pages` of `bundle_ungrouped` |
+| regions on an ungrouped root | `annotations` of `bundle_mixed` |
+| a map, children, a region and flow control on one timeline | `score` of `styled__score` |
+| a map, a region and flow control on a root that contains group members and is drawn only as an ancestor line of each, kept in the manifest and not drawn | `score` of `bundle_shared_parent` |
+| a break and a jump together | `score` of `bundle_ungrouped` |
+| a map, a region and flow control inside a styled frame | `score` of `group_styled` |
 
 ## Drawings
 

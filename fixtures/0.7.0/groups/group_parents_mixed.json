@@ -31,7 +31,20 @@
   "timelines": [
     {
       "children": [],
-      "conversion_maps": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "name": null,
+          "sample_rate": 44100,
+          "scalar": [
+            1,
+            44100
+          ],
+          "source_unit": "samples",
+          "target_unit": "seconds",
+          "type": "SamplesToSeconds"
+        }
+      ],
       "flow_control": {
         "breaks": [],
         "jumps": [],
@@ -95,7 +108,17 @@
       "children": [
         {
           "children": [],
-          "conversion_maps": [],
+          "conversion_maps": [
+            {
+              "id": "cmap_1",
+              "name": null,
+              "sample_rate": 44100,
+              "scalar": 44100,
+              "source_unit": "seconds",
+              "target_unit": "samples",
+              "type": "SecondsToSamples"
+            }
+          ],
           "flow_control": {
             "breaks": [],
             "jumps": [],

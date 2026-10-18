@@ -1,37 +1,45 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="576.6936" height="244.9414" viewBox="0 0 576.6936 244.9414" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="576.6936" height="292.1875" viewBox="0 0 576.6936 292.1875" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="544.6936" height="212.9414" rx="10" fill="#F3F4F6"/>
-<rect data-address="group_1" x="8" y="8" width="528.6936" height="196.9414" rx="6" fill="#FFFFFF" stroke="#7F00FF" stroke-width="1"/>
+<rect x="0" y="0" width="544.6936" height="260.1875" rx="10" fill="#F3F4F6"/>
+<rect data-address="group_1" x="8" y="8" width="528.6936" height="244.1875" rx="6" fill="#FFFFFF" stroke="#7F00FF" stroke-width="1"/>
 <text data-address="group_1/name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#7F00FF">Edition</text>
-<rect data-address="score/card" x="18" y="34.8047" width="512.6936" height="49.3789" rx="2" fill="#C4B5FD"/>
-<rect data-address="score/card" x="16" y="32.8047" width="512.6936" height="49.3789" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-address="score" x1="102.2915" y1="47.207" x2="502.2915" y2="47.207" stroke="#00CC00" stroke-width="3"/>
-<circle data-address="score" cx="102.2915" cy="47.207" r="3" fill="#00CC00"/>
-<polygon data-address="score" points="511.2915,47.207 502.2915,42.707 502.2915,51.707" fill="#00CC00"/>
-<polygon data-address="score/start" points="102.2915,48.707 99.2915,61.707 105.2915,61.707" fill="#000000"/>
-<polygon data-address="score/end" points="502.2915,48.707 499.2915,61.707 505.2915,61.707" fill="#000000"/>
-<text data-address="score/name" x="24" y="51.0151" text-anchor="start" font-size="11" fill="#000000">Score</text>
-<text data-address="score/start/label" x="102.2915" y="72.061" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
-<text data-address="score/end/label" x="502.2915" y="72.061" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
-<rect data-address="page/card" x="18" y="92.1836" width="512.6936" height="49.3789" rx="2" fill="#C4B5FD"/>
-<rect data-address="page/card" x="16" y="90.1836" width="512.6936" height="49.3789" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-address="page" x1="102.2915" y1="104.5859" x2="502.2915" y2="104.5859" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
-<circle data-address="page" cx="102.2915" cy="104.5859" r="3" fill="#FF0000"/>
-<polygon data-address="page" points="511.2915,104.5859 502.2915,100.0859 502.2915,109.0859" fill="#FF0000"/>
-<polygon data-address="page/start" points="102.2915,106.0859 99.2915,119.0859 105.2915,119.0859" fill="#000000"/>
-<polygon data-address="page/end" points="502.2915,106.0859 499.2915,119.0859 505.2915,119.0859" fill="#000000"/>
-<text data-address="page/name" x="24" y="108.394" text-anchor="start" font-size="11" fill="#000000">Page</text>
-<text data-address="page/start/label" x="102.2915" y="129.4399" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
-<text data-address="page/end/label" x="502.2915" y="129.4399" text-anchor="middle" font-size="9" fill="#000000">1920 px</text>
-<rect data-address="performance/card" x="18" y="149.5625" width="512.6936" height="49.3789" rx="2" fill="#C4B5FD"/>
-<rect data-address="performance/card" x="16" y="147.5625" width="512.6936" height="49.3789" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-address="performance" x1="102.2915" y1="161.9648" x2="502.2915" y2="161.9648" stroke="#0050EF" stroke-width="3"/>
-<circle data-address="performance" cx="102.2915" cy="161.9648" r="3" fill="#0050EF"/>
-<polygon data-address="performance" points="511.2915,161.9648 502.2915,157.4648 502.2915,166.4648" fill="#0050EF"/>
-<polygon data-address="performance/start" points="102.2915,163.4648 99.2915,176.4648 105.2915,176.4648" fill="#000000"/>
-<polygon data-address="performance/end" points="502.2915,163.4648 499.2915,176.4648 505.2915,176.4648" fill="#000000"/>
-<text data-address="performance/name" x="24" y="165.7729" text-anchor="start" font-size="11" fill="#000000">Performance</text>
-<text data-address="performance/start/label" x="102.2915" y="186.8188" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
-<text data-address="performance/end/label" x="502.2915" y="186.8188" text-anchor="middle" font-size="9" fill="#000000">12.5 s</text>
+<rect data-address="score/card" x="18" y="34.8047" width="512.6936" height="96.4297" rx="2" fill="#C4B5FD"/>
+<rect data-address="score/card" x="16" y="32.8047" width="512.6936" height="96.4297" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-address="score/cmap_1" points="102.2915,40.8047 502.2915,40.8047 502.2915,42.8047 102.2915,42.8047" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
+<path data-address="score/region_1" d="M102.2915 78.2812Q102.2915 81.2812 105.2915 81.2812L232.6248 81.2812Q235.6248 81.2812 235.6248 84.2812Q235.6248 81.2812 238.6248 81.2812L365.9582 81.2812Q368.9582 81.2812 368.9582 78.2812" fill="none" stroke="#000000" stroke-width="1"/>
+<path data-address="score/jump_1" d="M368.9582 100.7578C302.2915 111.4245 168.9582 111.4245 106.2413 101.3898" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="score/jump_1" points="102.2915,100.7578 105.9253,103.3647 106.5572,99.4149" fill="#000000"/>
+<line data-address="score" x1="102.2915" y1="47.3047" x2="502.2915" y2="47.3047" stroke="#00CC00" stroke-width="3"/>
+<circle data-address="score" cx="102.2915" cy="47.3047" r="3" fill="#00CC00"/>
+<polygon data-address="score" points="511.2915,47.3047 502.2915,42.8047 502.2915,51.8047" fill="#00CC00"/>
+<polygon data-address="score/start" points="102.2915,48.8047 99.2915,61.8047 105.2915,61.8047" fill="#000000"/>
+<polygon data-address="score/end" points="502.2915,48.8047 499.2915,61.8047 505.2915,61.8047" fill="#000000"/>
+<text data-address="score/name" x="24" y="51.1128" text-anchor="start" font-size="11" fill="#000000">Score</text>
+<text data-address="score/start/label" x="102.2915" y="72.1587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
+<text data-address="score/end/label" x="502.2915" y="72.1587" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
+<text data-address="score/region_1/label" x="235.6248" y="94.6353" text-anchor="middle" font-size="9" fill="#000000">Theme</text>
+<text data-address="score/jump_1/label" x="235.6248" y="119.1118" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
+<rect data-address="page/card" x="18" y="139.2344" width="512.6936" height="49.4766" rx="2" fill="#C4B5FD"/>
+<rect data-address="page/card" x="16" y="137.2344" width="512.6936" height="49.4766" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-address="page/cmap_1" points="102.2915,145.2344 502.2915,145.2344 502.2915,147.2344 102.2915,147.2344" fill="none" stroke="#FF0000" stroke-width="1"/>
+<line data-address="page" x1="102.2915" y1="151.7344" x2="502.2915" y2="151.7344" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
+<circle data-address="page" cx="102.2915" cy="151.7344" r="3" fill="#FF0000"/>
+<polygon data-address="page" points="511.2915,151.7344 502.2915,147.2344 502.2915,156.2344" fill="#FF0000"/>
+<polygon data-address="page/start" points="102.2915,153.2344 99.2915,166.2344 105.2915,166.2344" fill="#000000"/>
+<polygon data-address="page/end" points="502.2915,153.2344 499.2915,166.2344 505.2915,166.2344" fill="#000000"/>
+<text data-address="page/name" x="24" y="155.5425" text-anchor="start" font-size="11" fill="#000000">Page</text>
+<text data-address="page/start/label" x="102.2915" y="176.5884" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
+<text data-address="page/end/label" x="502.2915" y="176.5884" text-anchor="middle" font-size="9" fill="#000000">1920 px</text>
+<rect data-address="performance/card" x="18" y="196.7109" width="512.6936" height="49.4766" rx="2" fill="#C4B5FD"/>
+<rect data-address="performance/card" x="16" y="194.7109" width="512.6936" height="49.4766" rx="2" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<polygon data-address="performance/cmap_1" points="102.2915,202.7109 502.2915,202.7109 502.2915,204.7109 102.2915,204.7109" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
+<line data-address="performance" x1="102.2915" y1="209.2109" x2="502.2915" y2="209.2109" stroke="#0050EF" stroke-width="3"/>
+<circle data-address="performance" cx="102.2915" cy="209.2109" r="3" fill="#0050EF"/>
+<polygon data-address="performance" points="511.2915,209.2109 502.2915,204.7109 502.2915,213.7109" fill="#0050EF"/>
+<polygon data-address="performance/start" points="102.2915,210.7109 99.2915,223.7109 105.2915,223.7109" fill="#000000"/>
+<polygon data-address="performance/end" points="502.2915,210.7109 499.2915,223.7109 505.2915,223.7109" fill="#000000"/>
+<text data-address="performance/name" x="24" y="213.019" text-anchor="start" font-size="11" fill="#000000">Performance</text>
+<text data-address="performance/start/label" x="102.2915" y="234.0649" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
+<text data-address="performance/end/label" x="502.2915" y="234.0649" text-anchor="middle" font-size="9" fill="#000000">12.5 s</text>
 </g>
 </svg>

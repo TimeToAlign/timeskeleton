@@ -58,24 +58,86 @@
   },
   "timelines": [
     {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "scalar": [
+            3,
+            4
+          ],
+          "source_unit": "pixels",
+          "target_unit": "points",
+          "type": "ScalarMap"
+        }
+      ],
       "id": "page",
       "length": 1920,
       "name": "Page",
       "unit": "pixels"
     },
     {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "sample_rate": 44100,
+          "scalar": 44100,
+          "source_unit": "seconds",
+          "target_unit": "samples",
+          "type": "SecondsToSamples"
+        }
+      ],
       "id": "performance",
       "length": 12.5,
       "name": "Performance",
       "unit": "seconds"
     },
     {
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "ppq": 480,
+          "scalar": 480,
+          "source_unit": "quarters",
+          "target_unit": "ticks",
+          "type": "QuartersToTicks"
+        }
+      ],
+      "flow_control": {
+        "jumps": [
+          {
+            "from_coordinate": [
+              8,
+              1
+            ],
+            "id": "jump_1",
+            "label": "Repeat",
+            "to_coordinate": [
+              0,
+              1
+            ]
+          }
+        ]
+      },
       "id": "score",
       "length": [
         12,
         1
       ],
       "name": "Score",
+      "regions": [
+        {
+          "end": [
+            8,
+            1
+          ],
+          "id": "region_1",
+          "name": "Theme",
+          "start": [
+            0,
+            1
+          ]
+        }
+      ],
       "unit": "quarters"
     }
   ],
