@@ -5,11 +5,11 @@
     "height": null,
     "length": 400,
     "places": {
-      "recording": {
-        "spacing": 2
+      "score": {
+        "spacing": 8
       }
     },
-    "spacing": 1,
+    "spacing": 24,
     "width": null
   },
   "scale": 1

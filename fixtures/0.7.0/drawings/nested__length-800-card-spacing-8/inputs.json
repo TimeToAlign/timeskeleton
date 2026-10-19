@@ -4,8 +4,12 @@
   "placement": {
     "height": null,
     "length": 800,
-    "places": {},
-    "spacing": 2,
+    "places": {
+      "clt_1": {
+        "spacing": 8
+      }
+    },
+    "spacing": 8,
     "width": null
   },
   "scale": 1

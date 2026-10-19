@@ -18,7 +18,7 @@ The directories sort the manifests by content only:
 
 Version 0.7.0 has 41 manifests directly under `fixtures/0.7.0/`, 10 under
 `groups/` and 9 under `bundles/`, 60 in all, each with its minimal twin, so
-120 files. Beside them lie 90 rejection cases and 11 warning cases.
+120 files. Beside them lie 91 rejection cases and 11 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -258,28 +258,33 @@ current version follow `docs/drawing.md` as it stands, and those of a
 released version follow the specification tagged with it.
 
 The drawings of 0.7.0 are every fixture in the complete form but the corpus
-ones (`corpus_*`) at the default placement, and seventeen variants. The
+ones (`corpus_*`) at the default placement, and eighteen variants. The
 drawing of a manifest directly under `fixtures/0.7.0/` is named as the file
 (`nested`); that of a manifest under `groups/` or `bundles/` as the
 directory's singular and the file (`group__group_child_member`,
 `bundle__bundle_mixed`). The variants draw `nested` at the lengths 200, 400
-and 800 (`nested__length-<L>`), the spacings 0.5, 1 and 2
-(`nested__spacing-<v>`), both 800 and 2 (`nested__length-800-spacing-2`),
-in a box 120 wider and 60 higher than its content (`nested__box`) and at
+and 800 (`nested__length-<L>`), with the card spacings 0 and 8 of its one card
+(`nested__card-spacing-<S>`), with both the length 800 and the card spacing
+8 (`nested__length-800-card-spacing-8`), in a box 120 wider and 60 higher than its content (`nested__box`) and at
 scale 2 (`nested__scale-2`); `bundle_mixed` with the places `{group_2: {x:
 40, y: 200, width: 700}, annotations: {x: -30, length: 300}}`
 (`bundle_mixed__places`) and with the places `{group_1: {scale: 1.25},
-performance: {width: 650, height: 120}}` (`bundle_mixed__cards`);
+performance: {width: 650, height: 120}}` (`bundle_mixed__cards`), with
+the frame spacing `{group_1: {spacing: 16}}`, the gap between the frame's
+two cards (`bundle_mixed__frame-spacing-16`), and with the card spacing
+`{score: {spacing: 8}}` of a member card, which deepens `score`'s jump
+(`bundle_mixed__member-card-spacing-8`);
 `bundle_ungrouped` with the place `{score: {x: -60, y: -150, height: 120}}`
 (`bundle_ungrouped__places`), with the place `{recording: {scale: 1.5}}`
-(`bundle_ungrouped__scale`) and with the place `{recording: {spacing: 2}}`
+(`bundle_ungrouped__scale`) and with the box's spacing 24 and the card
+spacing `{score: {spacing: 8}}`, which deepens `score`'s flow control band
 (`bundle_ungrouped__spacing`); and three manifests with an application
 layer of one statement that sets `display` to `inline` on bands the
 defaults hide: `unknown_length_child` on the band `movement/regions_1`
 (`unknown_length_child__regions-shown`), `unknown_length_segments` on every
 regions band, `{"element": "band", "class": "regions"}`
 (`unknown_length_segments__regions-shown`), and `child_flow_control` on the
-band `verse/flow_control_1` (`child_flow_control__flow-shown`): 65 drawings
+band `verse/flow_control_1` (`child_flow_control__flow-shown`): 66 drawings
 in all. No variant sets a band order: band orders are the manifests' own,
 in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
 `map_child_band_order`, `map_root_band_order`). Each directory holds:
@@ -289,7 +294,10 @@ in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
   - `manifest`: the path of the manifest relative to the same version's
     directory (`nested.json`, `groups/group_child_member.json`);
   - `placement`: `length`, `spacing`, `width`, `height` and `places`, all
-    five always written, defaults included (400, 1, `null`, `null`, `{}`);
+    five always written, defaults included (400, 8, `null`, `null`, `{}`);
+    `spacing` is the box's, the gap between its items at their default
+    `y`, and a place's `spacing` the gap between that frame's cards or that
+    card's rows and bands (drawing specification, section 8.6);
   - `scale`: the scale `z` at which the writers place the drawing;
   - `layers`: the statement lists an application supplies, lowest
     precedence first. The defaults and the manifest's own `graphical` block
@@ -328,7 +336,7 @@ code with the case's. The cases cover every code:
 | `not_a_manifest` | the value is an object holding `timeskeleton` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
 | `schema` | the schema document | 49 cases named after the member they break: units and number types, lengths and offsets, ids, conversion maps, flow control, measure maps, metric hierarchies, groups, `graphical` selectors, declarations and `order` |
-| `representation` | an own-axis value is written in its axis's number type | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis` |
+| `representation` | an own-axis value is written in its axis's number type, and a fraction pair holds two integers | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `length_fraction_integral_float` |
 | `duplicate_id` | ids unique within a root's tree; timeline and group ids unique together | `id_duplicate_across_kinds`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id` |
 | `dangling_target` | a jump's target names a marker of its own timeline | `jump_target_dangling`, `timelines_root_jump_target_dangling` |
 | `child_unit` | a child has its parent's unit | `child_unit_differs` |

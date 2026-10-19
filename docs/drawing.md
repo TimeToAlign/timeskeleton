@@ -32,10 +32,10 @@ ungrouped roots as cards. Terms in `code` are JSON members.
   - `length`, the **graphical length** `L` of every item of the box
     without a length of its own (section 8.6), in canvas units (default
     400): the distance from a root's start to its end;
-  - `spacing`, the box's **vertical stretch**, a positive number (default
-    1); the vertical stretch `v` of a member drawing, which multiplies the
-    vertical distances of section 6.2, is this times its item's `spacing`,
-    and for a member also its card's (section 8.6);
+  - `spacing`, the box's **spacing**, the gap in canvas units between its
+    items that lie at their default `y` (section 8.6), a finite number ≥ 0
+    (default 8). A frame's and a card's spacing are entries of `places`
+    (section 8.6); none multiplies another;
   - `width` and `height`, the requested **box size** in canvas units, or
     `null` (the default) for the content's own size;
   - `places`, the **places** of the box's items and the sizes of its
@@ -68,7 +68,7 @@ change one input each:
 |---|---|---|
 | Scale | scale `z` | everything scales, proportions kept, text included |
 | Box | `width`, `height` | only the box changes; the content keeps its place at the top left; the box never becomes smaller than the content (section 8.4) |
-| Stretch | `length` (horizontal), `spacing` (vertical), both (a corner); `width`, `height` where a box size is requested | distances stretch: along time horizontally, between rows and bands vertically; markers, line widths and text keep their size; the box follows the content (below) |
+| Stretch | `length` (horizontal), `spacing` (vertical), both (a corner); `width`, `height` where a box size is requested | horizontally, distances along time stretch; vertically, the gaps between the container's contents grow or shrink; markers, line widths and text keep their size; the box follows the content (below) |
 
 On a stretch, a requested box size larger than the content keeps its
 proportion to the content, so the box follows the stretched content and
@@ -77,10 +77,10 @@ request times the stretched content's size divided by the content's size
 before the stretch, multiplied first, in binary64 (an editor may round the
 result to the grid it stores numbers on). A request no larger than the
 content before the stretch becomes `null`, and `null` stays `null`. A
-Stretch of the box scales every `x`, `length` and `width` that `places`
-states by the ratio of the lengths and every `y` and `height` by the ratio
-of the spacings, and keeps every `scale` and `spacing`, so the items keep
-their arrangement.
+horizontal Stretch of the box scales every `x`, `length` and `width` that
+`places` states by the ratio of the lengths, and keeps every `scale`; a
+vertical Stretch changes the box's `spacing` alone, so it moves the items
+at their default `y` and keeps every stated `y` and `height`.
 
 Every frame and card of the box is resized in the same three ways,
 changing entries of `places` only (section 8.6). An item, a group's frame
@@ -100,9 +100,9 @@ changes keeps its proportion to
 that content by the rule above: a horizontal Stretch of a group, from its
 frame or a member's card, rescales every requested width of the frame and
 of its members' cards, so the members' lines keep one length and every
-margin stretches with them; a vertical Stretch of a frame rescales its own
-and its members' cards' requested heights, and of a card its own and its
-frame's.
+margin stretches with them; a vertical Stretch of a frame, which changes
+only the gaps between its cards, rescales its own requested height, and of
+a card its own and its frame's.
 
 ## 2. The `graphical` block
 
@@ -668,29 +668,31 @@ open diamond of the other (section 6.6).
 
 ### 6.2 Constants
 
-Distances marked "× v" are multiplied by the member drawing's vertical
-stretch `v` (section 8.6); every other size is fixed.
+Distances marked with `S` depend on the card spacing `S` of the member
+drawing (section 8.6), the gap between its rows and between its bands;
+every other size is fixed. With the default `S = 4` every distance is the
+number it has always had.
 
 | Constant | Canvas units |
 |---|---|
-| padding `P` | 8 (above and below the content: P × v, section 6.5) |
+| padding `P` | 8 |
 | gap between the name column and the root's start `G` | 8 |
-| gap between bands `B` | 4 × v |
-| row pitch `p` | max(14 × v, h(s)) |
+| gap between bands | `S` |
+| row pitch `p` | max(10 + S, h(s)) |
 | map double-line spacing `d` | 2 |
 | map gap `g` (1.5 × d) | 3 |
 | wedge: base, height | 6, 13 |
 | label gap (marker to label) | 2 |
 | label separation (horizontal, between labels) | 2 |
 | brace height | 6 |
-| region row pitch `pr` | 6 + 2 + h(9) + 4 × v |
-| first jump depth | 8 × v |
-| jump row pitch `pj` | 10 × v + h(9) |
+| region row pitch `pr` | 6 + 2 + h(9) + S |
+| first jump depth | 4 + S |
+| jump row pitch `pj` | 6 + S + h(9) |
 | break label offset | 3 |
 | boundary half-height `k` | 8 |
 | group frame padding `Q` | 8 |
 | card padding `K` | 8 |
-| gap between frames and cards `F` | 8 |
+| gap after the manifest's title `F` | 8 |
 | gap after a frame's title | 4 |
 | card shadow offset | 2 |
 
@@ -793,12 +795,12 @@ The band at level 1, and the one at level −1, starts
   of which lies against the line and shares its room with the line's own
   reach (Level 0, below): its outer edge is then the larger of `c` plus its
   width and the line's reach on that side;
-- otherwise at `B` beyond the larger of the line's reach on that side and
+- otherwise at `S` beyond the larger of the line's reach on that side and
   `w / 2`, `w` the line's stroke width, so that its content keeps the gap
-  `B` from the line's stroke even where the line reaches nothing.
+  `S` from the line's stroke even where the line reaches nothing.
 
 Each further band starts at the outer edge of the band at the level before
-it plus `B`. A children band's **own start** is instead the larger of the
+it plus `S`. A children band's **own start** is instead the larger of the
 start these rules give it and `pl / 2`, wherever it lies, `pl` the **row
 pitch** of its timeline, the pitch of the row its line lies in (section
 6.2; `p0` for the root), so that the rows of a side, its timeline's
@@ -806,7 +808,7 @@ included, lie one pitch apart when nothing widens them; the band starts
 as Children lays it out, together with the children bands of the other
 lines of that row. The markers band
 and the conversion maps band are two bands, never over each other: on one
-side they lie at two levels, the outer starting at least `B` beyond the
+side they lie at two levels, the outer starting at least `S` beyond the
 outer edge of the inner. The **outer edge of a side** of a timeline is
 that of its outermost band there, or, when no band is present there, the
 line's reach on that side.
@@ -963,7 +965,7 @@ hides.
 in canonical order, by first fit with the extent from the smaller to the
 larger of their start and end, widened to the extent of their label when
 it is drawn. Row `k` has its brace's arms at `r0 + (k − 1) × pr` from the
-timeline's line, `r0` the start of the band; the band is `R × pr − 4 × v`
+timeline's line, `r0` the start of the band; the band is `R × pr − S`
 wide.
 
 **Flow control.** The flow control band of a timeline holds first the
@@ -975,17 +977,18 @@ stably by span (the absolute exact difference of their to and from
 positions), smallest first, and placed by first fit with the extent from
 the smaller to the larger of their from and to, widened to the extent of
 their label, into **jump rows**. Row `k` reaches its **apex** at the
-distance `f0 + 8 × v + (k − 1) × pj` from the timeline's line, `f0` that
-of the flow row, so a jump enclosing another lies further out. The band is
-`T × h(9) + 8 × v + (K − 1) × pj + 2 + h(9)` wide for `K ≥ 1` jump rows,
+distance `f0 + (4 + S) + (k − 1) × pj` from the timeline's line, `f0` that
+of the flow row and `4 + S` the first jump depth, so a jump enclosing
+another lies further out. The band is `T × h(9) + (4 + S) + (K − 1) × pj +
+2 + h(9)` wide for `K ≥ 1` jump rows,
 and `T × h(9)` wide for none. Its jump descriptors and labels follow this
 order of first fit (section 7.2).
 
 **Breaks.** A displayed break is a vertical line at `x` of the break, from
 the flow row across the line of the band's timeline to the far side of
 that timeline's own drawing. For the root it runs across every band to the
-padding of the opposite side: from `(x, yf)` to `(x, P × v)` when the flow
-control band lies below the root's line and to `(x, Hc − P × v)` when it
+padding of the opposite side: from `(x, yf)` to `(x, P)` when the flow
+control band lies below the root's line and to `(x, Hc − P)` when it
 lies above it (section 6.5), ordinates of the member drawing counted from
 its top (section 8.4). For every other timeline it runs from `(x, yf)` to
 `(x, yl − mb)` when the band lies below the timeline's line and to `(x, yl +
@@ -1006,14 +1009,11 @@ timeline's line.
 
 ### 6.5 Heights
 
-The root's line lies at `y_root = max(P × v + Ea, P × v + h(s) / 2)`, `Ea`
+The root's line lies at `y_root = max(P + Ea, P + h(s) / 2)`, `Ea`
 the outer edge of the root's above side (section 6.4), its descendants'
 drawings included in its children band. The content's height is
-`Hc = y_root + max(Eb, h(s) / 2) + P × v`, `Eb` the outer edge of the below
-side. Here `s` is the root's row's name font size. The padding above and
-below is stretched by `v` so that the vertical stretch also works
-on a single timeline, by growing the room above and below it; with `v = 1`
-it is `P`.
+`Hc = y_root + max(Eb, h(s) / 2) + P`, `Eb` the outer edge of the below
+side. Here `s` is the root's row's name font size.
 
 **A root whose line is not displayed** hides its whole drawing (section
 2.4): none of its bands is present and its line reaches nothing, so the
@@ -1021,14 +1021,14 @@ outer edges of both its sides are 0. Its row remains, with the name size
 `s` and the pitch `p0` of section 6.2, which count its name although the
 name is hidden. The formulas above then hold with `Eb = 0` and with `Ea`
 the outer edge of its ancestor band (section 8.3), or 0 when it has none:
-`y_root = max(P × v + Ea, P × v + h(s) / 2)` and `Hc = y_root + h(s) / 2 +
-P × v`. Its ancestor band, when it has one, starts at `p0 / 2`, since its
-line's stroke takes no room and `p0 / 2 ≥ 7 × v > B` (section 8.3). Such a member
+`y_root = max(P + Ea, P + h(s) / 2)` and `Hc = y_root + h(s) / 2 +
+P`. Its ancestor band, when it has one, starts at `max(p0 / 2, S)`, the
+start of section 8.3 with `Ea` and `wm` 0. Such a member
 drawing draws its displayed ancestor lines, with their displayed names,
 marks and mark labels, and nothing else, and lies in its card, `Hm = Hc`
 high, as every member drawing does (section 8.4). One without a displayed
-ancestor line draws nothing: `y_root = P × v + h(s) / 2` and `Hc = y_root
-+ h(s) / 2 + P × v`, and it gives section 8.2 no name, no centred label
+ancestor line draws nothing: `y_root = P + h(s) / 2` and `Hc = y_root
++ h(s) / 2 + P`, and it gives section 8.2 no name, no centred label
 and no right edge.
 
 ### 6.6 Elements
@@ -1501,11 +1501,11 @@ the line's stroke width and `y` its ordinate:
 
 The **ancestor band** is the outermost band of the member drawing's above
 side, beyond the root's bands and outside every band order; it is not an
-element and has no address. It starts at the larger of `p0 / 2` and `B`
+element and has no address. It starts at the larger of `p0 / 2` and `S`
 beyond the larger of the outer edge `Ea` of the above side (section 6.4)
 and half the stroke width `wm` of the member's line, `wm` being 0 when
 that line is not displayed (section 6.5): at `max(p0 / 2, max(Ea, wm / 2)
-+ B)`, so that the band keeps the gap `B` from the line's stroke, as a
++ S)`, so that the band keeps the gap `S` from the line's stroke, as a
 band at level 1 does.
 It holds one row per ancestor, `Ak` nearest the member's line and `A1`
 outermost; an ancestor line that is not displayed has no row (section 2.4
@@ -1524,7 +1524,7 @@ band is `i1 + o1 + … + ik + ok` wide, summed in that order.
 Every member drawing has its own height `Hm`, its content height `Hc` of
 section 6.5 with its ancestor band included in `Ea`; its card is `Hm` high,
 and the drawing's top is the card's top. The card padding `K` is
-horizontal only: above and below, the member drawing's own padding `P × v`
+horizontal only: above and below, the member drawing's own padding `P`
 (section 6.5) lies inside the card. A card's shadow lies 2 to the
 right of and 2 below the card.
 
@@ -1539,9 +1539,10 @@ and `height`, and its right and bottom edges are `b + 2` and `d + 2`.
   Q + a(s)`, `s` the title's font size, so the title sits at the top of a
   slot `h(s)` high, unlike a row name, which is centred on its row. The
   first card starts at `top + Q + h(s) + 4` (at `top + Q` when the title is
-  not displayed), and each further one `F` below the previous one's bottom.
-  The frame is `Q + h(s) + 4 + Hm1 + F + Hm2 + … + F + Hmn + Q` high,
-  summed in that order, without `h(s) + 4` when the title is not displayed.
+  not displayed), and each further one the frame's spacing `Sf` below the
+  previous one's bottom (section 8.6). The frame is `Q + h(s) + 4 + Hm1 +
+  Sf + Hm2 + … + Sf + Hmn + Q` high, summed in that order, without `h(s) +
+  4` when the title is not displayed.
 - **The box.** The manifest's title, when there is one, lies at the box's
   top left corner: drawn at `x = Xl + P`, with its baseline at `Yt + P +
   a(s)`, both in place coordinates (below), so in the box at `P` and `P +
@@ -1552,8 +1553,7 @@ and `height`, and its right and bottom edges are `b + 2` and `d + 2`.
 
 Within a member drawing, the root's line lies at the drawing's top plus the
 `y_root` of section 6.5, computed in that order; every other ordinate
-follows from that line as section 3.3 states. The box's padding `P` is
-not stretched by `v`.
+follows from that line as section 3.3 states.
 
 The box grows in every direction to hold its content, with the padding `P`
 on every side. Every position is first computed in **place coordinates**,
@@ -1607,7 +1607,7 @@ name.
 Every item of the box, a group's frame or an ungrouped root's card, lies at
 a **place**: its left edge `x` and its top `y`, measured from the place
 origin in canvas units, its graphical length `length`, its **scale**
-`scale` (positive), its vertical stretch `spacing` (positive), and its
+`scale` (positive), its `spacing` (finite, ≥ 0), and its
 requested size `width` and `height` (positive, or left out for its
 content's own size). `places` (section 1) states any of
 these members for the item whose id is its key; a key naming nothing drawn
@@ -1616,14 +1616,14 @@ no use for (a member's card uses only `width`, `height` and `spacing`). A member
 
 - `length`: the placement's `length`;
 - `scale`: 1;
-- `spacing`: 1;
+- `spacing`: 8 for a frame, 4 for a card;
 - `width` and `height`: none, the content's own size;
 - `x`: `P`;
 - `y`: for the first item in drawing order (section 8.5), `P + h(s) + F`
   below the manifest's title, `s` its font size, or `P` when there is no
-  title or it is not displayed; for every further item, `F` below the
-  largest bottom edge `d` of the items before it. That edge is the frame's
-  or card's `d` of section 8.4, its place `y` plus `scale` times its
+  title or it is not displayed; for every further item, the box's spacing
+  below the largest bottom edge `d` of the items before it. That edge is
+  the frame's or card's `d` of section 8.4, its place `y` plus `scale` times its
   height, summed in place coordinates before any shift; a card's shadow does not count, and
   an item that a `height` request makes higher ends at its requested
   bottom.
@@ -1642,17 +1642,17 @@ frame or card is the larger of its own height and `height` high, every card
 and member drawing keeping its top. `width` and `height` are in item
 coordinates, before the scale.
 
-The vertical stretch `v` of a member drawing (sections 6.2 and 6.5) is the
-placement's `spacing` times its item's `spacing` (its group's frame's, or
-its own card's for an ungrouped root), and for a member, that
-product times its card's `spacing` (below), multiplied in that order. So an
-item's or card's vertical stretch, like the box's, widens the distances
-between rows and bands and the drawing's padding above and below alike. A
-frame's padding `Q`, its title's slot and the gap `F` between its cards
-are the frame's, not a member drawing's, and do not stretch, as the box's
-padding `P` does not.
+The **card spacing** `S` of a member drawing (sections 6.2 to 6.5 and
+8.3) is its card's `spacing`: the entry of `places` under the member's
+id, or under the ungrouped root's id. A group's entry states its frame's
+spacing `Sf`, the gap between its member cards (section 8.4); the
+placement's `spacing` is the gap between the box's items at their default
+`y`. Each container's spacing spaces only its own contents: no spacing
+multiplies another, and a frame's padding `Q`, its title's slot, the box's
+padding `P` and the card's padding `P` above and below do not change with
+any of them.
 
-A **member's card** may request a size and a vertical stretch of its own:
+A **member's card** may request a size and a spacing of its own:
 the entry of `places` under the member's id states its `width` and
 `height`, in item coordinates, before its group's scale, and its
 `spacing`, and nothing else of it is used. The card is then the larger of its own width and `width` wide,
@@ -1681,6 +1681,6 @@ drawn edges, after the scale.
 
 The members of a group are never placed: they lie one under the other in
 their frame, in the group's display order (section 8.1), and only that order
-changes; their cards may only request a size and a vertical stretch. The bands of every timeline likewise lie outwards from its own line
+changes; their cards may only request a size and a spacing. The bands of every timeline likewise lie outwards from its own line
 in its band order (section 6.4).
 

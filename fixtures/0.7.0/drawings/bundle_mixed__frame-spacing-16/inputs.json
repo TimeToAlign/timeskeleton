@@ -1,0 +1,16 @@
+{
+  "layers": [],
+  "manifest": "bundles/bundle_mixed.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {
+      "group_1": {
+        "spacing": 16
+      }
+    },
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}
