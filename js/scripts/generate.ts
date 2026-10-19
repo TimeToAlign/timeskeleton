@@ -129,20 +129,15 @@ function referencesOf(node: unknown, found = new Set<string>()): Set<string> {
   return found;
 }
 
-/** Whether a property below a node states a `default`. */
-function statesDefault(node: unknown): boolean {
-  if (Array.isArray(node)) return node.some(statesDefault);
+/** Whether a property below a node has a default, as `defaulted` decides. */
+function statesDefault(node: unknown, defaulted: (member: unknown) => boolean): boolean {
+  if (Array.isArray(node)) return node.some((item) => statesDefault(item, defaulted));
   if (typeof node !== "object" || node === null) return false;
   const { properties } = node as Node;
   if (typeof properties === "object" && properties !== null) {
-    const members = Object.values(properties as Node);
-    if (
-      members.some((member) => typeof member === "object" && member !== null && "default" in member)
-    ) {
-      return true;
-    }
+    if (Object.values(properties as Node).some(defaulted)) return true;
   }
-  return Object.values(node).some(statesDefault);
+  return Object.values(node).some((value) => statesDefault(value, defaulted));
 }
 
 /** Whether a node below a node is typed a number or an integer. */
@@ -166,8 +161,10 @@ const NUMBER_TYPES: Readonly<Record<string, string>> = {
 /**
  * The complete forms of the definitions, each named `Complete<name>`.
  *
- * A definition has a complete form when one of its properties states a
- * `default` (or a default `STATED_DEFAULTS` names), or when it refers to a
+ * A definition has a complete form when one of its properties has a
+ * `default`, stated on the property or on the definition it refers to (a
+ * name's `Name`, a `meta`'s `Meta`), or a default `STATED_DEFAULTS` names,
+ * or when it refers to a
  * definition that has one. In a complete form every property with a
  * default is required, at every depth; a property whose default is
  * "absent" (it states none, as a manifest's `id` and `graphical` and a
@@ -179,6 +176,16 @@ const NUMBER_TYPES: Readonly<Record<string, string>> = {
  * definitions; each complete form carries one line naming its plain one.
  */
 function completeDefinitions(definitions: Record<string, Node>): Record<string, Node> {
+  /** Whether a property has a default, its own or its referenced definition's. */
+  const defaulted = (member: unknown): boolean => {
+    if (typeof member !== "object" || member === null) return false;
+    if ("default" in member) return true;
+    const { $ref: reference } = member as Node;
+    return (
+      typeof reference === "string" &&
+      "default" in (definitions[reference.slice(REFERENCE.length)] ?? {})
+    );
+  };
   /** The definitions `holds` is true of, and every definition referring to one of them. */
   const closure = (holds: (definition: Node, name: string) => boolean): Set<string> => {
     const names = Object.keys(definitions);
@@ -196,7 +203,7 @@ function completeDefinitions(definitions: Record<string, Node>): Record<string, 
     return found;
   };
   const completed = closure(
-    (definition, name) => statesDefault(definition) || name in STATED_DEFAULTS,
+    (definition, name) => statesDefault(definition, defaulted) || name in STATED_DEFAULTS,
   );
   const numeric = closure(holdsNumber);
 
@@ -233,12 +240,12 @@ function completeDefinitions(definitions: Record<string, Node>): Record<string, 
     }
     const { properties } = value as Node;
     if (typeof properties === "object" && properties !== null) {
-      const defaulted = Object.entries(properties as Record<string, Node>)
-        .filter(([, member]) => "default" in member)
+      const withDefault = Object.entries(properties as Record<string, Node>)
+        .filter(([, member]) => defaulted(member))
         .map(([key]) => key);
       const stated = definition === null ? [] : (STATED_DEFAULTS[definition] ?? []);
       const required = (node.required as string[] | undefined) ?? [];
-      const added = [...defaulted, ...stated].filter((key) => !required.includes(key));
+      const added = [...withDefault, ...stated].filter((key) => !required.includes(key));
       node.required = [...required, ...added];
     }
     return node;
@@ -261,15 +268,17 @@ function completeDefinitions(definitions: Record<string, Node>): Record<string, 
  * The emitted schema keeps the source document unchanged. This view affects
  * only TypeScript generation:
  *
- * - conditionals (`if`, `then`, `else`), the unknown-key annotation
- *   (`unevaluatedProperties`) and an `anyOf` whose branches only require
- *   members are removed, as the generator cannot express them, and so are
- *   defaults, which would make it copy a referenced definition;
+ * - conditionals (`if`, `then`, `else`) and an `anyOf` whose branches only
+ *   require members are removed, as the generator cannot express them, and
+ *   so are defaults, which would make it copy a referenced definition;
  * - a `oneOf` whose branches each state a constant and its description (the
  *   unit table) becomes an `enum` of the constants, which the generator
  *   renders as one union of literals;
  * - an object whose `oneOf` branches narrow its own properties (a
  *   coordinate's value by its number type) becomes a union of whole objects;
+ * - a reference with its own description (the manifest's `meta`) becomes the
+ *   one member of an `allOf`, so the property keeps the referenced type's
+ *   name and its own comment instead of a renamed copy of the type;
  * - a reference that also requires members (a child timeline requiring its
  *   offset) becomes the referenced type intersected with those members;
  * - 2020-12 tuple notation is converted for the generator's older tuple
@@ -296,7 +305,7 @@ function schemaForTypes(schema: Node): Node {
       return;
     }
     const node = value as Node;
-    for (const keyword of ["if", "then", "else", "unevaluatedProperties", "default"]) {
+    for (const keyword of ["if", "then", "else", "default"]) {
       delete node[keyword];
     }
     if (Array.isArray(node.anyOf) && node.anyOf.every(onlyRequires)) delete node.anyOf;
@@ -320,6 +329,10 @@ function schemaForTypes(schema: Node): Node {
       for (const keyword of ["type", "properties", "required", "discriminator"]) {
         delete node[keyword];
       }
+    }
+    if (typeof node.$ref === "string" && Object.keys(node).join() === "$ref,description") {
+      node.allOf = [{ $ref: node.$ref }];
+      delete node.$ref;
     }
     if (typeof node.$ref === "string" && Array.isArray(node.required)) {
       const target = definitions[node.$ref.replace("#/$defs/", "")] ?? {};

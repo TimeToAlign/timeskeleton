@@ -44,7 +44,7 @@ rejection cases that use them (`test_schema.py`):
 - **The public definitions.** The definitions include the twelve public ones
   `TimeSkeleton`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
   `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id` and
-  `MeasureMapRow`, and none of `Meta`, `TimelineClass`, `TimelineManifest`,
+  `MeasureMapRow`, and none of `TimelineClass`, `TimelineManifest`,
   `Bundle`, `GroupGraphical`, `BundleGraphical`, `CoordinateNonnegative` and
   `MemberOrder`.
 - **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
@@ -53,16 +53,32 @@ rejection cases that use them (`test_schema.py`):
   `<Domain>, <modality>; default number type <t>.` with `t` that unit's
   value in the table, so the default number types the validators read
   cannot drift from the ones the schema states.
-- **Open objects.** No node anywhere has `additionalProperties: false`.
-  Every node with `type: object` and `properties` carries exactly
-  `unevaluatedProperties: {"x-unknown-key": true}`, among them
-  `TimeSkeleton`, `Timeline`, `Group`, `Graphical` and every conversion map,
-  and no node inside a `oneOf`/`anyOf` branch or an `if`/`then`/`else` arm
-  carries it. Every node that carries it declares in its own `properties`
-  every key its branches and arms declare, which is what lets `unknown_keys`
-  name the unknown keys from the node alone. `meta` (on the manifest, a
-  timeline, a region, a break, a jump, a group) and `metric_hierarchy` are
-  free objects: `additionalProperties: true` and no `properties`.
+- **Shared definitions.** A shape that repeats is defined once: `Name`
+  (string or null, default null) and `Meta` (a free object, default `{}`)
+  are referred to by every `name` of the manifest, a timeline, a group, a
+  region, a break, a marker and a conversion map and by every `meta`, and no
+  property repeats their shapes inline. `MapBase` declares `type`, `id`,
+  `name`, `source_unit` and `target_unit` and requires all but `name`;
+  every conversion map is an object whose `allOf` is exactly
+  `[{"$ref": "#/$defs/MapBase"}]`, whose own `properties` declare none of
+  the base's keys but `type`, its constant, and whose `required` lists
+  `type`, as a discriminated union needs.
+- **References are IDs, addresses are `Address`.** `Selector.within`,
+  `Jump.target`, `InterpolationMap.source_id` and `target_id` and
+  `MetricalPositionMap.beat_map_id` refer to `Id`; the items of
+  `Selector.ids` to `Address`, which accepts `score`, `score/regions_1`,
+  `score/region_1/label` and `a b/c` and refuses `""`, `/score`, `score/`,
+  `score//label` and `score/a` followed by a tab.
+- **Open objects.** No node anywhere has `additionalProperties: false` or
+  `unevaluatedProperties`, and no key anywhere in the document begins with
+  `x-`: objects are open by omission, with no custom keyword. Every object
+  node with `properties` outside a branch declares, in its own `properties`
+  or in those of the base its `allOf` names, every key its `oneOf`/`anyOf`
+  branches and `if`/`then`/`else` arms declare, which is what lets
+  `unknown_keys` name the unknown keys from the node alone. `meta` (on the
+  manifest, a timeline, a region, a break, a jump, a group) refers to
+  `Meta`; `Meta` and `metric_hierarchy` are free objects:
+  `additionalProperties: true` and no `properties`.
 - **Discriminated unions.** Exactly two nodes carry a `discriminator`, on
   `number_type` and on `type`; each tags every branch with a distinct
   required string constant.
@@ -70,7 +86,10 @@ rejection cases that use them (`test_schema.py`):
   schema's corresponding definitions (`TimeSkeleton`, `Timeline`,
   `FlowControl`, `Region`, `Break`, `Jump`, `Marker`, every conversion map,
   `Group`, `Graphical`) declare `default` on exactly the keys of that kind's
-  table, each equal to the table's value, and on no other key. `number_type`
+  table, each equal to the table's value, and on no other key. A key's
+  default is stated on its property or on the definition the property
+  refers to (`Name`, `Meta`), and a conversion map's keys include those of
+  its base. `number_type`
   has no `default` (it depends on the unit). The JavaScript suite holds its
   table to the same schema, so the two tables are equal.
 
@@ -187,9 +206,13 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `timelines[2]`; the manifest's own keys come first.
 - **An invalid value** raises the error `validate` raises, before any key
   is listed.
-- **One walk.** The keys come from the schema walk `validate` runs: listing
-  them walks the manifest with the schema once, as a counting validator
-  proves.
+- **One walk.** The keys come from the schema walk `validate` runs. It
+  walks an in-memory variant of the document that closes every object the
+  document leaves open (`unevaluatedProperties: false` on each object node
+  with `properties` outside a branch, except the base an `allOf` shares), and
+  a failure that only an undeclared key causes is a key to list, not a
+  violation. Listing them walks the manifest with the schema once, as a
+  counting validator proves.
 
 ## Defaults: the complete and the minimal form
 

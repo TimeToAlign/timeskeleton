@@ -40,10 +40,14 @@ refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist
 and the former ones do not; the unit table's consts are exactly the keys of
 `UNIT_NUMBER_TYPES` in order, each description naming that unit's default
-number type, as in the Python suite; every object node outside a branch carries the
-unknown-key keyword and none is closed; every discriminated union tags each
-branch with a distinct required constant; the `default`s are exactly
-`DEFAULTS`. `generated.test.ts`: a fresh generator run exports the committed
+number type, as in the Python suite; `Name`, `Meta` and `MapBase` are the
+shared definitions every `name`, every `meta` and every conversion map
+refers to, the references are `Id`s and `Selector.ids` holds `Address`es
+accepting and refusing the Python suite's strings; no node is closed, none
+carries `unevaluatedProperties` and no key begins with `x-`; every object
+declares, itself or in its `allOf` base, what its branches declare; every
+discriminated union tags each branch with a distinct required constant; the
+`default`s, read through references and bases, are exactly `DEFAULTS`. `generated.test.ts`: a fresh generator run exports the committed
 names, which are every definition, the complete form of exactly the
 definitions holding a default, and `LosslessTimeSkeleton`; the committed
 text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
@@ -119,11 +123,14 @@ standard writer's, and `dumps(unknownKeys(manifest))` equals
 stated order; keys inside `meta`, `metric_hierarchy`, `styles`,
 `graphical.order` and unknown values are not reported; the sort (keys by
 code point, `ﬀ` before `😀`, indices by number, `timelines[2]` before
-`timelines[10]`); an invalid value raises before any key is listed. Ajv
-records a key through the `x-unknown-key` keyword, which only the matching
-branch of a discriminated `oneOf` evaluates, so a key is never reported from
-a candidate the value does not match (the nested conversion map of
-`several_depths` proves it). The keys are collected per run, so a refused
+`timelines[10]`); an invalid value raises before any key is listed. The
+validator walks the value with the in-memory closed variant of the Python
+README ("One walk"); only where the variant refuses it does it walk the
+document itself, which decides validity, and then reads each key from the
+variant's `unevaluatedProperties` errors. A discriminated `oneOf` evaluates
+only the candidate its tag selects, so a key is never reported from a
+candidate the value does not match (the nested conversion map of
+`several_depths` proves it). The keys belong to one run, so a refused
 manifest's keys never appear in the next run's list (`validate.test.ts`).
 
 ## Defaults

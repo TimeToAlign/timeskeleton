@@ -1,3 +1,4 @@
+import { Ajv2020 } from "ajv/dist/2020.js";
 import { describe, expect, it } from "vitest";
 import { DEFAULTS } from "../src/defaults.js";
 import { schema } from "../src/generated/schema.js";
@@ -6,7 +7,6 @@ import { loadSchemaFile } from "./fixtures.js";
 
 type Node = Record<string, unknown>;
 
-const UNKNOWN = { "x-unknown-key": true };
 const PUBLIC = [
   "TimeSkeleton",
   "Timeline",
@@ -31,6 +31,28 @@ const target = (node: Node): Node =>
 const mapTypes = ((defs.ConversionMap as Node).oneOf as Node[]).map((branch) =>
   (branch.$ref as string).slice("#/$defs/".length),
 );
+
+/** The defaults a definition declares, through references and its base. */
+function defaultsOf(definition: Node): Record<string, unknown> {
+  const members = { ...((definition.properties ?? {}) as Record<string, Node>) };
+  for (const entry of (definition.allOf ?? []) as Node[]) {
+    Object.assign(members, target(entry).properties as Record<string, Node>);
+  }
+  return Object.fromEntries(
+    Object.entries(members)
+      .map(([key, member]) => [key, "default" in member ? member : target(member)] as const)
+      .filter(([, owner]) => "default" in owner)
+      .map(([key, owner]) => [key, owner.default]),
+  );
+}
+
+/** Every key of the document that begins with `x-`. */
+function customKeys(node: unknown): string[] {
+  if (Array.isArray(node)) return node.flatMap(customKeys);
+  if (typeof node !== "object" || node === null) return [];
+  const own = Object.keys(node).filter((key) => key.startsWith("x-"));
+  return [...own, ...Object.values(node).flatMap(customKeys)];
+}
 
 /** Every schema node with whether it lies in a branch or an arm. */
 function* nodes(node: unknown, inside = false): Generator<[Node, boolean]> {
@@ -74,7 +96,6 @@ describe("the schema document", () => {
   it("holds the public definitions and none of the former ones", () => {
     for (const name of PUBLIC) expect(Object.hasOwn(defs, name)).toBe(true);
     for (const name of [
-      "Meta",
       "TimelineClass",
       "TimelineManifest",
       "Bundle",
@@ -101,38 +122,91 @@ describe("the schema document", () => {
     }
   });
 
-  it("keeps every object open and marks its unknown keys", () => {
-    const all = [...nodes(document)];
-    expect(all.filter(([node]) => node.additionalProperties === false)).toEqual([]);
-    const marked: Node[] = [];
-    for (const [node, inside] of all) {
-      const object = node.type === "object" && "properties" in node;
-      if (!inside && object) {
-        expect(node.unevaluatedProperties).toEqual(UNKNOWN);
-        marked.push(node);
-      } else expect(node.unevaluatedProperties).toBeUndefined();
+  it("defines a repeated shape once", () => {
+    expect(defs.Name).toEqual({
+      type: ["string", "null"],
+      description: "Human-readable name, or null when none was given.",
+      default: null,
+    });
+    expect(defs.Meta).toEqual({
+      type: "object",
+      additionalProperties: true,
+      description: "Free-form metadata.",
+      default: {},
+    });
+    const names = ["TimeSkeleton", "Timeline", "Group", "Region", "Break", "Marker", "MapBase"];
+    for (const owner of names) expect(properties(owner).name?.$ref).toBe("#/$defs/Name");
+    const metas = ["TimeSkeleton", "Timeline", "Group", "Region", "Break", "Jump"];
+    for (const owner of metas) expect(properties(owner).meta?.$ref).toBe("#/$defs/Meta");
+    for (const [node] of nodes(document)) {
+      const members = (node.properties ?? {}) as Record<string, Node>;
+      if ("meta" in members) expect(members.meta?.$ref).toBe("#/$defs/Meta");
+      expect(members.name?.type).not.toEqual(["string", "null"]);
     }
-    for (const name of ["TimeSkeleton", "Timeline", "Group", "Graphical", ...mapTypes]) {
-      expect(marked).toContain(defs[name]);
+  });
+
+  it("extends the map base in every conversion map", () => {
+    const base = defs.MapBase as Node;
+    const baseKeys = Object.keys(base.properties as Node);
+    expect(baseKeys).toEqual(["type", "id", "name", "source_unit", "target_unit"]);
+    expect(base.required).toEqual(["type", "id", "source_unit", "target_unit"]);
+    for (const name of mapTypes) {
+      const definition = defs[name] as Node;
+      expect(definition.type).toBe("object");
+      expect(definition.allOf).toEqual([{ $ref: "#/$defs/MapBase" }]);
+      const own = Object.keys(definition.properties as Node).filter((key) =>
+        baseKeys.includes(key),
+      );
+      expect(own, name).toEqual(["type"]);
+      expect(properties(name).type).toEqual({ const: name });
+      const required = definition.required as string[];
+      expect(required).toContain("type");
+      for (const key of ["id", "source_unit", "target_unit"]) expect(required).not.toContain(key);
     }
-    for (const node of [
-      properties("TimeSkeleton").meta,
-      properties("Timeline").meta,
-      properties("Timeline").metric_hierarchy,
-      properties("Region").meta,
-      properties("Break").meta,
-      properties("Jump").meta,
-      properties("Group").meta,
-    ]) {
+  });
+
+  it("refers by ID and addresses by Address", () => {
+    const selector = properties("Selector");
+    expect(selector.within?.$ref).toBe("#/$defs/Id");
+    expect(selector.ids?.items).toEqual({ $ref: "#/$defs/Address" });
+    expect(properties("Jump").target?.anyOf).toEqual([{ $ref: "#/$defs/Id" }, { type: "null" }]);
+    for (const [owner, key] of [
+      ["InterpolationMap", "source_id"],
+      ["InterpolationMap", "target_id"],
+      ["MetricalPositionMap", "beat_map_id"],
+    ] as const) {
+      expect(properties(owner)[key]?.$ref).toBe("#/$defs/Id");
+    }
+    const address = new Ajv2020({ strict: false }).compile({
+      $ref: "#/$defs/Address",
+      $defs: defs,
+    });
+    for (const accepted of ["score", "score/regions_1", "score/region_1/label", "a b/c"]) {
+      expect(address(accepted), accepted).toBe(true);
+    }
+    for (const refused of ["", "/score", "score/", "score//label", "score/a\tb"]) {
+      expect(address(refused), refused).toBe(false);
+    }
+  });
+
+  it("keeps every object open without a custom keyword", () => {
+    const all = [...nodes(document)].map(([node]) => node);
+    expect(all.filter((node) => node.additionalProperties === false)).toEqual([]);
+    expect(all.filter((node) => "unevaluatedProperties" in node)).toEqual([]);
+    expect(customKeys(document)).toEqual([]);
+    for (const node of [defs.Meta, properties("Timeline").metric_hierarchy]) {
       expect(node?.additionalProperties).toBe(true);
       expect(node?.properties).toBeUndefined();
     }
   });
 
-  it("declares on every marked object what its branches and arms declare", () => {
+  it("declares on every object what its branches and arms declare", () => {
     for (const [node, inside] of nodes(document)) {
-      if (inside || node.unevaluatedProperties === undefined) continue;
+      if (inside || node.type !== "object" || node.properties === undefined) continue;
       const declared = new Set(Object.keys(node.properties as Node));
+      for (const entry of (node.allOf ?? []) as Node[]) {
+        for (const key of Object.keys(target(entry).properties as Node)) declared.add(key);
+      }
       expect(node.patternProperties).toBeUndefined();
       const branches = [
         ...((node.oneOf ?? []) as Node[]),
@@ -179,22 +253,17 @@ describe("the schema document", () => {
       graphical: ["Graphical"],
     };
     expect(Object.keys(kinds).sort()).toEqual(Object.keys(DEFAULTS).sort());
-    const covered = new Set<string>();
+    const covered = new Set<string>(["MapBase"]);
     for (const [kind, names] of Object.entries(kinds)) {
       for (const name of names) {
         covered.add(name);
-        const declared = Object.fromEntries(
-          Object.entries(properties(name))
-            .filter(([, member]) => "default" in member)
-            .map(([key, member]) => [key, member.default]),
+        expect(defaultsOf(defs[name] as Node), name).toEqual(
+          DEFAULTS[kind as keyof typeof DEFAULTS],
         );
-        expect(declared).toEqual(DEFAULTS[kind as keyof typeof DEFAULTS]);
       }
     }
     for (const [name, definition] of Object.entries(defs)) {
-      if (covered.has(name)) continue;
-      const members = Object.values((definition.properties ?? {}) as Record<string, Node>);
-      expect(members.filter((member) => "default" in member)).toEqual([]);
+      if (!covered.has(name)) expect(defaultsOf(definition), name).toEqual({});
     }
     expect(properties("Timeline").number_type?.default).toBeUndefined();
   });

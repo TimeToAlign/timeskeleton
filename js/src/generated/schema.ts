@@ -3,7 +3,7 @@ export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json",
   "title": "TimeSkeleton manifest",
-  "description": "The TimeSkeleton 0.7.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and measure maps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key it does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
+  "description": "The TimeSkeleton 0.7.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and measure maps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: the schema closes none, and a key an object does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
   "$ref": "#/$defs/TimeSkeleton",
   "$defs": {
     "TimeSkeleton": {
@@ -23,18 +23,12 @@ export const schema = {
           "description": "The manifest ID."
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "The manifest's human-readable name, its title, or null when none was given.",
-          "default": null
+          "$ref": "#/$defs/Name",
+          "description": "The manifest's human-readable name, its title, or null when none was given."
         },
         "meta": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Free-form metadata of the manifest.",
-          "default": {}
+          "$ref": "#/$defs/Meta",
+          "description": "Free-form metadata of the manifest."
         },
         "timelines": {
           "type": "array",
@@ -58,10 +52,7 @@ export const schema = {
       "required": [
         "timeskeleton",
         "timelines"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "Timeline": {
       "type": "object",
@@ -72,12 +63,7 @@ export const schema = {
           "description": "The timeline ID."
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Human-readable name, or null when none was given.",
-          "default": null
+          "$ref": "#/$defs/Name"
         },
         "unit": {
           "$ref": "#/$defs/TimeUnit"
@@ -112,10 +98,7 @@ export const schema = {
           "default": false
         },
         "meta": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Free-form metadata.",
-          "default": {}
+          "$ref": "#/$defs/Meta"
         },
         "children": {
           "type": "array",
@@ -199,9 +182,6 @@ export const schema = {
             "type": "null"
           }
         }
-      },
-      "unevaluatedProperties": {
-        "x-unknown-key": true
       }
     },
     "Group": {
@@ -213,18 +193,10 @@ export const schema = {
           "description": "The group ID."
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Human-readable name, or null when none was given.",
-          "default": null
+          "$ref": "#/$defs/Name"
         },
         "meta": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Free-form metadata.",
-          "default": {}
+          "$ref": "#/$defs/Meta"
         },
         "members": {
           "type": "array",
@@ -238,10 +210,7 @@ export const schema = {
       "required": [
         "id",
         "members"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "Graphical": {
       "type": "object",
@@ -274,9 +243,6 @@ export const schema = {
           },
           "default": {}
         }
-      },
-      "unevaluatedProperties": {
-        "x-unknown-key": true
       }
     },
     "ConversionMap": {
@@ -406,9 +372,6 @@ export const schema = {
       ],
       "discriminator": {
         "propertyName": "number_type"
-      },
-      "unevaluatedProperties": {
-        "x-unknown-key": true
       }
     },
     "Number": {
@@ -524,6 +487,25 @@ export const schema = {
       "pattern": "^[^/\\u0000-\\u001f]+$",
       "description": "An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed."
     },
+    "Address": {
+      "type": "string",
+      "pattern": "^[^/\\u0000-\\u001f]+(/[^/\\u0000-\\u001f]+)*$",
+      "description": "An element address as the drawing specification (`docs/drawing.md`) defines it: an ID, followed by zero or more parts, each a `/` and a non-empty string without `/` and without control characters."
+    },
+    "Name": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Human-readable name, or null when none was given.",
+      "default": null
+    },
+    "Meta": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Free-form metadata.",
+      "default": {}
+    },
     "MeasureMapRow": {
       "type": "object",
       "description": "One row of the Measure Map standard plus the TimeSkeleton extensions volta and offset_within_measure.",
@@ -613,10 +595,7 @@ export const schema = {
             "count"
           ]
         }
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "NumberNonnegative": {
       "description": "A non-negative bare JSON number or a non-negative exact Fraction pair.",
@@ -644,7 +623,7 @@ export const schema = {
     },
     "FractionNonnegative": {
       "type": "array",
-      "description": "Non-negative rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.",
+      "description": "A Fraction whose numerator is non-negative.",
       "minItems": 2,
       "maxItems": 2,
       "prefixItems": [
@@ -655,15 +634,14 @@ export const schema = {
         },
         {
           "type": "integer",
-          "minimum": 1,
-          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+          "minimum": 1
         }
       ],
       "items": false
     },
     "FractionPositive": {
       "type": "array",
-      "description": "Strictly positive rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.",
+      "description": "A Fraction whose numerator is strictly positive.",
       "minItems": 2,
       "maxItems": 2,
       "prefixItems": [
@@ -674,8 +652,7 @@ export const schema = {
         },
         {
           "type": "integer",
-          "minimum": 1,
-          "description": "Denominator. Strictly positive to prevent zero-division and negative bases."
+          "minimum": 1
         }
       ],
       "items": false
@@ -689,12 +666,7 @@ export const schema = {
           "description": "The region ID."
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Human-readable name, or null when none was given.",
-          "default": null
+          "$ref": "#/$defs/Name"
         },
         "start": {
           "$ref": "#/$defs/Number"
@@ -703,20 +675,14 @@ export const schema = {
           "$ref": "#/$defs/Number"
         },
         "meta": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Free-form metadata.",
-          "default": {}
+          "$ref": "#/$defs/Meta"
         }
       },
       "required": [
         "id",
         "start",
         "end"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "FlowControl": {
       "type": "object",
@@ -743,9 +709,6 @@ export const schema = {
           },
           "default": []
         }
-      },
-      "unevaluatedProperties": {
-        "x-unknown-key": true
       }
     },
     "Break": {
@@ -779,26 +742,16 @@ export const schema = {
           "default": null
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
+          "$ref": "#/$defs/Name"
         },
         "meta": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Free-form metadata.",
-          "default": {}
+          "$ref": "#/$defs/Meta"
         }
       },
       "required": [
         "id",
         "coordinate"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "Jump": {
       "type": "object",
@@ -827,9 +780,13 @@ export const schema = {
           "default": 1
         },
         "target": {
-          "type": [
-            "string",
-            "null"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Id"
+            },
+            {
+              "type": "null"
+            }
           ],
           "description": "The ID of the marker of the same timeline this jump targets, or null.",
           "default": null
@@ -842,20 +799,14 @@ export const schema = {
           "default": null
         },
         "meta": {
-          "type": "object",
-          "additionalProperties": true,
-          "description": "Free-form metadata.",
-          "default": {}
+          "$ref": "#/$defs/Meta"
         }
       },
       "required": [
         "id",
         "from_coordinate",
         "to_coordinate"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "Marker": {
       "type": "object",
@@ -866,12 +817,7 @@ export const schema = {
           "description": "The marker ID."
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "Human-readable name, or null when none was given.",
-          "default": null
+          "$ref": "#/$defs/Name"
         },
         "coordinate": {
           "$ref": "#/$defs/Number"
@@ -880,10 +826,7 @@ export const schema = {
       "required": [
         "id",
         "coordinate"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "FlowControlElement": {
       "type": "string",
@@ -957,10 +900,7 @@ export const schema = {
       "required": [
         "select",
         "set"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "Selector": {
       "type": "object",
@@ -973,7 +913,7 @@ export const schema = {
           "type": "array",
           "description": "Element addresses; the element's address must be one of them.",
           "items": {
-            "type": "string"
+            "$ref": "#/$defs/Address"
           },
           "minItems": 1,
           "uniqueItems": true
@@ -1034,16 +974,13 @@ export const schema = {
           "description": "The class of the element: the timeline class its unit decides, a conversion map's type, or a band's kind."
         },
         "within": {
-          "type": "string",
+          "$ref": "#/$defs/Id",
           "description": "A timeline ID: the element must belong to that timeline or to one of its descendants."
         },
         "inside": {
           "$ref": "#/$defs/ElementType",
           "description": "An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree."
         }
-      },
-      "unevaluatedProperties": {
-        "x-unknown-key": true
       }
     },
     "ElementType": {
@@ -1128,26 +1065,22 @@ export const schema = {
         "shadow": {
           "$ref": "#/$defs/Paint"
         }
-      },
-      "unevaluatedProperties": {
-        "x-unknown-key": true
       }
     },
-    "BeatInMeasureMap": {
+    "MapBase": {
       "type": "object",
+      "description": "What every conversion map carries: its type, its ID, its name, and the units of the axes it converts from and to, either null where that side is not a time axis. Each map type adds its own members.",
       "properties": {
         "type": {
-          "const": "BeatInMeasureMap"
+          "type": "string",
+          "description": "The map type, which each map definition fixes."
         },
         "id": {
-          "$ref": "#/$defs/Id"
+          "$ref": "#/$defs/Id",
+          "description": "The map ID."
         },
         "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
+          "$ref": "#/$defs/Name"
         },
         "source_unit": {
           "anyOf": [
@@ -1157,7 +1090,8 @@ export const schema = {
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "The unit of the axis the map converts from, or null."
         },
         "target_unit": {
           "anyOf": [
@@ -1167,7 +1101,27 @@ export const schema = {
             {
               "type": "null"
             }
-          ]
+          ],
+          "description": "The unit of the axis the map converts to, or null."
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "source_unit",
+        "target_unit"
+      ]
+    },
+    "BeatInMeasureMap": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "BeatInMeasureMap"
         },
         "meter_map": {
           "$ref": "#/$defs/MetricMap"
@@ -1175,50 +1129,19 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "meter_map"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "ChainMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "ChainMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "maps": {
           "type": "array",
@@ -1229,50 +1152,19 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "maps"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "CombinationMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "CombinationMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "maps": {
           "type": "object",
@@ -1289,100 +1181,38 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "maps",
         "names"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "ConstantMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "ConstantMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "value": {}
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "value"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "FloorMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "FloorMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "divisor": {
           "type": "number"
@@ -1396,52 +1226,21 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "divisor",
         "base",
         "offset"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "InterpolationMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "InterpolationMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "source_coords": {
           "type": "array",
@@ -1456,61 +1255,30 @@ export const schema = {
           }
         },
         "source_id": {
-          "type": "string"
+          "$ref": "#/$defs/Id"
         },
         "target_id": {
-          "type": "string"
+          "$ref": "#/$defs/Id"
         }
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "source_coords",
         "target_coords",
         "source_id",
         "target_id"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "IntervalToConstantMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "IntervalToConstantMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "boundaries": {
           "type": "array",
@@ -1524,51 +1292,20 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "boundaries",
         "values"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "LinearMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "LinearMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "scalar": {
           "$ref": "#/$defs/Number"
@@ -1579,51 +1316,20 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "scalar",
         "offset"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "MetricMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "MetricMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "starts": {
           "type": "array",
@@ -1652,110 +1358,48 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "starts",
         "mcs",
         "mns",
         "lengths"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "MetricalPositionMap": {
       "type": "object",
       "description": "Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose ID is beat_map_id.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "MetricalPositionMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "meter_map": {
           "$ref": "#/$defs/MetricMap"
         },
         "beat_map_id": {
-          "type": "string",
+          "$ref": "#/$defs/Id",
           "description": "The ID of the BeatInMeasureMap derived from meter_map."
         }
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "meter_map",
         "beat_map_id"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "PiecewiseMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "PiecewiseMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "breaks": {
           "type": "array",
@@ -1772,51 +1416,20 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "breaks",
         "maps"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "QuartersToFloatingMeasures": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "QuartersToFloatingMeasures"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "x_values": {
           "type": "array",
@@ -1851,53 +1464,22 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "x_values",
         "y_values",
         "kind",
         "extrapolate"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "QuartersToMeasureNumber": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "QuartersToMeasureNumber"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "boundaries": {
           "type": "array",
@@ -1914,51 +1496,20 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "boundaries",
         "values"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "QuartersToTicks": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "QuartersToTicks"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "scalar": {
           "$ref": "#/$defs/Number"
@@ -1969,51 +1520,20 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "scalar",
         "ppq"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "RotationMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "RotationMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "period": {
           "type": "number"
@@ -2030,54 +1550,23 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "period",
         "scale",
         "base",
         "offset"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "SamplesToSeconds": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "SamplesToSeconds"
         },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "scalar": {
           "$ref": "#/$defs/Number"
         },
@@ -2087,102 +1576,40 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "scalar",
         "sample_rate"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "ScalarMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "ScalarMap"
         },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
         "scalar": {
           "$ref": "#/$defs/Number"
         }
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "scalar"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "SecondsToSamples": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "SecondsToSamples"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "scalar": {
           "$ref": "#/$defs/Number"
@@ -2193,51 +1620,20 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "scalar",
         "sample_rate"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "ShiftMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "ShiftMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "offset": {
           "$ref": "#/$defs/Number"
@@ -2245,50 +1641,19 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "offset"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "TableMap": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "TableMap"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "x_values": {
           "type": "array",
@@ -2323,53 +1688,22 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "x_values",
         "y_values",
         "kind",
         "extrapolate"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     },
     "TicksToQuarters": {
       "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
       "properties": {
         "type": {
           "const": "TicksToQuarters"
-        },
-        "id": {
-          "$ref": "#/$defs/Id"
-        },
-        "name": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "source_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "target_unit": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/TimeUnit"
-            },
-            {
-              "type": "null"
-            }
-          ]
         },
         "scalar": {
           "$ref": "#/$defs/Number"
@@ -2380,15 +1714,9 @@ export const schema = {
       },
       "required": [
         "type",
-        "id",
-        "source_unit",
-        "target_unit",
         "scalar",
         "ppq"
-      ],
-      "unevaluatedProperties": {
-        "x-unknown-key": true
-      }
+      ]
     }
   }
 } as const;

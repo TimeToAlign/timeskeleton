@@ -40,6 +40,7 @@ describe("generated files", () => {
       "Group",
       "Graphical",
       "ConversionMap",
+      "MapBase",
       ...mapTypes,
       "Region",
       "FlowControl",
@@ -59,7 +60,6 @@ describe("generated files", () => {
       "TimeSkeletonGroupFile",
       "TimeSkeletonBundleFile",
       "Bundle",
-      "Meta",
       "TimelineClass",
     ]) {
       expect(definitions).not.toContain(name);

@@ -3,6 +3,20 @@
 import type {JsonNumber, Lossless} from "../json/value.js";
 
 /**
+ * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "Id".
+ */
+export type Id = string;
+/**
+ * Human-readable name, or null when none was given.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "Name".
+ */
+export type Name = string | null;
+/**
  * The unit of a timeline axis. Each unit belongs to one domain (logical: musical time; physical: real time; graphical: space) and one modality (continuous or discrete), and states the default number type of an axis that declares none. The domain and modality decide the timeline class: `seconds`, physical and continuous, makes a ContinuousPhysicalTimeline.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -26,6 +40,13 @@ export type TimeUnit =
   | "inches"
   | "points";
 /**
+ * The number type of every coordinate on a timeline axis. It selects the representation of a coordinate's value: int is a JSON integer, float a JSON number, fraction a Fraction pair.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "NumberType".
+ */
+export type NumberType = "int" | "float" | "fraction";
+/**
  * A non-negative bare JSON number or a non-negative exact Fraction pair.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -33,7 +54,7 @@ export type TimeUnit =
  */
 export type NumberNonnegative = number | FractionNonnegative;
 /**
- * Non-negative rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.
+ * A Fraction whose numerator is non-negative.
  *
  * @minItems 2
  * @maxItems 2
@@ -42,6 +63,13 @@ export type NumberNonnegative = number | FractionNonnegative;
  * via the `definition` "FractionNonnegative".
  */
 export type FractionNonnegative = [number, number];
+/**
+ * A bare JSON number or an exact Fraction pair.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "Number".
+ */
+export type Number = number | Fraction;
 /**
  * Rational number encoded as a numerator and a non-zero denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.
  *
@@ -81,19 +109,207 @@ export type ConversionMap =
   | TableMap
   | TicksToQuarters;
 /**
- * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
- *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "Id".
+ * via the `definition` "BeatInMeasureMap".
  */
-export type Id = string;
+export type BeatInMeasureMap = MapBase & {
+  type: "BeatInMeasureMap";
+  meter_map: MetricMap;
+};
 /**
- * A bare JSON number or an exact Fraction pair.
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "MetricMap".
+ */
+export type MetricMap = MapBase & {
+  type: "MetricMap";
+  starts: Number[];
+  mcs: number[];
+  mns: string[];
+  lengths: Number[];
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "ChainMap".
+ */
+export type ChainMap = MapBase & {
+  type: "ChainMap";
+  maps: ConversionMap[];
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "CombinationMap".
+ */
+export type CombinationMap = MapBase & {
+  type: "CombinationMap";
+  maps: {
+    [k: string]: ConversionMap;
+  };
+  names: string[];
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "ConstantMap".
+ */
+export type ConstantMap = MapBase & {
+  type: "ConstantMap";
+  value: unknown;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "FloorMap".
+ */
+export type FloorMap = MapBase & {
+  type: "FloorMap";
+  divisor: number;
+  base: number;
+  offset: number;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "InterpolationMap".
+ */
+export type InterpolationMap = MapBase & {
+  type: "InterpolationMap";
+  source_coords: number[];
+  target_coords: number[];
+  source_id: Id;
+  target_id: Id;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "IntervalToConstantMap".
+ */
+export type IntervalToConstantMap = MapBase & {
+  type: "IntervalToConstantMap";
+  boundaries: Number[];
+  values: unknown[];
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "LinearMap".
+ */
+export type LinearMap = MapBase & {
+  type: "LinearMap";
+  scalar: Number;
+  offset: Number;
+};
+/**
+ * Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose ID is beat_map_id.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "Number".
+ * via the `definition` "MetricalPositionMap".
  */
-export type Number = number | Fraction;
+export type MetricalPositionMap = MapBase & {
+  type: "MetricalPositionMap";
+  meter_map: MetricMap;
+  /**
+   * The ID of the BeatInMeasureMap derived from meter_map.
+   */
+  beat_map_id: Id;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "PiecewiseMap".
+ */
+export type PiecewiseMap = MapBase & {
+  type: "PiecewiseMap";
+  breaks: Number[];
+  maps: ConversionMap[];
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "QuartersToFloatingMeasures".
+ */
+export type QuartersToFloatingMeasures = MapBase & {
+  type: "QuartersToFloatingMeasures";
+  x_values: Number[];
+  y_values: Number[];
+  kind: "linear" | "nearest" | "previous" | "next";
+  extrapolate: "error" | "extrapolate" | "constant" | "nan";
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "QuartersToMeasureNumber".
+ */
+export type QuartersToMeasureNumber = MapBase & {
+  type: "QuartersToMeasureNumber";
+  boundaries: Number[];
+  values: string[];
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "QuartersToTicks".
+ */
+export type QuartersToTicks = MapBase & {
+  type: "QuartersToTicks";
+  scalar: Number;
+  ppq: number;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "RotationMap".
+ */
+export type RotationMap = MapBase & {
+  type: "RotationMap";
+  period: number;
+  scale: number;
+  base: number;
+  offset: number;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "SamplesToSeconds".
+ */
+export type SamplesToSeconds = MapBase & {
+  type: "SamplesToSeconds";
+  scalar: Number;
+  sample_rate: number;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "ScalarMap".
+ */
+export type ScalarMap = MapBase & {
+  type: "ScalarMap";
+  scalar: Number;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "SecondsToSamples".
+ */
+export type SecondsToSamples = MapBase & {
+  type: "SecondsToSamples";
+  scalar: Number;
+  sample_rate: number;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "ShiftMap".
+ */
+export type ShiftMap = MapBase & {
+  type: "ShiftMap";
+  offset: Number;
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "TableMap".
+ */
+export type TableMap = MapBase & {
+  type: "TableMap";
+  x_values: Number[];
+  y_values: Number[];
+  kind: "linear" | "nearest" | "previous" | "next";
+  extrapolate: "error" | "extrapolate" | "constant" | "nan";
+};
+/**
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "TicksToQuarters".
+ */
+export type TicksToQuarters = MapBase & {
+  type: "TicksToQuarters";
+  scalar: Number;
+  ppq: number;
+};
 /**
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "FlowControlElement".
@@ -140,7 +356,7 @@ export type MeasureMap = [MeasureMapRow, ...MeasureMapRow[]];
  */
 export type NumberPositive = number | FractionPositive;
 /**
- * Strictly positive rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.
+ * A Fraction whose numerator is strictly positive.
  *
  * @minItems 2
  * @maxItems 2
@@ -179,6 +395,13 @@ export type ElementType =
   | "group"
   | "card";
 /**
+ * An element address as the drawing specification (`docs/drawing.md`) defines it: an ID, followed by zero or more parts, each a `/` and a non-empty string without `/` and without control characters.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "Address".
+ */
+export type Address = string;
+/**
  * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. The markers band holds the coordinate markers, the wedges at a root's start and end, never the flow markers of `flow_control`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -208,13 +431,6 @@ export type Coordinate =
       value: Fraction;
     };
 /**
- * The number type of every coordinate on a timeline axis. It selects the representation of a coordinate's value: int is a JSON integer, float a JSON number, fraction a Fraction pair.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "NumberType".
- */
-export type NumberType = "int" | "float" | "fraction";
-/**
  * `TimeSkeleton` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -224,10 +440,8 @@ export type CompleteTimeSkeleton = {
   $schema?: string;
   timeskeleton: "0.7.0";
   id?: Id;
-  name: string | null;
-  meta: {
-    [k: string]: unknown;
-  };
+  name: Name;
+  meta: Meta;
   timelines: CompleteTimeline[];
   groups: CompleteGroup[];
   graphical?: CompleteGraphical;
@@ -240,16 +454,14 @@ export type CompleteTimeSkeleton = {
  */
 export type CompleteTimeline = {
   id: Id;
-  name: string | null;
+  name: Name;
   unit: TimeUnit;
   number_type: NumberType;
   length: Lossless<NumberNonnegative> | null;
   offset?: Lossless<Number>;
   locked: boolean;
   is_segment_line: boolean;
-  meta: {
-    [k: string]: unknown;
-  };
+  meta: Meta;
   children: (CompleteTimeline & {
     offset: Lossless<Number>;
   })[];
@@ -295,13 +507,22 @@ export type CompleteConversionMap =
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteBeatInMeasureMap".
  */
-export type CompleteBeatInMeasureMap = {
+export type CompleteBeatInMeasureMap = CompleteMapBase & {
   type: "BeatInMeasureMap";
+  meter_map: CompleteMetricMap;
+};
+/**
+ * `MapBase` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "CompleteMapBase".
+ */
+export type CompleteMapBase = {
+  type: string;
   id: Id;
-  name: string | null;
+  name: Name;
   source_unit: TimeUnit | null;
   target_unit: TimeUnit | null;
-  meter_map: CompleteMetricMap;
 };
 /**
  * `MetricMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -309,12 +530,8 @@ export type CompleteBeatInMeasureMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteMetricMap".
  */
-export type CompleteMetricMap = {
+export type CompleteMetricMap = CompleteMapBase & {
   type: "MetricMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   starts: Lossless<Number>[];
   mcs: JsonNumber[];
   mns: string[];
@@ -326,12 +543,8 @@ export type CompleteMetricMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteChainMap".
  */
-export type CompleteChainMap = {
+export type CompleteChainMap = CompleteMapBase & {
   type: "ChainMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   maps: CompleteConversionMap[];
 };
 /**
@@ -340,12 +553,8 @@ export type CompleteChainMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteCombinationMap".
  */
-export type CompleteCombinationMap = {
+export type CompleteCombinationMap = CompleteMapBase & {
   type: "CombinationMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   maps: {
     [k: string]: CompleteConversionMap;
   };
@@ -357,12 +566,8 @@ export type CompleteCombinationMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteConstantMap".
  */
-export type CompleteConstantMap = {
+export type CompleteConstantMap = CompleteMapBase & {
   type: "ConstantMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   value: unknown;
 };
 /**
@@ -371,12 +576,8 @@ export type CompleteConstantMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteFloorMap".
  */
-export type CompleteFloorMap = {
+export type CompleteFloorMap = CompleteMapBase & {
   type: "FloorMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   divisor: JsonNumber;
   base: JsonNumber;
   offset: JsonNumber;
@@ -387,16 +588,12 @@ export type CompleteFloorMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteInterpolationMap".
  */
-export type CompleteInterpolationMap = {
+export type CompleteInterpolationMap = CompleteMapBase & {
   type: "InterpolationMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   source_coords: JsonNumber[];
   target_coords: JsonNumber[];
-  source_id: string;
-  target_id: string;
+  source_id: Id;
+  target_id: Id;
 };
 /**
  * `IntervalToConstantMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -404,12 +601,8 @@ export type CompleteInterpolationMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteIntervalToConstantMap".
  */
-export type CompleteIntervalToConstantMap = {
+export type CompleteIntervalToConstantMap = CompleteMapBase & {
   type: "IntervalToConstantMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   boundaries: Lossless<Number>[];
   values: unknown[];
 };
@@ -419,12 +612,8 @@ export type CompleteIntervalToConstantMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteLinearMap".
  */
-export type CompleteLinearMap = {
+export type CompleteLinearMap = CompleteMapBase & {
   type: "LinearMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   scalar: Lossless<Number>;
   offset: Lossless<Number>;
 };
@@ -434,14 +623,10 @@ export type CompleteLinearMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteMetricalPositionMap".
  */
-export type CompleteMetricalPositionMap = {
+export type CompleteMetricalPositionMap = CompleteMapBase & {
   type: "MetricalPositionMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   meter_map: CompleteMetricMap;
-  beat_map_id: string;
+  beat_map_id: Id;
 };
 /**
  * `PiecewiseMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -449,12 +634,8 @@ export type CompleteMetricalPositionMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompletePiecewiseMap".
  */
-export type CompletePiecewiseMap = {
+export type CompletePiecewiseMap = CompleteMapBase & {
   type: "PiecewiseMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   breaks: Lossless<Number>[];
   maps: CompleteConversionMap[];
 };
@@ -464,12 +645,8 @@ export type CompletePiecewiseMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteQuartersToFloatingMeasures".
  */
-export type CompleteQuartersToFloatingMeasures = {
+export type CompleteQuartersToFloatingMeasures = CompleteMapBase & {
   type: "QuartersToFloatingMeasures";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   x_values: Lossless<Number>[];
   y_values: Lossless<Number>[];
   kind: "linear" | "nearest" | "previous" | "next";
@@ -481,12 +658,8 @@ export type CompleteQuartersToFloatingMeasures = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteQuartersToMeasureNumber".
  */
-export type CompleteQuartersToMeasureNumber = {
+export type CompleteQuartersToMeasureNumber = CompleteMapBase & {
   type: "QuartersToMeasureNumber";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   boundaries: Lossless<Number>[];
   values: string[];
 };
@@ -496,12 +669,8 @@ export type CompleteQuartersToMeasureNumber = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteQuartersToTicks".
  */
-export type CompleteQuartersToTicks = {
+export type CompleteQuartersToTicks = CompleteMapBase & {
   type: "QuartersToTicks";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   scalar: Lossless<Number>;
   ppq: JsonNumber;
 };
@@ -511,12 +680,8 @@ export type CompleteQuartersToTicks = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteRotationMap".
  */
-export type CompleteRotationMap = {
+export type CompleteRotationMap = CompleteMapBase & {
   type: "RotationMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   period: JsonNumber;
   scale: JsonNumber;
   base: JsonNumber;
@@ -528,12 +693,8 @@ export type CompleteRotationMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteSamplesToSeconds".
  */
-export type CompleteSamplesToSeconds = {
+export type CompleteSamplesToSeconds = CompleteMapBase & {
   type: "SamplesToSeconds";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   scalar: Lossless<Number>;
   sample_rate: JsonNumber;
 };
@@ -543,12 +704,8 @@ export type CompleteSamplesToSeconds = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteScalarMap".
  */
-export type CompleteScalarMap = {
+export type CompleteScalarMap = CompleteMapBase & {
   type: "ScalarMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   scalar: Lossless<Number>;
 };
 /**
@@ -557,12 +714,8 @@ export type CompleteScalarMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteSecondsToSamples".
  */
-export type CompleteSecondsToSamples = {
+export type CompleteSecondsToSamples = CompleteMapBase & {
   type: "SecondsToSamples";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   scalar: Lossless<Number>;
   sample_rate: JsonNumber;
 };
@@ -572,12 +725,8 @@ export type CompleteSecondsToSamples = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteShiftMap".
  */
-export type CompleteShiftMap = {
+export type CompleteShiftMap = CompleteMapBase & {
   type: "ShiftMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   offset: Lossless<Number>;
 };
 /**
@@ -586,12 +735,8 @@ export type CompleteShiftMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteTableMap".
  */
-export type CompleteTableMap = {
+export type CompleteTableMap = CompleteMapBase & {
   type: "TableMap";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   x_values: Lossless<Number>[];
   y_values: Lossless<Number>[];
   kind: "linear" | "nearest" | "previous" | "next";
@@ -603,12 +748,8 @@ export type CompleteTableMap = {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteTicksToQuarters".
  */
-export type CompleteTicksToQuarters = {
+export type CompleteTicksToQuarters = CompleteMapBase & {
   type: "TicksToQuarters";
-  id: Id;
-  name: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
   scalar: Lossless<Number>;
   ppq: JsonNumber;
 };
@@ -620,12 +761,10 @@ export type CompleteTicksToQuarters = {
  */
 export type CompleteRegion = {
   id: Id;
-  name: string | null;
+  name: Name;
   start: Lossless<Number>;
   end: Lossless<Number>;
-  meta: {
-    [k: string]: unknown;
-  };
+  meta: Meta;
 };
 /**
  * `FlowControl` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -651,10 +790,8 @@ export type CompleteBreak = {
   condition: ActivationCondition;
   repeat_count: JsonNumber;
   label: string | null;
-  name: string | null;
-  meta: {
-    [k: string]: unknown;
-  };
+  name: Name;
+  meta: Meta;
 };
 /**
  * `Jump` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -669,11 +806,9 @@ export type CompleteJump = {
   control_type: FlowControlElement;
   condition: ActivationCondition;
   repeat_count: JsonNumber;
-  target: string | null;
+  target: Id | null;
   label: string | null;
-  meta: {
-    [k: string]: unknown;
-  };
+  meta: Meta;
 };
 /**
  * `Marker` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -683,7 +818,7 @@ export type CompleteJump = {
  */
 export type CompleteMarker = {
   id: Id;
-  name: string | null;
+  name: Name;
   coordinate: Lossless<Number>;
 };
 /**
@@ -694,10 +829,8 @@ export type CompleteMarker = {
  */
 export type CompleteGroup = {
   id: Id;
-  name: string | null;
-  meta: {
-    [k: string]: unknown;
-  };
+  name: Name;
+  meta: Meta;
   members: Id[];
 };
 /**
@@ -731,17 +864,15 @@ export interface TimeSkeleton {
   /**
    * The manifest ID.
    */
-  id?: string;
+  id?: Id;
   /**
    * The manifest's human-readable name, its title, or null when none was given.
    */
-  name?: string | null;
+  name?: Name;
   /**
    * Free-form metadata of the manifest.
    */
-  meta?: {
-    [k: string]: unknown;
-  };
+  meta?: Meta;
   /**
    * The root timelines, each with all its descendants. The array may be empty.
    */
@@ -753,6 +884,15 @@ export interface TimeSkeleton {
   graphical?: Graphical;
 }
 /**
+ * Free-form metadata.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "Meta".
+ */
+export interface Meta {
+  [k: string]: unknown;
+}
+/**
  * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -762,16 +902,13 @@ export interface Timeline {
   /**
    * The timeline ID.
    */
-  id: string;
-  /**
-   * Human-readable name, or null when none was given.
-   */
-  name?: string | null;
+  id: Id;
+  name?: Name;
   unit: TimeUnit;
   /**
    * The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit.
    */
-  number_type?: "int" | "float" | "fraction";
+  number_type?: NumberType;
   /**
    * The end of the timeline on its own axis, or null when the length is not known.
    */
@@ -779,7 +916,7 @@ export interface Timeline {
   /**
    * Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis; typically absent.
    */
-  offset?: number | Fraction;
+  offset?: Number;
   /**
    * Whether the timeline's extent is fixed. A locked timeline, such as a CD track, cannot extend; an unlocked one may grow, as a CD timeline built by appending track after track does.
    */
@@ -788,12 +925,7 @@ export interface Timeline {
    * Whether the timeline is a segment line: a timeline containing only contiguous segments. Its children are its segments: each shares the segment line's unit, as every child shares its parent's; they are contiguous from 0 in offset order (a segment of unknown length ends where its successor starts) and end at its length where both are known, all with one is_segment_line value; segments that are segment lines themselves make a nested segment line. Contiguity and the one is_segment_line value are checked after the schema.
    */
   is_segment_line?: boolean;
-  /**
-   * Free-form metadata.
-   */
-  meta?: {
-    [k: string]: unknown;
-  };
+  meta?: Meta;
   /**
    * The child timelines, each carrying its offset on this timeline's axis.
    */
@@ -801,7 +933,7 @@ export interface Timeline {
     /**
      * Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis; typically absent.
      */
-    offset: number | Fraction;
+    offset: Number;
   })[];
   /**
    * Conversion maps attached to this timeline.
@@ -824,290 +956,29 @@ export interface Timeline {
   } | null;
 }
 /**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "BeatInMeasureMap".
- */
-export interface BeatInMeasureMap {
-  type: "BeatInMeasureMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  meter_map: MetricMap;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "MetricMap".
- */
-export interface MetricMap {
-  type: "MetricMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  starts: Number[];
-  mcs: number[];
-  mns: string[];
-  lengths: Number[];
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "ChainMap".
- */
-export interface ChainMap {
-  type: "ChainMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  maps: ConversionMap[];
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CombinationMap".
- */
-export interface CombinationMap {
-  type: "CombinationMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  maps: {
-    [k: string]: ConversionMap;
-  };
-  names: string[];
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "ConstantMap".
- */
-export interface ConstantMap {
-  type: "ConstantMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  value: unknown;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "FloorMap".
- */
-export interface FloorMap {
-  type: "FloorMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  divisor: number;
-  base: number;
-  offset: number;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "InterpolationMap".
- */
-export interface InterpolationMap {
-  type: "InterpolationMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  source_coords: number[];
-  target_coords: number[];
-  source_id: string;
-  target_id: string;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "IntervalToConstantMap".
- */
-export interface IntervalToConstantMap {
-  type: "IntervalToConstantMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  boundaries: Number[];
-  values: unknown[];
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "LinearMap".
- */
-export interface LinearMap {
-  type: "LinearMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  scalar: Number;
-  offset: Number;
-}
-/**
- * Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose ID is beat_map_id.
+ * What every conversion map carries: its type, its ID, its name, and the units of the axes it converts from and to, either null where that side is not a time axis. Each map type adds its own members.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "MetricalPositionMap".
+ * via the `definition` "MapBase".
  */
-export interface MetricalPositionMap {
-  type: "MetricalPositionMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  meter_map: MetricMap;
+export interface MapBase {
   /**
-   * The ID of the BeatInMeasureMap derived from meter_map.
+   * The map type, which each map definition fixes.
    */
-  beat_map_id: string;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "PiecewiseMap".
- */
-export interface PiecewiseMap {
-  type: "PiecewiseMap";
+  type: string;
+  /**
+   * The map ID.
+   */
   id: Id;
-  name?: string | null;
+  name?: Name;
+  /**
+   * The unit of the axis the map converts from, or null.
+   */
   source_unit: TimeUnit | null;
+  /**
+   * The unit of the axis the map converts to, or null.
+   */
   target_unit: TimeUnit | null;
-  breaks: Number[];
-  maps: ConversionMap[];
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "QuartersToFloatingMeasures".
- */
-export interface QuartersToFloatingMeasures {
-  type: "QuartersToFloatingMeasures";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  x_values: Number[];
-  y_values: Number[];
-  kind: "linear" | "nearest" | "previous" | "next";
-  extrapolate: "error" | "extrapolate" | "constant" | "nan";
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "QuartersToMeasureNumber".
- */
-export interface QuartersToMeasureNumber {
-  type: "QuartersToMeasureNumber";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  boundaries: Number[];
-  values: string[];
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "QuartersToTicks".
- */
-export interface QuartersToTicks {
-  type: "QuartersToTicks";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  scalar: Number;
-  ppq: number;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "RotationMap".
- */
-export interface RotationMap {
-  type: "RotationMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  period: number;
-  scale: number;
-  base: number;
-  offset: number;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "SamplesToSeconds".
- */
-export interface SamplesToSeconds {
-  type: "SamplesToSeconds";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  scalar: Number;
-  sample_rate: number;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "ScalarMap".
- */
-export interface ScalarMap {
-  type: "ScalarMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  scalar: Number;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "SecondsToSamples".
- */
-export interface SecondsToSamples {
-  type: "SecondsToSamples";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  scalar: Number;
-  sample_rate: number;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "ShiftMap".
- */
-export interface ShiftMap {
-  type: "ShiftMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  offset: Number;
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "TableMap".
- */
-export interface TableMap {
-  type: "TableMap";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  x_values: Number[];
-  y_values: Number[];
-  kind: "linear" | "nearest" | "previous" | "next";
-  extrapolate: "error" | "extrapolate" | "constant" | "nan";
-}
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "TicksToQuarters".
- */
-export interface TicksToQuarters {
-  type: "TicksToQuarters";
-  id: Id;
-  name?: string | null;
-  source_unit: TimeUnit | null;
-  target_unit: TimeUnit | null;
-  scalar: Number;
-  ppq: number;
 }
 /**
  * A region of a timeline, from start to end on the timeline's own axis.
@@ -1117,21 +988,13 @@ export interface TicksToQuarters {
  */
 export interface Region {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
+   * The region ID.
    */
-  id: string;
-  /**
-   * Human-readable name, or null when none was given.
-   */
-  name?: string | null;
+  id: Id;
+  name?: Name;
   start: Number;
   end: Number;
-  /**
-   * Free-form metadata.
-   */
-  meta?: {
-    [k: string]: unknown;
-  };
+  meta?: Meta;
 }
 /**
  * The flow control of a timeline: its breaks, jumps and flow markers. A flow marker is a named position that jumps target; the markers band does not draw it. It differs from a coordinate marker, a wedge the markers band draws at a root's start and end.
@@ -1152,21 +1015,16 @@ export interface FlowControl {
  */
 export interface Break {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
+   * The break ID.
    */
-  id: string;
+  id: Id;
   coordinate: Number;
   control_type?: FlowControlElement;
   condition?: ActivationCondition;
   repeat_count?: number;
   label?: string | null;
-  name?: string | null;
-  /**
-   * Free-form metadata.
-   */
-  meta?: {
-    [k: string]: unknown;
-  };
+  name?: Name;
+  meta?: Meta;
 }
 /**
  * A flow-control jump from one coordinate to another on the timeline's own axis.
@@ -1176,9 +1034,9 @@ export interface Break {
  */
 export interface Jump {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
+   * The jump ID.
    */
-  id: string;
+  id: Id;
   from_coordinate: Number;
   to_coordinate: Number;
   control_type?: FlowControlElement;
@@ -1187,14 +1045,9 @@ export interface Jump {
   /**
    * The ID of the marker of the same timeline this jump targets, or null.
    */
-  target?: string | null;
+  target?: Id | null;
   label?: string | null;
-  /**
-   * Free-form metadata.
-   */
-  meta?: {
-    [k: string]: unknown;
-  };
+  meta?: Meta;
 }
 /**
  * A flow marker: a named position on the timeline's own axis, the target of jumps. Flow control holds it and nothing draws it; the markers band holds the coordinate markers instead, the wedges at a root's start and end.
@@ -1204,13 +1057,10 @@ export interface Jump {
  */
 export interface Marker {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
+   * The marker ID.
    */
-  id: string;
-  /**
-   * Human-readable name, or null when none was given.
-   */
-  name?: string | null;
+  id: Id;
+  name?: Name;
   coordinate: Number;
 }
 /**
@@ -1229,9 +1079,9 @@ export interface MeasureMapRow {
    */
   count?: number;
   /**
-   * A non-negative bare JSON number or a non-negative exact Fraction pair.
+   * The symbolic time to have elapsed since the beginning of the source, measured in quarter notes. Non-negative; TimeSkeleton additionally permits an exact Fraction pair.
    */
-  qstamp?: number | FractionNonnegative;
+  qstamp?: NumberNonnegative;
   /**
    * A number assigned to this measure based on a given set of rules or conventions. One wide-spread convention, for instance, is that a piece starts with measure number 0 if it has an anacrusis and with number 1 otherwise.
    */
@@ -1249,9 +1099,9 @@ export interface MeasureMapRow {
    */
   nominal_length?: NumberPositive | null;
   /**
-   * A strictly positive bare JSON number or a strictly positive exact Fraction pair.
+   * The actual duration of the measure, in quarter notes. Strictly positive; TimeSkeleton additionally permits an exact Fraction pair.
    */
-  actual_length?: number | FractionPositive;
+  actual_length?: NumberPositive;
   /**
    * Typical usage is with the bool type, with 'true' indicating a start repeat at the beginning of the measure.
    */
@@ -1269,9 +1119,9 @@ export interface MeasureMapRow {
    */
   volta?: number;
   /**
-   * A strictly positive bare JSON number or a strictly positive exact Fraction pair.
+   * A TimeSkeleton extension: where this row begins inside its nominal measure, in quarter notes, when the row represents only part of that measure (an anacrusis, or one constituent of a split measure). Absent means 0; a row never states 0.
    */
-  offset_within_measure?: number | FractionPositive;
+  offset_within_measure?: NumberPositive;
 }
 /**
  * A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.
@@ -1281,19 +1131,11 @@ export interface MeasureMapRow {
  */
 export interface Group {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
+   * The group ID.
    */
-  id: string;
-  /**
-   * Human-readable name, or null when none was given.
-   */
-  name?: string | null;
-  /**
-   * Free-form metadata.
-   */
-  meta?: {
-    [k: string]: unknown;
-  };
+  id: Id;
+  name?: Name;
+  meta?: Meta;
   /**
    * The IDs of the member timelines, sorted by code point. The array may be empty.
    */
@@ -1368,7 +1210,7 @@ export interface Selector {
    *
    * @minItems 1
    */
-  ids?: [string, ...string[]];
+  ids?: [Address, ...Address[]];
   /**
    * The domain of the element: what its time measures (graphical space, musical time, physical time).
    */
@@ -1416,26 +1258,11 @@ export interface Selector {
   /**
    * A timeline ID: the element must belong to that timeline or to one of its descendants.
    */
-  within?: string;
+  within?: Id;
   /**
-   * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge (a coordinate marker at a root's start or end; the flow markers of `flow_control` are not drawn), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
+   * An element type: the element must be held, at any depth, by an element of that type in the drawing's element tree.
    */
-  inside?:
-    | "block"
-    | "timeline"
-    | "child"
-    | "band"
-    | "map"
-    | "region"
-    | "break"
-    | "jump"
-    | "wedge"
-    | "name"
-    | "label"
-    | "boundary"
-    | "ancestor"
-    | "group"
-    | "card";
+  inside?: ElementType;
 }
 /**
  * A manifest as `parseJson` reads it: every number a `JsonNumber`, every

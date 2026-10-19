@@ -12,7 +12,7 @@ from importlib.resources import files
 from pathlib import Path
 from typing import Any
 
-from jsonschema import Draft202012Validator, validators
+from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
 
 from .validation.diagnostics import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
@@ -160,23 +160,66 @@ def loads(text: str) -> Any:
     return json.loads(text, parse_float=floating, parse_constant=constant)
 
 
-def _unknown_key(
-    validator: Any, value: Any, instance: Any, schema: Any
-) -> Iterator[Any]:
-    if value is True:
-        yield ValidationError("unknown key")
+_BRANCHES = ("oneOf", "anyOf", "if", "then", "else")
 
 
-_MarkingValidator = validators.extend(
-    Draft202012Validator, {"x-unknown-key": _unknown_key}
-)
+def _allof_bases(node: Any) -> Iterator[str]:
+    """Yield the definitions some ``allOf`` refers to: shared bases, not objects."""
+    if isinstance(node, list):
+        for item in node:
+            yield from _allof_bases(item)
+    elif isinstance(node, Mapping):
+        for entry in node.get("allOf", ()):
+            yield entry["$ref"].removeprefix("#/$defs/")
+        for value in node.values():
+            yield from _allof_bases(value)
+
+
+def _close(node: Any, inside: bool, bases: frozenset[str]) -> Any:
+    """Copy ``node`` with every declared object outside a branch closed."""
+    if isinstance(node, list):
+        return [_close(item, inside, bases) for item in node]
+    if not isinstance(node, Mapping):
+        return node
+    closed: dict[str, Any] = {}
+    for key, value in node.items():
+        if key in _BRANCHES:
+            closed[key] = _close(value, True, bases)
+        elif key == "$defs":
+            closed[key] = {
+                name: member if name in bases else _close(member, False, bases)
+                for name, member in value.items()
+            }
+        elif key == "properties":
+            closed[key] = {
+                name: _close(member, False, bases) for name, member in value.items()
+            }
+        elif key in ("default", "const", "enum"):
+            closed[key] = value
+        else:
+            closed[key] = _close(value, inside, bases)
+    if not inside and node.get("type") == "object" and "properties" in node:
+        closed["unevaluatedProperties"] = False
+    return closed
+
+
+def _closed_schema(schema: Mapping[str, Any]) -> dict[str, Any]:
+    """Return the schema with every object closed, the walk that finds unknown keys.
+
+    The document keeps its objects open; this variant, built in memory only,
+    sets ``unevaluatedProperties: false`` on every object node with
+    ``properties`` outside a ``oneOf``/``anyOf`` branch or an
+    ``if``/``then``/``else`` arm, except the bases an ``allOf`` shares, so a
+    key no definition declares fails where it stands.
+    """
+    return _close(schema, False, frozenset(_allof_bases(schema)))
 
 
 @cache
 def _marking_validator() -> Any:
     schema = load_schema()
     Draft202012Validator.check_schema(schema)
-    return _MarkingValidator(schema)
+    return Draft202012Validator(_closed_schema(schema))
 
 
 def _branch_tag(candidate: Mapping[str, Any], tag: str) -> Any:
@@ -220,7 +263,7 @@ def _candidate_leaves(error: ValidationError) -> Iterable[ValidationError]:
             and child.schema_path[0] == branch
         ]
     if not children:
-        if error.validator not in ("x-unknown-key", "unevaluatedProperties"):
+        if error.validator != "unevaluatedProperties":
             yield error
         return
     for child in children:
@@ -237,7 +280,7 @@ def _select(errors: Iterable[ValidationError]) -> ValidationError | None:
 
 
 def _key_failures_only(error: ValidationError) -> bool:
-    if error.validator in ("x-unknown-key", "unevaluatedProperties"):
+    if error.validator == "unevaluatedProperties":
         return True
     if error.validator in ("oneOf", "anyOf") and error.context:
         return any(
@@ -254,10 +297,19 @@ def _branches(error: ValidationError) -> Iterable[list[ValidationError]]:
     return grouped.values()
 
 
+def _declared(node: Mapping[str, Any]) -> set[str]:
+    """The keys an object node declares, its ``allOf`` bases' included."""
+    declared = set(node["properties"])
+    for entry in node.get("allOf", ()):
+        base = load_schema()["$defs"][entry["$ref"].removeprefix("#/$defs/")]
+        declared |= set(base["properties"])
+    return declared
+
+
 def _keys(errors: Iterable[ValidationError]) -> Iterator[tuple[_Path, str]]:
     for error in errors:
         if error.validator == "unevaluatedProperties":
-            declared = error.schema["properties"]
+            declared = _declared(error.schema)
             path = tuple(error.absolute_path)
             for key in error.instance:
                 if key not in declared:

@@ -1,7 +1,6 @@
 /** The TimeSkeleton schema validator and its public diagnostics. */
 
 import { Ajv2020, type ErrorObject } from "ajv/dist/2020.js";
-import type { DataValidationCxt } from "ajv/dist/types/index.js";
 import { schema } from "./generated/schema.js";
 import type { LosslessTimeSkeleton } from "./generated/types.js";
 import { parseJson } from "./json/parse.js";
@@ -46,42 +45,69 @@ export interface UnknownKey {
   readonly key: string;
 }
 
-interface RunContext {
-  readonly unknownKeys: UnknownKey[];
-}
-
-const ajv = new Ajv2020({
+const OPTIONS = {
   strict: false,
   allErrors: true,
   allowUnionTypes: true,
   discriminator: true,
-  passContext: true,
-});
+} as const;
 
-// Ajv calls this keyword with the context supplied to the compiled validator,
-// making unknown-key collection local to one validation run.
-ajv.addKeyword({
-  keyword: "x-unknown-key",
-  schemaType: "boolean",
-  errors: false,
-  validate(
-    this: RunContext,
-    _schema: unknown,
-    _data: unknown,
-    _parent: unknown,
-    cxt?: DataValidationCxt,
-  ) {
-    if (cxt !== undefined) {
-      const pointer = cxt.instancePath.slice(0, cxt.instancePath.lastIndexOf("/"));
-      this.unknownKeys.push({
-        path: toPath(pointer, cxt.rootData),
-        key: String(cxt.parentDataProperty),
-      });
+type Node = Readonly<Record<string, unknown>>;
+
+const BRANCHES = new Set(["oneOf", "anyOf", "if", "then", "else"]);
+
+/** The definitions some `allOf` refers to: shared bases, not objects. */
+function allOfBases(node: unknown, found = new Set<string>()): Set<string> {
+  if (Array.isArray(node)) {
+    for (const item of node) allOfBases(item, found);
+  } else if (typeof node === "object" && node !== null) {
+    for (const entry of ((node as Node).allOf ?? []) as Node[]) {
+      found.add((entry.$ref as string).slice("#/$defs/".length));
     }
-    return true;
-  },
-});
-const check = ajv.compile(schema);
+    for (const value of Object.values(node)) allOfBases(value, found);
+  }
+  return found;
+}
+
+/** Copy `node` with every declared object outside a branch closed. */
+function close(node: unknown, inside: boolean, bases: ReadonlySet<string>): unknown {
+  if (Array.isArray(node)) return node.map((item) => close(item, inside, bases));
+  if (typeof node !== "object" || node === null) return node;
+  const closed: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(node)) {
+    if (BRANCHES.has(key)) closed[key] = close(value, true, bases);
+    else if (key === "$defs" || key === "properties") {
+      closed[key] = Object.fromEntries(
+        Object.entries(value as Node).map(([name, member]) => [
+          name,
+          key === "$defs" && bases.has(name) ? member : close(member, false, bases),
+        ]),
+      );
+    } else if (["default", "const", "enum"].includes(key)) closed[key] = value;
+    else closed[key] = close(value, inside, bases);
+  }
+  const object = node as Node;
+  if (!inside && object.type === "object" && "properties" in object) {
+    closed.unevaluatedProperties = false;
+  }
+  return closed;
+}
+
+/**
+ * The schema with every object closed, the walk that finds unknown keys.
+ *
+ * The document keeps its objects open; this variant, built in memory only,
+ * sets `unevaluatedProperties: false` on every object node with `properties`
+ * outside a `oneOf`/`anyOf` branch or an `if`/`then`/`else` arm, except the
+ * bases an `allOf` shares, so a key no definition declares fails where it
+ * stands.
+ */
+function closedSchema(document: Node): Node {
+  return close(document, false, allOfBases(document)) as Node;
+}
+
+const check = new Ajv2020(OPTIONS).compile(schema);
+const marking = new Ajv2020(OPTIONS).compile(closedSchema(schema));
 
 /** Convert an Ajv instance path to segments, typing array indices as numbers. */
 function toPath(instancePath: string, value: unknown): PathSegment[] {
@@ -143,18 +169,25 @@ function run(value: unknown): UnknownKey[] {
   if (finite !== undefined) throw finite;
 
   const instance = plain(value);
-  const context: RunContext = { unknownKeys: [] };
-  const valid = check.call(context, instance);
-  if (!valid) reject(check.errors ?? [], instance);
+  const found: UnknownKey[] = [];
+  if (!marking(instance)) {
+    // The closed variant refuses undeclared keys; the document decides validity.
+    if (!check(instance)) reject(check.errors ?? [], instance);
+    for (const error of marking.errors ?? []) {
+      if (error.keyword !== "unevaluatedProperties") continue;
+      found.push({
+        path: toPath(error.instancePath, instance),
+        key: String(error.params.unevaluatedProperty),
+      });
+    }
+  }
 
   const representation = first(representationProblems(value));
   if (representation !== undefined) throw representation;
   const semantic = first(semanticProblems(value));
   if (semantic !== undefined) throw semantic;
 
-  const unique = new Map(
-    context.unknownKeys.map((entry) => [`${jsonPointer(entry.path)} ${entry.key}`, entry]),
-  );
+  const unique = new Map(found.map((entry) => [`${jsonPointer(entry.path)} ${entry.key}`, entry]));
   return [...unique.values()].sort(
     (a, b) => comparePaths(a.path, b.path) || compareCodePoints(a.key, b.key),
   );
