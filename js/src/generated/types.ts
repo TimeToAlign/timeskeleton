@@ -3,7 +3,7 @@
 import type {JsonNumber, Lossless} from "../json/value.js";
 
 /**
- * The unit of a timeline axis.
+ * The unit of a timeline axis. Each unit belongs to one domain (logical: musical time; physical: real time; graphical: space) and one modality (continuous or discrete), and states the default number type of an axis that declares none. The domain and modality decide the timeline class: `seconds`, physical and continuous, makes a ContinuousPhysicalTimeline.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "TimeUnit".
@@ -157,7 +157,7 @@ export type FractionPositive = [number, number];
  */
 export type Paint = string;
 /**
- * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
+ * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge (a coordinate marker at a root's start or end; the flow markers of `flow_control` are not drawn), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -179,14 +179,14 @@ export type ElementType =
   | "group"
   | "card";
 /**
- * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.
+ * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. The markers band holds the coordinate markers, the wedges at a root's start and end, never the flow markers of `flow_control`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Order".
  */
 export type Order = string[];
 /**
- * A position on a named timeline axis: the axis unit, the number type, and the value in the representation that number type selects. A position on the timeline's own axis is a bare Number instead; this form is for positions on other axes.
+ * A self-describing position: the axis unit, the number type, and the value in the representation that number type selects. Inside a manifest every position lies on an axis its container declares (a timeline's unit and number type, a conversion map's source and target units) and is a bare Number; this form is for a position outside such a container, as hosts exchange single positions.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Coordinate".
@@ -717,7 +717,7 @@ export type CompleteGraphical = {
 };
 
 /**
- * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one without both is anonymous. Timeline ids (of roots and descendants), group ids and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so these five words are no ID anywhere. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.
+ * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.
  */
 export interface TimeSkeleton {
   /**
@@ -725,7 +725,7 @@ export interface TimeSkeleton {
    */
   $schema?: string;
   /**
-   * The TimeSkeleton version this manifest conforms to. Compulsory: a JSON structure without it is no TimeSkeleton manifest.
+   * The TimeSkeleton version this manifest conforms to. Compulsory: a JSON structure without it is not a TimeSkeleton manifest.
    */
   timeskeleton: "0.7.0";
   /**
@@ -747,7 +747,7 @@ export interface TimeSkeleton {
    */
   timelines: Timeline[];
   /**
-   * The timeline groups. A root no group names remains ungrouped in the bundle. A group that has descendants named in a group is indirectly linked with that group.
+   * The timeline groups. A root that no group names remains ungrouped in the bundle. A root whose descendants are named in a group is indirectly linked with that group.
    */
   groups?: Group[];
   graphical?: Graphical;
@@ -769,7 +769,7 @@ export interface Timeline {
   name?: string | null;
   unit: TimeUnit;
   /**
-   * The number type of every coordinate on the timeline's axis. Absent means the unit's default: int for ticks, samples, frames and pixels; fraction for quarters and whole_note; float for every other unit.
+   * The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit.
    */
   number_type?: "int" | "float" | "fraction";
   /**
@@ -781,7 +781,7 @@ export interface Timeline {
    */
   offset?: number | Fraction;
   /**
-   * Whether the timeline's length is immutable.
+   * Whether the timeline's extent is fixed. A locked timeline, such as a CD track, cannot extend; an unlocked one may grow, as a CD timeline built by appending track after track does.
    */
   locked?: boolean;
   /**
@@ -945,7 +945,7 @@ export interface LinearMap {
   offset: Number;
 }
 /**
- * Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose identifier is beat_map_id.
+ * Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose ID is beat_map_id.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "MetricalPositionMap".
@@ -958,7 +958,7 @@ export interface MetricalPositionMap {
   target_unit: TimeUnit | null;
   meter_map: MetricMap;
   /**
-   * The identifier of the BeatInMeasureMap derived from meter_map.
+   * The ID of the BeatInMeasureMap derived from meter_map.
    */
   beat_map_id: string;
 }
@@ -1134,7 +1134,7 @@ export interface Region {
   };
 }
 /**
- * The flow control of a timeline: its breaks, jumps and markers.
+ * The flow control of a timeline: its breaks, jumps and flow markers. A flow marker is a named position that jumps target; the markers band does not draw it. It differs from a coordinate marker, a wedge the markers band draws at a root's start and end.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "FlowControl".
@@ -1197,7 +1197,7 @@ export interface Jump {
   };
 }
 /**
- * A named position on the timeline's own axis, the target of jumps.
+ * A flow marker: a named position on the timeline's own axis, the target of jumps. Flow control holds it and nothing draws it; the markers band holds the coordinate markers instead, the wedges at a root's start and end.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Marker".
@@ -1295,7 +1295,7 @@ export interface Group {
     [k: string]: unknown;
   };
   /**
-   * The ids of the member timelines, sorted by code point. The array may be empty.
+   * The IDs of the member timelines, sorted by code point. The array may be empty.
    */
   members: Id[];
 }
@@ -1324,7 +1324,7 @@ export interface Graphical {
   };
 }
 /**
- * Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.
+ * Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width and shadow are TimeSkeleton's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Declaration".
@@ -1418,7 +1418,7 @@ export interface Selector {
    */
   within?: string;
   /**
-   * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
+   * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge (a coordinate marker at a root's start or end; the flow markers of `flow_control` are not drawn), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
    */
   inside?:
     | "block"

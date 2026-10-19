@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULTS } from "../src/defaults.js";
 import { schema } from "../src/generated/schema.js";
+import { UNIT_NUMBER_TYPES } from "../src/validate.js";
 import { loadSchemaFile } from "./fixtures.js";
 
 type Node = Record<string, unknown>;
@@ -82,6 +83,21 @@ describe("the schema document", () => {
       "CoordinateNonnegative",
     ]) {
       expect(Object.hasOwn(defs, name)).toBe(false);
+    }
+  });
+
+  it("states the default number type of every unit in the unit table", () => {
+    const unit = defs.TimeUnit as Node;
+    expect(unit.type).toBe("string");
+    expect(unit.enum).toBeUndefined();
+    const entries = unit.oneOf as Node[];
+    expect(entries.map((entry) => entry.const)).toEqual(Object.keys(UNIT_NUMBER_TYPES));
+    const pattern =
+      /^(Logical|Physical|Graphical), (continuous|discrete); default number type (int|float|fraction)\.$/;
+    for (const entry of entries) {
+      expect(Object.keys(entry).sort()).toEqual(["const", "description"]);
+      const match = pattern.exec(entry.description as string);
+      expect(match?.[3]).toBe(UNIT_NUMBER_TYPES[entry.const as keyof typeof UNIT_NUMBER_TYPES]);
     }
   });
 

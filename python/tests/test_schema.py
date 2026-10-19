@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
 from timeskeleton import DEFAULTS, SCHEMA_VERSION, load_schema, schema_path
+from timeskeleton.validate import UNIT_NUMBER_TYPES
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 UNKNOWN = {"x-unknown-key": True}
@@ -103,6 +105,22 @@ def test_the_public_definitions() -> None:
         "MemberOrder",
     ):
         assert gone not in defs
+
+
+def test_the_unit_table_states_the_default_number_types() -> None:
+    unit = _defs()["TimeUnit"]
+    assert unit["type"] == "string"
+    assert "enum" not in unit
+    assert [entry["const"] for entry in unit["oneOf"]] == list(UNIT_NUMBER_TYPES)
+    pattern = re.compile(
+        r"^(Logical|Physical|Graphical), (continuous|discrete); "
+        r"default number type (int|float|fraction)\.$"
+    )
+    for entry in unit["oneOf"]:
+        assert sorted(entry) == ["const", "description"]
+        match = pattern.match(entry["description"])
+        assert match is not None, entry["const"]
+        assert match[3] == UNIT_NUMBER_TYPES[entry["const"]], entry["const"]
 
 
 def test_objects_are_open_and_mark_their_unknown_keys() -> None:

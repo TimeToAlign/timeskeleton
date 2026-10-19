@@ -47,6 +47,12 @@ rejection cases that use them (`test_schema.py`):
   `MeasureMapRow`, and none of `Meta`, `TimelineClass`, `TimelineManifest`,
   `Bundle`, `GroupGraphical`, `BundleGraphical`, `CoordinateNonnegative` and
   `MemberOrder`.
+- **The unit table.** `TimeUnit` is a string whose `oneOf` holds one
+  `{const, description}` per unit and no `enum`. The consts, in order, are
+  exactly the keys of `UNIT_NUMBER_TYPES`, and each description is
+  `<Domain>, <modality>; default number type <t>.` with `t` that unit's
+  value in the table, so the default number types the validators read
+  cannot drift from the ones the schema states.
 - **Open objects.** No node anywhere has `additionalProperties: false`.
   Every node with `type: object` and `properties` carries exactly
   `unevaluatedProperties: {"x-unknown-key": true}`, among them

@@ -265,6 +265,9 @@ function completeDefinitions(definitions: Record<string, Node>): Record<string, 
  *   (`unevaluatedProperties`) and an `anyOf` whose branches only require
  *   members are removed, as the generator cannot express them, and so are
  *   defaults, which would make it copy a referenced definition;
+ * - a `oneOf` whose branches each state a constant and its description (the
+ *   unit table) becomes an `enum` of the constants, which the generator
+ *   renders as one union of literals;
  * - an object whose `oneOf` branches narrow its own properties (a
  *   coordinate's value by its number type) becomes a union of whole objects;
  * - a reference that also requires members (a child timeline requiring its
@@ -278,6 +281,11 @@ function schemaForTypes(schema: Node): Node {
   const definitions = (view.$defs ?? {}) as Record<string, Node>;
   const onlyRequires = (branch: unknown) =>
     typeof branch === "object" && branch !== null && Object.keys(branch).join() === "required";
+  const onlyConstant = (branch: unknown) =>
+    typeof branch === "object" &&
+    branch !== null &&
+    "const" in branch &&
+    Object.keys(branch).every((key) => key === "const" || key === "description");
 
   function visit(value: unknown): void {
     if (Array.isArray(value)) {
@@ -292,6 +300,10 @@ function schemaForTypes(schema: Node): Node {
       delete node[keyword];
     }
     if (Array.isArray(node.anyOf) && node.anyOf.every(onlyRequires)) delete node.anyOf;
+    if (Array.isArray(node.oneOf) && node.oneOf.every(onlyConstant)) {
+      node.enum = node.oneOf.map((branch: Node) => branch.const);
+      delete node.oneOf;
+    }
     if (
       typeof node.properties === "object" &&
       Array.isArray(node.oneOf) &&

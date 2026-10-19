@@ -3,12 +3,12 @@ export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json",
   "title": "TimeSkeleton manifest",
-  "description": "The TimeSkeleton 0.7.0 manifest: musical timelines as the Python library timetoalign (TTA) serializes them, without their events. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates follow TTA in its use of TimeUnits and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key it does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
+  "description": "The TimeSkeleton 0.7.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and measure maps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key it does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
   "$ref": "#/$defs/TimeSkeleton",
   "$defs": {
     "TimeSkeleton": {
       "type": "object",
-      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one without both is anonymous. Timeline ids (of roots and descendants), group ids and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so these five words are no ID anywhere. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.",
+      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.",
       "properties": {
         "$schema": {
           "type": "string",
@@ -16,7 +16,7 @@ export const schema = {
         },
         "timeskeleton": {
           "const": "0.7.0",
-          "description": "The TimeSkeleton version this manifest conforms to. Compulsory: a JSON structure without it is no TimeSkeleton manifest."
+          "description": "The TimeSkeleton version this manifest conforms to. Compulsory: a JSON structure without it is not a TimeSkeleton manifest."
         },
         "id": {
           "$ref": "#/$defs/Id",
@@ -45,7 +45,7 @@ export const schema = {
         },
         "groups": {
           "type": "array",
-          "description": "The timeline groups. A root no group names remains ungrouped in the bundle. A group that has descendants named in a group is indirectly linked with that group.",
+          "description": "The timeline groups. A root that no group names remains ungrouped in the bundle. A root whose descendants are named in a group is indirectly linked with that group.",
           "items": {
             "$ref": "#/$defs/Group"
           },
@@ -84,7 +84,7 @@ export const schema = {
         },
         "number_type": {
           "$ref": "#/$defs/NumberType",
-          "description": "The number type of every coordinate on the timeline's axis. Absent means the unit's default: int for ticks, samples, frames and pixels; fraction for quarters and whole_note; float for every other unit."
+          "description": "The number type of every coordinate on the timeline's axis. Absent means the unit's default number type, which the unit table (`TimeUnit`) states for every unit."
         },
         "length": {
           "description": "The end of the timeline on its own axis, or null when the length is not known.",
@@ -103,7 +103,7 @@ export const schema = {
         },
         "locked": {
           "type": "boolean",
-          "description": "Whether the timeline's length is immutable.",
+          "description": "Whether the timeline's extent is fixed. A locked timeline, such as a CD track, cannot extend; an unlocked one may grow, as a CD timeline built by appending track after track does.",
           "default": false
         },
         "is_segment_line": {
@@ -228,7 +228,7 @@ export const schema = {
         },
         "members": {
           "type": "array",
-          "description": "The ids of the member timelines, sorted by code point. The array may be empty.",
+          "description": "The IDs of the member timelines, sorted by code point. The array may be empty.",
           "items": {
             "$ref": "#/$defs/Id"
           },
@@ -352,7 +352,7 @@ export const schema = {
     },
     "Coordinate": {
       "type": "object",
-      "description": "A position on a named timeline axis: the axis unit, the number type, and the value in the representation that number type selects. A position on the timeline's own axis is a bare Number instead; this form is for positions on other axes.",
+      "description": "A self-describing position: the axis unit, the number type, and the value in the representation that number type selects. Inside a manifest every position lies on an axis its container declares (a timeline's unit and number type, a conversion map's source and target units) and is a bare Number; this form is for a position outside such a container, as hosts exchange single positions.",
       "properties": {
         "unit": {
           "$ref": "#/$defs/TimeUnit"
@@ -442,24 +442,72 @@ export const schema = {
     },
     "TimeUnit": {
       "type": "string",
-      "description": "The unit of a timeline axis.",
-      "enum": [
-        "number",
-        "floating_measures",
-        "whole_note",
-        "quarters",
-        "ticks",
-        "milliseconds",
-        "seconds",
-        "minutes",
-        "samples",
-        "frames",
-        "pixels",
-        "meters",
-        "centimeters",
-        "millimeters",
-        "inches",
-        "points"
+      "description": "The unit of a timeline axis. Each unit belongs to one domain (logical: musical time; physical: real time; graphical: space) and one modality (continuous or discrete), and states the default number type of an axis that declares none. The domain and modality decide the timeline class: `seconds`, physical and continuous, makes a ContinuousPhysicalTimeline.",
+      "oneOf": [
+        {
+          "const": "number",
+          "description": "Logical, continuous; default number type float."
+        },
+        {
+          "const": "floating_measures",
+          "description": "Logical, continuous; default number type float."
+        },
+        {
+          "const": "whole_note",
+          "description": "Logical, continuous; default number type fraction."
+        },
+        {
+          "const": "quarters",
+          "description": "Logical, continuous; default number type fraction."
+        },
+        {
+          "const": "ticks",
+          "description": "Logical, discrete; default number type int."
+        },
+        {
+          "const": "milliseconds",
+          "description": "Physical, continuous; default number type float."
+        },
+        {
+          "const": "seconds",
+          "description": "Physical, continuous; default number type float."
+        },
+        {
+          "const": "minutes",
+          "description": "Physical, continuous; default number type float."
+        },
+        {
+          "const": "samples",
+          "description": "Physical, discrete; default number type int."
+        },
+        {
+          "const": "frames",
+          "description": "Physical, discrete; default number type int."
+        },
+        {
+          "const": "pixels",
+          "description": "Graphical, discrete; default number type int."
+        },
+        {
+          "const": "meters",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "centimeters",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "millimeters",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "inches",
+          "description": "Graphical, continuous; default number type float."
+        },
+        {
+          "const": "points",
+          "description": "Graphical, continuous; default number type float."
+        }
       ]
     },
     "NumberType": {
@@ -672,7 +720,7 @@ export const schema = {
     },
     "FlowControl": {
       "type": "object",
-      "description": "The flow control of a timeline: its breaks, jumps and markers.",
+      "description": "The flow control of a timeline: its breaks, jumps and flow markers. A flow marker is a named position that jumps target; the markers band does not draw it. It differs from a coordinate marker, a wedge the markers band draws at a root's start and end.",
       "properties": {
         "breaks": {
           "type": "array",
@@ -811,7 +859,7 @@ export const schema = {
     },
     "Marker": {
       "type": "object",
-      "description": "A named position on the timeline's own axis, the target of jumps.",
+      "description": "A flow marker: a named position on the timeline's own axis, the target of jumps. Flow control holds it and nothing draws it; the markers band holds the coordinate markers instead, the wedges at a root's start and end.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -880,7 +928,7 @@ export const schema = {
     },
     "Order": {
       "type": "array",
-      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.",
+      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. The markers band holds the coordinate markers, the wedges at a root's start and end, never the flow markers of `flow_control`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.",
       "items": {
         "type": "string",
         "pattern": "^[^/\\u0000-\\u001f]+(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$"
@@ -1000,7 +1048,7 @@ export const schema = {
     },
     "ElementType": {
       "type": "string",
-      "description": "The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge at a root's start or end, a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
+      "description": "The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge (a coordinate marker at a root's start or end; the flow markers of `flow_control` are not drawn), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
       "enum": [
         "block",
         "timeline",
@@ -1026,7 +1074,7 @@ export const schema = {
     },
     "Declaration": {
       "type": "object",
-      "description": "Presentation properties named as in SVG. An element reads only the properties its type reads; the others are ignored.",
+      "description": "Presentation properties. Where SVG has the property, it carries SVG's name; content, max-width and shadow are TimeSkeleton's own, SVG having no property of that meaning. An element reads only the properties its type reads; the others are ignored.",
       "properties": {
         "stroke": {
           "$ref": "#/$defs/Paint"
@@ -1618,7 +1666,7 @@ export const schema = {
     },
     "MetricalPositionMap": {
       "type": "object",
-      "description": "Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose identifier is beat_map_id.",
+      "description": "Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose ID is beat_map_id.",
       "properties": {
         "type": {
           "const": "MetricalPositionMap"
@@ -1658,7 +1706,7 @@ export const schema = {
         },
         "beat_map_id": {
           "type": "string",
-          "description": "The identifier of the BeatInMeasureMap derived from meter_map."
+          "description": "The ID of the BeatInMeasureMap derived from meter_map."
         }
       },
       "required": [

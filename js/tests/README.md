@@ -38,7 +38,9 @@ as in the Python suite's "The fixture set".
 `schema.test.ts` checks invariants, not the tree's private shape, so a
 refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist
-and the former ones do not; every object node outside a branch carries the
+and the former ones do not; the unit table's consts are exactly the keys of
+`UNIT_NUMBER_TYPES` in order, each description naming that unit's default
+number type, as in the Python suite; every object node outside a branch carries the
 unknown-key keyword and none is closed; every discriminated union tags each
 branch with a distinct required constant; the `default`s are exactly
 `DEFAULTS`. `generated.test.ts`: a fresh generator run exports the committed
