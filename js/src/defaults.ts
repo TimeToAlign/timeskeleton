@@ -10,11 +10,15 @@
  * through untouched.
  */
 
-import type { NumberType, TimeUnit } from "./generated/types.js";
-import { clone, exactNumber, isJsonObject, JsonFloat } from "./manifest.js";
-import { numberTypeOf } from "./validate.js";
-
-type JsonObject = Record<string, unknown>;
+import type {
+  CompleteTimeSkeleton,
+  LosslessTimeSkeleton,
+  NumberType,
+  TimeUnit,
+} from "./generated/types.js";
+import { clone, isJsonObject, JsonFloat, type JsonObject } from "./json/value.js";
+import { exactNumber } from "./numbers/exact.js";
+import { numberTypeOf } from "./validate/diagnostics.js";
 
 /**
  * The default of every key that has one, by the kind of object holding it.
@@ -193,9 +197,13 @@ const stripOne: Pass = (owner, kind) => {
  * that is absent is added with its default, at every depth (a timeline's
  * `number_type` is its unit's default). Keys whose default is "absent" are
  * never added, present keys are never changed, and unknown keys pass through.
+ * Any other value is copied, its manifest-shaped parts completed, so a
+ * graphical block alone completes as `complete({ graphical }).graphical`.
  * Python's `timeskeleton.complete` gives the same value.
  */
-export function complete<T>(value: T): T {
+export function complete(value: LosslessTimeSkeleton): CompleteTimeSkeleton;
+export function complete<T>(value: T): T;
+export function complete(value: unknown): unknown {
   const result = clone(value);
   visitManifest(result, completeOne);
   return result;
@@ -211,7 +219,9 @@ export function complete<T>(value: T): T {
  * `complete(minimal(x))` equals `complete(x)`. Python's
  * `timeskeleton.minimal` gives the same value.
  */
-export function minimal<T>(value: T): T {
+export function minimal(value: LosslessTimeSkeleton): LosslessTimeSkeleton;
+export function minimal<T>(value: T): T;
+export function minimal(value: unknown): unknown {
   const result = complete(value);
   visitManifest(result, stripOne);
   return result;

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from importlib import import_module
 from pathlib import Path
 
 import pytest
@@ -125,3 +126,20 @@ def test_an_invalid_value_raises_before_any_key_is_listed() -> None:
         unknown_keys(manifest(timeline("score", length=32), extra=1))
     with pytest.raises(UnsupportedVersionError):
         unknown_keys({"timeskeleton": "9.9.9", "extra": 1})
+
+
+def test_unknown_keys_uses_one_schema_walk(monkeypatch: pytest.MonkeyPatch) -> None:
+    module = import_module("timeskeleton.validate")
+    validator = module._marking_validator()
+    calls = 0
+
+    class CountingValidator:
+        def iter_errors(self, value: object):
+            nonlocal calls
+            calls += 1
+            return validator.iter_errors(value)
+
+    monkeypatch.setattr(module, "_marking_validator", lambda: CountingValidator())
+    value = manifest(timeline("score"), extra=True)
+    assert unknown_keys(value) == [{"path": [], "key": "extra"}]
+    assert calls == 1

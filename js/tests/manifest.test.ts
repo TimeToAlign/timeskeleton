@@ -1,20 +1,18 @@
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { JsonSyntaxError, parseJson } from "../src/json/parse.js";
+import type { JsonObject } from "../src/json/value.js";
 import {
-  canonicalJson,
-  canonicalOrder,
-  compactJson,
-  dumps,
   isJsonFloat,
   isJsonObject,
   type Json,
   JsonFloat,
   type Lossless,
-  parse,
-  parseJson,
-  validate,
-} from "../src/index.js";
+} from "../src/json/value.js";
+import { canonicalJson, compactJson } from "../src/json/write.js";
+import { canonicalOrder, dumps } from "../src/manifest/order.js";
+import { parse, validate } from "../src/validate.js";
 import {
   bundle,
   fixtureDirectory,
@@ -28,8 +26,6 @@ import {
   warningFileNames,
   warningText,
 } from "./fixtures.js";
-
-type JsonObject = Record<string, unknown>;
 
 // Shared with the Python suite, character for character.
 const NUMBER_CORPUS =
@@ -167,10 +163,44 @@ describe("parseJson", () => {
     expect(compactJson(value as Lossless<Json>)).toBe('{"b":1,"10":2,"2":3}');
   });
 
-  it("refuses text that is not one JSON value", () => {
-    for (const text of ["", "[1,]", "{1: 2}", "01", "[1] 2", "nul"]) {
-      expect(() => parseJson(text), text).toThrow(SyntaxError);
-    }
+  it("refuses text that is not one JSON value where it breaks", () => {
+    const refusals = [
+      "",
+      "[1,]",
+      "{1: 2}",
+      "01",
+      "[1] 2",
+      "nul",
+      "[1, 2",
+      '"abc',
+      '["\\x"]',
+      '{\n  "a": ,\n}',
+      '{\n  "a": 1\n  "b": 2\n}',
+    ];
+    const read = refusals.map((text) => {
+      try {
+        parseJson(text);
+        return null;
+      } catch (error) {
+        if (!(error instanceof JsonSyntaxError)) throw error;
+        expect(error).toBeInstanceOf(SyntaxError);
+        expect(error.name).toBe("JsonSyntaxError");
+        return [error.message, error.offset, error.line, error.column];
+      }
+    });
+    expect(read).toEqual([
+      ["unexpected end at line 1, column 1 of the JSON text", 0, 1, 1],
+      ["unexpected character at line 1, column 4 of the JSON text", 3, 1, 4],
+      ["expected a string key at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["unexpected text after the JSON value at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["unexpected text after the JSON value at line 1, column 5 of the JSON text", 4, 1, 5],
+      ["unexpected character at line 1, column 1 of the JSON text", 0, 1, 1],
+      ['expected "]" at line 1, column 6 of the JSON text', 5, 1, 6],
+      ["unterminated string at line 1, column 5 of the JSON text", 4, 1, 5],
+      ["malformed string at line 1, column 2 of the JSON text", 1, 1, 2],
+      ["unexpected character at line 2, column 8 of the JSON text", 9, 2, 8],
+      ['expected "}" at line 3, column 3 of the JSON text', 13, 3, 3],
+    ]);
     expect(() => parseJson("1e400")).toThrow(RangeError);
   });
 });

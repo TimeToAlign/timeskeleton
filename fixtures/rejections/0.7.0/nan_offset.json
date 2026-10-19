@@ -1,0 +1,30 @@
+{
+  "code": "finite_number",
+  "manifest": {
+    "timelines": [
+      {
+        "children": [
+          {
+            "id": "take",
+            "length": 4.0,
+            "offset": 0.0,
+            "unit": "seconds"
+          }
+        ],
+        "id": "recording",
+        "length": 60.0,
+        "unit": "seconds"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "non_finite": "NaN",
+  "path": [
+    "timelines",
+    0,
+    "children",
+    0,
+    "offset"
+  ],
+  "reason": "Every numeric leaf is finite; the test substitutes NaN for the placeholder at the stored path."
+}

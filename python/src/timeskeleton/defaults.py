@@ -15,7 +15,7 @@ import copy
 from collections.abc import Callable
 from typing import Any
 
-from .validate import _UNIT_NUMBER_TYPES
+from .validation.diagnostics import UNIT_NUMBER_TYPES
 
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
@@ -129,7 +129,7 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
 
 def _default_number_type(timeline: dict[str, Any]) -> str | None:
     unit = timeline.get("unit")
-    return _UNIT_NUMBER_TYPES.get(unit) if isinstance(unit, str) else None
+    return UNIT_NUMBER_TYPES.get(unit) if isinstance(unit, str) else None
 
 
 def _complete_one(owner: dict[str, Any], kind: str) -> None:

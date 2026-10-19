@@ -5,7 +5,8 @@
  * with the one document `timeskeleton.schema.json`.
  *
  * Three files are produced: `types.ts`, the TypeScript types derived with
- * json-schema-to-typescript from the document; `schema.ts`, the document
+ * json-schema-to-typescript from the document, each definition holding a
+ * default joined by its complete form; `schema.ts`, the document
  * itself as a constant, so that the package bundles the schema without a JSON
  * import; and `font.ts`, the metrics of the bundled font
  * (`fonts/dejavu-sans-2.37.metrics.json`) as a constant. The test suite
@@ -66,23 +67,193 @@ function banner(source: string): string {
  * name. Objects take only their declared properties
  * (`additionalProperties: false` for generation), so a misspelt key is a
  * compile error, while the free objects (`meta`, `metric_hierarchy`), which
- * declare `additionalProperties: true`, stay free.
+ * declare `additionalProperties: true`, stay free. Every definition that
+ * states a default, or refers to one that does, joins a second time as its
+ * complete form (`CompleteTimeSkeleton`, `CompleteTimeline`, …, see
+ * `completeDefinitions`), and `LosslessTimeSkeleton` closes the file.
  */
 export async function renderTypes(source: string): Promise<string> {
   const document = readDocument(source);
-  const definitions = { ...(document.$defs as Record<string, Record<string, unknown>>) };
+  const definitions = { ...(document.$defs as Record<string, Node>) };
   const { TimeSkeleton: root, ...rest } = definitions;
   if (root === undefined) throw new Error("the schema defines no TimeSkeleton");
-  const view = { ...root, title: "TimeSkeleton", $defs: rest };
-  return compile(schemaForTypes(view), "TimeSkeleton", {
-    bannerComment: banner(source),
+  const complete = completeDefinitions(definitions);
+  const view = schemaForTypes({ ...root, title: "TimeSkeleton", $defs: { ...rest, ...complete } });
+  const prepared = view.$defs as Record<string, Node>;
+  for (const name of Object.keys(complete)) {
+    // The one member of an `allOf` renders as a type alias, not an interface:
+    // an object type alias, like every `Lossless` type, is assignable to an
+    // index-signature type such as a JSON object, and an interface is not.
+    const { description, ...form } = prepared[name] as Node;
+    prepared[name] = { description, allOf: [form] };
+  }
+  const types = await compile(view, "TimeSkeleton", {
+    bannerComment: `${banner(source)}\n\nimport type { JsonNumber, Lossless } from "../json/value.js";`,
     additionalProperties: false,
     declareExternallyReferenced: true,
     unreachableDefinitions: true,
   });
+  return `${types}${LOSSLESS}`;
 }
 
+const LOSSLESS = `/**
+ * A manifest as \`parseJson\` reads it: every number a \`JsonNumber\`, every
+ * Fraction a pair.
+ */
+export type LosslessTimeSkeleton = Lossless<TimeSkeleton>;
+`;
+
 type Node = Record<string, unknown>;
+
+/**
+ * The keys whose default the schema states in prose, not as a `default`
+ * keyword, by definition: a timeline's number type defaults to its unit's,
+ * so no one value can be its keyword.
+ */
+const STATED_DEFAULTS: Readonly<Record<string, readonly string[]>> = {
+  Timeline: ["number_type"],
+};
+
+const COMPLETE = "Complete";
+const REFERENCE = "#/$defs/";
+
+/** Every `$ref` target below a node, by definition name. */
+function referencesOf(node: unknown, found = new Set<string>()): Set<string> {
+  if (Array.isArray(node)) {
+    for (const item of node) referencesOf(item, found);
+  } else if (typeof node === "object" && node !== null) {
+    const { $ref: reference } = node as Node;
+    if (typeof reference === "string") found.add(reference.slice(REFERENCE.length));
+    for (const value of Object.values(node)) referencesOf(value, found);
+  }
+  return found;
+}
+
+/** Whether a property below a node states a `default`. */
+function statesDefault(node: unknown): boolean {
+  if (Array.isArray(node)) return node.some(statesDefault);
+  if (typeof node !== "object" || node === null) return false;
+  const { properties } = node as Node;
+  if (typeof properties === "object" && properties !== null) {
+    const members = Object.values(properties as Node);
+    if (
+      members.some((member) => typeof member === "object" && member !== null && "default" in member)
+    ) {
+      return true;
+    }
+  }
+  return Object.values(node).some(statesDefault);
+}
+
+/** Whether a node below a node is typed a number or an integer. */
+function holdsNumber(node: unknown): boolean {
+  if (Array.isArray(node)) return node.some(holdsNumber);
+  if (typeof node !== "object" || node === null) return false;
+  const { type } = node as Node;
+  const types = Array.isArray(type) ? type : [type];
+  if (types.includes("number") || types.includes("integer")) return true;
+  return Object.values(node).some(holdsNumber);
+}
+
+const NUMBER_TYPES: Readonly<Record<string, string>> = {
+  number: "JsonNumber",
+  integer: "JsonNumber",
+  null: "null",
+  string: "string",
+  boolean: "boolean",
+};
+
+/**
+ * The complete forms of the definitions, each named `Complete<name>`.
+ *
+ * A definition has a complete form when one of its properties states a
+ * `default` (or a default `STATED_DEFAULTS` names), or when it refers to a
+ * definition that has one. In a complete form every property with a
+ * default is required, at every depth; a property whose default is
+ * "absent" (it states none, as a manifest's `id` and `graphical` and a
+ * root's `offset`) stays optional. Numbers are typed as `parseJson` reads
+ * them: a number leaf is a `JsonNumber`, a reference to a definition without
+ * a complete form is that definition's `Lossless` type (the definition
+ * itself where it holds no number), and a reference to one with a complete
+ * form is its complete form. The descriptions stay with the plain
+ * definitions; each complete form carries one line naming its plain one.
+ */
+function completeDefinitions(definitions: Record<string, Node>): Record<string, Node> {
+  /** The definitions `holds` is true of, and every definition referring to one of them. */
+  const closure = (holds: (definition: Node, name: string) => boolean): Set<string> => {
+    const names = Object.keys(definitions);
+    const found = new Set(names.filter((name) => holds(definitions[name] as Node, name)));
+    for (let grown = true; grown; ) {
+      grown = false;
+      for (const name of names) {
+        if (found.has(name)) continue;
+        if ([...referencesOf(definitions[name])].some((target) => found.has(target))) {
+          found.add(name);
+          grown = true;
+        }
+      }
+    }
+    return found;
+  };
+  const completed = closure(
+    (definition, name) => statesDefault(definition) || name in STATED_DEFAULTS,
+  );
+  const numeric = closure(holdsNumber);
+
+  function rewrite(value: unknown, definition: string | null): unknown {
+    if (Array.isArray(value)) return value.map((item) => rewrite(item, null));
+    if (typeof value !== "object" || value === null) return value;
+    const node = { ...(value as Node) };
+    delete node.description;
+    if (typeof node.$ref === "string") {
+      const target = node.$ref.slice(REFERENCE.length);
+      if (completed.has(target)) {
+        node.$ref = `${REFERENCE}${COMPLETE}${target}`;
+      } else {
+        if ("required" in node) throw new Error(`a reference to ${target} requires members`);
+        return { tsType: numeric.has(target) ? `Lossless<${target}>` : target };
+      }
+    }
+    const types = typeof node.type === "string" ? [node.type] : node.type;
+    if (
+      Array.isArray(types) &&
+      types.some((type) => type === "number" || type === "integer") &&
+      types.every((type) => typeof type === "string" && type in NUMBER_TYPES)
+    ) {
+      return { tsType: types.map((type) => NUMBER_TYPES[type as string]).join(" | ") };
+    }
+    for (const [key, member] of Object.entries(node)) {
+      if (key === "properties" && typeof member === "object" && member !== null) {
+        node.properties = Object.fromEntries(
+          Object.entries(member as Node).map(([name, schema]) => [name, rewrite(schema, null)]),
+        );
+      } else if (!["default", "const", "enum"].includes(key)) {
+        node[key] = rewrite(member, null);
+      }
+    }
+    const { properties } = value as Node;
+    if (typeof properties === "object" && properties !== null) {
+      const defaulted = Object.entries(properties as Record<string, Node>)
+        .filter(([, member]) => "default" in member)
+        .map(([key]) => key);
+      const stated = definition === null ? [] : (STATED_DEFAULTS[definition] ?? []);
+      const required = (node.required as string[] | undefined) ?? [];
+      const added = [...defaulted, ...stated].filter((key) => !required.includes(key));
+      node.required = [...required, ...added];
+    }
+    return node;
+  }
+
+  return Object.fromEntries(
+    [...completed].map((name) => [
+      `${COMPLETE}${name}`,
+      {
+        ...(rewrite(definitions[name], name) as Node),
+        description: `\`${name}\` in the complete form: every key with a default present, every number as \`parseJson\` reads it.`,
+      },
+    ]),
+  );
+}
 
 /**
  * Prepare a schema for the generator.

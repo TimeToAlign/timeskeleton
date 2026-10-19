@@ -1,17 +1,19 @@
 import { describe, expect, it } from "vitest";
-import {
-  compactJson,
-  complete,
-  dumps,
-  type Json,
-  JsonFloat,
-  type Lossless,
-  minimal,
-  validate,
-} from "../src/index.js";
-import { bundle, manifest, timeline } from "./fixtures.js";
-
-type JsonObject = Record<string, unknown>;
+import { complete, minimal } from "../src/defaults.js";
+import { canonicalManifest, completeManifest, minimalManifest } from "../src/forms.js";
+import type {
+  CompleteBreak,
+  CompleteTimeline,
+  CompleteTimeSkeleton,
+  Fraction,
+  LosslessTimeSkeleton,
+} from "../src/generated/types.js";
+import type { JsonObject } from "../src/json/value.js";
+import { type Json, JsonFloat, type Lossless } from "../src/json/value.js";
+import { compactJson } from "../src/json/write.js";
+import { dumps } from "../src/manifest/order.js";
+import { parse, validate } from "../src/validate.js";
+import { bundle, fixtureFiles, fixtureText, manifest, timeline } from "./fixtures.js";
 
 const SMALLEST = {
   timeskeleton: "0.7.0",
@@ -287,5 +289,106 @@ describe("the complete and the minimal form", () => {
     expect(compactJson(value as Lossless<Json>)).toBe(given);
     validate(complete(value));
     validate(minimal(value));
+  });
+});
+
+describe("the typed forms", () => {
+  const COMPLETE_ROOT: CompleteTimeline = {
+    id: "piece",
+    name: null,
+    unit: "quarters",
+    number_type: "fraction",
+    length: [32, 1],
+    locked: false,
+    is_segment_line: false,
+    meta: {},
+    children: [],
+    conversion_maps: [],
+    regions: [],
+    flow_control: { breaks: [], jumps: [], markers: [] },
+    measure_map: null,
+    metric_hierarchy: null,
+  };
+  const COMPLETE: CompleteTimeSkeleton = {
+    timeskeleton: "0.7.0",
+    name: null,
+    meta: {},
+    groups: [],
+    timelines: [COMPLETE_ROOT],
+  };
+
+  it("type every key with a default as present, and no other", () => {
+    // The compiler is the test: each `@ts-expect-error` line must fail to type-check.
+    const { number_type: _numberType, ...untyped } = COMPLETE_ROOT;
+    // @ts-expect-error a complete timeline states its number type
+    const unstated: CompleteTimeline = untyped;
+    const { groups: _groups, ...ungrouped } = COMPLETE;
+    // @ts-expect-error a complete manifest states its groups
+    const groupless: CompleteTimeSkeleton = ungrouped;
+    // @ts-expect-error a complete break states its repeat count
+    const uncounted: CompleteBreak = {
+      id: "b",
+      coordinate: 1,
+      control_type: "section_break",
+      condition: "always",
+      label: null,
+      name: null,
+      meta: {},
+    };
+    // A key whose default is absent stays optional: the manifest's id and
+    // graphical block, a root's offset.
+    const named: CompleteTimeSkeleton = {
+      ...COMPLETE,
+      id: "op35",
+      graphical: { styles: {}, statements: [], order: {} },
+    };
+    const placed: CompleteTimeline = { ...COMPLETE_ROOT, offset: [-1, 2] };
+    // Numbers are lossless and a Fraction stays a pair.
+    const exact: CompleteTimeline = { ...COMPLETE_ROOT, length: [new JsonFloat(32), 10n ** 20n] };
+    const pair: Lossless<Fraction> = [1, new JsonFloat(2)];
+    // @ts-expect-error a Fraction has two members
+    const triple: Lossless<Fraction> = [1, 2, 3];
+    // The complete form is a lossless manifest.
+    const lossless: LosslessTimeSkeleton = COMPLETE;
+    expect([
+      unstated,
+      groupless,
+      uncounted,
+      named,
+      placed,
+      exact,
+      pair,
+      triple,
+      lossless,
+    ]).toHaveLength(9);
+  });
+
+  it("complete, strip and order the literal complete form", () => {
+    const smallest = minimalManifest(COMPLETE);
+    expect(smallest).toEqual({
+      timeskeleton: "0.7.0",
+      timelines: [{ id: "piece", unit: "quarters", length: [32, 1] }],
+    });
+    expect(completeManifest(smallest)).toEqual(COMPLETE);
+    const ordered: CompleteTimeSkeleton = canonicalManifest(COMPLETE);
+    expect(ordered).toEqual(COMPLETE);
+    expect(ordered).not.toBe(COMPLETE);
+  });
+
+  const twins = fixtureFiles().filter((file) => file.endsWith(".minimal.json"));
+
+  it("have a minimal twin for every fixture", () => {
+    expect(twins.length).toBe(60);
+    expect(twins.map((twin) => twin.replace(/\.minimal\.json$/, ".json"))).toEqual(
+      fixtureFiles().filter((file) => !file.endsWith(".minimal.json")),
+    );
+  });
+
+  it.each(twins)("complete %s to its fixture, and back", (twin) => {
+    const fixture = fixtureText(twin.replace(/\.minimal\.json$/, ".json"));
+    const completed = completeManifest(parse(fixtureText(twin)));
+    expect(dumps(completed)).toBe(fixture);
+    expect(dumps(canonicalManifest(completed))).toBe(fixture);
+    expect(dumps(minimalManifest(completed))).toBe(fixtureText(twin));
   });
 });

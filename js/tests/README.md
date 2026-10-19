@@ -12,13 +12,18 @@ Where the two packages answer differently by design, this README says so.
 
 1. `validate` accepts exactly the manifests the Python package accepts and
    raises the first violation at the same path; `parse` is `parseJson`
-   followed by `validate`.
+   followed by `validate`. A checked value is typed as the lossless form:
+   one test assigns it to `LosslessTimeSkeleton` and, by a
+   `@ts-expect-error` line, not to `TimeSkeleton`, and reads its lengths
+   back as `9007199254740993n` and `JsonFloat(2)`.
 2. `unknownKeys` returns, for every manifest, the list Python's
    `unknown_keys` returns, byte for byte once written by `dumps`.
 3. `complete` and `minimal` give the values Python's functions give, from a
-   `DEFAULTS` table equal to the schema's `default`s, as Python's is.
+   `DEFAULTS` table equal to the schema's `default`s, as Python's is; their
+   typed forms take and give the generated `LosslessTimeSkeleton` and
+   `CompleteTimeSkeleton`.
 4. `dumps` writes every value as the same bytes as Python's `dumps`.
-5. The generated files equal a fresh generator run, and the npm package
+5. The generated files are the generator's output, and the npm package
    ships the schema document, the drawing specification and the licence.
 
 ## The fixtures
@@ -30,112 +35,68 @@ as in the Python suite's "The fixture set".
 
 ## The schema document and the generated files
 
-The schema tests (`schema.test.ts`) assert on the bundled `schema` what the
-Python suite asserts on the file ("The schema document"): the document equals
-the file; `$id`, the root `$ref`, local references and no `$anchor`; the
-twelve public definitions and the absent ones; the members and required keys
-of `TimeSkeleton`, `Timeline`, `Group` and `Graphical`; no
-`additionalProperties: false`; `unevaluatedProperties: {"x-unknown-key":
-true}` on exactly the object nodes outside branches and arms; every marked
-node declaring what its branches declare; the defaults equal to `DEFAULTS`;
-the vocabulary.
+`schema.test.ts` checks invariants, not the tree's private shape, so a
+refactor that keeps the accepted language stays green: the bundled `schema`
+is the file; references are local and resolve; the public definitions exist
+and the former ones do not; every object node outside a branch carries the
+unknown-key keyword and none is closed; every discriminated union tags each
+branch with a distinct required constant; the `default`s are exactly
+`DEFAULTS`. `generated.test.ts`: a fresh generator run exports the committed
+names, which are every definition, the complete form of exactly the
+definitions holding a default, and `LosslessTimeSkeleton`; the committed
+text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
+misspelt key, a missing `length` or child `offset`, a complete form missing
+a defaulted key, a three-member Fraction) make a looser generation break
+the typecheck gate.
 
-`generated.test.ts`: the committed `types.ts`, `schema.ts` and `font.ts`
-equal a fresh run of `scripts/generate.ts`; `schemaSource()` is
-`0.7.0/timeskeleton.schema.json`; `types.ts` exports `TimeSkeleton`,
-`Timeline`, `Group`, `Graphical`, `ConversionMap`, `Coordinate`, `Number`,
-`Fraction`, `TimeUnit`, `NumberType`, `Id` and `MeasureMapRow`, and none of
-`TimeSkeletonManifest`, `TimeSkeletonGroupFile`, `TimeSkeletonBundleFile`,
-`Bundle`, `Meta`, `TimelineClass`. The types are pinned by the compiler as
-well: the suite's typecheck compiles statements that must fail, each marked
-`@ts-expect-error` (a misspelt key on `Timeline`, a `Timeline` without
-`length`, a child without `offset`), so a looser generation breaks the
-typecheck gate; and a free `meta` and a `length: null` compile.
+## The validator
 
-## The version marker, representation, identity and segment lines
+`validate.test.ts`, `identity.test.ts` and `segment-lines.test.ts` prove the
+rules of the Python README's sections "The version marker", "Representation
+of own-axis values", "The rules and their codes" and "What proves the rules"
+with the same inline documents, paths, codes and messages, in the same
+order: every semantic rule by its smallest document with one problem, which
+`validate` raises too, and one document breaking every step once, whose
+problems and codes `identityProblems` lists in order and whose first problem
+`validate` raises. The rules live in five modules of the same names and
+decomposition in both packages, so a rule changes in both or the shared
+cases fail. The packages differ only where JavaScript must:
 
-`validate.test.ts`, `identity.test.ts` and `segment-lines.test.ts` assert the
-cases of the Python README's sections "The version marker",
-"Representation of own-axis values", "Identity", "Segment lines" and "Groups
-and unknown length", with the same documents, paths and messages, except:
-
-- **Quoting.** The representation message and the three child messages are
-  the same text in both packages (`length 32 of 'score' is an int on a
-  fraction axis: write [32, 1]`, `child 'take' has unit 'seconds', its parent
-  'score' has 'quarters'`, `offset 75.0 of 'take' is beyond the length 60.0
-  of its parent 'recording'`, `child 'coda' ends at [12, 1], beyond the
-  length [10, 1] of its parent 'score'`); every other message quotes an id
-  as JSON (`duplicate id "m", first at …`, `id
-  "start" is reserved for the parts of an address`), where Python quotes it
-  as `repr` does. The `UnsupportedVersionError` message reads
-  `unsupported TimeSkeleton version "9.9.9"; this package reads 0.7.0 only`.
-- **Integral floats.** A value read by `parseJson` keeps `2.0` as a
-  `JsonFloat`, so `length 2.0` on a fraction axis is "a float … write [2, 1]"
-  as in Python; a plain JavaScript number cannot tell `2.0` from `2`, so a
-  value built in code with `2` is an int. Rewritten floats are spelled as
+- **Quoting.** The representation, child and finite-number messages are the
+  same text in both packages; every other message quotes an id as JSON
+  (`duplicate id "m", first at …`) where Python uses `repr`, and the
+  version error reads `unsupported TimeSkeleton version "9.9.9"; this package
+  reads 0.7.0 only`. A schema violation carries Ajv's message (`must match
+  pattern …`, `must NOT have duplicate items …`).
+- **Integral floats.** `parseJson` keeps `2.0` as a `JsonFloat`, so
+  `length 2.0` on a fraction axis is "a float … write [2, 1]" as in Python;
+  a number built in code as `2` is an int. Rewritten floats are spelled as
   Python spells them (`write 2.0`, `write 0.75`, `ends at 1.0`).
 - **Integers beyond 2^53.** `parseJson` reads `9007199254740993` as a
-  `bigint`, so on a float axis it is "an int … write a float" as in Python;
+  `bigint`, so on a float axis it is "an int … write a float";
   `9007199254740992n` and `10n ** 20n` are exactly floats and validate.
+- **Non-finite numbers.** `parseJson` refuses them and a `JsonFloat` cannot
+  hold one, so only a number built in code reaches the finite rule; the
+  tests build infinity, NaN and negative infinity as Python's do.
 
-## Bands: reserved ids and band orders
+## Shared rejection cases
 
-Every timeline has five bands, addressed `T/markers_1`,
-`T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`
-(README, "Identity"), and `graphical.order` maps a timeline's id to its band
-order as it maps a group's id to its display order (README, "Groups and the
-`graphical` block"). `identity.test.ts` proves the rows of the identity
-table these add, `validate.test.ts` the schema's part:
+Each of the 90 cases (`validate.test.ts`), read by `parseJson`, is written
+as the standard writer writes it and raises `SchemaValidationError` with its
+stored path and code through `validate` on the parsed value, through
+`validate` on the value as `JSON.parse` reads it, and through `parse` of its
+compact text; `version_unknown` raises `UnsupportedVersionError`. Each case
+is read through one reader, the mirror of Python's `rejection_case`, which
+puts the infinity or NaN a `finite_number` case names at its path; such a
+case has one reading, the reader's value, since JSON text cannot carry it,
+and a test pins the two values in place. One reading is exempt: `float_axis_int_not_exact` as `JSON.parse`
+reads it, since `9007199254740993` becomes `9007199254740992`, exactly a
+float, and the test asserts that this reading validates. The set of names
+and the sixteen codes are stated literally.
 
-- **The band pattern reserves ids, and nothing else.** An id matching
-  `^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`
-  is refused wherever a part word is: the manifest's id, a root's, a
-  child's, a conversion map's, a region's, a break's, a jump's, a marker's
-  and a group's id each give the one problem `id "regions_1" is reserved
-  for the bands of a timeline` at that id, and `children_10`,
-  `markers_7`, `conversion_maps_1` and `flow_control_2` (every kind, other
-  numbers) are refused as `regions_1` is. Ids just outside the pattern
-  stay valid, which proves it is no wider than stated: the bare kind words
-  (a marker `markers`, a root `regions`), `regions_0` and `regions_01`
-  (numbers start at 1 and have no leading zero), `Regions_1`,
-  `regions_1x` and `band_1`. The shared case `band_id_region` refuses a
-  region `regions_1`.
-- **A key names a group or a timeline.** A key naming neither gives
-  `"<key>" names no group or timeline of this manifest` at the key.
-- **A band order is a permutation of the timeline's id and its five
-  bands.** The default band order and the README's example are accepted at
-  a root, and a permutation at a descendant (a child and a grandchild).
-  Each entry that is neither the timeline's id nor one of its five band
-  addresses gives `"<entry>" is not "<id>" or one of its bands` at the
-  entry: another band number (`score/regions_2`), another timeline's band
-  (`take/regions_1`), another timeline's id; each item missing gives
-  `"<address>" is missing from the band order of "<id>"` at the order, in
-  the default band order's order, so an order holding only `score` lists
-  `score/children_1`, `score/conversion_maps_1`, `score/markers_1`,
-  `score/regions_1` and `score/flow_control_1` in that order. The shared
-  cases `band_order_unknown_entry` and `band_order_missing_band` pin one
-  of each.
-- **The schema shapes each entry; the validator the rest.** An entry is an
-  id or an id followed by `/` and a band id, so `score/foo`,
-  `score/regions_0` and a region's address `score/region_1` are refused by
-  the schema at the entry (`must match pattern …`), and a repeated entry at
-  the order (`must NOT have duplicate items …`), Ajv's messages;
-  `score/regions_2` passes the schema and is the validator's.
-- **The problem order.** Keys come in code-point order, each key's
-  strangers before its missing entries; a reserved band id lies among the
-  part words. The test of every step in order holds a timeline key, a
-  group key and a key naming neither, and a band id.
-- **A key is never both.** A group id equal to a timeline id is refused
-  first (`duplicate id`), so `validate` never reads an order under both
-  meanings; `identityProblems`, which lists every problem, reads such a key
-  as the group's display order.
-- **The selector and the declaration.** `{"element": "band"}`, each of the
-  five kinds as `class` beside it, and `{"inside": "band"}` validate;
-  `side` is no property of a declaration, so `unknownKeys` reports it as
-  an unknown key of the declaration, in a statement and in a style, and
-  `validate` accepts it. The defaults of the drawing specification
-  (section 4: three styles and 30 statements, the last three hiding bands)
-  validate.
+The path rule is the Python README's ("One path rule for both validators");
+Ajv applies a discriminated `oneOf` to the candidate its tag selects through
+its `discriminator` option. The shared cases pin the paths.
 
 ## Unknown keys
 
@@ -149,36 +110,21 @@ code point, `ﬀ` before `😀`, indices by number, `timelines[2]` before
 records a key through the `x-unknown-key` keyword, which only the matching
 branch of a discriminated `oneOf` evaluates, so a key is never reported from
 a candidate the value does not match (the nested conversion map of
-`several_depths` proves it).
+`several_depths` proves it). The keys are collected per run, so a refused
+manifest's keys never appear in the next run's list (`validate.test.ts`).
 
 ## Defaults
 
 `defaults.test.ts` asserts the Python README's section "Defaults: the
 complete and the minimal form" with the same documents and values. A value
-is the default only in type and value: `repeat_count: new JsonFloat(1)`, read
-by `parseJson` from `1.0`, is not the default `1` and stays in the minimal
-form, written back as `1.0`, as in Python; the round trips compare the texts
-`dumps` writes, which tell `1.0` from `1`. The functions never hand out the
-objects of `DEFAULTS` itself (two completions of one manifest hold distinct
-`meta` and `flow_control` objects).
-
-## Shared rejection cases
-
-For each of the 88 cases (`validate.test.ts`), read by `parseJson`: its text
-is the standard writer's; `version_unknown` raises `UnsupportedVersionError`
-and stores `["timeskeleton"]`; every other case raises
-`SchemaValidationError` at its stored path, through `validate` on the parsed
-value, through `validate` on the value as `JSON.parse` reads it, and through
-`parse` of its compact text. The one exception is `float_axis_int_not_exact`
-as `JSON.parse` reads it: `JSON.parse` turns `9007199254740993` into
-`9007199254740992`, which is exactly a float, so that reading validates, and
-the test asserts that it does. The set of names is stated literally.
-
-## One path rule for both validators
-
-As in the Python README: the deepest diagnostic leaf, ties to the first; a
-discriminated `oneOf` contributes only the candidate its tag selects (Ajv's
-`discriminator`). The shared rejection cases pin the paths.
+is the default only in type and value: `repeat_count: new JsonFloat(1)` (read
+from `1.0`) is not the default `1` and stays in the minimal form; the round
+trips compare `dumps` texts, which tell `1.0` from `1`. No result shares
+an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
+minimal twin completes to its fixture's text, keeps it in canonical order,
+and strips back to its own; a literal `CompleteTimeSkeleton` compiles, and
+keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
+optional.
 
 ## The canonical order and the standard writer
 
@@ -204,23 +150,24 @@ pairs mixed, and adds:
 
 `parseJson` reads any JSON text into the smallest representation that loses
 nothing: a safe integer and a float with a fractional part are plain numbers,
-an integer beyond `Number.MAX_SAFE_INTEGER` is a `bigint`, an integral float
+an integer beyond `Number.MAX_SAFE_INTEGER` a `bigint`, an integral float
 (`2.0`, `1e+16`, `-0.0`) a frozen `JsonFloat`; `-0` is the integer 0, as in
 Python; objects keep the written order of their keys, array-index keys
 included, which `compactJson` honours. The tests pin each case (`0.5`,
 `2.0`, `123456789012345678`, `-0`, `-0.0`, `1E5`), key order surviving a
-round trip, malformed text refused as a `SyntaxError`, and `1e400` refused as
-a `RangeError`. `compactJson` is a fixpoint for every value nested in every
-fixture and equals Python's `json.dumps(value, separators=(",", ":"),
-ensure_ascii=False)` for every fixture, rejection and warning case.
-`JsonFloat` is a frozen class told apart by `instanceof` or `isJsonFloat`, and
-`isJsonObject` is false for it.
-
-## Integer boundaries
+round trip, and `1e400` refused as a `RangeError`. Malformed text is refused
+as a `JsonSyntaxError`, a `SyntaxError`, whose offset, line and column name
+where the text breaks; eleven texts, each breaking in a different way and
+place (an empty text, a stray comma, an unterminated string, a missing
+comma on line 3), pin the message and the three numbers. `compactJson` is a
+fixpoint for every value nested in every fixture and equals Python's
+`json.dumps(value, separators=(",", ":"), ensure_ascii=False)` for every
+fixture, rejection and warning case. `JsonFloat` is told apart by
+`instanceof` or `isJsonFloat`, and `isJsonObject` is false for it.
 
 `JSON.parse("9007199254740993")` gives `9007199254740992`, while `parseJson`
-reads `9007199254740993n`. Lengths of `9007199254740993n` and
-`9223372036854775807n` on a ticks axis validate, and are written and read
+reads `9007199254740993n`; lengths of `9007199254740993n` and
+`9223372036854775807n` on a ticks axis validate and are written and read
 back as the same integer.
 
 ## Completing missing styles

@@ -18,7 +18,7 @@ The directories sort the manifests by content only:
 
 Version 0.7.0 has 41 manifests directly under `fixtures/0.7.0/`, 10 under
 `groups/` and 9 under `bundles/`, 60 in all, each with its minimal twin, so
-120 files. Beside them lie 88 rejection cases and 11 warning cases.
+120 files. Beside them lie 90 rejection cases and 11 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -26,9 +26,10 @@ default written with it, and has a **minimal twin** beside it,
 timetoalign's `to_dict(minimal=True)` writes it. The two obey one law:
 `minimal(fixture)` equals the twin, `complete(twin)` equals the fixture,
 and the library reads both to equal objects. The manifests are emitted by
-timetoalign through `scripts/emit_fixtures.py`; that script is their only
-writer. Regenerate them after a serialization change and review the diff.
-The script refuses to replace the fixtures of a version whose tag
+timetoalign through the catalogue and pipeline in `scripts/fixtures/`, with
+`scripts/emit_fixtures.py` as its CLI; that pipeline is their only writer.
+Regenerate them after a serialization change and review the diff. The CLI
+refuses to replace the fixtures of a version whose tag
 `v<version>` exists, so a released version's fixtures stay as released.
 
 The rejection cases under `fixtures/rejections/<version>/` and the warning
@@ -54,28 +55,32 @@ the represented timetoalign revision:
 python scripts/emit_fixtures.py --timetoalign-commit "$(git -C <timetoalign-checkout> rev-parse --short HEAD)"
 ```
 
-The script writes each manifest and its twin with `timeskeleton.dumps`
-(object keys sorted by code point, arrays in canonical order), reads both
-back, validates them, checks the law above, and fails unless the manifest
-is stable through the library: read by the class that holds its content
+The package `scripts/fixtures/` holds the corpus: the builders in
+`timelines.py`, `groups.py` and `bundles.py` (each builder's docstring
+describes its case), the `graphical` blocks and the band-order manifests in
+`graphical.py`, the ordered catalogue in `plan.py`, and the laws in
+`verify.py`. A new case is appended to the catalogue within its directory.
+The CLI writes each manifest and its twin with `timeskeleton.dumps` (object
+keys sorted by code point, arrays in canonical order), reads both back,
+validates them, checks the law above, and fails unless the manifest is
+stable through the library: read by the class that holds its content
 (`Timeline.from_dict` for one root and no group, `TimelineGroup.from_dict`
 for one group, `AlignmentBundle.from_dict` otherwise) and written back with
-`to_dict()`, compared with sorted keys and arrays as they stand. A library
-whose array order differs from the canonical order therefore fails the
-round trip. A group's display order in `graphical.order` is the library's
-own member order. The `graphical` block the script composes for a manifest,
-its styles, statements and band orders, is read back by the library, which
-keeps it as written, and takes part in the round trip too: the library must
-write the composed manifest back unchanged. Every timeline, conversion map,
-region, break, jump and marker carries an id; ids the script does not give
-are minted by timetoalign and depend on the construction order in the
-script, which is part of the fixture contract.
+`to_dict()` byte for byte, its arrays already in canonical order. A group's
+display order in `graphical.order` is the library's own member order. The
+`graphical` block the script composes for a manifest, its styles,
+statements and band orders, is read back by the library, which keeps it as
+written, and takes part in the round trip too: the library must write the
+composed manifest back unchanged. Every timeline, conversion map, region,
+break, jump and marker carries an id; ids the script does not give are
+minted by timetoalign and depend on the construction order within the
+builder, which is part of the fixture contract.
 
-A builder that produces one root timeline, group or bundle uses
-`<builder>.json` in its directory. A builder that produces several uses
-`<builder>__<slug>.json` for each, where `<slug>` is its id with every
-character outside `[A-Za-z0-9_-]` replaced by `_`. The script refuses two ids
-that would produce the same file name.
+A catalogue case writes `<name>.json` in its directory. Several cases of
+one name, such as the four of `conversion_maps`, write
+`<name>__<slug>.json` each, where `<slug>` is the built object's id with
+every character outside `[A-Za-z0-9_-]` replaced by `_`. The script refuses
+two ids that would produce the same file name.
 
 ## Coverage of single timelines
 
@@ -312,35 +317,37 @@ The script refuses to replace the drawings of a version whose tag
 
 ## Rejection coverage
 
-Each rejection case changes one rule of an accepted manifest and records
-the path both validators must report; a rule inside a timeline is located
-under the root that holds it, `/timelines/0/…`. The cases cover the version
-marker (absent, or another version), the manifest's own members, timeline
-units, own-axis values and their representation (such as an integer on a
-fraction axis, or an integer on a float axis that no float equals
-exactly), a child without an `offset`, a child whose unit is not its
-parent's, a child whose `offset` lies beyond its parent's known length, a
-child ending beyond it, conversion
-maps, regions,
-flow control, measure maps, metric hierarchies, the `graphical` block's
-selectors, declarations, statement shapes and `order`, segment lines (a
-non-boolean `is_segment_line`, a segment with another `is_segment_line`
-value, a segment that leaves a gap or
-does not start at 0, segments that fall short of a known length), and the
-identity rules `validate` checks beyond the schema: ids unique within a
-root's tree, timeline ids, group ids and the manifest's id unique together,
-the part words `start`, `end`, `name`, `label` and `card` and every id
-matching the band pattern
-`^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$` (a
-region `regions_1`) refused as an id, in a manifest of one root as in any
-other, jump targets naming a marker of their own timeline, members naming
-timelines of the manifest, a timeline a member of at most one group, no
-member of a group lying inside another, display orders that are
-permutations of their group's members, keys of `order` naming a group or a
-timeline, and band orders that are permutations of their timeline's id and
-its five bands (an entry that is no band of the timeline, a missing band).
-Tests in both packages load the same files and compare the reported path
-with the case's expected path.
+Each rejection case breaks one rule of an accepted manifest and records the
+`path` and the `code` both validators must report, and a `reason`. A rule
+inside a timeline is located under the root that holds it, `/timelines/0/…`.
+Tests in both packages load the same files and compare the error's path and
+code with the case's. The cases cover every code:
+
+| Code | Rule | Cases |
+| --- | --- | --- |
+| `not_a_manifest` | the value is an object holding `timeskeleton` | `root_missing_marker` |
+| `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
+| `schema` | the schema document | 49 cases named after the member they break: units and number types, lengths and offsets, ids, conversion maps, flow control, measure maps, metric hierarchies, groups, `graphical` selectors, declarations and `order` |
+| `representation` | an own-axis value is written in its axis's number type | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis` |
+| `duplicate_id` | ids unique within a root's tree; timeline and group ids unique together | `id_duplicate_across_kinds`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id` |
+| `dangling_target` | a jump's target names a marker of its own timeline | `jump_target_dangling`, `timelines_root_jump_target_dangling` |
+| `child_unit` | a child has its parent's unit | `child_unit_differs` |
+| `child_offset` | a child starts within its parent's known length | `child_offset_beyond_parent` |
+| `child_end` | a child ends within its parent's known length | `child_end_beyond_parent` |
+| `segment_line` | segments run contiguously from 0 to the line's length, with one `is_segment_line` value | `segment_line_not_from_zero`, `segment_line_gap`, `segment_line_gap_in_later_root`, `segment_line_short_of_length`, `segment_line_segment_flag` |
+| `reserved_id` | the part words and the band ids are no id | `part_word_timeline_id`, `part_word_region_card`, `part_word_region_label`, `part_word_one_root`, `band_id_region` |
+| `manifest_id` | the manifest's id is no timeline or group id | `manifest_id_is_group_id`, `manifest_id_is_descendant_id` |
+| `group_member` | a member names a timeline, lies in one group, and neither contains nor lies inside another member of its group | `member_dangling`, `member_in_two_groups`, `members_contain_member`, `members_inside_member` |
+| `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |
+| `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |
+| `band_order` | a band order is a permutation of its timeline's id and five bands | `band_order_unknown_entry`, `band_order_missing_band` |
+
+`version_unknown` names another version; its `code` is `null` and its
+`"error": "UnsupportedVersionError"` names the error both packages raise
+instead. JSON has no non-finite number, so the two `finite_number` cases hold
+a finite placeholder at their path and name in `non_finite` (`"Infinity"` or
+`"NaN"`) the value a test puts there before validating; Python's
+`timeskeleton.rejection_case` reads a case with that value in place.
 
 ## Warning cases
 

@@ -8,21 +8,24 @@ import {
   JsonFloat,
   jsonPointer,
   type Lossless,
+  type LosslessTimeSkeleton,
   parse,
   parseJson,
   SchemaValidationError,
+  type TimeSkeleton,
   UnsupportedVersionError,
+  unknownKeys,
   validate,
 } from "../src/index.js";
+import type { JsonObject } from "../src/json/value.js";
 import {
   manifest,
+  rejectionCase,
   rejectionFileNames,
   rejectionText,
   repositoryRoot,
   timeline,
 } from "./fixtures.js";
-
-type JsonObject = Record<string, unknown>;
 
 const SMALLEST = {
   timeskeleton: "0.7.0",
@@ -55,6 +58,7 @@ const REJECTIONS = [
   "id_duplicate_across_kinds",
   "id_empty",
   "id_with_slash",
+  "infinite_length",
   "jump_condition_unknown",
   "jump_target_dangling",
   "later_root_missing_unit",
@@ -83,6 +87,7 @@ const REJECTIONS = [
   "members_contain_member",
   "members_inside_member",
   "metric_hierarchy_string",
+  "nan_offset",
   "order_missing_member",
   "order_not_array",
   "order_unknown_group",
@@ -319,13 +324,18 @@ describe("the shared rejection cases", () => {
 
   it.each(rejectionFileNames())("refuse %s at the stored path", (name) => {
     const text = rejectionText(name);
-    const testCase = parseJson(text) as JsonObject;
-    expect(dumps(testCase)).toBe(text);
-    const readings = [
-      () => validate(testCase.manifest),
-      () => validate((JSON.parse(text) as JsonObject).manifest),
-      () => parse(compactJson(testCase.manifest as Lossless<Json>)),
-    ];
+    expect(dumps(parseJson(text))).toBe(text);
+    const testCase = rejectionCase(name);
+    // JSON text holds no non-finite number, so a case about the finite rule
+    // has one reading: the reader's, with the value in place.
+    const readings =
+      testCase.code === "finite_number"
+        ? [() => validate(testCase.manifest)]
+        : [
+            () => validate(testCase.manifest),
+            () => validate((JSON.parse(text) as JsonObject).manifest),
+            () => parse(compactJson(testCase.manifest)),
+          ];
     for (const [index, read] of readings.entries()) {
       if (index === 1 && LOST_BY_JSON_PARSE.has(name)) {
         // JSON.parse rounds the integer to the float next to it, which validates.
@@ -334,19 +344,128 @@ describe("the shared rejection cases", () => {
       }
       if (testCase.error === "UnsupportedVersionError") {
         expect(testCase.path).toEqual(["timeskeleton"]);
+        expect(testCase.code).toBeNull();
         expect(read).toThrow(UnsupportedVersionError);
         continue;
       }
-      expect(testCase.error).toBeUndefined();
+      expect(testCase.error).toBeNull();
       try {
         read();
       } catch (error) {
         expect(error).toBeInstanceOf(SchemaValidationError);
         expect((error as SchemaValidationError).path).toEqual(testCase.path);
+        expect((error as SchemaValidationError).code).toBe(testCase.code);
         continue;
       }
       throw new Error(`${name} was accepted`);
     }
+  });
+
+  it("are read with the non-finite value in place", () => {
+    const nan = rejectionCase("nan_offset.json");
+    expect(nan.manifest).toMatchObject({ timelines: [{ children: [{ offset: Number.NaN }] }] });
+    expect(nan.path).toEqual(["timelines", 0, "children", 0, "offset"]);
+    expect(problem(nan.manifest)).toEqual([
+      ["timelines", 0, "children", 0, "offset"],
+      "offset of 'take' is not a finite number",
+    ]);
+    const infinite = rejectionCase("infinite_length.json");
+    expect(infinite.manifest).toMatchObject({
+      timelines: [{ length: Number.POSITIVE_INFINITY }],
+    });
+    expect([infinite.path, infinite.code, infinite.error]).toEqual([
+      ["timelines", 0, "length"],
+      "finite_number",
+      null,
+    ]);
+    expect(problem(infinite.manifest)).toEqual([
+      ["timelines", 0, "length"],
+      "length of 'recording' is not a finite number",
+    ]);
+  });
+
+  it("are read as written where no value is substituted", () => {
+    const text = rejectionText("id_empty.json");
+    const testCase = rejectionCase("id_empty.json");
+    expect(compactJson(testCase.manifest)).toBe(
+      compactJson((parseJson(text) as { manifest: Lossless<Json> }).manifest),
+    );
+    expect([testCase.path, testCase.code, testCase.error, testCase.reason]).toEqual([
+      ["timelines", 0, "flow_control", "markers", 0, "id"],
+      "schema",
+      null,
+      "An id must not be empty.",
+    ]);
+  });
+
+  it("covers every schema and semantic rule code", () => {
+    const codes = new Set(rejectionFileNames().map((name) => rejectionCase(name).code));
+    expect([...codes].filter((code) => code !== null).sort()).toEqual([
+      "band_order",
+      "child_end",
+      "child_offset",
+      "child_unit",
+      "dangling_target",
+      "display_order",
+      "duplicate_id",
+      "finite_number",
+      "group_member",
+      "manifest_id",
+      "not_a_manifest",
+      "order_key",
+      "representation",
+      "reserved_id",
+      "schema",
+      "segment_line",
+    ]);
+  });
+});
+
+describe("the finite-number rule", () => {
+  it.each([
+    [
+      manifest([timeline("take", "seconds", Number.POSITIVE_INFINITY)]),
+      ["timelines", 0, "length"],
+      "length of 'take' is not a finite number",
+    ],
+    [
+      manifest([
+        timeline("score", "quarters", [8, 1], {
+          regions: [{ id: "r", start: [0, 1], end: [Number.NaN, 1] }],
+        }),
+      ]),
+      ["timelines", 0, "regions", 0, "end", 0],
+      "end of 'r' is not a finite number",
+    ],
+    [
+      manifest([timeline("take")], {
+        graphical: { styles: { s: { opacity: Number.NEGATIVE_INFINITY } } },
+      }),
+      ["graphical", "styles", "s", "opacity"],
+      "#/graphical/styles/s/opacity is not a finite number",
+    ],
+  ])("refuses a non-finite number before any other rule", (value, path, detail) => {
+    // A repeated root breaks the identity rules too; the finite rule runs first.
+    const roots = value.timelines as JsonObject[];
+    roots.push(roots[0] as JsonObject);
+    try {
+      validate(value);
+    } catch (error) {
+      const { code, path: at, detail: text } = error as SchemaValidationError;
+      expect([code, at, text]).toEqual(["finite_number", path, detail]);
+      return;
+    }
+    throw new Error("value was accepted");
+  });
+});
+
+describe("unknown keys of one run", () => {
+  it("never carry over from an earlier run", () => {
+    const refused = manifest([timeline("score", "beats")], { stale: 1 });
+    expect(() => unknownKeys(refused)).toThrow(SchemaValidationError);
+    expect(unknownKeys(manifest([timeline("score")], { fresh: 1 }))).toEqual([
+      { path: [], key: "fresh" },
+    ]);
   });
 });
 
@@ -360,6 +479,25 @@ describe("errors and paths", () => {
     }
     expect(jsonPointer([])).toBe("#");
     expect(jsonPointer(["a/b", "c~d", 0])).toBe("#/a~1b/c~0d/0");
+  });
+});
+
+describe("a checked value", () => {
+  it("is typed as the lossless form the reader returns", () => {
+    const value: unknown = parseJson(
+      '{"timeskeleton": "0.7.0", "timelines": [' +
+        '{"id": "midi", "unit": "ticks", "length": 9007199254740993},' +
+        '{"id": "audio", "unit": "seconds", "length": 2.0}]}',
+    );
+    validate(value);
+    // The compiler is the test of the next two lines: a checked value is a
+    // LosslessTimeSkeleton, whose numbers may be bigints and JsonFloats.
+    const checked: LosslessTimeSkeleton = value;
+    // @ts-expect-error a lossless number is no plain number, so the value is no TimeSkeleton
+    const unchecked: TimeSkeleton = value;
+    expect(unchecked).toBe(checked);
+    expect(checked.timelines[0]?.length).toBe(9007199254740993n);
+    expect(checked.timelines[1]?.length).toEqual(new JsonFloat(2));
   });
 });
 

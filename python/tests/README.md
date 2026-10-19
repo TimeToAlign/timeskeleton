@@ -15,7 +15,8 @@ suite, so both validators are held to the same paths and the same lists.
 
 1. Every manifest is `{timeskeleton, timelines, id?, name?, meta?, groups?,
    graphical?}`; `validate` accepts exactly the values the schema and the
-   rules below accept, and raises the first violation with its path.
+   rules below accept, and raises the first violation with its code and
+   path.
 2. A value without the version marker is refused at the root, a value with
    another version raises `UnsupportedVersionError`.
 3. Unknown keys are kept and listed by `unknown_keys`, never refused.
@@ -30,49 +31,35 @@ suite, so both validators are held to the same paths and the same lists.
 ## The schema document
 
 `schema_path()` is `schema/0.7.0/timeskeleton.schema.json`; `load_schema()`
-parses it. What proves its shape (`test_schema.py`):
+parses it. The tests hold invariants of the document, never a transcript of
+its definitions; the definitions' contents are proven by the fixtures and the
+rejection cases that use them (`test_schema.py`):
 
 - **One document, one root.** `$id` is
   `https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json`,
   `$schema` the 2020-12 dialect, the root `$ref` is `#/$defs/TimeSkeleton`,
   and `schema/` holds exactly the directory `0.7.0` with exactly that file.
   Every `$ref` is local (`#/$defs/<name>`) and names a definition; no node
-  carries `$anchor`. The definitions include the twelve public ones
+  carries `$anchor`.
+- **The public definitions.** The definitions include the twelve public ones
   `TimeSkeleton`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
   `Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id` and
   `MeasureMapRow`, and none of `Meta`, `TimelineClass`, `TimelineManifest`,
-  `Bundle`, `GroupGraphical`, `BundleGraphical`, `CoordinateNonnegative`.
-- **The manifest.** `TimeSkeleton` declares exactly `$schema` (a string),
-  `timeskeleton` (`const` `"0.7.0"`), `id`, `name`, `meta`, `timelines`,
-  `groups` and `graphical`, and requires exactly `timeskeleton` and
-  `timelines`.
-- **The timeline.** `Timeline` declares exactly `id`, `name`, `unit`,
-  `number_type`, `length`, `offset`, `locked`, `is_segment_line`, `meta`,
-  `children`, `conversion_maps`, `regions`, `flow_control`, `measure_map`
-  and `metric_hierarchy` (no `class`), and requires exactly `id`, `unit` and
-  `length`. `length` is `NumberNonnegative` or null; `offset`, region
-  `start`/`end`, break and marker `coordinate` and jump
-  `from_coordinate`/`to_coordinate` are `Number`; `children` items are
-  `{"$ref": "#/$defs/Timeline", "required": ["offset"]}`. The description of
-  `locked` is exactly "Whether the timeline's length is fixed."
-- **Groups and the graphical block.** `Group` declares `id`, `name`, `meta`
-  and `members` and requires `id` and `members`; `Graphical` declares
-  `styles`, `statements` and `order`, and `order` is an object whose keys are
-  ids and whose values are `Order`s: arrays of distinct strings, each an id
-  or an id followed by `/` and a band's id, the pattern
-  `^[^/\u0000-\u001f]+(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$`,
-  so one definition holds a group's display order and a timeline's band
-  order; `MemberOrder` is gone. No definition names `support_policy`.
-  Every conversion-map definition requires its own members but not `name`.
-- **Open objects.** No node anywhere has `additionalProperties: false`;
-  `meta` (on the manifest, a timeline, a region, a break, a jump, a group)
-  and `metric_hierarchy` say `additionalProperties: true`. Every node with
-  `type: object` and `properties` carries exactly
-  `unevaluatedProperties: {"x-unknown-key": true}`, and no node inside a
-  `oneOf`/`anyOf` branch or an `if`/`then`/`else` arm carries it. Every node
-  that carries it declares in its own `properties` every key its branches
-  and arms declare, which is what lets `unknown_keys` name the unknown keys
-  from the node alone.
+  `Bundle`, `GroupGraphical`, `BundleGraphical`, `CoordinateNonnegative` and
+  `MemberOrder`.
+- **Open objects.** No node anywhere has `additionalProperties: false`.
+  Every node with `type: object` and `properties` carries exactly
+  `unevaluatedProperties: {"x-unknown-key": true}`, among them
+  `TimeSkeleton`, `Timeline`, `Group`, `Graphical` and every conversion map,
+  and no node inside a `oneOf`/`anyOf` branch or an `if`/`then`/`else` arm
+  carries it. Every node that carries it declares in its own `properties`
+  every key its branches and arms declare, which is what lets `unknown_keys`
+  name the unknown keys from the node alone. `meta` (on the manifest, a
+  timeline, a region, a break, a jump, a group) and `metric_hierarchy` are
+  free objects: `additionalProperties: true` and no `properties`.
+- **Discriminated unions.** Exactly two nodes carry a `discriminator`, on
+  `number_type` and on `type`; each tags every branch with a distinct
+  required string constant.
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
   schema's corresponding definitions (`TimeSkeleton`, `Timeline`,
   `FlowControl`, `Region`, `Break`, `Jump`, `Marker`, every conversion map,
@@ -80,15 +67,6 @@ parses it. What proves its shape (`test_schema.py`):
   table, each equal to the table's value, and on no other key. `number_type`
   has no `default` (it depends on the unit). The JavaScript suite holds its
   table to the same schema, so the two tables are equal.
-- **The vocabulary.** `TimeUnit` lists the sixteen units, `NumberType` the
-  three number types, `ElementType` the fifteen element types (`block`,
-  `timeline`, `child`, `band`, `map`, `region`, `break`, `jump`, `wedge`,
-  `name`, `label`, `boundary`, `ancestor`, `group`, `card`), `Selector`
-  declares `element`, `ids`, `domain`, `modality`, `class` (the six timeline
-  classes, the 21 conversion-map types, then the five band kinds `markers`,
-  `conversion_maps`, `children`, `regions`, `flow_control`), `within` and
-  `inside`; `Declaration` the eleven presentation properties of
-  `docs/drawing.md` section 2.4 with their bounds, `side` not among them.
 
 ## The version marker
 
@@ -186,6 +164,9 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `timelines[2]`; the manifest's own keys come first.
 - **An invalid value** raises the error `validate` raises, before any key
   is listed.
+- **One walk.** The keys come from the schema walk `validate` runs: listing
+  them walks the manifest with the schema once, as a counting validator
+  proves.
 
 ## Defaults: the complete and the minimal form
 
@@ -223,171 +204,131 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   their input unchanged. The equalities compare the texts `dumps` writes,
   since Python's `==` takes `1.0` for `1`.
 
-## Identity
+## The rules and their codes
 
-The identity rules hold after the schema and the representation check
-(`test_identity.py`). Timeline ids (of roots and descendants), group ids and
-the manifest id are unique together; every other id is unique within its
-root's tree; the part words and the ids of bands (a match of
-`^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`)
-are no id anywhere. `identity_problems` returns, in this order, one problem
-per finding (Python quotes ids as `repr`):
+`validate` checks in this order and raises the first violation as a
+`SchemaValidationError` carrying `code`, `path` and `message`: the version
+marker; `finite_number`; the schema, in one walk that also collects the
+unknown keys; `representation`; then the semantic rules in the order of the
+table, root by root for the first five (a root's duplicates, then its
+targets, then child by child, each followed by its own children, the
+containment rules, then its segment lines), the rest over the whole manifest.
+`identity_problems` returns every semantic problem in that order; `validate`
+stops at the first. Python quotes ids as `repr` does.
 
-1. root by root: a repeated id within the root's tree (any two of timeline,
-   map, region, break, jump, marker), at the later occurrence in identity
-   order (a timeline, its maps, regions, breaks, jumps, markers, then its
-   children in array order), `duplicate id 'm', first at <pointer>`; then
-   a jump target naming no marker of its own timeline, `'there' names no
-   marker of this timeline`; then, child by child in array order, each
-   followed by its own children, a child whose unit is not its parent's, at
-   its `unit`, `child 'take' has unit 'seconds', its parent 'score' has
-   'quarters'`, and, where the parent's length is known, a child whose
-   offset lies beyond it, at its `offset`, `offset 75.0 of 'take' is beyond
-   the length 60.0 of its parent 'recording'`, or else a child whose end
-   lies beyond it, at its `length`, `child 'coda' ends at [12, 1], beyond
-   the length [10, 1] of its parent 'score'` (the three messages the same
-   text in the JavaScript package); a negative offset is no problem, on a
-   child as on a root; then the segment lines;
-2. reserved ids: the manifest's `id`, then every id of every root's tree in
-   identity order, then each group id, a part word as `id 'start' is
-   reserved for the parts of an address`, a band's id as `id 'regions_1' is
-   reserved for the bands of a timeline`;
-3. a timeline id repeating one of an earlier root;
-4. a group id equal to a timeline id or an earlier group's id;
-5. the manifest id equal to a timeline id or a group id (first at the
-   timeline);
-6. members: naming no timeline (`'tempo' names no timeline of this
-   manifest`), already in an earlier group (`duplicate member`), nested with
-   an earlier member of the same group (`lies inside` / `contains`);
-7. `graphical.order` keys in code-point order, group keys and timeline keys
-   alike: a key naming no group and no timeline (`'g9' names no group or
-   timeline of this manifest`); a group's display order, its entries that
-   are no member, then its missing members in the order of `members`; a
-   timeline's band order, its entries that are neither the timeline's id
-   nor one of its five bands (`'score/regions_2' is not 'score' or one of
-   its bands`), at the entry, then its missing addresses in the default band
-   order `T/children_1`, `T/conversion_maps_1`, `T`, `T/markers_1`,
-   `T/regions_1`, `T/flow_control_1` (`'score/flow_control_1' is missing
-   from the band order of 'score'`), at the order.
+| Code | Rule | Reported at | Message |
+| --- | --- | --- | --- |
+| `not_a_manifest` | an object holding `timeskeleton` | the root | `not a TimeSkeleton manifest` |
+| `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no id above it |
+| `schema` | the schema document | the path rule below | the schema library's |
+| `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
+| `duplicate_id` | ids unique within a root's tree | the later id | `duplicate id 'm', first at #/…` |
+| `dangling_target` | a jump target names a marker of its timeline | the target | `'there' names no marker of this timeline` |
+| `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
+| `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
+| `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
+| `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
+| `reserved_id` | part words and band ids are no id: the manifest's, then each root's tree, then the groups' | the id | `id 'start' is reserved for the parts of an address`, `id 'regions_1' is reserved for the bands of a timeline` |
+| `duplicate_id` | timeline ids unique across roots, group ids unique among themselves and the timelines' | the later id | as above |
+| `manifest_id` | the manifest id is no timeline or group id | `id` | `duplicate id 'g2', first at #/groups/1/id` |
+| `group_member` | a member names a timeline, lies in one group, and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `duplicate member 'second', first at …`, `member 'b' lies inside member 'a' of the same group` |
+| `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
+| `display_order` | a group's order permutes its members | the entry, then the order | `'x' is not a member of group 'g'`, `member 'b' of group 'g' is missing` |
+| `band_order` | a timeline's order permutes its id and its five bands | the entry, then the order | `'score/regions_2' is not 'score' or one of its bands`, `'score/flow_control_1' is missing from the band order of 'score'` |
 
-What proves it: each rule has an inline document with exactly that one
-problem, path and message stated; a marker `m` in two roots is no problem
-(scopes are per root), while a region `perf` in root `score` beside a child
-timeline `perf` of root `take` is no problem either; a timeline id repeated
-inside one root is reported once (step 1); every part word is refused as the
-id of a timeline, a map, a region, a break, a jump, a marker, a group and
-the manifest, in a one-root manifest, while `starts` and `Start` are
-accepted; so is each band id (the five kinds numbered 1, `regions_12` and
-`flow_control_907`) at the same eight places with the band message, while
-the bare kind words `markers`, `conversion_maps`, `children`, `regions` and
-`flow_control`, the numbers no band carries (`regions_0`, `regions_01`), and
-`region_1`, `Regions_1` and `regions_1a` are accepted, since the pattern
-names a whole id; a band order validates at a root and at a descendant (the
-default band order and the README's order for `score`, and for its child `b`
-the reverse of the default, `b/flow_control_1`, `b/regions_1`,
-`b/markers_1`, `b`, `b/conversion_maps_1`, `b/children_1`), beside a group's
-display order; each of `score/regions_2` (a band `score` does not have),
-`regions_1` (a band id without its timeline), `b/regions_1` (a band of
-another timeline), `b` (another timeline) and `ghost`, added to the six
-entries of `score`'s band order, is one problem at its entry; leaving
-`score/flow_control_1` out of it is one problem at the order; an empty band
-order yields its six missing addresses in the default band order; the band
-order of the child `b` is held to `b`'s own bands, `b/regions_1` missing and
-`score/regions_1` a stranger there; a child sharing its parent's unit at
-offset 0 is no problem, and a negative offset is none either, on a root
-(`-1700000000.25` seconds, `[-3, 2]` quarters), where it places the origin,
-or on a child, which then starts before its parent's origin: children at
-`-1.5` seconds, `[-1, 1000000]`, `[0, 1]` and `[-3, 2]` quarters (the last
-of length `[4, 1]` in a parent of `[32, 1]`), at `-0.0` seconds and a
-grandchild at `[-1, 2]` quarters all validate, the same documents in both
-packages; yet a child at `[-3, 2]` of length `[40, 1]` in that parent ends
-at `[77, 2]`, beyond its length, and is reported at its `length`, so the end
-rule still applies to a child that starts before the origin; a child in
-`number` under a parent in `quarters`, both continuous logical, is still
-reported, since the rule compares units, not classes; the unit rule reaches
-a grandchild at its own path; one manifest carrying a finding of every step
-yields exactly the problems in the stated order, with paths and messages, a
-part word before a band id in identity order, and the keys of
-`graphical.order` (a group, a timeline and a key naming neither) in
-code-point order, each order's strangers before its missing entries; a child
-of one group with its root in another, or ungrouped, is no problem; a group
-without members stays valid; every shared rejection pins its path,
-`child_unit_differs`, `child_offset_beyond_parent`,
-`child_end_beyond_parent`, `band_id_region` (a region `regions_1`),
-`band_order_unknown_entry` (`score/regions_2` after the six entries of
-`score`'s default band order), `band_order_missing_band` (that order without
-`score/markers_1`) and `order_unknown_group` (a key `group_9`) with their
-messages too.
+The keys of `graphical.order` are read in code-point order, each order's
+strangers before its missing entries, missing members in the order of
+`members`, missing bands in the default band order (`T/children_1`,
+`T/conversion_maps_1`, `T`, `T/markers_1`, `T/regions_1`, `T/flow_control_1`).
+A key naming a group and a timeline never reaches `validate` (the duplicate
+id comes first); `identity_problems` reads it as the group's.
 
-**A child lies within its parent's known length.** A child's end is its
-offset plus its length where both are known; a segment of unknown length ends
-where its successor in offset order starts (as for contiguity); any other
-child of unknown length has no known end, and a child of another unit has
-none either (its length lies on another axis, and its unit is reported).
-Values compare exactly; the end is spelled as the parent's number type writes
-it, as a fraction pair where that type cannot write it exactly. An offset
-beyond the length is the one problem of its child, whatever its length. What
-proves it, one inline document each: a child of unknown length at `75.0` in a
-`60.0` s parent is reported at its offset, at `60.0` it is not; a child
-`[2, 1]` at `[9, 1]` in `[8, 1]` gives the offset problem alone; a child
-`[4, 1]` at `[8, 1]` in `[10, 1]` ends at `[12, 1]`, one of `[2, 1]` there
-ends exactly at the length and is no problem; on a seconds axis `0.5` at
-`0.5` in `0.75` ends at `1.0`, `0.25` at `0.5` meets `0.75`, and `0.2` at
-`0.1` in `0.3` ends at `[10808639105689191, 36028797018963968]` (the exact
-sum, which no float equals); `240` ticks at `480` in `480` ends at `720`; a
-quarters child declared `float`, `2.5` at `[7, 1]` in `[8, 1]`, ends at
-`[19, 2]`; a child in seconds of length `100.0` under `[8, 1]` quarters
-yields only its unit problem; a grandchild `[2, 1]` at `[3, 1]` in a child of
-length `[4, 1]` is reported at its own path, naming that child; any child
-under a parent of unknown length is no problem; on a segment line of length
-`[8, 1]`, segments `a` (0, null) and `b` (`[10, 1]`, `[1, 1]`) yield `a`'s
-end `[10, 1]`, `b`'s offset and the segment line's length, in that order.
+## What proves the rules
 
-## Segment lines
+**The shared rejection cases are the oracle the two packages share.** Each of
+the 90 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
+path and the code (`test_validate.py`); `validate` raises
+`SchemaValidationError` with exactly both, and the codes of the cases are
+exactly the sixteen of the table, so every code is reached by a case both
+suites read. `version_unknown` raises `UnsupportedVersionError` and stores
+`["timeskeleton"]` and the code `null`. Every case is read through the
+package's one reader, `rejection_case`, which every consumer uses too; it
+puts the infinity or NaN a `finite_number` case names at the stored path.
+Three tests pin the reader: `nan_offset` and `infinite_length` hold the
+value in place and are reported at their path with the exact message, a
+case without one (`id_empty`) reads as written, and an unknown name is
+refused with `ValueError`. Each case's text is the
+standard writer's, and the set of names is stated literally, so a case cannot
+disappear unnoticed. Seven cases pin their message too (`test_identity.py`):
+`child_unit_differs`, `child_offset_beyond_parent`, `child_end_beyond_parent`,
+`band_id_region`, `band_order_unknown_entry`, `band_order_missing_band` and
+`order_unknown_group`.
 
-A segment line (`is_segment_line` true) holds only its segments, contiguous
-from 0 in offset order (ties by id) to its length, all with one
-`is_segment_line` value (absent is false). A segment is a child, so it
-shares the segment line's unit (Identity, step 1); a segment in another unit
-is reported by that rule alone, at its `unit`. The problems, after the
-duplicates, targets and children of their root (`test_segment_lines.py`),
-per segment: a flag
-different from the first segment's, at its `is_segment_line` (at the segment
-where the key is absent), `… differs from segment 'a' in is_segment_line`; an
-offset other than the previous end, at its `offset`, `… does not start at 0`
-or `… does not start where the one before it ends`; then one problem at the
-segment line's `length` when the last end misses it, `the segments of segment
-line 'line' do not end at its length`. Values compare exactly: on a seconds
-axis `0.1 + 0.2` does not meet `0.3`, `0.5 + 0.25` meets `0.75`.
+**Each semantic rule has the smallest inline document with exactly one
+problem** (`test_identity.py`, `test_segment_lines.py`), whose path and
+message are stated literally, and `validate` raises that same problem. The
+documents that bound each rule from the other side:
 
-**Unknown length.** A segment of unknown length ends where its successor
-starts: segments `a` (0, null) and `b` (5, 3) on a line of length 8 have no
-problem, nor with `b` at 7 and length 1. The end check is skipped where the
-last segment's length or the line's is unknown: a last segment of null
-length, and a line of null length with segments `a` (0, 3), `b` (3, 5), have
-no problem; but a line of null length still checks contiguity (`b` at 4 after
-`a` ending at 3 is reported). A segment line without segments and length 0
-has no problem, with length 8 one problem at its length, with length null
-none. Offset order, not array order, decides: segments given `b`, `a` with
-offsets 3, 0 are contiguous. A segment line among the descendants is checked
-at its own path, a timeline with `is_segment_line` false never.
+- **Scopes.** A marker `m` in two roots, and a region `perf` beside a child
+  timeline `perf` of another root, are no problem; a timeline id repeated
+  inside one root is reported once.
+- **Reserved ids.** Every part word (`start`, `end`, `name`, `label`,
+  `card`) and band id (the five kinds numbered 1, `regions_12`,
+  `flow_control_907`) is refused as the id of a timeline, a map, a region, a
+  break, a jump, a marker, a group and the manifest, in a manifest of one
+  root; `starts`, `Start`, the bare kind words, `regions_0`, `regions_01`,
+  `region_1`, `Regions_1` and `regions_1a` are accepted, since the pattern
+  names a whole id.
+- **Containment.** A child's end is its offset plus its length, or, for a
+  segment of unknown length, its successor's offset; values compare exactly
+  and the end is spelled in the parent's number type, a fraction pair where
+  that type has no exact spelling: `0.2` at `0.1` in `0.3` seconds ends at
+  `[10808639105689191, 36028797018963968]`, `0.5` at `0.5` in `0.75` at
+  `1.0`, `240` ticks at `480` in `480` at `720`, a quarters child declared
+  `float`, `2.5` at `[7, 1]` in `[8, 1]`, at `[19, 2]`; `0.25` at `0.5` in
+  `0.75` and `[2, 1]` at `[8, 1]` in `[10, 1]` end at the length and pass.
+  An offset beyond the length is its child's one problem; a child of another
+  unit gets only the unit problem, also between two continuous logical units
+  (`number` under `quarters`); a parent of unknown length checks no
+  containment. Unknown lengths pass wherever they stand: a root, a locked
+  root, a child in a parent of known length and the reverse
+  (`test_validate.py`). Negative offsets pass, on a root (`-1700000000.25` seconds,
+  `[-3, 2]` quarters) and on a child (`-1.5`, `-0.0` seconds,
+  `[-1, 1000000]`, `[-3, 2]` quarters, a grandchild at `[-1, 2]`), while a
+  child at `[-3, 2]` of length `[40, 1]` in `[32, 1]` ends at `[77, 2]` and is
+  reported. A grandchild is reported at its own path, naming its parent.
+- **Segment lines.** Offset order decides, not array order (`b`, `a` at 3
+  and 0 are contiguous); exact comparison (`0.1 + 0.2` does not meet `0.3`,
+  `0.5 + 0.25` meets `0.75`); a segment of unknown length ends where its
+  successor starts; the end check is skipped where the last segment's or the
+  line's length is unknown, contiguity is not; a line without segments has
+  one problem at a length of 8, none at 0 or null; a flag differing from the
+  first segment's is reported at its `is_segment_line`, or at the segment
+  where the key is absent; a descendant segment line is checked at its own
+  path, a timeline whose `is_segment_line` is false never.
+- **Groups and orders.** A child in one group with its root in another or in
+  none, a group without members and members of unknown length pass. A band
+  order passes at a root and at a descendant (for the child `b` the reverse
+  of the default); each stranger (`score/regions_2`, `regions_1`,
+  `b/regions_1`, `b`, `ghost`) is one problem at its entry, a missing band
+  one at the order, an empty order its six missing addresses in the default
+  band order; a child's order is held to its own bands.
 
-## Groups and unknown length
+**One document breaks every step once** (`test_every_step_in_order` and its
+JavaScript twin): `identity_problems` returns exactly the stated problems, in
+the stated order, with the stated codes, and `validate` raises the first.
 
-A group may hold members of unknown length, roots and children alike; a
-locked timeline may have an unknown length; a child of unknown length may sit
-in a parent of known length and the reverse; all validate (`test_identity.py`
-for groups, `test_validate.py` for lengths). The containment rules (Identity,
-step 1) need the parent's length and are skipped where it is unknown.
+**The finite rule runs before everything else.** Infinity as a length, NaN
+in a fraction pair of a region and negative infinity in a style, each in a
+manifest whose repeated root also breaks the identity rules, raise
+`finite_number` at the leaf with the message of the table.
 
-## Shared rejection cases
-
-`fixtures/rejections/0.7.0/` holds 88 cases `{manifest, path, reason}`, one
-rule each, written by `dumps`; `version_unknown` adds `"error":
-"UnsupportedVersionError"` and its `path` is `["timeskeleton"]`. For every
-other case `validate` raises `SchemaValidationError` at exactly the stored
-path; for that one it raises `UnsupportedVersionError` (`test_validate.py`).
-The set is stated literally by name, so a case cannot disappear unnoticed.
+**Reading JSON.** `loads` reads text as the JavaScript package's `parseJson`
+does, with the same cases as its tests: `0.5`, `2.0`,
+`123456789012345678`, `-0` (the integer 0), `-0.0` (a negative float zero)
+and `1E5` (a float) keep their kinds, an integer beyond 64 bits stays exact,
+and `""`, `[1,]`, `{1: 2}`, `01`, `[1] 2`, `nul`, `1e400`, `NaN` and
+`-Infinity` raise `ValueError`.
 
 ## One path rule for both validators
 

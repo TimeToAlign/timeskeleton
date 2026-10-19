@@ -13,9 +13,20 @@
 
 export { complete, DEFAULTS, minimal } from "./defaults.js";
 export { type FontMetrics, fontMetrics } from "./font.js";
+export { canonicalManifest, completeManifest, minimalManifest } from "./forms.js";
 export { schema } from "./generated/schema.js";
 export type {
   Break,
+  CompleteBreak,
+  CompleteConversionMap,
+  CompleteFlowControl,
+  CompleteGraphical,
+  CompleteGroup,
+  CompleteJump,
+  CompleteMarker,
+  CompleteRegion,
+  CompleteTimeline,
+  CompleteTimeSkeleton,
   ConversionMap,
   Coordinate,
   Declaration,
@@ -27,6 +38,7 @@ export type {
   Id,
   Jump,
   LinearMap,
+  LosslessTimeSkeleton,
   Marker,
   MeasureMapRow,
   Number,
@@ -40,19 +52,17 @@ export type {
   TimeSkeleton,
   TimeUnit,
 } from "./generated/types.js";
+export { JsonSyntaxError, parseJson } from "./json/parse.js";
 export {
-  canonicalJson,
-  canonicalOrder,
-  compactJson,
-  dumps,
   isJsonFloat,
   isJsonObject,
   type Json,
   JsonFloat,
   type JsonNumber,
   type Lossless,
-  parseJson,
-} from "./manifest.js";
+} from "./json/value.js";
+export { canonicalJson, compactJson } from "./json/write.js";
+export { canonicalOrder, dumps } from "./manifest/order.js";
 export { completeStyles } from "./styles.js";
 export {
   identityProblems,
@@ -65,5 +75,6 @@ export {
   type UnknownKey,
   UnsupportedVersionError,
   unknownKeys,
+  type ValidationCode,
   validate,
 } from "./validate.js";

@@ -133,6 +133,9 @@ validators then check the representation and report a mismatch such as
 `length 32 of 'score' is an int on a fraction axis: write [32, 1]`, or, for
 an integer no float holds exactly,
 `length 9007199254740993 of 'take' is an int on a float axis: write a float`.
+Every number of a manifest is finite: JSON spells no NaN or infinity, but a
+value built in memory, or read by a lenient reader, may hold one, and both
+validators refuse it at its path.
 
 A coordinate on another axis, as in a conversion map's tables, keeps the
 coordinate object `{unit, number_type, value}`, its value represented as its
@@ -287,30 +290,30 @@ another, nor that a child lies within its parent's known length, nor that a
 segment line's segments are contiguous and alike, nor the representation of
 own-axis values, so both validators check them after
 the schema. Each finding is one problem, located by a path into the
-manifest:
+manifest and named by a stable code:
 
-| Rule | Location | Message |
-| --- | --- | --- |
-| An id repeats within one root's tree | the later occurrence | `duplicate id '<id>', first at <pointer>` |
-| A jump's `target` names no marker of its timeline | the `target` | `'<target>' names no marker of this timeline` |
-| A child's `unit` is not its parent's | the child's `unit` | `child '<id>' has unit '<unit>', its parent '<id>' has '<unit>'` |
-| A child's `offset` lies beyond its parent's known length | the child's `offset` | `offset <offset> of '<id>' is beyond the length <length> of its parent '<id>'` |
-| A child ends beyond its parent's known length, its own end known | the child's `length` | `child '<id>' ends at <end>, beyond the length <length> of its parent '<id>'` |
-| A segment's `is_segment_line` differs from the first segment's | the segment's `is_segment_line`, or the segment when it leaves the key out | `segment '<id>' of segment line '<id>' differs from segment '<first id>' in is_segment_line` |
-| A segment does not start where the one before it ends, or the first at 0 | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
-| The last segment does not end at the segment line's length, both known | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
-| An id is `start`, `end`, `name`, `label` or `card`, or matches the band pattern above | the `id` | `id '<id>' is reserved for the parts of an address` (`id '<id>' is reserved for the bands of a timeline`) |
-| A timeline id repeats one of an earlier root's tree | the later occurrence | `duplicate id '<id>', first at <pointer>` |
-| A group id equals a timeline id or an earlier group's id | the group's `id` | `duplicate id '<id>', first at <pointer>` |
-| The manifest's id equals a timeline id or a group id | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group |
-| A member names no timeline of the manifest | the member | `'<id>' names no timeline of this manifest` |
-| A member is already a member of an earlier group | the later member | `duplicate member '<id>', first at <pointer>` |
-| A member lies inside an earlier member of its group, or contains one | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
-| A key of `graphical.order` names no group and no timeline | the key | `'<key>' names no group or timeline of this manifest` |
-| An entry of a display order is not a member of its group | the entry | `'<id>' is not a member of group '<group id>'` |
-| A member of a group is missing from its display order | the order | `member '<id>' of group '<group id>' is missing` |
-| An entry of a band order is neither its timeline's id nor one of its bands | the entry | `'<entry>' is not '<id>' or one of its bands` |
-| A band, or the timeline's own id, is missing from its band order | the order | `'<address>' is missing from the band order of '<id>'` |
+| Rule | Code | Location | Message |
+| --- | --- | --- | --- |
+| An id repeats within one root's tree | `duplicate_id` | the later occurrence | `duplicate id '<id>', first at <pointer>` |
+| A jump's `target` names no marker of its timeline | `dangling_target` | the `target` | `'<target>' names no marker of this timeline` |
+| A child's `unit` is not its parent's | `child_unit` | the child's `unit` | `child '<id>' has unit '<unit>', its parent '<id>' has '<unit>'` |
+| A child's `offset` lies beyond its parent's known length | `child_offset` | the child's `offset` | `offset <offset> of '<id>' is beyond the length <length> of its parent '<id>'` |
+| A child ends beyond its parent's known length, its own end known | `child_end` | the child's `length` | `child '<id>' ends at <end>, beyond the length <length> of its parent '<id>'` |
+| A segment's `is_segment_line` differs from the first segment's | `segment_line` | the segment's `is_segment_line`, or the segment when it leaves the key out | `segment '<id>' of segment line '<id>' differs from segment '<first id>' in is_segment_line` |
+| A segment does not start where the one before it ends, or the first at 0 | `segment_line` | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
+| The last segment does not end at the segment line's length, both known | `segment_line` | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
+| An id is `start`, `end`, `name`, `label` or `card`, or matches the band pattern above | `reserved_id` | the `id` | `id '<id>' is reserved for the parts of an address` (`id '<id>' is reserved for the bands of a timeline`) |
+| A timeline id repeats one of an earlier root's tree | `duplicate_id` | the later occurrence | `duplicate id '<id>', first at <pointer>` |
+| A group id equals a timeline id or an earlier group's id | `duplicate_id` | the group's `id` | `duplicate id '<id>', first at <pointer>` |
+| The manifest's id equals a timeline id or a group id | `manifest_id` | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group |
+| A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
+| A member is already a member of an earlier group | `group_member` | the later member | `duplicate member '<id>', first at <pointer>` |
+| A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
+| A key of `graphical.order` names no group and no timeline | `order_key` | the key | `'<key>' names no group or timeline of this manifest` |
+| An entry of a display order is not a member of its group | `display_order` | the entry | `'<id>' is not a member of group '<group id>'` |
+| A member of a group is missing from its display order | `display_order` | the order | `member '<id>' of group '<group id>' is missing` |
+| An entry of a band order is neither its timeline's id nor one of its bands | `band_order` | the entry | `'<entry>' is not '<id>' or one of its bands` |
+| A band, or the timeline's own id, is missing from its band order | `band_order` | the order | `'<address>' is missing from the band order of '<id>'` |
 
 Within one root's tree, ids are visited in identity order (a timeline,
 then its conversion maps, regions, breaks, jumps and markers, then its
@@ -496,20 +499,18 @@ npm install @timetoalign/timeskeleton
 
 ### Python
 
-Python validation raises `SchemaValidationError` with a tuple path to the
-offending value. Read a manifest with `json.loads`, which keeps integers and
-floats distinct and every integer exact, and write it with `dumps`:
+Python validation raises `SchemaValidationError` with the `code` of the
+rule broken, a tuple `path` to the offending value and a `message`. Read a
+manifest with `loads` and write it with `dumps`:
 
 ```python
-import json
+from timeskeleton import SchemaValidationError, dumps, fixture_paths, loads, validate
 
-from timeskeleton import SchemaValidationError, dumps, fixture_paths, validate
-
-value = json.loads(fixture_paths()[0].read_text(encoding="utf-8"))
+value = loads(fixture_paths()[0].read_text(encoding="utf-8"))
 try:
     validate(value)
 except SchemaValidationError as error:
-    print(error.path)
+    print(error.code, error.path)
 else:
     text = dumps(value)
 ```
@@ -520,6 +521,9 @@ else:
   A value without `timeskeleton` is refused at the root; a value declaring
   another version raises `UnsupportedVersionError` naming 0.7.0. Unknown
   keys never fail it.
+- `loads(text)` reads JSON text as the TypeScript package's `parseJson`
+  does: integers stay exact at any size and floats stay floats, and `NaN`,
+  `Infinity` and a float beyond a double are refused with `ValueError`.
 - `unknown_keys(value)` returns the unknown keys of a manifest as a list of
   `{path, key}` entries, sorted by path and then by key.
 - `complete(value)` and `minimal(value)` return a copy of a manifest in the
@@ -537,7 +541,9 @@ else:
 - `schema_path()` and `load_schema()` return the schema document,
   `fixture_paths()` the bundled accepted fixtures, `rejection_paths()`
   the bundled rejection cases and `warning_paths()` the bundled warning
-  cases.
+  cases. `rejection_case(path)` reads one rejection case as a
+  `RejectionCase` (`manifest`, `path`, `code`, `error`, `reason`), with the
+  non-finite number a finite-rule case names put in place.
 - `font_path()` returns the bundled TrueType file, and `font_metrics()` returns
   its metrics.
 
@@ -559,7 +565,7 @@ function load(text: string): string {
     return dumps(parse(text));
   } catch (error) {
     if (error instanceof SchemaValidationError) {
-      console.error(error.path);
+      console.error(error.code, error.path);
     }
     throw error;
   }
@@ -567,14 +573,22 @@ function load(text: string): string {
 ```
 
 - `parse(text)` reads and validates a manifest without losing a number or
-  key order, and returns it as a `TimeSkeleton`. `parseJson(text)` reads
-  any JSON text without validating it.
-- `validate(value)` narrows an unknown value to `TimeSkeleton`, checking it
-  as Python's `validate` does.
+  key order, and returns it as a `LosslessTimeSkeleton`. `parseJson(text)`
+  reads any JSON text without validating it, and throws `JsonSyntaxError`,
+  a `SyntaxError` with the `offset` (in UTF-16 code units), `line` and
+  `column` (from 1) of the fault.
+- `validate(value)` asserts that an unknown value is a
+  `LosslessTimeSkeleton` (its numbers may be bigints and `JsonFloat`s),
+  checking it as Python's `validate` does; its `SchemaValidationError` carries the same
+  `code` (typed `ValidationCode`), a `path` and a `detail`.
 - `unknownKeys(value)` returns the same list as Python's `unknown_keys`.
 - `complete(value)` and `minimal(value)` return the complete and the minimal
   form, as Python's functions do, keeping every number and key order
-  `parseJson` read.
+  `parseJson` read. The typed forms say which form a value is in:
+  `completeManifest(value: LosslessTimeSkeleton): CompleteTimeSkeleton`,
+  `minimalManifest(value): LosslessTimeSkeleton` and
+  `canonicalManifest(value)`, which returns its argument's type in canonical
+  order.
 - `dumps(value)` is the standard writer. `compactJson(value)` writes without
   whitespace, and `canonicalJson(value)` also sorts object keys by code point.
 - `canonicalOrder(value)` returns a deep copy with the manifest's arrays in
@@ -586,7 +600,12 @@ function load(text: string): string {
 - `SCHEMA_VERSION` is `"0.7.0"`, and `schema` holds the schema document.
   The generated types are generated from it, with the root type
   `TimeSkeleton` and one type per definition, such as `Timeline`, `Group`
-  and `Graphical`.
+  and `Graphical`. Beside each definition with defaults a complete form is
+  generated, `CompleteTimeSkeleton`, `CompleteTimeline`, `CompleteGroup` and
+  so on, in which every key with a default is required at every depth and
+  every number is a `JsonNumber`; keys whose default is their absence (the
+  manifest's `id` and `graphical`, a root's `offset`) stay optional.
+  `LosslessTimeSkeleton` is `Lossless<TimeSkeleton>`.
 
 A number read by `parseJson` is a `JsonNumber`:
 
@@ -597,7 +616,8 @@ A number read by `parseJson` is a `JsonNumber`:
 | a float with a fractional part, such as `0.5` | a `number` |
 | an integral float, such as `2.0`, `1e+16`, or `-0.0` | a `JsonFloat` |
 
-`Lossless<T>` replaces every `number` in `T` with `JsonNumber`. A float whose
+`Lossless<T>` replaces every `number` in `T` with `JsonNumber` and keeps
+tuples, so a Fraction is `[JsonNumber, JsonNumber]`. A float whose
 value is an integer must be passed as `new JsonFloat(2)`, not as `2`, if it is
 to be written as a float. JavaScript code that writes files must use
 `dumps` or `compactJson`, not `JSON.stringify`.
@@ -618,8 +638,9 @@ that all version declarations agree.
 The [fixture guide](fixtures/README.md) describes the generated manifests
 and the drawings, the hand-authored rejection cases, and the warning cases.
 Every accepted fixture is written in the complete form beside its minimal
-twin. The manifests are emitted only by `scripts/emit_fixtures.py` using
-timetoalign. Do not edit them by hand.
+twin. The manifests are emitted only by timetoalign through the catalogue of
+builders in `scripts/fixtures/`, whose CLI is `scripts/emit_fixtures.py`. Do
+not edit them by hand.
 
 ## Development
 

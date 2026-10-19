@@ -7,9 +7,8 @@ import {
   unknownKeys,
   validate,
 } from "../src/index.js";
+import type { JsonObject } from "../src/json/value.js";
 import { group, manifest, timeline, warningFileNames, warningText } from "./fixtures.js";
-
-type JsonObject = Record<string, unknown>;
 
 const WARNINGS = [
   "declaration_show_projections",

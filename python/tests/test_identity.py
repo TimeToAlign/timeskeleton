@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import copy
-import json
 
 import pytest
 
 from timeskeleton import (
     SchemaValidationError,
     identity_problems,
+    rejection_case,
     rejection_paths,
     validate,
 )
@@ -324,8 +324,8 @@ def test_the_shared_identity_rejections_carry_their_messages(
     name: str, message: str
 ) -> None:
     (path,) = [path for path in rejection_paths() if path.stem == name]
-    case = json.loads(path.read_text(encoding="utf-8"))
-    assert _only(case["manifest"]) == (tuple(case["path"]), message)
+    case = rejection_case(path)
+    assert _only(case.manifest) == (case.path, message)
 
 
 def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
@@ -733,3 +733,19 @@ def test_every_step_in_order() -> None:
             "'zz' names no group or timeline of this manifest",
         ),
     ]
+    assert [problem.code for problem in identity_problems(value)] == [
+        "dangling_target",
+        "child_unit",
+        "child_offset",
+        "child_end",
+        *["reserved_id"] * 3,
+        *["duplicate_id"] * 2,
+        "manifest_id",
+        *["group_member"] * 2,
+        *["display_order"] * 2,
+        *["band_order"] * 2,
+        "order_key",
+    ]
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(value)
+    assert (caught.value.path, caught.value.message) == _problems(value)[0]

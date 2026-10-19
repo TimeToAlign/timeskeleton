@@ -1,0 +1,20 @@
+{
+  "code": "finite_number",
+  "manifest": {
+    "timelines": [
+      {
+        "id": "recording",
+        "length": 0.0,
+        "unit": "seconds"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "non_finite": "Infinity",
+  "path": [
+    "timelines",
+    0,
+    "length"
+  ],
+  "reason": "Every numeric leaf is finite; the test substitutes positive infinity for the placeholder at the stored path."
+}

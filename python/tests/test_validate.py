@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +12,8 @@ from timeskeleton import (
     UnsupportedVersionError,
     dumps,
     json_pointer,
+    loads,
+    rejection_case,
     rejection_paths,
     validate,
 )
@@ -49,6 +52,7 @@ REJECTIONS = [
     "id_duplicate_across_kinds",
     "id_empty",
     "id_with_slash",
+    "infinite_length",
     "jump_condition_unknown",
     "jump_target_dangling",
     "later_root_missing_unit",
@@ -77,6 +81,7 @@ REJECTIONS = [
     "members_contain_member",
     "members_inside_member",
     "metric_hierarchy_string",
+    "nan_offset",
     "order_missing_member",
     "order_not_array",
     "order_unknown_group",
@@ -326,17 +331,166 @@ def test_the_rejection_cases_are_stated() -> None:
 
 @pytest.mark.parametrize("path", rejection_paths(), ids=lambda path: path.stem)
 def test_shared_rejection_is_rejected_at_its_path(path: Path) -> None:
-    case = json.loads(path.read_text(encoding="utf-8"))
-    assert dumps(case) == path.read_text(encoding="utf-8")
-    if case.get("error") == "UnsupportedVersionError":
-        assert case["path"] == ["timeskeleton"]
+    text = path.read_text(encoding="utf-8")
+    assert dumps(json.loads(text)) == text
+    case = rejection_case(path)
+    if case.error == "UnsupportedVersionError":
+        assert case.path == ("timeskeleton",)
+        assert case.code is None
         with pytest.raises(UnsupportedVersionError):
-            validate(case["manifest"])
+            validate(case.manifest)
         return
-    assert "error" not in case
+    assert case.error is None
     with pytest.raises(SchemaValidationError) as caught:
-        validate(case["manifest"])
-    assert list(caught.value.path) == case["path"]
+        validate(case.manifest)
+    assert caught.value.path == case.path
+    assert caught.value.code == case.code
+
+
+def _rejection(name: str) -> Path:
+    (path,) = [path for path in rejection_paths() if path.stem == name]
+    return path
+
+
+def test_the_rejection_reader_puts_the_non_finite_value_at_its_path() -> None:
+    nan = rejection_case(_rejection("nan_offset"))
+    assert nan.path == ("timelines", 0, "children", 0, "offset")
+    assert math.isnan(nan.manifest["timelines"][0]["children"][0]["offset"])
+    infinite = rejection_case(_rejection("infinite_length"))
+    assert infinite.path == ("timelines", 0, "length")
+    assert infinite.manifest["timelines"][0]["length"] == math.inf
+    assert infinite.code == "finite_number"
+    assert infinite.error is None
+    for case, message in [
+        (nan, "offset of 'take' is not a finite number"),
+        (infinite, "length of 'recording' is not a finite number"),
+    ]:
+        with pytest.raises(SchemaValidationError) as caught:
+            validate(case.manifest)
+        assert (caught.value.path, caught.value.message) == (case.path, message)
+
+
+def test_the_rejection_reader_keeps_any_other_case_as_written() -> None:
+    path = _rejection("id_empty")
+    stored = json.loads(path.read_text(encoding="utf-8"))
+    case = rejection_case(path)
+    assert case.manifest == stored["manifest"]
+    assert case.path == tuple(stored["path"])
+    assert (case.code, case.error, case.reason) == (
+        "schema",
+        None,
+        "An id must not be empty.",
+    )
+
+
+def test_the_rejection_reader_refuses_an_unknown_non_finite_name(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "huge.json"
+    path.write_text(
+        json.dumps(
+            {
+                "code": "finite_number",
+                "manifest": {"timeskeleton": "0.7.0", "timelines": []},
+                "non_finite": "Huge",
+                "path": ["timelines"],
+                "reason": "x",
+            }
+        ),
+        encoding="utf-8",
+    )
+    with pytest.raises(ValueError, match="'Huge' names no non-finite number"):
+        rejection_case(path)
+
+
+def test_rejections_cover_every_rule_code() -> None:
+    codes = {rejection_case(path).code for path in rejection_paths()}
+    assert codes - {None} == {
+        "band_order",
+        "child_end",
+        "child_offset",
+        "child_unit",
+        "dangling_target",
+        "display_order",
+        "duplicate_id",
+        "finite_number",
+        "group_member",
+        "manifest_id",
+        "not_a_manifest",
+        "order_key",
+        "representation",
+        "reserved_id",
+        "schema",
+        "segment_line",
+    }
+
+
+# -- reading JSON -------------------------------------------------------------------
+
+
+def test_loads_keeps_integers_exact_and_floats_floats() -> None:
+    half, two, big, minus_zero_integer, minus_zero, exponent = loads(
+        "[0.5, 2.0, 123456789012345678, -0, -0.0, 1E5]"
+    )
+    assert (half, two, big, exponent) == (0.5, 2.0, 123456789012345678, 100000.0)
+    assert [type(value) for value in (two, big, exponent)] == [float, int, float]
+    assert type(minus_zero_integer) is int and minus_zero_integer == 0
+    assert math.copysign(1.0, minus_zero) == -1.0
+    assert loads(str(2**64)) == 2**64
+
+
+@pytest.mark.parametrize(
+    "text", ["", "[1,]", "{1: 2}", "01", "[1] 2", "nul", "1e400", "NaN", "-Infinity"]
+)
+def test_loads_refuses_text_that_is_not_one_json_value(text: str) -> None:
+    with pytest.raises(ValueError):
+        loads(text)
+
+
+# -- the finite-number rule ---------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("value", "path", "detail"),
+    [
+        (
+            manifest(timeline("take", "seconds", math.inf)),
+            ("timelines", 0, "length"),
+            "length of 'take' is not a finite number",
+        ),
+        (
+            manifest(
+                timeline(
+                    "score",
+                    "quarters",
+                    [8, 1],
+                    regions=[{"id": "r", "start": [0, 1], "end": [math.nan, 1]}],
+                )
+            ),
+            ("timelines", 0, "regions", 0, "end", 0),
+            "end of 'r' is not a finite number",
+        ),
+        (
+            manifest(
+                timeline("take"), graphical={"styles": {"s": {"opacity": -math.inf}}}
+            ),
+            ("graphical", "styles", "s", "opacity"),
+            "#/graphical/styles/s/opacity is not a finite number",
+        ),
+    ],
+)
+def test_a_non_finite_number_is_refused_before_any_other_rule(
+    value: dict, path: tuple, detail: str
+) -> None:
+    # A repeated root breaks the identity rules too; the finite rule runs first.
+    value["timelines"].append(value["timelines"][0])
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(value)
+    assert (caught.value.code, caught.value.path, caught.value.message) == (
+        "finite_number",
+        path,
+        detail,
+    )
 
 
 # -- errors and paths ---------------------------------------------------------------

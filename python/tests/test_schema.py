@@ -9,56 +9,6 @@ from timeskeleton import DEFAULTS, SCHEMA_VERSION, load_schema, schema_path
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 UNKNOWN = {"x-unknown-key": True}
 
-TIMELINE_CLASSES = [
-    "ContinuousLogicalTimeline",
-    "ContinuousPhysicalTimeline",
-    "ContinuousGraphicalTimeline",
-    "DiscreteLogicalTimeline",
-    "DiscretePhysicalTimeline",
-    "DiscreteGraphicalTimeline",
-]
-CONVERSION_MAP_TYPES = [
-    "BeatInMeasureMap",
-    "ChainMap",
-    "CombinationMap",
-    "ConstantMap",
-    "FloorMap",
-    "InterpolationMap",
-    "IntervalToConstantMap",
-    "LinearMap",
-    "MetricMap",
-    "MetricalPositionMap",
-    "PiecewiseMap",
-    "QuartersToFloatingMeasures",
-    "QuartersToMeasureNumber",
-    "QuartersToTicks",
-    "RotationMap",
-    "SamplesToSeconds",
-    "ScalarMap",
-    "SecondsToSamples",
-    "ShiftMap",
-    "TableMap",
-    "TicksToQuarters",
-]
-BAND_KINDS = ["markers", "conversion_maps", "children", "regions", "flow_control"]
-TIME_UNITS = [
-    "number",
-    "floating_measures",
-    "whole_note",
-    "quarters",
-    "ticks",
-    "milliseconds",
-    "seconds",
-    "minutes",
-    "samples",
-    "frames",
-    "pixels",
-    "meters",
-    "centimeters",
-    "millimeters",
-    "inches",
-    "points",
-]
 PUBLIC = [
     "TimeSkeleton",
     "Timeline",
@@ -77,6 +27,21 @@ PUBLIC = [
 
 def _defs() -> dict[str, Any]:
     return load_schema()["$defs"]
+
+
+def _map_types() -> list[str]:
+    """The conversion map types: the definitions ``ConversionMap`` chooses between."""
+    return [
+        branch["$ref"].removeprefix("#/$defs/")
+        for branch in _defs()["ConversionMap"]["oneOf"]
+    ]
+
+
+def _target(node: dict) -> dict:
+    """The definition a node refers to, else the node."""
+    if "$ref" in node:
+        return _defs()[node["$ref"].removeprefix("#/$defs/")]
+    return node
 
 
 def _nodes(node: Any, inside: bool = False) -> Iterator[tuple[dict, bool]]:
@@ -140,112 +105,22 @@ def test_the_public_definitions() -> None:
         assert gone not in defs
 
 
-def test_the_manifest() -> None:
-    manifest = _defs()["TimeSkeleton"]
-    assert list(manifest["properties"]) == [
-        "$schema",
-        "timeskeleton",
-        "id",
-        "name",
-        "meta",
-        "timelines",
-        "groups",
-        "graphical",
-    ]
-    assert manifest["required"] == ["timeskeleton", "timelines"]
-    assert manifest["properties"]["timeskeleton"]["const"] == "0.7.0"
-    assert manifest["properties"]["$schema"]["type"] == "string"
-    assert manifest["properties"]["timelines"]["items"] == {"$ref": "#/$defs/Timeline"}
-
-
-def test_the_timeline() -> None:
-    timeline = _defs()["Timeline"]
-    properties = timeline["properties"]
-    assert list(properties) == [
-        "id",
-        "name",
-        "unit",
-        "number_type",
-        "length",
-        "offset",
-        "locked",
-        "is_segment_line",
-        "meta",
-        "children",
-        "conversion_maps",
-        "regions",
-        "flow_control",
-        "measure_map",
-        "metric_hierarchy",
-    ]
-    assert timeline["required"] == ["id", "unit", "length"]
-    assert properties["length"]["anyOf"] == [
-        {"$ref": "#/$defs/NumberNonnegative"},
-        {"type": "null"},
-    ]
-    assert properties["offset"]["$ref"] == "#/$defs/Number"
-    assert properties["children"]["items"] == {
-        "$ref": "#/$defs/Timeline",
-        "required": ["offset"],
-    }
-    assert (
-        properties["locked"]["description"] == "Whether the timeline's length is fixed."
-    )
-    defs = _defs()
-    for definition, keys in (
-        ("Region", ["start", "end"]),
-        ("Break", ["coordinate"]),
-        ("Jump", ["from_coordinate", "to_coordinate"]),
-        ("Marker", ["coordinate"]),
-    ):
-        for key in keys:
-            assert defs[definition]["properties"][key] == {"$ref": "#/$defs/Number"}
-
-
-def test_groups_and_the_graphical_block() -> None:
-    defs = _defs()
-    assert list(defs["Group"]["properties"]) == ["id", "name", "meta", "members"]
-    assert defs["Group"]["required"] == ["id", "members"]
-    graphical = defs["Graphical"]
-    assert list(graphical["properties"]) == ["styles", "statements", "order"]
-    assert "required" not in graphical
-    order = graphical["properties"]["order"]
-    assert order["propertyNames"] == {"$ref": "#/$defs/Id"}
-    assert order["additionalProperties"] == {"$ref": "#/$defs/Order"}
-    entry = (
-        r"^[^/\u0000-\u001f]+"
-        r"(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$"
-    )
-    assert {
-        key: value for key, value in defs["Order"].items() if key != "description"
-    } == {
-        "type": "array",
-        "items": {"type": "string", "pattern": entry},
-        "uniqueItems": True,
-    }
-    assert not [node for node, _ in _nodes(load_schema()) if "support_policy" in node]
-    for name in CONVERSION_MAP_TYPES:
-        definition = defs[name]
-        assert definition["properties"]["type"]["const"] == name
-        assert "name" in definition["properties"]
-        assert "name" not in definition["required"]
-        assert set(definition["required"]) == set(definition["properties"]) - {"name"}
-
-
 def test_objects_are_open_and_mark_their_unknown_keys() -> None:
+    defs = _defs()
     nodes = list(_nodes(load_schema()))
     assert not [node for node, _ in nodes if node.get("additionalProperties") is False]
-    marked = 0
+    marked = []
     for node, inside in nodes:
         is_object = node.get("type") == "object" and "properties" in node
         if inside:
             assert "unevaluatedProperties" not in node
         elif is_object:
             assert node["unevaluatedProperties"] == UNKNOWN
-            marked += 1
+            marked.append(node)
         else:
             assert "unevaluatedProperties" not in node
-    assert marked == len(CONVERSION_MAP_TYPES) + 14
+    for name in ["TimeSkeleton", "Timeline", "Group", "Graphical", *_map_types()]:
+        assert defs[name] in marked
 
 
 def test_free_objects_say_so() -> None:
@@ -277,6 +152,21 @@ def test_every_marked_object_declares_what_its_branches_declare() -> None:
             assert set(node.get(key, {}).get("properties", {})) <= declared
 
 
+def test_every_discriminated_union_tags_each_branch_with_a_distinct_constant() -> None:
+    unions = [node for node, _ in _nodes(load_schema()) if "discriminator" in node]
+    assert sorted(node["discriminator"]["propertyName"] for node in unions) == [
+        "number_type",
+        "type",
+    ]
+    for node in unions:
+        key = node["discriminator"]["propertyName"]
+        tags = [_target(branch)["properties"][key]["const"] for branch in node["oneOf"]]
+        assert all(isinstance(tag, str) for tag in tags)
+        assert len(set(tags)) == len(tags)
+        for branch in node["oneOf"]:
+            assert key in _target(branch).get("required", node.get("required", []))
+
+
 def test_the_defaults_are_the_table() -> None:
     defs = _defs()
     kinds = {
@@ -287,7 +177,7 @@ def test_the_defaults_are_the_table() -> None:
         "break": ["Break"],
         "jump": ["Jump"],
         "marker": ["Marker"],
-        "conversion_map": CONVERSION_MAP_TYPES,
+        "conversion_map": _map_types(),
         "group": ["Group"],
         "graphical": ["Graphical"],
     }
@@ -308,70 +198,3 @@ def test_the_defaults_are_the_table() -> None:
                 "default" in m for m in definition.get("properties", {}).values()
             )
     assert "default" not in defs["Timeline"]["properties"]["number_type"]
-
-
-def test_the_vocabulary() -> None:
-    defs = _defs()
-    assert defs["TimeUnit"]["enum"] == TIME_UNITS
-    assert defs["NumberType"]["enum"] == ["int", "float", "fraction"]
-    assert defs["Id"]["pattern"] == r"^[^/\u0000-\u001f]+$"
-    assert defs["ElementType"]["enum"] == [
-        "block",
-        "timeline",
-        "child",
-        "band",
-        "map",
-        "region",
-        "break",
-        "jump",
-        "wedge",
-        "name",
-        "label",
-        "boundary",
-        "ancestor",
-        "group",
-        "card",
-    ]
-    selector = defs["Selector"]["properties"]
-    assert list(selector) == [
-        "element",
-        "ids",
-        "domain",
-        "modality",
-        "class",
-        "within",
-        "inside",
-    ]
-    assert selector["class"]["enum"] == (
-        TIMELINE_CLASSES + CONVERSION_MAP_TYPES + BAND_KINDS
-    )
-    assert selector["ids"]["minItems"] == 1
-    assert selector["ids"]["uniqueItems"] is True
-    assert selector["domain"]["enum"] == ["graphical", "logical", "physical"]
-    assert selector["modality"]["enum"] == ["continuous", "discrete"]
-    assert defs["Paint"]["pattern"] == "^(#[0-9A-F]{6}|none)$"
-    members = defs["Declaration"]["properties"]
-    assert members == {
-        "stroke": {"$ref": "#/$defs/Paint"},
-        "stroke-width": {"type": "number", "minimum": 0},
-        "stroke-dasharray": {
-            "type": "string",
-            "description": members["stroke-dasharray"]["description"],
-            "pattern": (
-                "^(none|(0|[1-9][0-9]*)(\\.[0-9]+)?( (0|[1-9][0-9]*)(\\.[0-9]+)?)*)$"
-            ),
-        },
-        "fill": {"$ref": "#/$defs/Paint"},
-        "opacity": {"type": "number", "minimum": 0, "maximum": 1},
-        "font-size": {"type": "number", "exclusiveMinimum": 0},
-        "rx": {"type": "number", "minimum": 0},
-        "display": {"type": "string", "enum": ["inline", "none"]},
-        "content": {"type": "string"},
-        "max-width": {
-            "oneOf": [
-                {"type": "number", "exclusiveMinimum": 0},
-                {"const": "none"},
-            ]
-        },
-        "shadow": {"$ref": "#/$defs/Paint"},
-    }

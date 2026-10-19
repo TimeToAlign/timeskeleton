@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   identityProblems,
+  isJsonObject,
   JsonFloat,
-  parseJson,
   SchemaValidationError,
   validate,
 } from "../src/index.js";
-import { bundle, group, manifest, rejectionText, timeline } from "./fixtures.js";
+import type { JsonObject } from "../src/json/value.js";
+import { bundle, group, manifest, rejectionCase, timeline } from "./fixtures.js";
 
-type JsonObject = Record<string, unknown>;
 type Problem = [readonly (string | number)[], string];
 
 function problems(value: JsonObject): Problem[] {
@@ -610,8 +610,9 @@ describe("identity", () => {
       "child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'",
     ],
   ])("states the message of the shared case %s", (name, message) => {
-    const testCase = parseJson(rejectionText(`${name}.json`)) as JsonObject;
-    expect(only(testCase.manifest as JsonObject)).toEqual([testCase.path, message]);
+    const testCase = rejectionCase(`${name}.json`);
+    if (!isJsonObject(testCase.manifest)) throw new Error(`${name} holds no manifest object`);
+    expect(only(testCase.manifest)).toEqual([testCase.path, message]);
   });
 
   it("reports every step in order", () => {
@@ -680,5 +681,19 @@ describe("identity", () => {
       [["graphical", "order", "kid"], '"kid/regions_1" is missing from the band order of "kid"'],
       [["graphical", "order", "zz"], '"zz" names no group or timeline of this manifest'],
     ]);
+    expect(identityProblems(value).map((problem) => problem.code)).toEqual([
+      "dangling_target",
+      "child_unit",
+      "child_offset",
+      "child_end",
+      ...Array<string>(2).fill("reserved_id"),
+      ...Array<string>(2).fill("duplicate_id"),
+      "manifest_id",
+      ...Array<string>(2).fill("group_member"),
+      ...Array<string>(2).fill("display_order"),
+      ...Array<string>(2).fill("band_order"),
+      "order_key",
+    ]);
+    expect(() => validate(value)).toThrow(identityProblems(value)[0]?.message);
   });
 });

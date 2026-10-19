@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { identityProblems, validate } from "../src/index.js";
+import type { JsonObject } from "../src/json/value.js";
 import { manifest, timeline } from "./fixtures.js";
 
-type JsonObject = Record<string, unknown>;
 type Problem = [readonly (string | number)[], string];
 
 const ID = 'segment line "line"';
