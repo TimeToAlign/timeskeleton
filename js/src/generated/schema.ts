@@ -3,12 +3,12 @@ export const schema = {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json",
   "title": "TimeSkeleton manifest",
-  "description": "The TimeSkeleton 0.7.0 manifest: musical timelines as timetoalign serializes them, without their events. Every manifest is one object holding the version marker `timeskeleton` and an array of root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Numbers follow the BOPP core primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key it does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
+  "description": "The TimeSkeleton 0.7.0 manifest: musical timelines as the Python library timetoalign (TTA) serializes them, without their events. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates follow TTA in its use of TimeUnits and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: a key it does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
   "$ref": "#/$defs/TimeSkeleton",
   "$defs": {
     "TimeSkeleton": {
       "type": "object",
-      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is a manifest of one root; a group is a manifest with one group. A manifest with an id or a name is named, one without both is anonymous. Timeline ids (of roots and descendants), group ids and the manifest id are unique together; every other id (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare id and every other element by `<root id>/<element id>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so these five words are no id anywhere. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by id and each group's members by code point; readers accept any order.",
+      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one without both is anonymous. Timeline ids (of roots and descendants), group ids and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so these five words are no ID anywhere. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.",
       "properties": {
         "$schema": {
           "type": "string",
@@ -16,11 +16,11 @@ export const schema = {
         },
         "timeskeleton": {
           "const": "0.7.0",
-          "description": "The TimeSkeleton version this manifest conforms to. A reader reads it first: a value without it is no TimeSkeleton manifest."
+          "description": "The TimeSkeleton version this manifest conforms to. Compulsory: a JSON structure without it is no TimeSkeleton manifest."
         },
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The manifest id. Without it the manifest is identified by nothing."
+          "description": "The manifest ID."
         },
         "name": {
           "type": [
@@ -45,7 +45,7 @@ export const schema = {
         },
         "groups": {
           "type": "array",
-          "description": "The timeline groups. A root no group names, and no descendant of which a group names, is ungrouped.",
+          "description": "The timeline groups. A root no group names remains ungrouped in the bundle. A group that has descendants named in a group is indirectly linked with that group.",
           "items": {
             "$ref": "#/$defs/Group"
           },
@@ -65,11 +65,11 @@ export const schema = {
     },
     "Timeline": {
       "type": "object",
-      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. Arrays whose order carries no meaning have one canonical order: children by offset, then id; conversion maps by id; regions by start, end, id; breaks and markers by coordinate, then id; jumps by from and to coordinate, then id. Readers accept any order.",
+      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The timeline id."
+          "description": "The timeline ID."
         },
         "name": {
           "type": [
@@ -99,11 +99,11 @@ export const schema = {
         },
         "offset": {
           "$ref": "#/$defs/Number",
-          "description": "Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis, in the root's own number type; absent, the root has none."
+          "description": "Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis; typically absent."
         },
         "locked": {
           "type": "boolean",
-          "description": "Whether the timeline's length is fixed.",
+          "description": "Whether the timeline's length is immutable.",
           "default": false
         },
         "is_segment_line": {
@@ -206,7 +206,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The group id."
+          "description": "The group ID."
         },
         "name": {
           "type": [
@@ -261,7 +261,7 @@ export const schema = {
         },
         "order": {
           "type": "object",
-          "description": "The order of what a group or a timeline stacks, top to bottom, keyed by a group's id (the display order of its members) or by a timeline's id, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, band by band id, and a root without one the default band order.",
+          "description": "The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by a timeline's ID, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, band by band ID, and a root without one the default band order.",
           "propertyNames": {
             "$ref": "#/$defs/Id"
           },
@@ -420,7 +420,7 @@ export const schema = {
     },
     "Fraction": {
       "type": "array",
-      "description": "Rational number encoded as numerator and non-zero denominator",
+      "description": "Rational number encoded as a numerator and a non-zero denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.",
       "minItems": 2,
       "maxItems": 2,
       "prefixItems": [
@@ -470,7 +470,7 @@ export const schema = {
     "Id": {
       "type": "string",
       "pattern": "^[^/\\u0000-\\u001f]+$",
-      "description": "An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed."
+      "description": "An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed."
     },
     "MeasureMapRow": {
       "type": "object",
@@ -592,7 +592,7 @@ export const schema = {
     },
     "FractionNonnegative": {
       "type": "array",
-      "description": "Non-negative rational number",
+      "description": "Non-negative rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.",
       "minItems": 2,
       "maxItems": 2,
       "prefixItems": [
@@ -611,7 +611,7 @@ export const schema = {
     },
     "FractionPositive": {
       "type": "array",
-      "description": "Strictly positive rational number",
+      "description": "Strictly positive rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.",
       "minItems": 2,
       "maxItems": 2,
       "prefixItems": [
@@ -634,7 +634,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The region id."
+          "description": "The region ID."
         },
         "name": {
           "type": [
@@ -702,7 +702,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The break id."
+          "description": "The break ID."
         },
         "coordinate": {
           "$ref": "#/$defs/Number"
@@ -754,7 +754,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The jump id."
+          "description": "The jump ID."
         },
         "from_coordinate": {
           "$ref": "#/$defs/Number"
@@ -779,7 +779,7 @@ export const schema = {
             "string",
             "null"
           ],
-          "description": "The id of the marker of the same timeline this jump targets, or null.",
+          "description": "The ID of the marker of the same timeline this jump targets, or null.",
           "default": null
         },
         "label": {
@@ -811,7 +811,7 @@ export const schema = {
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The marker id."
+          "description": "The marker ID."
         },
         "name": {
           "type": [
@@ -876,7 +876,7 @@ export const schema = {
     },
     "Order": {
       "type": "array",
-      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's id `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an id, or an id, `/` and a band's id: its kind, `_` and its number.",
+      "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.",
       "items": {
         "type": "string",
         "pattern": "^[^/\\u0000-\\u001f]+(/(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*)?$"
@@ -983,7 +983,7 @@ export const schema = {
         },
         "within": {
           "type": "string",
-          "description": "A timeline id: the element must belong to that timeline or to one of its descendants."
+          "description": "A timeline ID: the element must belong to that timeline or to one of its descendants."
         },
         "inside": {
           "$ref": "#/$defs/ElementType",

@@ -62,6 +62,13 @@ problems and codes `identityProblems` lists in order and whose first problem
 decomposition in both packages, so a rule changes in both or the shared
 cases fail. The packages differ only where JavaScript must:
 
+`representation-schema.test.ts` derives every scalar and array member that
+can hold a Number, and every scalar, array and keyed-object member that holds
+a nested conversion map, from the schema's conversion-map definitions. It
+asserts exact equality with the validator's two traversal tables, naming every
+missing or extra entry on failure, so a schema addition cannot escape the
+fraction-member rule.
+
 - **Quoting.** The representation, child and finite-number messages are the
   same text in both packages; every other message quotes an id as JSON
   (`duplicate id "m", first at …`) where Python uses `repr`, and the
@@ -70,8 +77,11 @@ cases fail. The packages differ only where JavaScript must:
   pattern …`, `must NOT have duplicate items …`).
 - **Integral floats.** `parseJson` keeps `2.0` as a `JsonFloat`, so
   `length 2.0` on a fraction axis is "a float … write [2, 1]" as in Python;
-  a number built in code as `2` is an int. Rewritten floats are spelled as
-  Python spells them (`write 2.0`, `write 0.75`, `ends at 1.0`).
+  a number built in code as `2` is an int. A `JsonFloat` in either member of
+  any Fraction pair is refused as `representation` at that member, including
+  a timeline length, a conversion-map Number and a measure-map quarter value;
+  `[8, 1]` remains accepted. Rewritten floats are spelled as Python spells
+  them (`write 2.0`, `write 0.75`, `ends at 1.0`).
 - **Integers beyond 2^53.** `parseJson` reads `9007199254740993` as a
   `bigint`, so on a float axis it is "an int … write a float";
   `9007199254740992n` and `10n ** 20n` are exactly floats and validate.
@@ -81,7 +91,7 @@ cases fail. The packages differ only where JavaScript must:
 
 ## Shared rejection cases
 
-Each of the 90 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 91 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -89,10 +99,11 @@ compact text; `version_unknown` raises `UnsupportedVersionError`. Each case
 is read through one reader, the mirror of Python's `rejection_case`, which
 puts the infinity or NaN a `finite_number` case names at its path; such a
 case has one reading, the reader's value, since JSON text cannot carry it,
-and a test pins the two values in place. One reading is exempt: `float_axis_int_not_exact` as `JSON.parse`
-reads it, since `9007199254740993` becomes `9007199254740992`, exactly a
-float, and the test asserts that this reading validates. The set of names
-and the sixteen codes are stated literally.
+and a test pins the two values in place. Two `JSON.parse` readings are exempt:
+`float_axis_int_not_exact`, since `9007199254740993` becomes
+`9007199254740992`, exactly a float, and `length_fraction_integral_float`,
+since `8.0` becomes the integer `8`; the tests assert that those lossy readings
+validate. The set of names and the sixteen codes are stated literally.
 
 The path rule is the Python README's ("One path rule for both validators");
 Ajv applies a discriminated `oneOf` to the candidate its tag selects through

@@ -84,7 +84,23 @@ rejection cases that use them (`test_schema.py`):
   "unit": "quarters", "length": [32, 1]}]}` and the empty manifest
   `{"timeskeleton": "0.7.0", "timelines": []}` validate.
 
-## Representation of own-axis values
+## Representation of fractions and own-axis values
+
+Every Fraction, FractionNonnegative and FractionPositive pair holds two values
+written as JSON integers. A Python `float` or JavaScript `JsonFloat` is refused
+as `representation` at the member itself even when its value is integral. The
+checks cover fractions in own-axis values, every conversion-map Number and the
+quarter-note values of measure-map rows. Inline cases prove a denominator
+`[3, 2.0]` at `timelines/0/length/1`, a TableMap `x_values` fraction member at
+`timelines/0/conversion_maps/0/x_values/0/0`, and a measure-map `qstamp` member
+at `timelines/0/measure_map/0/qstamp/1`; `[8, 1]` remains accepted.
+
+`test_representation_schema.py` derives every scalar and array member that can
+hold a Number, and every scalar, array and keyed-object member that holds a
+nested conversion map, from the schema's conversion-map definitions. It
+asserts exact equality with the validator's two traversal tables, naming every
+missing or extra entry on failure, so a schema addition cannot escape the
+fraction-member rule.
 
 An own-axis value (a timeline's `length` and `offset`, a region's `start` and
 `end`, a break's and a marker's `coordinate`, a jump's `from_coordinate` and
@@ -126,8 +142,9 @@ Accepted: `8` and `8.0` on an int axis (an integral number is an int, as in
 JSON Schema), `8`, `0.5`, `9007199254740992` (2^53) and `10**20` on a float
 axis (each exactly a float), `[8, 1]` on a fraction axis,
 `length: null` anywhere, a root's negative offset in its own number type.
-The checks visit a timeline's offset, length, regions, breaks, jumps,
-markers, then its children in array order; the first problem is raised.
+The checks visit a timeline's offset, length, regions, breaks, jumps and
+markers, then its conversion maps, measure-map rows and children in array
+order; the first problem is raised.
 
 ## Open objects and unknown keys
 
@@ -221,7 +238,7 @@ stops at the first. Python quotes ids as `repr` does.
 | `not_a_manifest` | an object holding `timeskeleton` | the root | `not a TimeSkeleton manifest` |
 | `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no id above it |
 | `schema` | the schema document | the path rule below | the schema library's |
-| `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
+| `representation` | own-axis values in the axis's number type; two integer-written members in every fraction pair | the value, or the float member | `length 32 of 'score' is an int on a fraction axis: write [32, 1]`; `fraction denominator 2.0 is a float: write 2` |
 | `duplicate_id` | ids unique within a root's tree | the later id | `duplicate id 'm', first at #/…` |
 | `dangling_target` | a jump target names a marker of its timeline | the target | `'there' names no marker of this timeline` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
@@ -246,7 +263,7 @@ id comes first); `identity_problems` reads it as the group's.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 90 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
+the 91 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the sixteen of the table, so every code is reached by a case both

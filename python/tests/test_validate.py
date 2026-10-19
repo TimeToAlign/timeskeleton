@@ -57,6 +57,7 @@ REJECTIONS = [
     "jump_target_dangling",
     "later_root_missing_unit",
     "length_coordinate_dict",
+    "length_fraction_integral_float",
     "length_fraction_on_int_axis",
     "length_int_on_fraction_axis",
     "length_negative",
@@ -294,6 +295,59 @@ def test_values_in_their_axis_representation_validate(root: dict) -> None:
 def test_the_first_representation_problem_is_raised() -> None:
     root = timeline("score", length=8, regions=[{"id": "r", "start": 0, "end": [1, 1]}])
     assert _problem(manifest(root))[0] == ("timelines", 0, "length")
+
+
+@pytest.mark.parametrize(
+    ("value", "path"),
+    [
+        (
+            manifest(timeline("score", length=[3, 2.0])),
+            ("timelines", 0, "length", 1),
+        ),
+        (
+            manifest(
+                timeline(
+                    "score",
+                    conversion_maps=[
+                        {
+                            "type": "TableMap",
+                            "id": "table",
+                            "source_unit": "quarters",
+                            "target_unit": "seconds",
+                            "x_values": [[1.0, 2]],
+                            "y_values": [0],
+                            "kind": "linear",
+                            "extrapolate": "error",
+                        }
+                    ],
+                )
+            ),
+            ("timelines", 0, "conversion_maps", 0, "x_values", 0, 0),
+        ),
+        (
+            manifest(
+                timeline(
+                    "score",
+                    measure_map=[
+                        {"count": 1, "qstamp": [0, 1.0], "actual_length": [4, 1]}
+                    ],
+                )
+            ),
+            ("timelines", 0, "measure_map", 0, "qstamp", 1),
+        ),
+    ],
+    ids=["denominator", "conversion map", "measure map"],
+)
+def test_a_float_member_of_a_fraction_is_refused(
+    value: dict, path: tuple[str | int, ...]
+) -> None:
+    with pytest.raises(SchemaValidationError) as caught:
+        validate(value)
+    assert (caught.value.code, caught.value.path) == ("representation", path)
+
+
+def test_a_fraction_with_integer_members_validates() -> None:
+    validate(manifest(timeline("score", length=[8, 1])))
 
 
 # -- unknown length ---------------------------------------------------------------

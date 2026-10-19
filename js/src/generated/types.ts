@@ -33,7 +33,7 @@ export type TimeUnit =
  */
 export type NumberNonnegative = number | FractionNonnegative;
 /**
- * Non-negative rational number
+ * Non-negative rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.
  *
  * @minItems 2
  * @maxItems 2
@@ -43,7 +43,7 @@ export type NumberNonnegative = number | FractionNonnegative;
  */
 export type FractionNonnegative = [number, number];
 /**
- * Rational number encoded as numerator and non-zero denominator
+ * Rational number encoded as a numerator and a non-zero denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.
  *
  * @minItems 2
  * @maxItems 2
@@ -81,7 +81,7 @@ export type ConversionMap =
   | TableMap
   | TicksToQuarters;
 /**
- * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed.
+ * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Id".
@@ -140,7 +140,7 @@ export type MeasureMap = [MeasureMapRow, ...MeasureMapRow[]];
  */
 export type NumberPositive = number | FractionPositive;
 /**
- * Strictly positive rational number
+ * Strictly positive rational number encoded as a numerator and denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.
  *
  * @minItems 2
  * @maxItems 2
@@ -179,7 +179,7 @@ export type ElementType =
   | "group"
   | "card";
 /**
- * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's id `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an id, or an id, `/` and a band's id: its kind, `_` and its number.
+ * One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' ids, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Order".
@@ -717,7 +717,7 @@ export type CompleteGraphical = {
 };
 
 /**
- * A TimeSkeleton manifest: one or more root timelines with all their descendants, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is a manifest of one root; a group is a manifest with one group. A manifest with an id or a name is named, one without both is anonymous. Timeline ids (of roots and descendants), group ids and the manifest id are unique together; every other id (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare id and every other element by `<root id>/<element id>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so these five words are no id anywhere. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by id and each group's members by code point; readers accept any order.
+ * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one without both is anonymous. Timeline ids (of roots and descendants), group ids and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so these five words are no ID anywhere. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.
  */
 export interface TimeSkeleton {
   /**
@@ -725,11 +725,11 @@ export interface TimeSkeleton {
    */
   $schema?: string;
   /**
-   * The TimeSkeleton version this manifest conforms to. A reader reads it first: a value without it is no TimeSkeleton manifest.
+   * The TimeSkeleton version this manifest conforms to. Compulsory: a JSON structure without it is no TimeSkeleton manifest.
    */
   timeskeleton: "0.7.0";
   /**
-   * The manifest id. Without it the manifest is identified by nothing.
+   * The manifest ID.
    */
   id?: string;
   /**
@@ -747,20 +747,20 @@ export interface TimeSkeleton {
    */
   timelines: Timeline[];
   /**
-   * The timeline groups. A root no group names, and no descendant of which a group names, is ungrouped.
+   * The timeline groups. A root no group names remains ungrouped in the bundle. A group that has descendants named in a group is indirectly linked with that group.
    */
   groups?: Group[];
   graphical?: Graphical;
 }
 /**
- * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. Arrays whose order carries no meaning have one canonical order: children by offset, then id; conversion maps by id; regions by start, end, id; breaks and markers by coordinate, then id; jumps by from and to coordinate, then id. Readers accept any order.
+ * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Timeline".
  */
 export interface Timeline {
   /**
-   * The timeline id.
+   * The timeline ID.
    */
   id: string;
   /**
@@ -777,11 +777,11 @@ export interface Timeline {
    */
   length: NumberNonnegative | null;
   /**
-   * Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis, in the root's own number type; absent, the root has none.
+   * Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis; typically absent.
    */
   offset?: number | Fraction;
   /**
-   * Whether the timeline's length is fixed.
+   * Whether the timeline's length is immutable.
    */
   locked?: boolean;
   /**
@@ -799,7 +799,7 @@ export interface Timeline {
    */
   children?: (Timeline & {
     /**
-     * Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis, in the root's own number type; absent, the root has none.
+     * Where the timeline's origin lies. A child's offset is required, lies on its parent's axis, in the parent's number type, and may be negative: the child then starts before its parent's origin. A root's offset is optional, may be negative, and places the root's origin on its unit's absolute axis; typically absent.
      */
     offset: number | Fraction;
   })[];
@@ -1117,7 +1117,7 @@ export interface TicksToQuarters {
  */
 export interface Region {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed.
+   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
    */
   id: string;
   /**
@@ -1152,7 +1152,7 @@ export interface FlowControl {
  */
 export interface Break {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed.
+   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
    */
   id: string;
   coordinate: Number;
@@ -1176,7 +1176,7 @@ export interface Break {
  */
 export interface Jump {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed.
+   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
    */
   id: string;
   from_coordinate: Number;
@@ -1185,7 +1185,7 @@ export interface Jump {
   condition?: ActivationCondition;
   repeat_count?: number;
   /**
-   * The id of the marker of the same timeline this jump targets, or null.
+   * The ID of the marker of the same timeline this jump targets, or null.
    */
   target?: string | null;
   label?: string | null;
@@ -1204,7 +1204,7 @@ export interface Jump {
  */
 export interface Marker {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed.
+   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
    */
   id: string;
   /**
@@ -1281,7 +1281,7 @@ export interface MeasureMapRow {
  */
 export interface Group {
   /**
-   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An id identifies; a name, where an element has one, is what is displayed.
+   * An identifier: a non-empty string without '/' and without control characters (U+0000 to U+001F); spaces are allowed. An ID identifies; a name, where an element has one, is what is displayed.
    */
   id: string;
   /**
@@ -1317,7 +1317,7 @@ export interface Graphical {
    */
   statements?: Statement[];
   /**
-   * The order of what a group or a timeline stacks, top to bottom, keyed by a group's id (the display order of its members) or by a timeline's id, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, band by band id, and a root without one the default band order.
+   * The order of what a group or a timeline stacks, top to bottom, keyed by a group's ID (the display order of its members) or by a timeline's ID, of a root or a descendant (its band order). A group without an entry is displayed in the order of its members; a timeline without one follows its parent's band order, band by band ID, and a root without one the default band order.
    */
   order?: {
     [k: string]: Order;
@@ -1414,7 +1414,7 @@ export interface Selector {
     | "regions"
     | "flow_control";
   /**
-   * A timeline id: the element must belong to that timeline or to one of its descendants.
+   * A timeline ID: the element must belong to that timeline or to one of its descendants.
    */
   within?: string;
   /**

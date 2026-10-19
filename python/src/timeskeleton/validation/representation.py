@@ -18,6 +18,30 @@ from .diagnostics import (
 
 _ARTICLES = {"int": "an int", "float": "a float", "fraction": "a fraction"}
 
+_MAP_NUMBER_MEMBERS = {
+    "IntervalToConstantMap": {"arrays": ("boundaries",)},
+    "LinearMap": {"values": ("scalar", "offset")},
+    "MetricMap": {"arrays": ("starts", "lengths")},
+    "PiecewiseMap": {"arrays": ("breaks",)},
+    "QuartersToFloatingMeasures": {"arrays": ("x_values", "y_values")},
+    "QuartersToMeasureNumber": {"arrays": ("boundaries",)},
+    "QuartersToTicks": {"values": ("scalar",)},
+    "SamplesToSeconds": {"values": ("scalar",)},
+    "ScalarMap": {"values": ("scalar",)},
+    "SecondsToSamples": {"values": ("scalar",)},
+    "ShiftMap": {"values": ("offset",)},
+    "TableMap": {"arrays": ("x_values", "y_values")},
+    "TicksToQuarters": {"values": ("scalar",)},
+}
+
+_MAP_NESTED_MEMBERS = {
+    "BeatInMeasureMap": {"values": ("meter_map",)},
+    "ChainMap": {"arrays": ("maps",)},
+    "CombinationMap": {"records": ("maps",)},
+    "MetricalPositionMap": {"values": ("meter_map",)},
+    "PiecewiseMap": {"arrays": ("maps",)},
+}
+
 
 def _written_as(value: Any) -> str:
     if isinstance(value, list):
@@ -49,11 +73,31 @@ def rewritten(value: Any, number_type: str) -> str | None:
     return spell(double) if Fraction(double) == exact else None
 
 
+def _fraction_member_problems(
+    value: Any, path: _Path
+) -> Iterator[SchemaValidationError]:
+    if not isinstance(value, list):
+        return
+    for index, member in enumerate(value):
+        if not isinstance(member, float):
+            continue
+        name = "numerator" if index == 0 else "denominator"
+        yield SchemaValidationError(
+            "representation",
+            (*path, index),
+            f"fraction {name} {spell(member)} is a float: write "
+            f"{rewritten(member, 'int')}",
+        )
+
+
 def _representation_problem(
     key: str, owner: Mapping[str, Any], path: _Path, number_type: str
 ) -> Iterator[SchemaValidationError]:
     value = owner.get(key)
-    if value is None or _represents(value, number_type):
+    if value is None:
+        return
+    yield from _fraction_member_problems(value, (*path, key))
+    if _represents(value, number_type):
         return
     fix = rewritten(value, number_type) or _ARTICLES[number_type]
     yield SchemaValidationError(
@@ -62,6 +106,35 @@ def _representation_problem(
         f"{key} {spell(value)} of '{owner['id']}' is {_ARTICLES[_written_as(value)]} "
         f"on {_ARTICLES[number_type]} axis: write {fix}",
     )
+
+
+def _conversion_map_fraction_problems(
+    conversion_map: Mapping[str, Any], path: _Path
+) -> Iterator[SchemaValidationError]:
+    map_type = conversion_map["type"]
+    members = _MAP_NUMBER_MEMBERS.get(map_type, {})
+    for key in members.get("values", ()):
+        yield from _fraction_member_problems(conversion_map.get(key), (*path, key))
+    for key in members.get("arrays", ()):
+        for index, value in enumerate(_entries(conversion_map, key)):
+            yield from _fraction_member_problems(value, (*path, key, index))
+
+    nested_members = _MAP_NESTED_MEMBERS.get(map_type, {})
+    for key in nested_members.get("values", ()):
+        nested = conversion_map.get(key)
+        if isinstance(nested, Mapping):
+            yield from _conversion_map_fraction_problems(nested, (*path, key))
+    for key in nested_members.get("arrays", ()):
+        for index, nested in enumerate(_entries(conversion_map, key)):
+            yield from _conversion_map_fraction_problems(nested, (*path, key, index))
+    for key in nested_members.get("records", ()):
+        nested_maps = conversion_map.get(key)
+        if isinstance(nested_maps, Mapping):
+            for name, nested in nested_maps.items():
+                if isinstance(nested, Mapping):
+                    yield from _conversion_map_fraction_problems(
+                        nested, (*path, key, name)
+                    )
 
 
 def _timeline_representation(
@@ -86,6 +159,24 @@ def _timeline_representation(
                 yield from _representation_problem(
                     key, entry, (*path, "flow_control", member, index), own
                 )
+    for index, conversion_map in enumerate(_entries(timeline, "conversion_maps")):
+        yield from _conversion_map_fraction_problems(
+            conversion_map, (*path, "conversion_maps", index)
+        )
+    measure_map = timeline.get("measure_map")
+    if isinstance(measure_map, list):
+        for index, row in enumerate(measure_map):
+            if not isinstance(row, Mapping):
+                continue
+            for key in (
+                "qstamp",
+                "nominal_length",
+                "actual_length",
+                "offset_within_measure",
+            ):
+                yield from _fraction_member_problems(
+                    row.get(key), (*path, "measure_map", index, key)
+                )
     for index, child in enumerate(_entries(timeline, "children")):
         yield from _timeline_representation(child, (*path, "children", index), own)
 
@@ -93,7 +184,7 @@ def _timeline_representation(
 def representation_problems(
     manifest: Mapping[str, Any],
 ) -> Iterator[SchemaValidationError]:
-    """Yield own-axis representation violations in manifest order."""
+    """Yield fraction-member and own-axis representation violations in order."""
     for index, root in enumerate(_entries(manifest, "timelines")):
         yield from _timeline_representation(root, ("timelines", index), None)
 

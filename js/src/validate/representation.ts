@@ -17,6 +17,36 @@ const ARTICLES: Readonly<Record<NumberType, string>> = {
   fraction: "a fraction",
 };
 
+interface MapMembers {
+  readonly values?: readonly string[];
+  readonly arrays?: readonly string[];
+  readonly records?: readonly string[];
+}
+
+export const MAP_NUMBER_MEMBERS: Readonly<Record<string, MapMembers>> = {
+  IntervalToConstantMap: { arrays: ["boundaries"] },
+  LinearMap: { values: ["scalar", "offset"] },
+  MetricMap: { arrays: ["starts", "lengths"] },
+  PiecewiseMap: { arrays: ["breaks"] },
+  QuartersToFloatingMeasures: { arrays: ["x_values", "y_values"] },
+  QuartersToMeasureNumber: { arrays: ["boundaries"] },
+  QuartersToTicks: { values: ["scalar"] },
+  SamplesToSeconds: { values: ["scalar"] },
+  ScalarMap: { values: ["scalar"] },
+  SecondsToSamples: { values: ["scalar"] },
+  ShiftMap: { values: ["offset"] },
+  TableMap: { arrays: ["x_values", "y_values"] },
+  TicksToQuarters: { values: ["scalar"] },
+};
+
+export const MAP_NESTED_MEMBERS: Readonly<Record<string, MapMembers>> = {
+  BeatInMeasureMap: { values: ["meter_map"] },
+  ChainMap: { arrays: ["maps"] },
+  CombinationMap: { records: ["maps"] },
+  MetricalPositionMap: { values: ["meter_map"] },
+  PiecewiseMap: { arrays: ["maps"] },
+};
+
 function writtenAs(value: unknown): NumberType {
   if (Array.isArray(value)) return "fraction";
   return typeof value === "bigint" || (typeof value === "number" && Number.isInteger(value))
@@ -50,6 +80,22 @@ export function rewritten(value: unknown, numberType: NumberType): string | null
   return spell(Number.isInteger(double) ? new JsonFloat(double) : double);
 }
 
+function* fractionMemberProblems(
+  value: unknown,
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  if (!Array.isArray(value)) return;
+  for (const [index, member] of value.entries()) {
+    if (!(member instanceof JsonFloat)) continue;
+    const name = index === 0 ? "numerator" : "denominator";
+    yield new SchemaValidationError(
+      "representation",
+      [...path, index],
+      `fraction ${name} ${spell(member)} is a float: write ${rewritten(member, "int")}`,
+    );
+  }
+}
+
 function* representationProblem(
   key: string,
   owner: JsonObject,
@@ -57,13 +103,56 @@ function* representationProblem(
   numberType: NumberType,
 ): Generator<SchemaValidationError> {
   const value = owner[key];
-  if (value === undefined || value === null || represents(value, numberType)) return;
+  if (value === undefined || value === null) return;
+  yield* fractionMemberProblems(value, [...path, key]);
+  if (represents(value, numberType)) return;
   const fix = rewritten(value, numberType) ?? ARTICLES[numberType];
   yield new SchemaValidationError(
     "representation",
     [...path, key],
     `${key} ${spell(value)} of '${text(owner, "id")}' is ${ARTICLES[writtenAs(value)]} on ${ARTICLES[numberType]} axis: write ${fix}`,
   );
+}
+
+function* conversionMapFractionProblems(
+  map: JsonObject,
+  path: readonly PathSegment[],
+): Generator<SchemaValidationError> {
+  const type = text(map, "type");
+  const members = MAP_NUMBER_MEMBERS[type];
+  for (const key of members?.values ?? []) {
+    yield* fractionMemberProblems(map[key], [...path, key]);
+  }
+  for (const key of members?.arrays ?? []) {
+    const values = map[key];
+    if (!Array.isArray(values)) continue;
+    for (const [index, value] of values.entries()) {
+      yield* fractionMemberProblems(value, [...path, key, index]);
+    }
+  }
+
+  const nestedMembers = MAP_NESTED_MEMBERS[type];
+  for (const key of nestedMembers?.values ?? []) {
+    const nested = map[key];
+    if (isJsonObject(nested)) {
+      yield* conversionMapFractionProblems(nested, [...path, key]);
+    }
+  }
+  for (const key of nestedMembers?.arrays ?? []) {
+    for (const [index, nested] of entries(map, key).entries()) {
+      yield* conversionMapFractionProblems(nested, [...path, key, index]);
+    }
+  }
+  for (const key of nestedMembers?.records ?? []) {
+    const nestedMaps = map[key];
+    if (isJsonObject(nestedMaps)) {
+      for (const [name, nested] of Object.entries(nestedMaps)) {
+        if (isJsonObject(nested)) {
+          yield* conversionMapFractionProblems(nested, [...path, key, name]);
+        }
+      }
+    }
+  }
 }
 
 function* timelineRepresentation(
@@ -92,12 +181,24 @@ function* timelineRepresentation(
       }
     }
   }
+  for (const [index, map] of entries(timeline, "conversion_maps").entries()) {
+    yield* conversionMapFractionProblems(map, [...path, "conversion_maps", index]);
+  }
+  const measureMap = timeline.measure_map;
+  if (Array.isArray(measureMap)) {
+    for (const [index, row] of measureMap.entries()) {
+      if (!isJsonObject(row)) continue;
+      for (const key of ["qstamp", "nominal_length", "actual_length", "offset_within_measure"]) {
+        yield* fractionMemberProblems(row[key], [...path, "measure_map", index, key]);
+      }
+    }
+  }
   for (const [index, child] of entries(timeline, "children").entries()) {
     yield* timelineRepresentation(child, [...path, "children", index], own);
   }
 }
 
-/** Yield own-axis representation violations in manifest order. */
+/** Yield fraction-member and own-axis representation violations in manifest order. */
 export function* representationProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   for (const [index, root] of entries(manifest, "timelines").entries()) {
     yield* timelineRepresentation(root, ["timelines", index], null);

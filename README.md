@@ -133,6 +133,13 @@ validators then check the representation and report a mismatch such as
 `length 32 of 'score' is an int on a fraction axis: write [32, 1]`, or, for
 an integer no float holds exactly,
 `length 9007199254740993 of 'take' is an int on a float axis: write a float`.
+Both members of every Fraction pair are JSON integers, which no JSON Schema
+keyword can tell from integral floats: wherever a pair is written, on an
+own axis, in a conversion map's numbers (nested maps included) or in a
+measure map row's `qstamp`, `nominal_length`, `actual_length` and
+`offset_within_measure`, both validators refuse a member written as a float
+with the code `representation` at that member, such as
+`fraction numerator 8.0 is a float: write 8` at `timelines/0/length/0`.
 Every number of a manifest is finite: JSON spells no NaN or infinity, but a
 value built in memory, or read by a lenient reader, may hold one, and both
 validators refuse it at its path.
@@ -288,7 +295,7 @@ The JSON Schema cannot express these rules, nor that a member names a
 timeline of the manifest, nor that no member of a group lies inside
 another, nor that a child lies within its parent's known length, nor that a
 segment line's segments are contiguous and alike, nor the representation of
-own-axis values, so both validators check them after
+own-axis values and of Fraction members, so both validators check them after
 the schema. Each finding is one problem, located by a path into the
 manifest and named by a stable code:
 
@@ -516,7 +523,8 @@ else:
 ```
 
 - `validate(value)` reads the version marker first, then checks the value
-  against the schema, the representation of its own-axis values and the
+  against the schema, the representation of its own-axis values and
+  Fraction members and the
   identity rules, and raises `SchemaValidationError` at the first problem.
   A value without `timeskeleton` is refused at the root; a value declaring
   another version raises `UnsupportedVersionError` naming 0.7.0. Unknown
