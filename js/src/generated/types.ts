@@ -813,7 +813,7 @@ export interface Timeline {
   regions?: Region[];
   flow_control?: FlowControl;
   /**
-   * The measure map, or null. A measure map is anchored in quarter notes, so only a timeline whose unit is quarters may carry one.
+   * The measure map, or null. A measure map is anchored in note values, so only a timeline whose unit is quarters or whole_note may carry one.
    */
   measure_map?: MeasureMap | null;
   /**

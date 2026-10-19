@@ -153,7 +153,7 @@ export const schema = {
           }
         },
         "measure_map": {
-          "description": "The measure map, or null. A measure map is anchored in quarter notes, so only a timeline whose unit is quarters may carry one.",
+          "description": "The measure map, or null. A measure map is anchored in note values, so only a timeline whose unit is quarters or whole_note may carry one.",
           "anyOf": [
             {
               "$ref": "#/$defs/MeasureMap"
@@ -179,10 +179,14 @@ export const schema = {
         "unit",
         "length"
       ],
+      "$comment": "Only a timeline in quarters or whole_note, the symbolic note-value units, may hold a measure map. Any other unit leaves measure_map out or null.",
       "if": {
         "properties": {
           "unit": {
-            "const": "quarters"
+            "enum": [
+              "quarters",
+              "whole_note"
+            ]
           }
         },
         "required": [
