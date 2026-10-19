@@ -4,10 +4,7 @@ from collections import Counter
 from typing import Any
 
 from timeskeleton import load_schema
-from timeskeleton.validation.representation import (
-    _MAP_NESTED_MEMBERS,
-    _MAP_NUMBER_MEMBERS,
-)
+from timeskeleton.manifest import _MAP_NESTED_MEMBERS, _MAP_NUMBER_MEMBERS
 
 REFERENCE_PREFIX = "#/$defs/"
 
@@ -73,7 +70,7 @@ def _assert_exact(label: str, expected: list[str], recorded: list[str]) -> None:
     )
 
 
-def test_conversion_map_representation_tables_match_the_schema() -> None:
+def test_the_respelling_tables_match_the_schema() -> None:
     number, nested = _schema_facts()
     _assert_exact("number members", number, _recorded_facts(_MAP_NUMBER_MEMBERS))
     _assert_exact("nested-map members", nested, _recorded_facts(_MAP_NESTED_MEMBERS))

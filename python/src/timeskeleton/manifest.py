@@ -16,6 +16,12 @@ spelling; strings compare by Unicode code point. Nothing else is reordered;
 in particular a ``graphical.order`` array is a display order and stays as it
 is. Readers accept any order; writers emit the canonical one.
 
+The declared number type decides how a value is read, never its spelling, and
+writers spell every value canonically: an own-axis value on an int axis as a
+JSON integer, on a float axis as a float, and every member of a Fraction pair
+as a JSON integer. A number whose place declares no number type keeps its
+spelling.
+
 The standard writer emits UTF-8 text with every character unescaped except
 ``"``, ``\\`` and the control characters, two-space indentation and a final
 newline. A float is always written as a float (``2.0``, ``1e-07``), spelled as
@@ -31,6 +37,59 @@ from fractions import Fraction
 from typing import Any
 
 __all__ = ["canonical_json", "canonical_order", "dumps"]
+
+UNIT_NUMBER_TYPES = {
+    "number": "float",
+    "floating_measures": "float",
+    "whole_note": "fraction",
+    "quarters": "fraction",
+    "ticks": "int",
+    "milliseconds": "float",
+    "seconds": "float",
+    "minutes": "float",
+    "samples": "int",
+    "frames": "int",
+    "pixels": "int",
+    "meters": "float",
+    "centimeters": "float",
+    "millimeters": "float",
+    "inches": "float",
+    "points": "float",
+}
+"""The default number type of each unit."""
+
+_MAP_NUMBER_MEMBERS = {
+    "IntervalToConstantMap": {"arrays": ("boundaries",)},
+    "LinearMap": {"values": ("scalar", "offset")},
+    "MetricMap": {"arrays": ("starts", "lengths")},
+    "PiecewiseMap": {"arrays": ("breaks",)},
+    "QuartersToFloatingMeasures": {"arrays": ("x_values", "y_values")},
+    "QuartersToMeasureNumber": {"arrays": ("boundaries",)},
+    "QuartersToTicks": {"values": ("scalar",)},
+    "SamplesToSeconds": {"values": ("scalar",)},
+    "ScalarMap": {"values": ("scalar",)},
+    "SecondsToSamples": {"values": ("scalar",)},
+    "ShiftMap": {"values": ("offset",)},
+    "TableMap": {"arrays": ("x_values", "y_values")},
+    "TicksToQuarters": {"values": ("scalar",)},
+}
+"""The members of each conversion map type that hold a Number."""
+
+_MAP_NESTED_MEMBERS = {
+    "BeatInMeasureMap": {"values": ("meter_map",)},
+    "ChainMap": {"arrays": ("maps",)},
+    "CombinationMap": {"records": ("maps",)},
+    "MetricalPositionMap": {"values": ("meter_map",)},
+    "PiecewiseMap": {"arrays": ("maps",)},
+}
+"""The members of each conversion map type that hold nested conversion maps."""
+
+_ROW_NUMBER_MEMBERS = (
+    "qstamp",
+    "nominal_length",
+    "actual_length",
+    "offset_within_measure",
+)
 
 
 def canonical_json(value: Any) -> str:
@@ -163,15 +222,134 @@ def _order_timeline(timeline: dict[str, Any]) -> None:
         )
 
 
+def _integral(value: Any) -> Any:
+    """Return an integral float as the integer it equals, anything else as it is."""
+    if type(value) is float and value.is_integer():
+        return int(value)
+    return value
+
+
+def _fraction(value: Any) -> Any:
+    """Return a pair with its members spelled as integers, anything else as it is."""
+    if isinstance(value, list) and len(value) == 2:
+        return [_integral(member) for member in value]
+    return value
+
+
+def _on_axis(value: Any, number_type: str | None) -> Any:
+    """Return an own-axis value spelled as its axis's number type selects."""
+    if number_type == "fraction":
+        return _fraction(value)
+    if number_type == "int":
+        return _integral(value)
+    if number_type == "float" and type(value) is int:
+        try:
+            double = float(value)
+        except OverflowError:
+            return value
+        return double if double == value else value
+    return value
+
+
+def _axis_type(timeline: Mapping[str, Any]) -> str | None:
+    """The number type of a timeline's axis, or ``None`` where it states none."""
+    number_type = timeline.get("number_type")
+    if number_type in ("int", "float", "fraction"):
+        return number_type
+    unit = timeline.get("unit")
+    return UNIT_NUMBER_TYPES.get(unit) if isinstance(unit, str) else None
+
+
+def _dicts(value: Any) -> list[dict[str, Any]]:
+    return (
+        [entry for entry in value if isinstance(entry, dict)]
+        if isinstance(value, list)
+        else []
+    )
+
+
+def _respell_map(conversion_map: dict[str, Any]) -> None:
+    map_type = conversion_map.get("type")
+    if not isinstance(map_type, str):
+        return
+    members = _MAP_NUMBER_MEMBERS.get(map_type, {})
+    for key in members.get("values", ()):
+        if key in conversion_map:
+            conversion_map[key] = _fraction(conversion_map[key])
+    for key in members.get("arrays", ()):
+        if isinstance(conversion_map.get(key), list):
+            conversion_map[key] = [_fraction(value) for value in conversion_map[key]]
+    nested = _MAP_NESTED_MEMBERS.get(map_type, {})
+    for key in nested.get("values", ()):
+        if isinstance(conversion_map.get(key), dict):
+            _respell_map(conversion_map[key])
+    for key in nested.get("arrays", ()):
+        for entry in _dicts(conversion_map.get(key)):
+            _respell_map(entry)
+    for key in nested.get("records", ()):
+        record = conversion_map.get(key)
+        if isinstance(record, dict):
+            for entry in _dicts(list(record.values())):
+                _respell_map(entry)
+
+
+def _respell_axis(
+    owner: dict[str, Any], keys: tuple[str, ...], number_type: str | None
+) -> None:
+    for key in keys:
+        if key in owner:
+            owner[key] = _on_axis(owner[key], number_type)
+
+
+def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None:
+    own = _axis_type(timeline)
+    _respell_axis(timeline, ("offset",), offset_type or own)
+    _respell_axis(timeline, ("length",), own)
+    for region in _dicts(timeline.get("regions")):
+        _respell_axis(region, ("start", "end"), own)
+    flow = timeline.get("flow_control")
+    if isinstance(flow, dict):
+        for member, keys in (
+            ("breaks", ("coordinate",)),
+            ("jumps", ("from_coordinate", "to_coordinate")),
+            ("markers", ("coordinate",)),
+        ):
+            for entry in _dicts(flow.get(member)):
+                _respell_axis(entry, keys, own)
+    for conversion_map in _dicts(timeline.get("conversion_maps")):
+        _respell_map(conversion_map)
+    for row in _dicts(timeline.get("measure_map")):
+        for key in _ROW_NUMBER_MEMBERS:
+            if key in row:
+                row[key] = _fraction(row[key])
+    for child in _dicts(timeline.get("children")):
+        _respell_timeline(child, own)
+
+
+def _respell(manifest: Any) -> None:
+    """Spell every value of a manifest as its number type selects, in place.
+
+    An own-axis value on an int axis becomes a JSON integer, on a float axis
+    a float where one equals it exactly, and every member of a Fraction pair
+    (own-axis, conversion-map Numbers at any depth, measure-map rows) a JSON
+    integer where it is integral. Anything else is left as it is, so any
+    value may be given.
+    """
+    if isinstance(manifest, dict):
+        for timeline in _dicts(manifest.get("timelines")):
+            _respell_timeline(timeline, None)
+
+
 def canonical_order(value: Any) -> Any:
-    """Return a deep copy of ``value`` with the arrays of its manifest ordered.
+    """Return a deep copy of ``value``, its manifest in canonical order and spelling.
 
     A value with a top-level ``timelines`` array is a manifest: every timeline
     in it is ordered at every depth and the array itself by id, and its
     ``groups`` are ordered by id, each with its ``members`` by code point.
-    Only the arrays listed in the module docstring move; object keys are left
-    as they are (``dumps`` sorts them), and any other JSON value is copied
-    unchanged.
+    Every value it reads by a number type is spelled as that type selects
+    (module docstring). Only the arrays listed in the module docstring move;
+    object keys are left as they are (``dumps`` sorts them), and any other
+    JSON value is copied unchanged.
 
     Raises:
         ValueError: If a collection holds an entry whose ordering members are
@@ -180,6 +358,7 @@ def canonical_order(value: Any) -> Any:
     result = copy.deepcopy(value)
     if not isinstance(result, Mapping) or not isinstance(result.get("timelines"), list):
         return result
+    _respell(result)
     timelines = result["timelines"]
     for timeline in timelines:
         if isinstance(timeline, dict):

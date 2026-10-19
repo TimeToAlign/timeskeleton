@@ -109,23 +109,62 @@ rejection cases that use them (`test_schema.py`):
   "unit": "quarters", "length": [32, 1]}]}` and the empty manifest
   `{"timeskeleton": "0.7.0", "timelines": []}` validate.
 
-## Representation of fractions and own-axis values
+## Reading by the declared number type
 
-Every Fraction, FractionNonnegative and FractionPositive pair holds two values
-written as JSON integers. A Python `float` or JavaScript `JsonFloat` is refused
-as `representation` at the member itself even when its value is integral. The
-checks cover fractions in own-axis values, every conversion-map Number and the
-quarter-note values of measure-map rows. Inline cases prove a denominator
-`[3, 2.0]` at `timelines/0/length/1`, a TableMap `x_values` fraction member at
-`timelines/0/conversion_maps/0/x_values/0/0`, and a measure-map `qstamp` member
-at `timelines/0/measure_map/0/qstamp/1`; `[8, 1]` remains accepted.
+The declared number type decides how a value is read, never its lexical
+form: a number written with a zero fractional part is the integer it equals
+wherever an integer is read. A Fraction member written `8.0` is 8, wherever
+a Fraction occurs (own-axis values, conversion-map Numbers at any depth of
+nesting, measure-map rows); `2.0` on an int axis is 2; `2` on a float axis
+is 2.0. So a JSON round trip that respells numbers (`JSON.parse` and
+`JSON.stringify` turn `8.0` into `8`) never invalidates a manifest. What
+proves it (`test_validate.py`): one inline manifest (`respellable()` in
+`conftest.py`) validates, leaves `unknown_keys` empty and is unchanged by
+`validate`. In quarters it holds the length `[32, 1.0]`, a child offset
+`[8.0, 1]`, a region from `[0, 1.0]` to `[1.0, 2]`, a marker at `[2.0, 1]`, a
+TableMap x value `[1.0, 2]` nested in a ChainMap, a LinearMap offset
+`[0, 1.0]` and a measure-map row with `qstamp` `[0, 1.0]` and
+`actual_length` `[4.0, 1]`; in ticks a length `480.0` with a child offset
+`240.0`; in seconds a length `60` and a region starting at `0`. It also holds
+numbers whose place declares no number type: the LinearMap scalar `1.0`,
+the TableMap y values `0.0` and `0.5` and the row's `nominal_length` `4.0`.
 
-`test_representation_schema.py` derives every scalar and array member that can
-hold a Number, and every scalar, array and keyed-object member that holds a
-nested conversion map, from the schema's conversion-map definitions. It
-asserts exact equality with the validator's two traversal tables, naming every
-missing or extra entry on failure, so a schema addition cannot escape the
-fraction-member rule.
+Still refused, each by a shared rejection case: a non-integral value on an
+int axis (`length_float_on_int_axis`, `480.5` in ticks, `representation`
+at the length), a non-integral Fraction member (`length_fraction_member_not_integral`,
+`[12, 1.5]`, `schema` at the member), a denominator below 1
+(`length_zero_denominator`), a Fraction on an int axis
+(`length_fraction_on_int_axis`) or on a float axis
+(`child_offset_fraction_on_float_axis`), and a bare number on a fraction
+axis (`length_int_on_fraction_axis`, `region_start_float_on_fraction_axis`).
+
+**Readers coerce, writers spell canonically.** `complete` (so `minimal`
+too) and `canonical_order` (so `dumps` too) respell every value the manifest
+reads by a number type: an own-axis value on an int axis as a JSON integer,
+on a float axis as a float, and every member of a Fraction pair (own-axis,
+conversion-map Numbers at any depth, measure-map rows) as a JSON integer.
+`loads` and `validate` change nothing. A number whose place declares no
+number type (a conversion map's bare Number, a measure-map row's bare
+quarter value, a `repeat_count`, a free value) keeps its spelling, and a
+value that has no exact respelling (an integer beyond 2^53 on a float axis,
+which `validate` refuses) is left as written. What proves it
+(`test_manifest.py`): for that manifest, `complete`, `minimal` and
+`canonical_order` each give, compared as `canonical_json` texts (which tell
+`8.0` from `8`), exactly what they give for its literal twin `respelled()`,
+written canonically (`[32, 1]`, `[8, 1]`, `[0, 1]`, `[1, 2]`, `[2, 1]`,
+`[1, 2]`, `[0, 1]`, `[0, 1]`, `[4, 1]`, `480`, `240`, `60.0`, `0.0`, with
+`1.0`, `0.0`, `0.5` and `4.0` kept); `dumps` writes the twin's text; the twin
+is its own canonical order and spelling, so that text is the canonical one;
+and the input is unchanged. Each of the three equalities fails when the
+respelling is left out. A seconds length `9007199254740993` stays that
+integer.
+
+`test_number_members.py` derives every scalar and array member of a
+conversion map that can hold a Number, and every scalar, array and
+keyed-object member that holds a nested conversion map, from the schema's
+conversion-map definitions. It asserts exact equality with the respelling's
+two traversal tables, naming every missing or extra entry on failure, so a
+schema addition cannot escape the canonical spelling.
 
 An own-axis value (a timeline's `length` and `offset`, a region's `start` and
 `end`, a break's and a marker's `coordinate`, a jump's `from_coordinate` and
@@ -163,13 +202,12 @@ proves it, one inline document per line, message stated literally:
 - `start`, `end`, `coordinate` (a break and a marker), `from_coordinate` and
   `to_coordinate` each reported at its own path with its holder's id.
 
-Accepted: `8` and `8.0` on an int axis (an integral number is an int, as in
-JSON Schema), `8`, `0.5`, `9007199254740992` (2^53) and `10**20` on a float
-axis (each exactly a float), `[8, 1]` on a fraction axis,
-`length: null` anywhere, a root's negative offset in its own number type.
-The checks visit a timeline's offset, length, regions, breaks, jumps and
-markers, then its conversion maps, measure-map rows and children in array
-order; the first problem is raised.
+Accepted: `8` and `8.0` on an int axis (an integral number is an int),
+`8`, `0.5`, `9007199254740992` (2^53) and `10**20` on a float axis (each
+exactly a float), `[8, 1]` and `[8.0, 1]` on a fraction axis, `length:
+null` anywhere, a root's negative offset in its own number type. The checks
+visit a timeline's offset, length, regions, breaks, jumps and markers, then
+its children in array order; the first problem is raised.
 
 ## Open objects and unknown keys
 
@@ -267,7 +305,7 @@ stops at the first. Python quotes ids as `repr` does.
 | `not_a_manifest` | an object holding `timeskeleton` | the root | `not a TimeSkeleton manifest` |
 | `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no id above it |
 | `schema` | the schema document | the path rule below | the schema library's |
-| `representation` | own-axis values in the axis's number type; two integer-written members in every fraction pair | the value, or the float member | `length 32 of 'score' is an int on a fraction axis: write [32, 1]`; `fraction denominator 2.0 is a float: write 2` |
+| `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
 | `duplicate_id` | ids unique within a root's tree | the later id | `duplicate id 'm', first at #/…` |
 | `dangling_target` | a jump target names a marker of its timeline | the target | `'there' names no marker of this timeline` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
@@ -292,7 +330,7 @@ id comes first); `identity_problems` reads it as the group's.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 91 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
+the 92 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the sixteen of the table, so every code is reached by a case both

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
+  canonicalJson,
   compactJson,
   dumps,
   type Json,
@@ -24,6 +25,7 @@ import {
   rejectionFileNames,
   rejectionText,
   repositoryRoot,
+  respellable,
   timeline,
 } from "./fixtures.js";
 
@@ -63,7 +65,8 @@ const REJECTIONS = [
   "jump_target_dangling",
   "later_root_missing_unit",
   "length_coordinate_dict",
-  "length_fraction_integral_float",
+  "length_float_on_int_axis",
+  "length_fraction_member_not_integral",
   "length_fraction_on_int_axis",
   "length_int_on_fraction_axis",
   "length_negative",
@@ -127,13 +130,10 @@ const REJECTIONS = [
 ];
 
 /**
- * The cases whose offending value `JSON.parse` cannot read losslessly: an
- * integer beyond 2^53 is rounded, and an integral float becomes an integer.
+ * The cases whose offending value `JSON.parse` cannot read: an integer beyond
+ * 2^53 comes back as the float next to it.
  */
-const LOST_BY_JSON_PARSE = new Set([
-  "float_axis_int_not_exact.json",
-  "length_fraction_integral_float.json",
-]);
+const LOST_BY_JSON_PARSE = new Set(["float_axis_int_not_exact.json"]);
 
 /** The path and message of the error `validate` raises. */
 function problem(value: unknown): [readonly (string | number)[], string] {
@@ -289,52 +289,13 @@ describe("own-axis representation", () => {
     expect(problem(manifest([root]))[0]).toEqual(["timelines", 0, "length"]);
   });
 
-  it.each([
-    [
-      manifest([timeline("score", "quarters", [3, new JsonFloat(2)])]),
-      ["timelines", 0, "length", 1],
-    ],
-    [
-      manifest([
-        timeline("score", "quarters", [8, 1], {
-          conversion_maps: [
-            {
-              type: "TableMap",
-              id: "table",
-              source_unit: "quarters",
-              target_unit: "seconds",
-              x_values: [[new JsonFloat(1), 2]],
-              y_values: [0],
-              kind: "linear",
-              extrapolate: "error",
-            },
-          ],
-        }),
-      ]),
-      ["timelines", 0, "conversion_maps", 0, "x_values", 0, 0],
-    ],
-    [
-      manifest([
-        timeline("score", "quarters", [8, 1], {
-          measure_map: [{ count: 1, qstamp: [0, new JsonFloat(1)], actual_length: [4, 1] }],
-        }),
-      ]),
-      ["timelines", 0, "measure_map", 0, "qstamp", 1],
-    ],
-  ] as const)("refuses a float member of a fraction at %o", (value, path) => {
-    try {
-      validate(value);
-    } catch (error) {
-      expect(error).toBeInstanceOf(SchemaValidationError);
-      expect((error as SchemaValidationError).code).toBe("representation");
-      expect((error as SchemaValidationError).path).toEqual(path);
-      return;
-    }
-    throw new Error("value was accepted");
-  });
-
-  it("accepts a fraction whose members are written as integers", () => {
-    validate(manifest([timeline("score", "quarters", [8, 1])]));
+  it("reads every value by its declared number type", () => {
+    const value: unknown = respellable();
+    const text = () => canonicalJson(value as Lossless<Json>);
+    const written = text();
+    validate(value);
+    expect(unknownKeys(value)).toEqual([]);
+    expect(text()).toBe(written);
   });
 });
 
@@ -390,7 +351,7 @@ describe("the shared rejection cases", () => {
           ];
     for (const [index, read] of readings.entries()) {
       if (index === 1 && LOST_BY_JSON_PARSE.has(name)) {
-        // JSON.parse loses the distinction this case tests, and that reading validates.
+        // JSON.parse rounds the integer to the float next to it, which validates.
         read();
         continue;
       }

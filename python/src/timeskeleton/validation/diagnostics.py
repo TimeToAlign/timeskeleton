@@ -11,6 +11,8 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping
 from typing import Any, Literal, TypeAlias
 
+from ..manifest import UNIT_NUMBER_TYPES as UNIT_NUMBER_TYPES
+
 _Path = tuple[str | int, ...]
 ValidationCode: TypeAlias = Literal[
     "not_a_manifest",
@@ -51,27 +53,6 @@ class SchemaValidationError(ValueError):
 def _entries(owner: Any, key: str) -> list[Any]:
     value = owner.get(key) if isinstance(owner, Mapping) else None
     return value if isinstance(value, list) else []
-
-
-UNIT_NUMBER_TYPES = {
-    "number": "float",
-    "floating_measures": "float",
-    "whole_note": "fraction",
-    "quarters": "fraction",
-    "ticks": "int",
-    "milliseconds": "float",
-    "seconds": "float",
-    "minutes": "float",
-    "samples": "int",
-    "frames": "int",
-    "pixels": "int",
-    "meters": "float",
-    "centimeters": "float",
-    "millimeters": "float",
-    "inches": "float",
-    "points": "float",
-}
-"""The default number type of each unit."""
 
 
 def number_type_of(timeline: Mapping[str, Any]) -> str:

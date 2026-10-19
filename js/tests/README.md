@@ -58,8 +58,8 @@ the typecheck gate.
 ## The validator
 
 `validate.test.ts`, `identity.test.ts` and `segment-lines.test.ts` prove the
-rules of the Python README's sections "The version marker", "Representation
-of own-axis values", "The rules and their codes" and "What proves the rules"
+rules of the Python README's sections "The version marker", "Reading by
+the declared number type", "The rules and their codes" and "What proves the rules"
 with the same inline documents, paths, codes and messages, in the same
 order: every semantic rule by its smallest document with one problem, which
 `validate` raises too, and one document breaking every step once, whose
@@ -68,12 +68,12 @@ problems and codes `identityProblems` lists in order and whose first problem
 decomposition in both packages, so a rule changes in both or the shared
 cases fail. The packages differ only where JavaScript must:
 
-`representation-schema.test.ts` derives every scalar and array member that
-can hold a Number, and every scalar, array and keyed-object member that holds
-a nested conversion map, from the schema's conversion-map definitions. It
-asserts exact equality with the validator's two traversal tables, naming every
-missing or extra entry on failure, so a schema addition cannot escape the
-fraction-member rule.
+`number-members.test.ts` derives every scalar and array member of a
+conversion map that can hold a Number, and every scalar, array and
+keyed-object member that holds a nested conversion map, from the schema's
+conversion-map definitions. It asserts exact equality with the respelling's
+two traversal tables, naming every missing or extra entry on failure, so a
+schema addition cannot escape the canonical spelling.
 
 - **Quoting.** The representation, child and finite-number messages are the
   same text in both packages; every other message quotes an id as JSON
@@ -83,11 +83,15 @@ fraction-member rule.
   pattern …`, `must NOT have duplicate items …`).
 - **Integral floats.** `parseJson` keeps `2.0` as a `JsonFloat`, so
   `length 2.0` on a fraction axis is "a float … write [2, 1]" as in Python;
-  a number built in code as `2` is an int. A `JsonFloat` in either member of
-  any Fraction pair is refused as `representation` at that member, including
-  a timeline length, a conversion-map Number and a measure-map quarter value;
-  `[8, 1]` remains accepted. Rewritten floats are spelled as Python spells
-  them (`write 2.0`, `write 0.75`, `ends at 1.0`).
+  a number built in code as `2` is an int. A `JsonFloat` member of a
+  Fraction pair is the integer it equals, as Python reads `8.0`; the Python
+  README's manifest of respellable values, read by `parseJson`, validates,
+  and `complete`, `minimal` and `canonicalOrder` give, compared as
+  `compactJson` texts, what they give for its canonical twin, a `JsonFloat`
+  member becoming a plain integer, a `JsonFloat` on an int axis a plain
+  integer, an integer on a float axis a `JsonFloat`; `dumps` writes the
+  twin's text. Rewritten floats are spelled as Python spells them (`write
+  2.0`, `write 0.75`, `ends at 1.0`).
 - **Integers beyond 2^53.** `parseJson` reads `9007199254740993` as a
   `bigint`, so on a float axis it is "an int … write a float";
   `9007199254740992n` and `10n ** 20n` are exactly floats and validate.
@@ -97,7 +101,7 @@ fraction-member rule.
 
 ## Shared rejection cases
 
-Each of the 91 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 92 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -105,11 +109,10 @@ compact text; `version_unknown` raises `UnsupportedVersionError`. Each case
 is read through one reader, the mirror of Python's `rejection_case`, which
 puts the infinity or NaN a `finite_number` case names at its path; such a
 case has one reading, the reader's value, since JSON text cannot carry it,
-and a test pins the two values in place. Two `JSON.parse` readings are exempt:
+and a test pins the two values in place. One `JSON.parse` reading is exempt:
 `float_axis_int_not_exact`, since `9007199254740993` becomes
-`9007199254740992`, exactly a float, and `length_fraction_integral_float`,
-since `8.0` becomes the integer `8`; the tests assert that those lossy readings
-validate. The set of names and the sixteen codes are stated literally.
+`9007199254740992`, exactly a float; the test asserts that this lossy
+reading validates. The set of names and the sixteen codes are stated literally.
 
 The path rule is the Python README's ("One path rule for both validators");
 Ajv applies a discriminated `oneOf` to the candidate its tag selects through

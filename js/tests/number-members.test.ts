@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAP_NESTED_MEMBERS, MAP_NUMBER_MEMBERS } from "../src/validate/representation.js";
+import { MAP_NESTED_MEMBERS, MAP_NUMBER_MEMBERS } from "../src/manifest/spelling.js";
 import { loadSchemaFile } from "./fixtures.js";
 
 type Node = Record<string, unknown>;
@@ -112,7 +112,7 @@ function expectExact(
   ).toEqual({ missing: [], extra: [] });
 }
 
-describe("conversion-map representation coverage", () => {
+describe("conversion-map respelling coverage", () => {
   it("matches number and nested-map members derived from the schema", () => {
     const facts = schemaFacts();
     expectExact("number members", facts.number, recordedFacts(MAP_NUMBER_MEMBERS));

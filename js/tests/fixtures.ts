@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import {
   isJsonObject,
   type Json,
+  JsonFloat,
   type Lossless,
   type PathSegment,
   parseJson,
@@ -166,6 +167,76 @@ export function manifest(timelines: JsonObject[], members: JsonObject = {}): Jso
 
 export function group(id: string, members: string[], rest: JsonObject = {}): JsonObject {
   return { id, members, ...rest };
+}
+
+function respellableManifest(canonical: boolean): JsonObject {
+  const number = (written: unknown, spelled: unknown) => (canonical ? spelled : written);
+  const float = (value: number) => new JsonFloat(value);
+  return manifest([
+    timeline("midi", "ticks", number(float(480), 480), {
+      children: [timeline("b", "ticks", 120, { offset: number(float(240), 240) })],
+    }),
+    timeline("score", "quarters", [32, number(float(1), 1)], {
+      children: [timeline("a", "quarters", [4, 1], { offset: [number(float(8), 8), 1] })],
+      conversion_maps: [
+        {
+          type: "ChainMap",
+          id: "chain",
+          source_unit: "quarters",
+          target_unit: "seconds",
+          maps: [
+            {
+              type: "TableMap",
+              id: "table",
+              source_unit: "quarters",
+              target_unit: "seconds",
+              x_values: [
+                [0, 1],
+                [number(float(1), 1), 2],
+              ],
+              y_values: [float(0), 0.5],
+              kind: "linear",
+              extrapolate: "error",
+            },
+          ],
+        },
+        {
+          type: "LinearMap",
+          id: "linear",
+          source_unit: "quarters",
+          target_unit: "seconds",
+          scalar: float(1),
+          offset: [0, number(float(1), 1)],
+        },
+      ],
+      regions: [{ id: "r", start: [0, number(float(1), 1)], end: [number(float(1), 1), 2] }],
+      flow_control: { markers: [{ id: "m", coordinate: [number(float(2), 2), 1] }] },
+      measure_map: [
+        {
+          count: 1,
+          qstamp: [0, number(float(1), 1)],
+          actual_length: [number(float(4), 4), 1],
+          nominal_length: float(4),
+        },
+      ],
+    }),
+    timeline("take", "seconds", number(60, float(60)), {
+      regions: [{ id: "s", start: number(0, float(0)), end: 1.5 }],
+    }),
+  ]);
+}
+
+/**
+ * Python's `respellable()`: a manifest in canonical order whose values are
+ * spelled unlike their number types, integral floats as `JsonFloat`s.
+ */
+export function respellable(): JsonObject {
+  return respellableManifest(false);
+}
+
+/** `respellable()` with every value spelled as its number type selects. */
+export function respelled(): JsonObject {
+  return respellableManifest(true);
 }
 
 /** A named manifest: two groups, two ungrouped roots, a child as a member. */

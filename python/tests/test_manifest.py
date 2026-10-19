@@ -10,14 +10,16 @@ import pytest
 from timeskeleton import (
     canonical_json,
     canonical_order,
+    complete,
     dumps,
     fixture_paths,
+    minimal,
     rejection_paths,
     validate,
     warning_paths,
 )
 
-from .conftest import bundle, manifest, timeline
+from .conftest import bundle, manifest, respellable, respelled, timeline
 
 # Shared with the JavaScript suite, character for character.
 NUMBER_CORPUS = (
@@ -279,6 +281,24 @@ def test_a_member_that_is_no_string_is_refused() -> None:
     value = {"timelines": [], "groups": [{"id": "g", "members": ["a", 5]}]}
     with pytest.raises(ValueError, match="cannot put members in canonical order"):
         canonical_order(value)
+
+
+def test_readers_coerce_and_writers_spell_canonically() -> None:
+    value, twin = respellable(), respelled()
+    written = canonical_json(value)
+    assert written != canonical_json(twin)
+    assert canonical_json(canonical_order(twin)) == canonical_json(twin)
+    for convert in (complete, minimal, canonical_order):
+        assert canonical_json(convert(value)) == canonical_json(convert(twin)), convert
+    assert dumps(value) == dumps(twin)
+    assert canonical_json(value) == written
+
+
+def test_a_value_without_an_exact_respelling_is_left_as_written() -> None:
+    value = manifest(timeline("take", "seconds", 9007199254740993))
+    (root,) = canonical_order(value)["timelines"]
+    assert type(root["length"]) is int
+    assert root["length"] == 9007199254740993
 
 
 def test_canonical_json_text() -> None:

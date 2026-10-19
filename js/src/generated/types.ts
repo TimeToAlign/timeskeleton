@@ -54,7 +54,7 @@ export type NumberType = "int" | "float" | "fraction";
  */
 export type NumberNonnegative = number | FractionNonnegative;
 /**
- * A Fraction whose numerator is non-negative.
+ * A Fraction, read and written as Fraction says, whose numerator is non-negative.
  *
  * @minItems 2
  * @maxItems 2
@@ -71,7 +71,7 @@ export type FractionNonnegative = [number, number];
  */
 export type Number = number | Fraction;
 /**
- * Rational number encoded as a numerator and a non-zero denominator, each written as a JSON integer. JSON Schema also considers a number with a zero fractional part to be an integer; the TimeSkeleton validators refuse such a member when it was written as a float.
+ * Rational number encoded as a numerator and a strictly positive denominator, each an integer. The declared number type decides how a value is read, never its spelling: a member written with a zero fractional part, as in [1, 8.0], is read as the integer it equals. Writers spell every member as a JSON integer.
  *
  * @minItems 2
  * @maxItems 2
@@ -356,7 +356,7 @@ export type MeasureMap = [MeasureMapRow, ...MeasureMapRow[]];
  */
 export type NumberPositive = number | FractionPositive;
 /**
- * A Fraction whose numerator is strictly positive.
+ * A Fraction, read and written as Fraction says, whose numerator is strictly positive.
  *
  * @minItems 2
  * @maxItems 2
@@ -893,7 +893,7 @@ export interface Meta {
   [k: string]: unknown;
 }
 /**
- * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.
+ * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Timeline".

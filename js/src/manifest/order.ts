@@ -16,6 +16,7 @@
 import { clone, isJsonObject, type JsonObject } from "../json/value.js";
 import { compareCodePoints, emit } from "../json/write.js";
 import { compareExact } from "../numbers/exact.js";
+import { respell } from "./spelling.js";
 
 function text(member: unknown): string {
   if (typeof member !== "string") throw new TypeError(`not a string: ${String(member)}`);
@@ -62,13 +63,15 @@ function orderTimeline(timeline: JsonObject): void {
 }
 
 /**
- * Return a deep copy of `value` with the arrays of its manifest ordered.
+ * Return a deep copy of `value`, its manifest in canonical order and spelling.
  *
  * A value with a top-level `timelines` array is a manifest: every timeline in
  * it is ordered at every depth and the array itself by id, and its `groups`
- * are ordered by id, each with its `members` by code point. Object keys are
- * left as they are (`dumps` sorts them), and any other JSON value is copied
- * unchanged. Python's `timeskeleton.canonical_order` gives the same order.
+ * are ordered by id, each with its `members` by code point. Every value it
+ * reads by a number type is spelled as that type selects (`./spelling.ts`).
+ * Object keys are left as they are (`dumps` sorts them), and any other JSON
+ * value is copied unchanged. Python's `timeskeleton.canonical_order` gives
+ * the same value.
  *
  * @throws {TypeError} if a collection holds an entry whose ordering members are missing or of the wrong type.
  */
@@ -76,6 +79,7 @@ export function canonicalOrder<T>(value: T): T {
   const result = clone(value);
   const timelines = member(result, "timelines");
   if (!Array.isArray(timelines)) return result;
+  respell(result);
   for (const timeline of timelines) if (isJsonObject(timeline)) orderTimeline(timeline);
   timelines.sort(byId);
   const groups = member(result, "groups");

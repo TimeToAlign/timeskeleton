@@ -49,3 +49,86 @@ def bundle() -> dict:
             }
         },
     )
+
+
+def _respellable(canonical: bool) -> dict:
+    def number(written: Any, spelled: Any) -> Any:
+        return spelled if canonical else written
+
+    return manifest(
+        timeline(
+            "midi",
+            "ticks",
+            number(480.0, 480),
+            children=[timeline("b", "ticks", 120, offset=number(240.0, 240))],
+        ),
+        timeline(
+            "score",
+            length=[32, number(1.0, 1)],
+            children=[timeline("a", length=[4, 1], offset=[number(8.0, 8), 1])],
+            conversion_maps=[
+                {
+                    "type": "ChainMap",
+                    "id": "chain",
+                    "source_unit": "quarters",
+                    "target_unit": "seconds",
+                    "maps": [
+                        {
+                            "type": "TableMap",
+                            "id": "table",
+                            "source_unit": "quarters",
+                            "target_unit": "seconds",
+                            "x_values": [[0, 1], [number(1.0, 1), 2]],
+                            "y_values": [0.0, 0.5],
+                            "kind": "linear",
+                            "extrapolate": "error",
+                        }
+                    ],
+                },
+                {
+                    "type": "LinearMap",
+                    "id": "linear",
+                    "source_unit": "quarters",
+                    "target_unit": "seconds",
+                    "scalar": 1.0,
+                    "offset": [0, number(1.0, 1)],
+                },
+            ],
+            regions=[
+                {"id": "r", "start": [0, number(1.0, 1)], "end": [number(1.0, 1), 2]}
+            ],
+            flow_control={"markers": [{"id": "m", "coordinate": [number(2.0, 2), 1]}]},
+            measure_map=[
+                {
+                    "count": 1,
+                    "qstamp": [0, number(1.0, 1)],
+                    "actual_length": [number(4.0, 4), 1],
+                    "nominal_length": 4.0,
+                }
+            ],
+        ),
+        timeline(
+            "take",
+            "seconds",
+            number(60, 60.0),
+            regions=[{"id": "s", "start": number(0, 0.0), "end": 1.5}],
+        ),
+    )
+
+
+def respellable() -> dict:
+    """A manifest in canonical order whose values are spelled unlike their number types.
+
+    A Fraction member is written as an integral float in a length, a child
+    offset, a region, a marker, a nested TableMap's x value, a LinearMap's
+    offset and two measure-map row values; a ticks length and offset as
+    integral floats; a seconds length and region start as integers. The bare
+    LinearMap scalar ``1.0``, the TableMap's y values and the row's bare
+    ``nominal_length`` ``4.0`` have no declared number type.
+    """
+    return _respellable(canonical=False)
+
+
+def respelled() -> dict:
+    """``respellable()`` with every value spelled as its number type selects."""
+    return _respellable(canonical=True)

@@ -1,0 +1,80 @@
+{
+  "code": "representation",
+  "manifest": {
+    "groups": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "dlt_2",
+            "is_segment_line": false,
+            "length": 120,
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "int",
+            "offset": 3,
+            "regions": [],
+            "unit": "ticks"
+          },
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "dlt_3",
+            "is_segment_line": false,
+            "length": 96,
+            "locked": true,
+            "measure_map": null,
+            "meta": {},
+            "metric_hierarchy": null,
+            "name": null,
+            "number_type": "int",
+            "offset": 7,
+            "regions": [],
+            "unit": "ticks"
+          }
+        ],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "dlt_1",
+        "is_segment_line": false,
+        "length": 480.5,
+        "locked": false,
+        "measure_map": null,
+        "meta": {},
+        "metric_hierarchy": null,
+        "name": null,
+        "number_type": "int",
+        "regions": [],
+        "unit": "ticks"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "length"
+  ],
+  "reason": "A value on an int axis is an integer: a number with a fractional part is refused, however it is written."
+}

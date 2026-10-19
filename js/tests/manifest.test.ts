@@ -1,6 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
+import { complete, minimal } from "../src/defaults.js";
 import { JsonSyntaxError, parseJson } from "../src/json/parse.js";
 import type { JsonObject } from "../src/json/value.js";
 import {
@@ -22,6 +23,8 @@ import {
   rejectionFileNames,
   rejectionText,
   repositoryRoot,
+  respellable,
+  respelled,
   timeline,
   warningFileNames,
   warningText,
@@ -422,6 +425,29 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
   }
   return value as Lossless<Json>;
 }
+
+describe("canonical spelling", () => {
+  const text = (value: unknown) => canonicalJson(value as Lossless<Json>);
+
+  it("is what readers give and writers write", () => {
+    const value = respellable();
+    const twin = respelled();
+    const written = text(value);
+    expect(written).not.toBe(text(twin));
+    expect(text(canonicalOrder(twin))).toBe(text(twin));
+    for (const convert of [complete, minimal, canonicalOrder]) {
+      expect(text(convert(value)), convert.name).toBe(text(convert(twin)));
+    }
+    expect(dumps(value)).toBe(dumps(twin));
+    expect(text(value)).toBe(written);
+  });
+
+  it("leaves a value without an exact respelling as written", () => {
+    const value = manifest([timeline("take", "seconds", 9007199254740993n)]);
+    const [root] = canonicalOrder(value).timelines as JsonObject[];
+    expect(root?.length).toBe(9007199254740993n);
+  });
+});
 
 describe("canonical JSON text", () => {
   it("sorts keys by code point and writes no whitespace", () => {

@@ -17,6 +17,7 @@ import type {
   TimeUnit,
 } from "./generated/types.js";
 import { clone, isJsonObject, JsonFloat, type JsonObject } from "./json/value.js";
+import { respell } from "./manifest/spelling.js";
 import { exactNumber } from "./numbers/exact.js";
 import { numberTypeOf } from "./validate/diagnostics.js";
 
@@ -196,7 +197,8 @@ const stripOne: Pass = (owner, kind) => {
  * Return a copy of a manifest in the complete form: every key with a default
  * that is absent is added with its default, at every depth (a timeline's
  * `number_type` is its unit's default). Keys whose default is "absent" are
- * never added, present keys are never changed, and unknown keys pass through.
+ * never added, present keys keep their values, spelled as their number type
+ * selects (as `canonicalOrder` spells them), and unknown keys pass through.
  * Any other value is copied, its manifest-shaped parts completed, so a
  * graphical block alone completes as `complete({ graphical }).graphical`.
  * Python's `timeskeleton.complete` gives the same value.
@@ -205,6 +207,7 @@ export function complete(value: LosslessTimeSkeleton): CompleteTimeSkeleton;
 export function complete<T>(value: T): T;
 export function complete(value: unknown): unknown {
   const result = clone(value);
+  respell(result);
   visitManifest(result, completeOne);
   return result;
 }

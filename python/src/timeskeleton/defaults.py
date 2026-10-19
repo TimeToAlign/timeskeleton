@@ -15,7 +15,7 @@ import copy
 from collections.abc import Callable
 from typing import Any
 
-from .validation.diagnostics import UNIT_NUMBER_TYPES
+from .manifest import UNIT_NUMBER_TYPES, _respell
 
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
@@ -183,11 +183,13 @@ def complete(value: Any) -> Any:
 
     Every key with a default that is absent is added with its default, at
     every depth (a timeline's ``number_type`` is its unit's default). Keys
-    whose default is "absent" are never added, present keys are never
-    changed, and unknown keys pass through. The JavaScript package's
+    whose default is "absent" are never added, present keys keep their
+    values, spelled as their number type selects (as ``canonical_order``
+    spells them), and unknown keys pass through. The JavaScript package's
     ``complete`` gives the same value.
     """
     result = copy.deepcopy(value)
+    _respell(result)
     _visit_manifest(result, _complete_one)
     return result
 
