@@ -206,7 +206,7 @@ export const schema = {
     },
     "Group": {
       "type": "object",
-      "description": "A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. When only part of a timeline takes part, the member is a child of that timeline, placed at its exact offset. A member names a timeline of the manifest, a root or a descendant at any depth; a timeline is a member of at most one group, and no member lies inside or contains another member of the same group. A child may belong to one group while its root belongs to another or to none.",
+      "description": "A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
