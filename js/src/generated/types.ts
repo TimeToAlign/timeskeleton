@@ -25,7 +25,7 @@ export type Name = string | null;
 export type TimeUnit =
   | "number"
   | "floating_measures"
-  | "whole_note"
+  | "whole_notes"
   | "quarters"
   | "ticks"
   | "milliseconds"

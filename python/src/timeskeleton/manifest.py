@@ -41,7 +41,7 @@ __all__ = ["canonical_json", "canonical_order", "dumps"]
 UNIT_NUMBER_TYPES = {
     "number": "float",
     "floating_measures": "float",
-    "whole_note": "fraction",
+    "whole_notes": "fraction",
     "quarters": "fraction",
     "ticks": "int",
     "milliseconds": "float",

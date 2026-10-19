@@ -73,7 +73,7 @@ export function lengthOf(timeline: JsonObject): unknown {
 export const UNIT_NUMBER_TYPES: Readonly<Record<TimeUnit, NumberType>> = {
   number: "float",
   floating_measures: "float",
-  whole_note: "fraction",
+  whole_notes: "fraction",
   quarters: "fraction",
   ticks: "int",
   milliseconds: "float",

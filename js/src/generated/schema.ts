@@ -349,7 +349,7 @@ export const schema = {
           "description": "Logical, continuous; default number type float."
         },
         {
-          "const": "whole_note",
+          "const": "whole_notes",
           "description": "Logical, continuous; default number type fraction."
         },
         {

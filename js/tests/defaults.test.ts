@@ -170,7 +170,7 @@ describe("the complete and the minimal form", () => {
   it.each([
     ["ticks", "int"],
     ["seconds", "float"],
-    ["whole_note", "fraction"],
+    ["whole_notes", "fraction"],
     ["pixels", "int"],
   ])("takes the number type of %s from the unit: %s", (unit, numberType) => {
     const value = complete(manifest([timeline("t", unit, null)]));

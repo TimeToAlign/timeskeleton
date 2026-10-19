@@ -107,7 +107,7 @@ function visitManifest(manifest: unknown, pass: Pass): void {
 const UNITS = new Set<string>([
   "number",
   "floating_measures",
-  "whole_note",
+  "whole_notes",
   "quarters",
   "ticks",
   "milliseconds",

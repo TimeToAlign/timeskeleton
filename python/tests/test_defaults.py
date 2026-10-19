@@ -204,7 +204,7 @@ def test_every_object_gains_exactly_its_defaults() -> None:
     [
         ("ticks", "int"),
         ("seconds", "float"),
-        ("whole_note", "fraction"),
+        ("whole_notes", "fraction"),
         ("pixels", "int"),
     ],
 )

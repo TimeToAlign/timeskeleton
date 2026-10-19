@@ -186,7 +186,7 @@ selects: an int axis an integral JSON number, a float axis any JSON number
 that a float equals exactly (an integer beyond 2^53 may have none), a
 fraction axis a pair. The axis is the timeline's `number_type`, else its
 unit's default (`int` for ticks, samples, frames, pixels; `fraction` for
-quarters, whole_note; `float` otherwise). A child's offset lies on its
+quarters, whole_notes; `float` otherwise). A child's offset lies on its
 parent's axis, a root's on its own. A mismatch is reported after the schema,
 at the value, as `<key> <value> of '<id>' is <found> on <axis> axis: write
 <value rewritten>`, the id that of the object holding the key, the value
@@ -279,7 +279,7 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `ChainMap`, a `CombinationMap` and a `PiecewiseMap`), a `LinearMap`, a
   `TableMap` and a graphical block each gain exactly their table's keys.
   The unit default of `number_type` is stated for ticks (`int`), seconds
-  (`float`) and whole_note (`fraction`).
+  (`float`) and whole_notes (`fraction`).
 - **Never added, never removed.** `id`, `graphical` and a root's `offset`
   are absent from the completion of a manifest without them; a present
   `graphical: {}` completes to its three keys and minimizes to `{}`; a
