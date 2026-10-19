@@ -31,11 +31,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "second-half",
             "is_segment_line": false,
             "length": [
@@ -55,11 +51,7 @@
           }
         ],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "piece",
         "is_segment_line": false,
         "length": [
@@ -76,29 +68,22 @@
       {
         "children": [],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [
-            {
-              "condition": "always",
-              "control_type": "repeat_end",
-              "from_coordinate": [
-                4,
-                1
-              ],
-              "id": "jump_1",
-              "label": null,
-              "meta": {},
-              "repeat_count": 1,
-              "target": "nowhere",
-              "to_coordinate": [
-                0,
-                1
-              ]
-            }
-          ],
-          "markers": []
-        },
+        "flow_control": [
+          {
+            "coordinate": [
+              4,
+              1
+            ],
+            "id": "jump_1",
+            "label": null,
+            "manifestation": "repeat_end",
+            "meta": {},
+            "name": null,
+            "repeat_count": 1,
+            "target": "nowhere",
+            "type": "jump_from"
+          }
+        ],
         "id": "recording",
         "is_segment_line": false,
         "length": [
@@ -119,7 +104,6 @@
     "timelines",
     1,
     "flow_control",
-    "jumps",
     0,
     "target"
   ],

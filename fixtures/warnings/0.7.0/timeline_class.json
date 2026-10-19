@@ -10,11 +10,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "clt_2",
             "is_segment_line": false,
             "length": [
@@ -35,11 +31,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "clt_3",
             "is_segment_line": false,
             "length": [
@@ -60,11 +52,7 @@
         ],
         "class": "ContinuousLogicalTimeline",
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "clt_1",
         "is_segment_line": false,
         "length": [

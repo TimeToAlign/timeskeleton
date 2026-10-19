@@ -20,11 +20,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "controls",
             "is_segment_line": false,
             "length": [
@@ -45,11 +41,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "notes",
             "is_segment_line": false,
             "length": [
@@ -79,119 +71,133 @@
             "type": "LinearMap"
           }
         ],
-        "flow_control": {
-          "breaks": [
-            {
-              "condition": "after_dc_ds",
-              "control_type": "fine",
-              "coordinate": [
-                12,
-                1
-              ],
-              "id": "break_1",
-              "label": "fine at MC 7",
-              "meta": {},
-              "name": "fine",
-              "repeat_count": 1
-            }
-          ],
-          "jumps": [
-            {
-              "condition": "first_n",
-              "control_type": "repeat_end",
-              "from_coordinate": [
-                6,
-                1
-              ],
-              "id": "jump_1",
-              "label": "MC 3 → MC 1",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                0,
-                1
-              ]
-            },
-            {
-              "condition": "first_n",
-              "control_type": "repeat_end",
-              "from_coordinate": [
-                9,
-                1
-              ],
-              "id": "jump_2",
-              "label": "MC 5 → MC 4",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                6,
-                1
-              ]
-            },
-            {
-              "condition": "first_n",
-              "control_type": "repeat_end",
-              "from_coordinate": [
-                28,
-                1
-              ],
-              "id": "jump_3",
-              "label": "MC 11 → MC 9",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                16,
-                1
-              ]
-            },
-            {
-              "condition": "after_first",
-              "control_type": "da_capo_al_fine",
-              "from_coordinate": [
-                37,
-                1
-              ],
-              "id": "jump_4",
-              "label": "MC 15 → start (MC 1)",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                0,
-                1
-              ]
-            }
-          ],
-          "markers": [
-            {
-              "coordinate": [
-                10,
-                1
-              ],
-              "id": "marker_1",
-              "name": "fine"
-            },
-            {
-              "coordinate": [
-                16,
-                1
-              ],
-              "id": "marker_2",
-              "name": "segno & coda"
-            },
-            {
-              "coordinate": [
-                30,
-                1
-              ],
-              "id": "marker_3",
-              "name": "codab"
-            }
-          ]
-        },
+        "flow_control": [
+          {
+            "coordinate": [
+              6,
+              1
+            ],
+            "id": "jump_1",
+            "label": "MC 3 → MC 1",
+            "manifestation": "repeat_end",
+            "meta": {},
+            "name": null,
+            "repeat_count": 1,
+            "type": "jump_from"
+          },
+          {
+            "coordinate": [
+              6,
+              1
+            ],
+            "id": "jump_2_target",
+            "label": null,
+            "manifestation": "repeat_start",
+            "meta": {},
+            "name": null,
+            "type": "jump_to"
+          },
+          {
+            "coordinate": [
+              9,
+              1
+            ],
+            "id": "jump_2",
+            "label": "MC 5 → MC 4",
+            "manifestation": "repeat_end",
+            "meta": {},
+            "name": null,
+            "repeat_count": 1,
+            "target": "jump_2_target",
+            "type": "jump_from"
+          },
+          {
+            "coordinate": [
+              10,
+              1
+            ],
+            "id": "marker_1",
+            "label": null,
+            "manifestation": "segno",
+            "meta": {},
+            "name": "fine",
+            "type": "jump_to"
+          },
+          {
+            "coordinate": [
+              12,
+              1
+            ],
+            "id": "break_1",
+            "label": "fine at MC 7",
+            "manifestation": "fine",
+            "meta": {},
+            "name": "fine",
+            "type": "flow_marker"
+          },
+          {
+            "coordinate": [
+              16,
+              1
+            ],
+            "id": "jump_3_target",
+            "label": null,
+            "manifestation": "repeat_start",
+            "meta": {},
+            "name": null,
+            "type": "jump_to"
+          },
+          {
+            "coordinate": [
+              16,
+              1
+            ],
+            "id": "marker_2",
+            "label": null,
+            "manifestation": "coda",
+            "meta": {},
+            "name": "segno & coda",
+            "type": "jump_to"
+          },
+          {
+            "coordinate": [
+              28,
+              1
+            ],
+            "id": "jump_3",
+            "label": "MC 11 → MC 9",
+            "manifestation": "repeat_end",
+            "meta": {},
+            "name": null,
+            "repeat_count": 1,
+            "target": "jump_3_target",
+            "type": "jump_from"
+          },
+          {
+            "coordinate": [
+              30,
+              1
+            ],
+            "id": "marker_3",
+            "label": null,
+            "manifestation": "coda",
+            "meta": {},
+            "name": "codab",
+            "type": "jump_to"
+          },
+          {
+            "coordinate": [
+              37,
+              1
+            ],
+            "id": "jump_4",
+            "label": "MC 15 → start (MC 1)",
+            "manifestation": "da_capo_al_fine",
+            "meta": {},
+            "name": null,
+            "type": "jump_from"
+          }
+        ],
         "id": "clt_1",
         "is_segment_line": false,
         "length": [

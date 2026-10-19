@@ -6,8 +6,7 @@ array of a manifest whose order carries no meaning has one canonical order:
 
 * ``timelines`` by id;
 * in every timeline, ``children`` by offset, then id; ``conversion_maps`` by
-  id; ``regions`` by start, then end, then id; flow-control ``breaks`` and
-  ``markers`` by coordinate, then id; ``jumps`` by from coordinate, then to
+  id; ``regions`` by start, then end, then id; ``flow_control`` by
   coordinate, then id;
 * ``groups`` by id and every group's ``members`` by code point;
 * ``measure_maps`` by id.
@@ -185,30 +184,11 @@ def _order_timeline(timeline: dict[str, Any]) -> None:
             lambda entry: (_exact(entry["start"]), _exact(entry["end"]), _by_id(entry)),
             "regions",
         )
-    flow = timeline.get("flow_control")
-    if not isinstance(flow, dict):
-        return
-    if isinstance(flow.get("breaks"), list):
-        flow["breaks"] = _sorted(
-            flow["breaks"],
+    if isinstance(timeline.get("flow_control"), list):
+        timeline["flow_control"] = _sorted(
+            timeline["flow_control"],
             lambda entry: (_exact(entry["coordinate"]), _by_id(entry)),
-            "breaks",
-        )
-    if isinstance(flow.get("jumps"), list):
-        flow["jumps"] = _sorted(
-            flow["jumps"],
-            lambda entry: (
-                _exact(entry["from_coordinate"]),
-                _exact(entry["to_coordinate"]),
-                _by_id(entry),
-            ),
-            "jumps",
-        )
-    if isinstance(flow.get("markers"), list):
-        flow["markers"] = _sorted(
-            flow["markers"],
-            lambda entry: (_exact(entry["coordinate"]), _by_id(entry)),
-            "markers",
+            "flow_control",
         )
 
 
@@ -297,15 +277,8 @@ def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None
     _respell_axis(timeline, ("length",), own)
     for region in _dicts(timeline.get("regions")):
         _respell_axis(region, ("start", "end"), own)
-    flow = timeline.get("flow_control")
-    if isinstance(flow, dict):
-        for member, keys in (
-            ("breaks", ("coordinate",)),
-            ("jumps", ("from_coordinate", "to_coordinate")),
-            ("markers", ("coordinate",)),
-        ):
-            for entry in _dicts(flow.get(member)):
-                _respell_axis(entry, keys, own)
+    for entry in _dicts(timeline.get("flow_control")):
+        _respell_axis(entry, ("coordinate",), own)
     for conversion_map in _dicts(timeline.get("conversion_maps")):
         _respell_map(conversion_map)
     for child in _dicts(timeline.get("children")):

@@ -13,7 +13,7 @@ SMALLEST = {
     "timeskeleton": "0.7.0",
     "timelines": [{"id": "piece", "unit": "quarters", "length": [32, 1]}],
 }
-EMPTY_FLOW = {"breaks": [], "jumps": [], "markers": []}
+REGION = {"id": "r", "start": [0, 1], "end": [1, 1]}
 
 
 def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
@@ -36,7 +36,7 @@ def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
                 "children": [],
                 "conversion_maps": [],
                 "regions": [],
-                "flow_control": EMPTY_FLOW,
+                "flow_control": [],
             }
         ],
     }
@@ -68,11 +68,32 @@ def test_every_object_gains_exactly_its_defaults() -> None:
     root = timeline(
         "score",
         regions=[{"id": "r", "start": [0, 1], "end": [1, 1]}],
-        flow_control={
-            "breaks": [{"id": "b", "coordinate": [1, 1]}],
-            "jumps": [{"id": "j", "from_coordinate": [1, 1], "to_coordinate": [0, 1]}],
-            "markers": [{"id": "m", "coordinate": [0, 1]}],
-        },
+        flow_control=[
+            {
+                "id": "b",
+                "type": "flow_marker",
+                "manifestation": "fine",
+                "coordinate": [1, 1],
+            },
+            {
+                "id": "j",
+                "type": "jump_from",
+                "manifestation": "da_capo",
+                "coordinate": [1, 1],
+            },
+            {
+                "id": "again",
+                "type": "jump_from",
+                "manifestation": "repeat_end",
+                "coordinate": [1, 1],
+            },
+            {
+                "id": "m",
+                "type": "jump_to",
+                "manifestation": "segno",
+                "coordinate": [0, 1],
+            },
+        ],
         conversion_maps=[
             {
                 "type": "ChainMap",
@@ -115,29 +136,37 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         "name": None,
         "meta": {},
     }
-    flow = done["flow_control"]
-    assert flow["breaks"][0] == {
+    defaults = {"name": None, "label": None, "meta": {}}
+    marker, origin, repeat, target = done["flow_control"]
+    assert marker == {
         "id": "b",
+        "type": "flow_marker",
+        "manifestation": "fine",
         "coordinate": [1, 1],
-        "control_type": "section_break",
-        "condition": "always",
-        "repeat_count": 1,
-        "label": None,
-        "name": None,
-        "meta": {},
+        **defaults,
     }
-    assert flow["jumps"][0] == {
+    assert origin == {
         "id": "j",
-        "from_coordinate": [1, 1],
-        "to_coordinate": [0, 1],
-        "control_type": "repeat_end",
-        "condition": "first_n",
-        "repeat_count": 1,
-        "target": None,
-        "label": None,
-        "meta": {},
+        "type": "jump_from",
+        "manifestation": "da_capo",
+        "coordinate": [1, 1],
+        **defaults,
     }
-    assert flow["markers"][0] == {"id": "m", "coordinate": [0, 1], "name": None}
+    assert repeat == {
+        "id": "again",
+        "type": "jump_from",
+        "manifestation": "repeat_end",
+        "coordinate": [1, 1],
+        **defaults,
+        "repeat_count": 1,
+    }
+    assert target == {
+        "id": "m",
+        "type": "jump_to",
+        "manifestation": "segno",
+        "coordinate": [0, 1],
+        **defaults,
+    }
     chain, combo, pieces = done["conversion_maps"]
     assert chain == {
         "type": "ChainMap",
@@ -207,10 +236,16 @@ def test_values_other_than_the_default_stay() -> None:
             locked=True,
             number_type="float",
             length=8.0,
-            flow_control={
-                "breaks": [{"id": "b", "coordinate": 1.0, "repeat_count": 2}],
-                "jumps": [],
-            },
+            flow_control=[
+                {
+                    "id": "b",
+                    "type": "jump_from",
+                    "manifestation": "repeat_end",
+                    "coordinate": 1.0,
+                    "repeat_count": 2,
+                    "label": None,
+                }
+            ],
         )
     )
     assert minimal(value) == manifest(
@@ -219,9 +254,15 @@ def test_values_other_than_the_default_stay() -> None:
             locked=True,
             number_type="float",
             length=8.0,
-            flow_control={
-                "breaks": [{"id": "b", "coordinate": 1.0, "repeat_count": 2}]
-            },
+            flow_control=[
+                {
+                    "id": "b",
+                    "type": "jump_from",
+                    "manifestation": "repeat_end",
+                    "coordinate": 1.0,
+                    "repeat_count": 2,
+                }
+            ],
         )
     )
 
@@ -230,9 +271,15 @@ def test_a_value_of_another_type_is_not_the_default() -> None:
     value = manifest(
         timeline(
             "score",
-            flow_control={
-                "breaks": [{"id": "b", "coordinate": [1, 1], "repeat_count": 1.0}]
-            },
+            flow_control=[
+                {
+                    "id": "b",
+                    "type": "jump_from",
+                    "manifestation": "repeat_end",
+                    "coordinate": [1, 1],
+                    "repeat_count": 1.0,
+                }
+            ],
             conversion_maps=[
                 {
                     "type": "LinearMap",
@@ -251,15 +298,15 @@ def test_a_value_of_another_type_is_not_the_default() -> None:
 
 def test_unknown_keys_pass_through() -> None:
     value = manifest(
-        timeline("score", lenght=1, flow_control={"codas": [], "breaks": []}),
+        timeline("score", lenght=1, flow_control=[], regions=[{**REGION, "codas": []}]),
         extra={"meta": {}},
     )
     assert minimal(value) == manifest(
-        timeline("score", lenght=1, flow_control={"codas": []}),
+        timeline("score", lenght=1, regions=[{**REGION, "codas": []}]),
         extra={"meta": {}},
     )
     assert complete(value)["extra"] == {"meta": {}}
-    assert complete(value)["timelines"][0]["flow_control"]["codas"] == []
+    assert complete(value)["timelines"][0]["regions"][0]["codas"] == []
 
 
 def test_length_survives_both_forms() -> None:
@@ -274,7 +321,7 @@ def _documents() -> list[dict[str, Any]]:
         SMALLEST,
         complete(SMALLEST),
         bundle(),
-        manifest(timeline("score", lenght=1, flow_control={"codas": [], "breaks": []})),
+        manifest(timeline("score", lenght=1, regions=[{**REGION, "codas": []}])),
         manifest(
             timeline("score", locked=True, children=[timeline("c", offset=(0, 1))]),
             graphical={},
@@ -282,16 +329,15 @@ def _documents() -> list[dict[str, Any]]:
         manifest(
             timeline(
                 "score",
-                flow_control={
-                    "jumps": [
-                        {
-                            "id": "j",
-                            "from_coordinate": [4, 1],
-                            "to_coordinate": [0, 1],
-                            "repeat_count": 1.0,
-                        }
-                    ]
-                },
+                flow_control=[
+                    {
+                        "id": "j",
+                        "type": "jump_from",
+                        "manifestation": "repeat_end",
+                        "coordinate": [4, 1],
+                        "repeat_count": 1.0,
+                    }
+                ],
             )
         ),
     ]

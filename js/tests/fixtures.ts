@@ -211,7 +211,14 @@ function respellableManifest(canonical: boolean): JsonObject {
           },
         ],
         regions: [{ id: "r", start: [0, number(float(1), 1)], end: [number(float(1), 1), 2] }],
-        flow_control: { markers: [{ id: "m", coordinate: [number(float(2), 2), 1] }] },
+        flow_control: [
+          {
+            id: "m",
+            type: "jump_to",
+            manifestation: "segno",
+            coordinate: [number(float(2), 2), 1],
+          },
+        ],
       }),
       timeline("take", "seconds", number(60, float(60)), {
         regions: [{ id: "s", start: number(0, float(0)), end: 1.5 }],

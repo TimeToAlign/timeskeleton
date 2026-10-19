@@ -197,8 +197,7 @@ def test_repeated_shapes_are_shared_definitions() -> None:
             "Timeline",
             "Group",
             "Region",
-            "Break",
-            "Marker",
+            "FlowControlElement",
             "MeasureMap",
             "MapBase",
         )
@@ -210,8 +209,7 @@ def test_repeated_shapes_are_shared_definitions() -> None:
             "Timeline",
             "Group",
             "Region",
-            "Break",
-            "Jump",
+            "FlowControlElement",
             "MeasureMap",
         )
     ]
@@ -257,10 +255,7 @@ def test_references_are_ids_and_addresses() -> None:
     selector = defs["Selector"]["properties"]
     assert selector["within"]["$ref"] == "#/$defs/Id"
     assert selector["ids"]["items"] == {"$ref": "#/$defs/Address"}
-    assert defs["Jump"]["properties"]["target"]["anyOf"] == [
-        {"$ref": "#/$defs/Id"},
-        {"type": "null"},
-    ]
+    assert defs["FlowControlElement"]["properties"]["target"]["$ref"] == "#/$defs/Id"
     for owner in MEASURE_VIEWS:
         assert defs[owner]["properties"]["measure_map"]["$ref"] == "#/$defs/Id"
     address = Draft202012Validator({"$ref": "#/$defs/Address", "$defs": defs})
@@ -328,18 +323,20 @@ def test_the_defaults_are_the_table() -> None:
     kinds = {
         "manifest": ["TimeSkeleton"],
         "timeline": ["Timeline"],
-        "flow_control": ["FlowControl"],
         "region": ["Region"],
-        "break": ["Break"],
-        "jump": ["Jump"],
-        "marker": ["Marker"],
         "measure_map": ["MeasureMap"],
         "group": ["Group"],
         "graphical": ["Graphical"],
     }
     own = {"LinearMap": "linear_map", "TableMap": "table_map"}
-    assert sorted([*kinds, "conversion_map", *own.values()]) == sorted(DEFAULTS)
-    covered = {"MapBase"}
+    element = ["flow_control_element", "repeat_end"]
+    assert sorted([*kinds, "conversion_map", *own.values(), *element]) == sorted(
+        DEFAULTS
+    )
+    covered = {"MapBase", "FlowControlElement"}
+    assert _defaults(defs["FlowControlElement"]) == (
+        DEFAULTS["flow_control_element"] | DEFAULTS["repeat_end"]
+    )
     for kind, names in kinds.items():
         for name in names:
             covered.add(name)

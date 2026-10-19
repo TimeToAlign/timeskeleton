@@ -130,26 +130,35 @@ def _tied_manifest() -> dict[str, Any]:
             for map_id in ["\U0001f600", "\ufb00", "B2", "a2", "B"]
         ],
         regions=[{"id": i, "start": s, "end": e} for i, s, e in regions],
-        flow_control={
-            "breaks": [
-                {"id": "kb", "coordinate": [12, 1]},
-                {"id": "ka", "coordinate": [12, 1]},
-                {"id": "kz", "coordinate": [5, 8]},
-            ],
-            "jumps": [
+        flow_control=[
+            *[
                 {
-                    "id": "jj",
-                    "from_coordinate": [8, 1],
-                    "to_coordinate": [2, 1],
-                    "target": "Coda",
-                },
-                {"id": "jd", "from_coordinate": [8, 1], "to_coordinate": [2, 1]},
-                {"id": "js", "from_coordinate": [8, 1], "to_coordinate": [2, 3]},
-                {"id": "je", "from_coordinate": [5, 8], "to_coordinate": [2, 1]},
+                    "id": i,
+                    "type": "flow_marker",
+                    "manifestation": "fine",
+                    "coordinate": c,
+                }
+                for i, c in [("kb", [12, 1]), ("ka", [12, 1]), ("kz", [5, 8])]
             ],
-            "markers": [
-                {"id": marker_id, "coordinate": coordinate}
-                for marker_id, coordinate in [
+            {
+                "id": "jj",
+                "type": "jump_from",
+                "manifestation": "dal_segno",
+                "coordinate": [8, 1],
+                "target": "Coda",
+            },
+            *[
+                {
+                    "id": i,
+                    "type": "jump_from",
+                    "manifestation": "da_capo",
+                    "coordinate": c,
+                }
+                for i, c in [("jd", [8, 1]), ("js", [8, 1]), ("je", [5, 8])]
+            ],
+            *[
+                {"id": i, "type": "jump_to", "manifestation": "segno", "coordinate": c}
+                for i, c in [
                     ("\U0001f600!", [2, 1]),
                     ("\ufb00!", [2, 1]),
                     ("\u00e9", [2, 1]),
@@ -157,7 +166,7 @@ def _tied_manifest() -> dict[str, Any]:
                     ("starting", [5, 8]),
                 ]
             ],
-        },
+        ],
     )
     rows = [{"count": 1, "qstamp": [0, 1], "actual_length": [4, 1]}]
     return manifest(
@@ -183,15 +192,19 @@ def test_every_tie_resolves_to_the_canonical_order() -> None:
         "\U0001f600",
     ]
     assert [entry["id"] for entry in root["regions"]] == ["rd", "rc", "ra", "rb"]
-    flow = root["flow_control"]
-    assert [entry["id"] for entry in flow["breaks"]] == ["kz", "ka", "kb"]
-    assert [entry["id"] for entry in flow["jumps"]] == ["je", "js", "jd", "jj"]
-    assert [entry["id"] for entry in flow["markers"]] == [
+    assert [entry["id"] for entry in root["flow_control"]] == [
+        "je",
+        "kz",
         "starting",
         "Coda",
         "\u00e9",
         "\ufb00!",
         "\U0001f600!",
+        "jd",
+        "jj",
+        "js",
+        "ka",
+        "kb",
     ]
     assert [entry["id"] for entry in result["measure_maps"]] == ["ma", "mb", "m\ufb00"]
 

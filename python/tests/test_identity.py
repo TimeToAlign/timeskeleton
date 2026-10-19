@@ -27,10 +27,11 @@ def _only(value: dict) -> tuple[tuple[str | int, ...], str]:
     return problem
 
 
-def _markers(*identifiers: str) -> dict:
-    return {
-        "markers": [{"id": i, "coordinate": [k, 1]} for k, i in enumerate(identifiers)]
-    }
+def _targets(*identifiers: str) -> list[dict]:
+    return [
+        {"id": i, "type": "jump_to", "manifestation": "segno", "coordinate": [k, 1]}
+        for k, i in enumerate(identifiers)
+    ]
 
 
 def test_the_bundle_document_has_no_problem() -> None:
@@ -39,20 +40,20 @@ def test_the_bundle_document_has_no_problem() -> None:
 
 
 def test_a_repeated_id_within_a_root_is_reported_at_its_later_occurrence() -> None:
-    child = timeline("c", offset=(0, 1), flow_control=_markers("m"))
-    root = timeline("bare", flow_control=_markers("m", "m", "bare"), children=[child])
+    child = timeline("c", offset=(0, 1), flow_control=_targets("m"))
+    root = timeline("bare", flow_control=_targets("m", "m", "bare"), children=[child])
     assert _problems(manifest(root)) == [
         (
-            ("timelines", 0, "flow_control", "markers", 1, "id"),
-            "duplicate id 'm', first at #/timelines/0/flow_control/markers/0/id",
+            ("timelines", 0, "flow_control", 1, "id"),
+            "duplicate id 'm', first at #/timelines/0/flow_control/0/id",
         ),
         (
-            ("timelines", 0, "flow_control", "markers", 2, "id"),
+            ("timelines", 0, "flow_control", 2, "id"),
             "duplicate id 'bare', first at #/timelines/0/id",
         ),
         (
-            ("timelines", 0, "children", 0, "flow_control", "markers", 0, "id"),
-            "duplicate id 'm', first at #/timelines/0/flow_control/markers/0/id",
+            ("timelines", 0, "children", 0, "flow_control", 0, "id"),
+            "duplicate id 'm', first at #/timelines/0/flow_control/0/id",
         ),
     ]
 
@@ -60,8 +61,8 @@ def test_a_repeated_id_within_a_root_is_reported_at_its_later_occurrence() -> No
 def test_scopes_are_per_root() -> None:
     validate(
         manifest(
-            timeline("a", flow_control=_markers("m")),
-            timeline("b", flow_control=_markers("m")),
+            timeline("a", flow_control=_targets("m")),
+            timeline("b", flow_control=_targets("m")),
         )
     )
     score = timeline("score", regions=[{"id": "perf", "start": [0, 1], "end": [1, 1]}])
@@ -70,38 +71,53 @@ def test_scopes_are_per_root() -> None:
 
 
 def test_targets_stay_within_their_timeline() -> None:
-    def jump(identifier: str, target: str | None) -> dict:
-        return {
+    def jump(
+        identifier: str, target: str | None, manifestation: str = "dal_segno"
+    ) -> dict:
+        element = {
             "id": identifier,
-            "from_coordinate": [4, 1],
-            "to_coordinate": [0, 1],
-            "target": target,
+            "type": "jump_from",
+            "manifestation": manifestation,
+            "coordinate": [4, 1],
         }
+        return element if target is None else {**element, "target": target}
 
+    fine = {
+        "id": "fine",
+        "type": "flow_marker",
+        "manifestation": "fine",
+        "coordinate": [6, 1],
+    }
     child = timeline(
         "c",
         offset=(0, 1),
-        flow_control={
-            "markers": [{"id": "there", "coordinate": [1, 1]}],
-            "jumps": [jump("cj", "here")],
-        },
+        flow_control=[*_targets("there"), jump("cj", "here")],
     )
     root = timeline(
         "bare",
-        flow_control={
-            "markers": [{"id": "here", "coordinate": [1, 1]}],
-            "jumps": [jump("j1", "here"), jump("j2", None), jump("j3", "there")],
-        },
+        flow_control=[
+            *_targets("here"),
+            fine,
+            jump("j1", "here"),
+            jump("j2", None, "da_capo"),
+            jump("j3", "there"),
+            jump("j4", "fine"),
+            jump("j5", None, "repeat_end"),
+        ],
         children=[child],
     )
     assert _problems(manifest(root)) == [
         (
-            ("timelines", 0, "flow_control", "jumps", 2, "target"),
-            "'there' names no marker of this timeline",
+            ("timelines", 0, "flow_control", 4, "target"),
+            "'there' names no jump_to of this timeline",
         ),
         (
-            ("timelines", 0, "children", 0, "flow_control", "jumps", 0, "target"),
-            "'here' names no marker of this timeline",
+            ("timelines", 0, "flow_control", 5, "target"),
+            "'fine' names no jump_to of this timeline",
+        ),
+        (
+            ("timelines", 0, "children", 0, "flow_control", 1, "target"),
+            "'here' names no jump_to of this timeline",
         ),
     ]
 
@@ -514,11 +530,21 @@ def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
         "target_unit": None,
     }
     rows = [{"count": 1, "qstamp": [0, 1], "actual_length": [4, 1]}]
-    flow = {
-        "breaks": [{"id": word, "coordinate": [1, 1]}],
-        "jumps": [{"id": word, "from_coordinate": [1, 1], "to_coordinate": [0, 1]}],
-        "markers": [{"id": word, "coordinate": [1, 1]}],
-    }
+    flow = [
+        {
+            "id": word,
+            "type": "flow_marker",
+            "manifestation": "fine",
+            "coordinate": [1, 1],
+        },
+        {
+            "id": word,
+            "type": "jump_from",
+            "manifestation": "da_capo",
+            "coordinate": [1, 1],
+        },
+        {"id": word, "type": "jump_to", "manifestation": "coda", "coordinate": [1, 1]},
+    ]
     documents = [
         (manifest(timeline(word)), ("timelines", 0, "id")),
         (
@@ -536,11 +562,11 @@ def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
         ),
         (manifest(timeline("s"), id=word), ("id",)),
     ]
-    for member, entries in flow.items():
+    for element in flow:
         documents.append(
             (
-                manifest(timeline("s", flow_control={member: entries})),
-                ("timelines", 0, "flow_control", member, 0, "id"),
+                manifest(timeline("s", flow_control=[element])),
+                ("timelines", 0, "flow_control", 0, "id"),
             )
         )
     return documents
@@ -814,17 +840,16 @@ def test_a_band_order_is_held_to_its_own_timelines_bands() -> None:
 
 
 def test_every_step_in_order() -> None:
-    def jump(target: str) -> dict:
-        return {
-            "id": "j",
-            "from_coordinate": [1, 1],
-            "to_coordinate": [0, 1],
-            "target": target,
-        }
-
+    jump = {
+        "id": "j",
+        "type": "jump_from",
+        "manifestation": "dal_segno",
+        "coordinate": [1, 1],
+        "target": "nowhere",
+    }
     first = timeline(
         "first",
-        flow_control={"jumps": [jump("nowhere")]},
+        flow_control=[jump],
         conversion_maps=[
             _view("bars", "no-measures"),
             _table([[0, 1], [4, 1], [8, 1]], [60, 72]),
@@ -867,8 +892,8 @@ def test_every_step_in_order() -> None:
     )
     assert _problems(value) == [
         (
-            ("timelines", 0, "flow_control", "jumps", 0, "target"),
-            "'nowhere' names no marker of this timeline",
+            ("timelines", 0, "flow_control", 0, "target"),
+            "'nowhere' names no jump_to of this timeline",
         ),
         (
             ("timelines", 0, "conversion_maps", 0, "measure_map"),

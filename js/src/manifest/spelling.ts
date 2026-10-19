@@ -115,14 +115,7 @@ function respellTimeline(timeline: JsonObject, offsetType: NumberType | undefine
   respellAxis(timeline, ["offset"], offsetType ?? own);
   respellAxis(timeline, ["length"], own);
   for (const region of objects(timeline.regions)) respellAxis(region, ["start", "end"], own);
-  const flow = timeline.flow_control;
-  if (isJsonObject(flow)) {
-    for (const entry of objects(flow.breaks)) respellAxis(entry, ["coordinate"], own);
-    for (const entry of objects(flow.jumps)) {
-      respellAxis(entry, ["from_coordinate", "to_coordinate"], own);
-    }
-    for (const entry of objects(flow.markers)) respellAxis(entry, ["coordinate"], own);
-  }
+  for (const entry of objects(timeline.flow_control)) respellAxis(entry, ["coordinate"], own);
   for (const map of objects(timeline.conversion_maps)) respellMap(map);
   for (const child of objects(timeline.children)) respellTimeline(child, own);
 }

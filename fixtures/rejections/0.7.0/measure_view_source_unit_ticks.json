@@ -43,11 +43,7 @@
             "type": "MeasureNumberMap"
           }
         ],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "score",
         "is_segment_line": false,
         "length": [

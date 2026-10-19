@@ -57,7 +57,9 @@ definitions holding a default, and `LosslessTimeSkeleton`; the committed
 text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
-the typecheck gate.
+the typecheck gate. A complete flow-control element without `repeat_count`
+compiles: a key an `if`/`then`/`else` arm forbids (`{"not": {}}`) has a
+default only where it is allowed, so the complete form keeps it optional.
 
 ## The validator
 
@@ -165,8 +167,8 @@ pairs mixed, and adds:
   case, with the keys of every object reversed and, in the fixtures, the
   items of every array the canonical order sorts (`timelines`, `groups`,
   `members`, `measure_maps`, `children`, `conversion_maps`, `regions`,
-  `breaks`, `jumps`, `markers`), is written by this `dumps` and by Python's `dumps` (loaded by
-  `python3` from its path) to the same bytes, equal to the file.
+  `flow_control`), is written by this `dumps` and by Python's `dumps`
+  (loaded by `python3` from its path) to the same bytes, equal to the file.
 - **Python's `repr` itself.** 2000 doubles from a fixed pseudo-random
   sequence are spelled exactly as `python3` spells them with `repr`.
 - **The shared number corpus** gives the one literal expected text.

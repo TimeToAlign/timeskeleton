@@ -8,7 +8,7 @@ export const schema = {
   "$defs": {
     "TimeSkeleton": {
       "type": "object",
-      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.",
+      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region or flow-control element) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.",
       "properties": {
         "$schema": {
           "type": "string",
@@ -64,7 +64,7 @@ export const schema = {
     },
     "Timeline": {
       "type": "object",
-      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.",
+      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, flow-control coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; flow-control elements by coordinate, then ID. Readers accept any order.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -136,12 +136,12 @@ export const schema = {
           "default": []
         },
         "flow_control": {
-          "$ref": "#/$defs/FlowControl",
-          "default": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          }
+          "type": "array",
+          "description": "The flow control of this timeline: its jump origins, jump targets and flow markers.",
+          "items": {
+            "$ref": "#/$defs/FlowControlElement"
+          },
+          "default": []
         }
       },
       "required": [
@@ -648,118 +648,67 @@ export const schema = {
         "end"
       ]
     },
-    "FlowControl": {
+    "FlowControlElement": {
       "type": "object",
-      "description": "The flow control of a timeline: its breaks, jumps and flow markers. A flow marker is a named position that jumps target; the markers band does not draw it. It differs from a coordinate marker, a wedge the markers band draws at a root's start and end.",
-      "properties": {
-        "breaks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Break"
-          },
-          "default": []
-        },
-        "jumps": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Jump"
-          },
-          "default": []
-        },
-        "markers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Marker"
-          },
-          "default": []
-        }
-      }
-    },
-    "Break": {
-      "type": "object",
-      "description": "A flow-control break at a coordinate on the timeline's own axis.",
+      "description": "One element of a timeline's flow control, at a coordinate on the timeline's own axis. A jump_from is where playback leaves for another position: its target, a jump_to of the same timeline, or, for a da_capo manifestation or a repeat_end without a target, the timeline's start. A jump_to is a position a jump_from names as its target. A flow_marker marks a position without a jump of its own: a fine, where playback ends after a jump al fine, or a section_break, a double_barline or a final_barline, which divide the timeline. When a jump acts follows from its manifestation: a repeat_end on its first repeat_count passes, a to_coda only after a da_capo_al_coda or a dal_segno_al_coda, every other jump_from always. A flow marker is not a coordinate marker: the markers band holds the coordinate markers, the wedges at a root's start and end, and never a flow-control element.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
-          "description": "The break ID."
+          "description": "The element ID."
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "jump_from",
+            "jump_to",
+            "flow_marker"
+          ],
+          "description": "The element type: a jump origin, a jump target or a flow marker. It decides the manifestations the element may take and whether it may carry a target and a repeat count."
+        },
+        "manifestation": {
+          "type": "string",
+          "enum": [
+            "repeat_end",
+            "da_capo",
+            "da_capo_al_fine",
+            "da_capo_al_coda",
+            "dal_segno",
+            "dal_segno_al_fine",
+            "dal_segno_al_coda",
+            "to_coda",
+            "repeat_start",
+            "segno",
+            "coda",
+            "fine",
+            "section_break",
+            "double_barline",
+            "final_barline"
+          ],
+          "description": "How the element is notated. A jump_from is a repeat_end, a da_capo, da_capo_al_fine or da_capo_al_coda, a dal_segno, dal_segno_al_fine or dal_segno_al_coda, or a to_coda; a jump_to is a repeat_start, a segno or a coda; a flow_marker is a fine, a section_break, a double_barline or a final_barline."
         },
         "coordinate": {
-          "$ref": "#/$defs/Number"
-        },
-        "control_type": {
-          "$ref": "#/$defs/FlowControlElement",
-          "default": "section_break"
-        },
-        "condition": {
-          "$ref": "#/$defs/ActivationCondition",
-          "default": "always"
-        },
-        "repeat_count": {
-          "type": "integer",
-          "default": 1
-        },
-        "label": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "default": null
-        },
-        "name": {
-          "$ref": "#/$defs/Name"
-        },
-        "meta": {
-          "$ref": "#/$defs/Meta"
-        }
-      },
-      "required": [
-        "id",
-        "coordinate"
-      ]
-    },
-    "Jump": {
-      "type": "object",
-      "description": "A flow-control jump from one coordinate to another on the timeline's own axis.",
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/Id",
-          "description": "The jump ID."
-        },
-        "from_coordinate": {
-          "$ref": "#/$defs/Number"
-        },
-        "to_coordinate": {
-          "$ref": "#/$defs/Number"
-        },
-        "control_type": {
-          "$ref": "#/$defs/FlowControlElement",
-          "default": "repeat_end"
-        },
-        "condition": {
-          "$ref": "#/$defs/ActivationCondition",
-          "default": "first_n"
-        },
-        "repeat_count": {
-          "type": "integer",
-          "default": 1
+          "$ref": "#/$defs/Number",
+          "description": "Where the element lies on the timeline's own axis."
         },
         "target": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/Id"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "description": "The ID of the marker of the same timeline this jump targets, or null.",
-          "default": null
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the jump_to of the same timeline a jump_from leads to; checked after the schema. Required on a dal_segno manifestation and a to_coda; optional on a da_capo manifestation and a repeat_end, where its absence means the timeline's start; carried by no other element."
+        },
+        "repeat_count": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "How many passes a repeat_end sends back to its target; carried by a repeat_end only.",
+          "default": 1
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
         },
         "label": {
           "type": [
             "string",
             "null"
           ],
+          "description": "The text the element is drawn with, or null.",
           "default": null
         },
         "meta": {
@@ -768,62 +717,123 @@ export const schema = {
       },
       "required": [
         "id",
-        "from_coordinate",
-        "to_coordinate"
-      ]
-    },
-    "Marker": {
-      "type": "object",
-      "description": "A flow marker: a named position on the timeline's own axis, the target of jumps. Flow control holds it and nothing draws it; the markers band holds the coordinate markers instead, the wedges at a root's start and end.",
-      "properties": {
-        "id": {
-          "$ref": "#/$defs/Id",
-          "description": "The marker ID."
+        "type",
+        "manifestation",
+        "coordinate"
+      ],
+      "if": {
+        "properties": {
+          "type": {
+            "const": "jump_from"
+          }
         },
-        "name": {
-          "$ref": "#/$defs/Name"
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "manifestation": {
+            "enum": [
+              "repeat_end",
+              "da_capo",
+              "da_capo_al_fine",
+              "da_capo_al_coda",
+              "dal_segno",
+              "dal_segno_al_fine",
+              "dal_segno_al_coda",
+              "to_coda"
+            ]
+          }
         },
-        "coordinate": {
-          "$ref": "#/$defs/Number"
+        "if": {
+          "properties": {
+            "manifestation": {
+              "enum": [
+                "dal_segno",
+                "dal_segno_al_fine",
+                "dal_segno_al_coda",
+                "to_coda"
+              ]
+            }
+          },
+          "required": [
+            "manifestation"
+          ]
+        },
+        "then": {
+          "required": [
+            "target"
+          ],
+          "properties": {
+            "repeat_count": {
+              "not": {}
+            }
+          }
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "manifestation": {
+                "const": "repeat_end"
+              }
+            },
+            "required": [
+              "manifestation"
+            ]
+          },
+          "else": {
+            "properties": {
+              "repeat_count": {
+                "not": {}
+              }
+            }
+          }
         }
       },
-      "required": [
-        "id",
-        "coordinate"
-      ]
-    },
-    "FlowControlElement": {
-      "type": "string",
-      "enum": [
-        "repeat_start",
-        "repeat_end",
-        "da_capo",
-        "dal_segno",
-        "dal_segno_al_coda",
-        "dal_segno_al_fine",
-        "da_capo_al_coda",
-        "da_capo_al_fine",
-        "to_coda",
-        "segno",
-        "coda",
-        "fine",
-        "section_break",
-        "double_barline",
-        "final_barline",
-        "first_measure",
-        "last_measure",
-        "jump_from",
-        "jump_to"
-      ]
-    },
-    "ActivationCondition": {
-      "type": "string",
-      "enum": [
-        "always",
-        "first_n",
-        "after_first",
-        "after_dc_ds"
-      ]
+      "else": {
+        "properties": {
+          "target": {
+            "not": {}
+          },
+          "repeat_count": {
+            "not": {}
+          }
+        },
+        "if": {
+          "properties": {
+            "type": {
+              "const": "jump_to"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "manifestation": {
+              "enum": [
+                "repeat_start",
+                "segno",
+                "coda"
+              ]
+            }
+          }
+        },
+        "else": {
+          "properties": {
+            "manifestation": {
+              "enum": [
+                "fine",
+                "section_break",
+                "double_barline",
+                "final_barline"
+              ]
+            }
+          }
+        }
+      }
     },
     "Order": {
       "type": "array",
@@ -930,7 +940,7 @@ export const schema = {
     },
     "ElementType": {
       "type": "string",
-      "description": "The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge (a coordinate marker at a root's start or end; the flow markers of `flow_control` are not drawn), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
+      "description": "The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow marker (a vertical line at its coordinate), a jump origin (an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker at a root's start or end, never an element of `flow_control`), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.",
       "enum": [
         "block",
         "timeline",
@@ -938,8 +948,8 @@ export const schema = {
         "band",
         "map",
         "region",
-        "break",
-        "jump",
+        "flow_marker",
+        "jump_from",
         "wedge",
         "name",
         "label",

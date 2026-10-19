@@ -38,7 +38,6 @@ const REJECTIONS = [
   "band_id_region",
   "band_order_missing_band",
   "band_order_unknown_entry",
-  "break_control_type_unknown",
   "child_end_beyond_parent",
   "child_id_control_character_newline",
   "child_missing_offset",
@@ -46,7 +45,12 @@ const REJECTIONS = [
   "child_offset_fraction_on_float_axis",
   "child_unit_differs",
   "conversion_map_unknown_type",
+  "dal_segno_without_target",
   "float_axis_int_not_exact",
+  "flow_control_coordinate_dict",
+  "flow_control_object",
+  "flow_control_type_break",
+  "flow_marker_manifestation_segno",
   "group_id_duplicate",
   "group_id_is_descendant_id",
   "group_id_is_timeline_id",
@@ -61,8 +65,8 @@ const REJECTIONS = [
   "id_empty",
   "id_with_slash",
   "infinite_length",
-  "jump_condition_unknown",
-  "jump_target_dangling",
+  "jump_target_flow_marker",
+  "jump_to_target",
   "later_root_missing_unit",
   "length_coordinate_dict",
   "length_float_on_int_axis",
@@ -76,8 +80,6 @@ const REJECTIONS = [
   "manifest_id_is_descendant_id",
   "manifest_id_is_group_id",
   "manifest_id_is_measure_map_id",
-  "marker_coordinate_dict",
-  "markers_object",
   "measure_map_id_is_timeline_id",
   "measure_map_row_actual_length_negative",
   "measure_map_row_offset_within_measure_zero",
@@ -103,6 +105,7 @@ const REJECTIONS = [
   "piecewise_map_breaks_not_increasing",
   "piecewise_map_maps_count",
   "region_start_float_on_fraction_axis",
+  "repeat_count_zero",
   "root_missing_marker",
   "root_missing_timelines",
   "segment_line_flag_not_boolean",
@@ -133,6 +136,7 @@ const REJECTIONS = [
   "timelines_child_id_duplicate_across_roots",
   "timelines_id_duplicate_across_roots",
   "timelines_root_jump_target_dangling",
+  "to_coda_with_repeat_count",
   "version_unknown",
 ];
 
@@ -254,19 +258,24 @@ describe("own-axis representation", () => {
   it.each([
     ["regions", { id: "intro", start: 1, end: [2, 1] }, "start"],
     ["regions", { id: "intro", start: [1, 1], end: 2 }, "end"],
-    ["breaks", { id: "fine", coordinate: 4 }, "coordinate"],
-    ["markers", { id: "segno", coordinate: 4 }, "coordinate"],
-    ["jumps", { id: "back", from_coordinate: 4, to_coordinate: [0, 1] }, "from_coordinate"],
-    ["jumps", { id: "back", from_coordinate: [4, 1], to_coordinate: 0 }, "to_coordinate"],
+    [
+      "flow_control",
+      { id: "fine", type: "flow_marker", manifestation: "fine", coordinate: 4 },
+      "coordinate",
+    ],
+    [
+      "flow_control",
+      { id: "segno", type: "jump_to", manifestation: "segno", coordinate: 4 },
+      "coordinate",
+    ],
+    [
+      "flow_control",
+      { id: "back", type: "jump_from", manifestation: "da_capo", coordinate: 4 },
+      "coordinate",
+    ],
   ] as const)("checks every own-axis value: %s %o", (member, entry, key) => {
-    const root =
-      member === "regions"
-        ? timeline("score", "quarters", [8, 1], { regions: [entry] })
-        : timeline("score", "quarters", [8, 1], { flow_control: { [member]: [entry] } });
-    const path =
-      member === "regions"
-        ? ["timelines", 0, "regions", 0, key]
-        : ["timelines", 0, "flow_control", member, 0, key];
+    const root = timeline("score", "quarters", [8, 1], { [member]: [entry] });
+    const path = ["timelines", 0, member, 0, key];
     const value = (entry as JsonObject)[key];
     expect(problem(manifest([root]))).toEqual([
       path,
@@ -411,7 +420,7 @@ describe("the shared rejection cases", () => {
       compactJson((parseJson(text) as { manifest: Lossless<Json> }).manifest),
     );
     expect([testCase.path, testCase.code, testCase.error, testCase.reason]).toEqual([
-      ["timelines", 0, "flow_control", "markers", 0, "id"],
+      ["timelines", 0, "flow_control", 0, "id"],
       "schema",
       null,
       "An id must not be empty.",
@@ -607,6 +616,31 @@ describe("the graphical block", () => {
       ["graphical", "order", "score"],
       "must NOT have duplicate items (items ## 2 and 0 are identical)",
     ]);
+  });
+
+  it("needs no target on a da capo or a repeat end", () => {
+    const origin = (id: string, manifestation: string) => ({
+      id,
+      type: "jump_from",
+      manifestation,
+      coordinate: [8, 1],
+    });
+    const value = manifest([
+      timeline("score", "quarters", [8, 1], {
+        flow_control: [
+          origin("dc", "da_capo"),
+          origin("dcf", "da_capo_al_fine"),
+          origin("dcc", "da_capo_al_coda"),
+          { ...origin("again", "repeat_end"), repeat_count: 2 },
+        ],
+      }),
+    ]);
+    validate(value);
+    expect(unknownKeys(value)).toEqual([]);
+    const missing = manifest([
+      timeline("score", "quarters", [8, 1], { flow_control: [origin("ds", "dal_segno")] }),
+    ]);
+    expect(problem(missing)[0]).toEqual(["timelines", 0, "flow_control", 0]);
   });
 
   it("accepts the defaults of the drawing specification", () => {

@@ -1,0 +1,81 @@
+{
+  "code": "schema",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": [
+          {
+            "coordinate": [
+              2,
+              1
+            ],
+            "id": "marker_1",
+            "label": null,
+            "manifestation": "repeat_start",
+            "meta": {},
+            "name": "repeat-start",
+            "target": "break_1",
+            "type": "jump_to"
+          },
+          {
+            "coordinate": [
+              8,
+              1
+            ],
+            "id": "jump_1",
+            "label": "Repeat",
+            "manifestation": "repeat_end",
+            "meta": {
+              "source": "synthetic"
+            },
+            "name": null,
+            "repeat_count": 2,
+            "target": "marker_1",
+            "type": "jump_from"
+          },
+          {
+            "coordinate": [
+              12,
+              1
+            ],
+            "id": "break_1",
+            "label": "Fine",
+            "manifestation": "fine",
+            "meta": {
+              "source": "synthetic"
+            },
+            "name": "fine",
+            "type": "flow_marker"
+          }
+        ],
+        "id": "flow:quarters",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": "Flow control",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "flow_control",
+    0,
+    "target"
+  ],
+  "reason": "Only a jump_from carries a target."
+}

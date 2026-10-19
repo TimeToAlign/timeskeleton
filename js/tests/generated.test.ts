@@ -43,10 +43,7 @@ describe("generated files", () => {
       "MapBase",
       ...mapTypes,
       "Region",
-      "FlowControl",
-      "Break",
-      "Jump",
-      "Marker",
+      "FlowControlElement",
       "MeasureMap",
     ];
     expect(exportsOf(committed("types.ts"))).toEqual(

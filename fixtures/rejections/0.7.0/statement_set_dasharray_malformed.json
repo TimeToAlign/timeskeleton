@@ -92,7 +92,7 @@
         {
           "select": {
             "domain": "logical",
-            "element": "jump"
+            "element": "jump_from"
           },
           "set": {
             "fill": "#DB2777",
@@ -222,11 +222,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "a",
             "is_segment_line": false,
             "length": [
@@ -247,11 +243,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "b",
             "is_segment_line": false,
             "length": [
@@ -281,29 +273,20 @@
             "type": "LinearMap"
           }
         ],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [
-            {
-              "condition": "always",
-              "control_type": "da_capo",
-              "from_coordinate": [
-                8,
-                1
-              ],
-              "id": "da-capo",
-              "label": "D.C.",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                0,
-                1
-              ]
-            }
-          ],
-          "markers": []
-        },
+        "flow_control": [
+          {
+            "coordinate": [
+              8,
+              1
+            ],
+            "id": "da-capo",
+            "label": "D.C.",
+            "manifestation": "da_capo",
+            "meta": {},
+            "name": null,
+            "type": "jump_from"
+          }
+        ],
         "id": "score",
         "is_segment_line": false,
         "length": [

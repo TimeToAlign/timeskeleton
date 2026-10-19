@@ -33,11 +33,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "second-half",
             "is_segment_line": false,
             "length": [
@@ -57,11 +53,7 @@
           }
         ],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "piece",
         "is_segment_line": false,
         "length": [
@@ -78,11 +70,7 @@
       {
         "children": [],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "recording",
         "is_segment_line": false,
         "length": [
@@ -101,11 +89,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "a",
             "is_segment_line": false,
             "length": [
@@ -126,11 +110,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "b",
             "is_segment_line": false,
             "length": [
@@ -150,11 +130,7 @@
           }
         ],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "sketch",
         "is_segment_line": true,
         "length": [

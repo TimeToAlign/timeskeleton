@@ -26,10 +26,8 @@ def _element_ids(
     for member in ("conversion_maps", "regions"):
         for index, entry in enumerate(_entries(timeline, member)):
             yield entry["id"], (*path, member, index, "id")
-    flow = timeline.get("flow_control")
-    for member in ("breaks", "jumps", "markers"):
-        for index, entry in enumerate(_entries(flow, member)):
-            yield entry["id"], (*path, "flow_control", member, index, "id")
+    for index, entry in enumerate(_entries(timeline, "flow_control")):
+        yield entry["id"], (*path, "flow_control", index, "id")
     for index, child in enumerate(_entries(timeline, "children")):
         yield from _element_ids(child, (*path, "children", index))
 
@@ -45,15 +43,14 @@ def _timeline_ids(
 def _dangling_targets(
     timeline: Mapping[str, Any], path: _Path, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
-    flow = timeline.get("flow_control")
-    markers = {marker["id"] for marker in _entries(flow, "markers")}
-    for index, jump in enumerate(_entries(flow, "jumps")):
-        target = jump.get("target")
-        if target is not None and target not in markers:
+    flow = _entries(timeline, "flow_control")
+    targets = {entry["id"] for entry in flow if entry["type"] == "jump_to"}
+    for index, entry in enumerate(flow):
+        if "target" in entry and entry["target"] not in targets:
             yield SchemaValidationError(
                 "dangling_target",
-                (*path, "flow_control", "jumps", index, "target"),
-                f"{target!r} names no marker of this timeline",
+                (*path, "flow_control", index, "target"),
+                f"{entry['target']!r} names no jump_to of this timeline",
             )
     for conversion_map, at in timeline_maps(timeline, path):
         reference = conversion_map.get("measure_map")

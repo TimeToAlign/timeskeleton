@@ -26,7 +26,9 @@ import { numberTypeOf } from "./validate/diagnostics.js";
  * A timeline's `number_type` defaults to its unit's default number type,
  * which `numberTypeOf` gives. Every conversion map has the keys of
  * `conversion_map`; a `LinearMap` adds those of `linear_map` and a `TableMap`
- * those of `table_map`. Python's `timeskeleton.defaults` holds the same
+ * those of `table_map`. Every flow-control element has the keys of
+ * `flow_control_element`, and one whose manifestation is `repeat_end` adds
+ * those of `repeat_end`, as no other element carries a repeat count. Python's `timeskeleton.defaults` holds the same
  * table, and the schema declares each value as the key's `default`.
  */
 export const DEFAULTS = {
@@ -39,27 +41,11 @@ export const DEFAULTS = {
     children: [],
     conversion_maps: [],
     regions: [],
-    flow_control: { breaks: [], jumps: [], markers: [] },
+    flow_control: [],
   },
-  flow_control: { breaks: [], jumps: [], markers: [] },
   region: { name: null, meta: {} },
-  break: {
-    control_type: "section_break",
-    condition: "always",
-    repeat_count: 1,
-    label: null,
-    name: null,
-    meta: {},
-  },
-  jump: {
-    control_type: "repeat_end",
-    condition: "first_n",
-    repeat_count: 1,
-    target: null,
-    label: null,
-    meta: {},
-  },
-  marker: { name: null },
+  flow_control_element: { name: null, label: null, meta: {} },
+  repeat_end: { repeat_count: 1 },
   conversion_map: { name: null },
   linear_map: { scalar: 1, offset: 0 },
   table_map: { kind: "linear", extrapolate: "none" },
@@ -102,12 +88,9 @@ function visitTimeline(timeline: JsonObject, pass: Pass): void {
   for (const child of objects(timeline, "children")) visitTimeline(child, pass);
   for (const map of objects(timeline, "conversion_maps")) visitMap(map, pass);
   for (const region of objects(timeline, "regions")) pass(region, "region");
-  const flow = timeline.flow_control;
-  if (isJsonObject(flow)) {
-    pass(flow, "flow_control");
-    for (const entry of objects(flow, "breaks")) pass(entry, "break");
-    for (const entry of objects(flow, "jumps")) pass(entry, "jump");
-    for (const entry of objects(flow, "markers")) pass(entry, "marker");
+  for (const entry of objects(timeline, "flow_control")) {
+    pass(entry, "flow_control_element");
+    if (entry.manifestation === "repeat_end") pass(entry, "repeat_end");
   }
 }
 
@@ -229,9 +212,7 @@ export function complete(value: unknown): unknown {
  * Return a copy of a manifest in the minimal form: the complete form without
  * every key whose value is its default in type and value (`repeat_count:
  * 1.0`, read by `parseJson` as a `JsonFloat`, is not the default `1` and
- * stays). A default
- * container (an empty `flow_control`) goes as a whole; a container holding
- * more keeps only those. `minimal(complete(x))` equals `minimal(x)` and
+ * stays). `minimal(complete(x))` equals `minimal(x)` and
  * `complete(minimal(x))` equals `complete(x)`. Python's
  * `timeskeleton.minimal` gives the same value.
  */

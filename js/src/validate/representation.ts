@@ -79,18 +79,8 @@ function* timelineRepresentation(
       yield* representationProblem(key, region, [...path, "regions", index], own);
     }
   }
-  const flow = isJsonObject(timeline.flow_control) ? timeline.flow_control : {};
-  const members = [
-    ["breaks", ["coordinate"]],
-    ["jumps", ["from_coordinate", "to_coordinate"]],
-    ["markers", ["coordinate"]],
-  ] as const;
-  for (const [member, keys] of members) {
-    for (const [index, entry] of entries(flow, member).entries()) {
-      for (const key of keys) {
-        yield* representationProblem(key, entry, [...path, "flow_control", member, index], own);
-      }
-    }
+  for (const [index, entry] of entries(timeline, "flow_control").entries()) {
+    yield* representationProblem("coordinate", entry, [...path, "flow_control", index], own);
   }
   for (const [index, child] of entries(timeline, "children").entries()) {
     yield* timelineRepresentation(child, [...path, "children", index], own);

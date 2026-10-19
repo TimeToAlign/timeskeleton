@@ -21,11 +21,7 @@
       {
         "children": [],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "bare",
         "is_segment_line": false,
         "length": [

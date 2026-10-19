@@ -29,27 +29,11 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "children": [],
         "conversion_maps": [],
         "regions": [],
-        "flow_control": {"breaks": [], "jumps": [], "markers": []},
+        "flow_control": [],
     },
-    "flow_control": {"breaks": [], "jumps": [], "markers": []},
     "region": {"name": None, "meta": {}},
-    "break": {
-        "control_type": "section_break",
-        "condition": "always",
-        "repeat_count": 1,
-        "label": None,
-        "name": None,
-        "meta": {},
-    },
-    "jump": {
-        "control_type": "repeat_end",
-        "condition": "first_n",
-        "repeat_count": 1,
-        "target": None,
-        "label": None,
-        "meta": {},
-    },
-    "marker": {"name": None},
+    "flow_control_element": {"name": None, "label": None, "meta": {}},
+    "repeat_end": {"repeat_count": 1},
     "conversion_map": {"name": None},
     "linear_map": {"scalar": 1, "offset": 0},
     "table_map": {"kind": "linear", "extrapolate": "none"},
@@ -61,7 +45,10 @@ DEFAULTS: dict[str, dict[str, Any]] = {
 
 A timeline's ``number_type`` defaults to its unit's default number type.
 Every conversion map has the keys of ``conversion_map``; a ``LinearMap`` adds
-those of ``linear_map`` and a ``TableMap`` those of ``table_map``. The
+those of ``linear_map`` and a ``TableMap`` those of ``table_map``. Every
+flow-control element has the keys of ``flow_control_element``, and one whose
+manifestation is ``repeat_end`` adds those of ``repeat_end``, as no other
+element carries a repeat count. The
 JavaScript package's ``DEFAULTS`` holds the same table, and the schema
 declares each value as the key's ``default``.
 """
@@ -109,16 +96,10 @@ def _visit_timeline(timeline: dict[str, Any], apply: _Pass) -> None:
         _visit_map(conversion_map, apply)
     for region in _objects(timeline, "regions"):
         apply(region, "region")
-    flow = timeline.get("flow_control")
-    if isinstance(flow, dict):
-        apply(flow, "flow_control")
-        for kind, member in (
-            ("break", "breaks"),
-            ("jump", "jumps"),
-            ("marker", "markers"),
-        ):
-            for entry in _objects(flow, member):
-                apply(entry, kind)
+    for entry in _objects(timeline, "flow_control"):
+        apply(entry, "flow_control_element")
+        if entry.get("manifestation") == "repeat_end":
+            apply(entry, "repeat_end")
 
 
 def _visit_manifest(manifest: Any, apply: _Pass) -> None:
@@ -207,9 +188,7 @@ def minimal(value: Any) -> Any:
     """Return a copy of a manifest in the minimal form.
 
     The complete form without every key whose value is its default in type
-    and value (``repeat_count: 1.0`` is not the default ``1`` and stays). A
-    default container (an empty ``flow_control``) goes
-    as a whole; a container holding more keeps only those.
+    and value (``repeat_count: 1.0`` is not the default ``1`` and stays).
     ``minimal(complete(x))`` equals ``minimal(x)`` and
     ``complete(minimal(x))`` equals ``complete(x)``. The JavaScript package's
     ``minimal`` gives the same value.

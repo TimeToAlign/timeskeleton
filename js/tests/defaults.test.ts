@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { complete, minimal } from "../src/defaults.js";
 import { canonicalManifest, completeManifest, minimalManifest } from "../src/forms.js";
 import type {
-  CompleteBreak,
+  CompleteFlowControlElement,
   CompleteTimeline,
   CompleteTimeSkeleton,
   Fraction,
@@ -19,7 +19,8 @@ const SMALLEST = {
   timeskeleton: "0.7.0",
   timelines: [{ id: "piece", unit: "quarters", length: [32, 1] }],
 };
-const EMPTY_FLOW = { breaks: [], jumps: [], markers: [] };
+const REGION = { id: "r", start: [0, 1], end: [1, 1] };
+const REPEAT = { id: "b", type: "jump_from", manifestation: "repeat_end" };
 const root = (value: unknown) => ((value as JsonObject).timelines as JsonObject[])[0] as JsonObject;
 
 describe("the complete and the minimal form", () => {
@@ -43,7 +44,7 @@ describe("the complete and the minimal form", () => {
           children: [],
           conversion_maps: [],
           regions: [],
-          flow_control: EMPTY_FLOW,
+          flow_control: [],
         },
       ],
     });
@@ -76,11 +77,12 @@ describe("the complete and the minimal form", () => {
         [
           timeline("score", "quarters", [8, 1], {
             regions: [{ id: "r", start: [0, 1], end: [1, 1] }],
-            flow_control: {
-              breaks: [{ id: "b", coordinate: [1, 1] }],
-              jumps: [{ id: "j", from_coordinate: [1, 1], to_coordinate: [0, 1] }],
-              markers: [{ id: "m", coordinate: [0, 1] }],
-            },
+            flow_control: [
+              { id: "b", type: "flow_marker", manifestation: "fine", coordinate: [1, 1] },
+              { id: "j", type: "jump_from", manifestation: "da_capo", coordinate: [1, 1] },
+              { id: "again", type: "jump_from", manifestation: "repeat_end", coordinate: [1, 1] },
+              { id: "m", type: "jump_to", manifestation: "segno", coordinate: [0, 1] },
+            ],
             conversion_maps: [
               {
                 type: "ChainMap",
@@ -125,29 +127,20 @@ describe("the complete and the minimal form", () => {
       name: null,
       meta: {},
     });
-    const flow = done.flow_control as Record<string, JsonObject[]>;
-    expect(flow.breaks?.[0]).toEqual({
-      id: "b",
-      coordinate: [1, 1],
-      control_type: "section_break",
-      condition: "always",
-      repeat_count: 1,
-      label: null,
-      name: null,
-      meta: {},
-    });
-    expect(flow.jumps?.[0]).toEqual({
-      id: "j",
-      from_coordinate: [1, 1],
-      to_coordinate: [0, 1],
-      control_type: "repeat_end",
-      condition: "first_n",
-      repeat_count: 1,
-      target: null,
-      label: null,
-      meta: {},
-    });
-    expect(flow.markers?.[0]).toEqual({ id: "m", coordinate: [0, 1], name: null });
+    const defaults = { name: null, label: null, meta: {} };
+    expect(done.flow_control).toEqual([
+      { id: "b", type: "flow_marker", manifestation: "fine", coordinate: [1, 1], ...defaults },
+      { id: "j", type: "jump_from", manifestation: "da_capo", coordinate: [1, 1], ...defaults },
+      {
+        id: "again",
+        type: "jump_from",
+        manifestation: "repeat_end",
+        coordinate: [1, 1],
+        ...defaults,
+        repeat_count: 1,
+      },
+      { id: "m", type: "jump_to", manifestation: "segno", coordinate: [0, 1], ...defaults },
+    ]);
     const [chain, combo, pieces] = done.conversion_maps as [JsonObject, JsonObject, JsonObject];
     expect(chain).toEqual({
       type: "ChainMap",
@@ -206,7 +199,7 @@ describe("the complete and the minimal form", () => {
       timeline("score", "quarters", 8.5, {
         locked: true,
         number_type: "float",
-        flow_control: { breaks: [{ id: "b", coordinate: 1.5, repeat_count: 2 }], jumps: [] },
+        flow_control: [{ ...REPEAT, coordinate: 1.5, repeat_count: 2, label: null }],
       }),
     ]);
     expect(minimal(value)).toEqual(
@@ -214,7 +207,7 @@ describe("the complete and the minimal form", () => {
         timeline("score", "quarters", 8.5, {
           locked: true,
           number_type: "float",
-          flow_control: { breaks: [{ id: "b", coordinate: 1.5, repeat_count: 2 }] },
+          flow_control: [{ ...REPEAT, coordinate: 1.5, repeat_count: 2 }],
         }),
       ]),
     );
@@ -223,7 +216,7 @@ describe("the complete and the minimal form", () => {
   it("takes a value of another type for no default", () => {
     const value = manifest([
       timeline("score", "quarters", [8, 1], {
-        flow_control: { breaks: [{ id: "b", coordinate: [1, 1], repeat_count: new JsonFloat(1) }] },
+        flow_control: [{ ...REPEAT, coordinate: [1, 1], repeat_count: new JsonFloat(1) }],
         conversion_maps: [
           {
             type: "LinearMap",
@@ -245,21 +238,25 @@ describe("the complete and the minimal form", () => {
       [
         timeline("score", "quarters", [8, 1], {
           lenght: 1,
-          flow_control: { codas: [], breaks: [] },
+          flow_control: [],
+          regions: [{ ...REGION, codas: [] }],
         }),
       ],
       { extra: { meta: {} } },
     );
     expect(minimal(value)).toEqual(
       manifest(
-        [timeline("score", "quarters", [8, 1], { lenght: 1, flow_control: { codas: [] } })],
-        {
-          extra: { meta: {} },
-        },
+        [
+          timeline("score", "quarters", [8, 1], {
+            lenght: 1,
+            regions: [{ ...REGION, codas: [] }],
+          }),
+        ],
+        { extra: { meta: {} } },
       ),
     );
     expect(complete(value).extra).toEqual({ meta: {} });
-    expect((root(complete(value)).flow_control as JsonObject).codas).toEqual([]);
+    expect((root(complete(value)).regions as JsonObject[])[0]?.codas).toEqual([]);
   });
 
   it("keeps the length in both forms", () => {
@@ -284,10 +281,7 @@ describe("the complete and the minimal form", () => {
     [
       "unknown keys",
       manifest([
-        timeline("score", "quarters", [8, 1], {
-          lenght: 1,
-          flow_control: { codas: [], breaks: [] },
-        }),
+        timeline("score", "quarters", [8, 1], { lenght: 1, regions: [{ ...REGION, codas: [] }] }),
       ]),
     ],
     [
@@ -306,16 +300,7 @@ describe("the complete and the minimal form", () => {
       "a float repeat count",
       manifest([
         timeline("score", "quarters", [8, 1], {
-          flow_control: {
-            jumps: [
-              {
-                id: "j",
-                from_coordinate: [4, 1],
-                to_coordinate: [0, 1],
-                repeat_count: new JsonFloat(1),
-              },
-            ],
-          },
+          flow_control: [{ ...REPEAT, coordinate: [4, 1], repeat_count: new JsonFloat(1) }],
         }),
       ]),
     ],
@@ -344,7 +329,7 @@ describe("the typed forms", () => {
     children: [],
     conversion_maps: [],
     regions: [],
-    flow_control: { breaks: [], jumps: [], markers: [] },
+    flow_control: [],
   };
   const COMPLETE: CompleteTimeSkeleton = {
     timeskeleton: "0.7.0",
@@ -363,16 +348,17 @@ describe("the typed forms", () => {
     const { groups: _groups, ...ungrouped } = COMPLETE;
     // @ts-expect-error a complete manifest states its groups
     const groupless: CompleteTimeSkeleton = ungrouped;
-    // @ts-expect-error a complete break states its repeat count
-    const uncounted: CompleteBreak = {
+    // @ts-expect-error a complete flow-control element states its label
+    const uncounted: CompleteFlowControlElement = {
       id: "b",
+      type: "flow_marker",
+      manifestation: "fine",
       coordinate: 1,
-      control_type: "section_break",
-      condition: "always",
-      label: null,
       name: null,
       meta: {},
     };
+    // A repeat count is no key of every element, so the complete form keeps it optional.
+    const marker: CompleteFlowControlElement = { ...uncounted, label: null };
     // A key whose default is absent stays optional: the manifest's id and
     // graphical block, a root's offset.
     const named: CompleteTimeSkeleton = {
@@ -392,13 +378,14 @@ describe("the typed forms", () => {
       unstated,
       groupless,
       uncounted,
+      marker,
       named,
       placed,
       exact,
       pair,
       triple,
       lossless,
-    ]).toHaveLength(9);
+    ]).toHaveLength(10);
   });
 
   it("complete, strip and order the literal complete form", () => {

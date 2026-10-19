@@ -9,11 +9,7 @@
       {
         "children": [],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "take",
         "is_segment_line": false,
         "length": 9007199254740993,

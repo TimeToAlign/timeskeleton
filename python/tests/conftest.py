@@ -97,7 +97,14 @@ def _respellable(canonical: bool) -> dict:
             regions=[
                 {"id": "r", "start": [0, number(1.0, 1)], "end": [number(1.0, 1), 2]}
             ],
-            flow_control={"markers": [{"id": "m", "coordinate": [number(2.0, 2), 1]}]},
+            flow_control=[
+                {
+                    "id": "m",
+                    "type": "jump_to",
+                    "manifestation": "segno",
+                    "coordinate": [number(2.0, 2), 1],
+                }
+            ],
         ),
         timeline(
             "take",
@@ -125,7 +132,7 @@ def respellable() -> dict:
     """A manifest in canonical order whose values are spelled unlike their number types.
 
     A Fraction member is written as an integral float in a length, a child
-    offset, a region, a marker, a nested TableMap's x value, a LinearMap's
+    offset, a region, a jump target, a nested TableMap's x value, a LinearMap's
     offset and two values of a measure-map row; a ticks length and offset as
     integral floats; a seconds length and region start as integers. The bare
     LinearMap scalar ``1.0``, the TableMap's y values and the row's bare

@@ -246,11 +246,7 @@
             "value": "section-a"
           }
         ],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "maps:quarters",
         "is_segment_line": false,
         "length": [

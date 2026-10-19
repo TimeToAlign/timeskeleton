@@ -75,17 +75,10 @@ def _timeline_representation(
             yield from _representation_problem(
                 key, region, (*path, "regions", index), own
             )
-    flow = timeline.get("flow_control") or {}
-    for member, keys in (
-        ("breaks", ("coordinate",)),
-        ("jumps", ("from_coordinate", "to_coordinate")),
-        ("markers", ("coordinate",)),
-    ):
-        for index, entry in enumerate(_entries(flow, member)):
-            for key in keys:
-                yield from _representation_problem(
-                    key, entry, (*path, "flow_control", member, index), own
-                )
+    for index, entry in enumerate(_entries(timeline, "flow_control")):
+        yield from _representation_problem(
+            "coordinate", entry, (*path, "flow_control", index), own
+        )
     for index, child in enumerate(_entries(timeline, "children")):
         yield from _timeline_representation(child, (*path, "children", index), own)
 

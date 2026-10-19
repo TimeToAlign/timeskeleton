@@ -32,7 +32,6 @@ REJECTIONS = [
     "band_id_region",
     "band_order_missing_band",
     "band_order_unknown_entry",
-    "break_control_type_unknown",
     "child_end_beyond_parent",
     "child_id_control_character_newline",
     "child_missing_offset",
@@ -40,7 +39,12 @@ REJECTIONS = [
     "child_offset_fraction_on_float_axis",
     "child_unit_differs",
     "conversion_map_unknown_type",
+    "dal_segno_without_target",
     "float_axis_int_not_exact",
+    "flow_control_coordinate_dict",
+    "flow_control_object",
+    "flow_control_type_break",
+    "flow_marker_manifestation_segno",
     "group_id_duplicate",
     "group_id_is_descendant_id",
     "group_id_is_timeline_id",
@@ -55,8 +59,8 @@ REJECTIONS = [
     "id_empty",
     "id_with_slash",
     "infinite_length",
-    "jump_condition_unknown",
-    "jump_target_dangling",
+    "jump_target_flow_marker",
+    "jump_to_target",
     "later_root_missing_unit",
     "length_coordinate_dict",
     "length_float_on_int_axis",
@@ -70,8 +74,6 @@ REJECTIONS = [
     "manifest_id_is_descendant_id",
     "manifest_id_is_group_id",
     "manifest_id_is_measure_map_id",
-    "marker_coordinate_dict",
-    "markers_object",
     "measure_map_id_is_timeline_id",
     "measure_map_row_actual_length_negative",
     "measure_map_row_offset_within_measure_zero",
@@ -97,6 +99,7 @@ REJECTIONS = [
     "piecewise_map_breaks_not_increasing",
     "piecewise_map_maps_count",
     "region_start_float_on_fraction_axis",
+    "repeat_count_zero",
     "root_missing_marker",
     "root_missing_timelines",
     "segment_line_flag_not_boolean",
@@ -127,6 +130,7 @@ REJECTIONS = [
     "timelines_child_id_duplicate_across_roots",
     "timelines_id_duplicate_across_roots",
     "timelines_root_jump_target_dangling",
+    "to_coda_with_repeat_count",
     "version_unknown",
 ]
 
@@ -253,28 +257,42 @@ def test_a_child_offset_lies_on_its_parents_axis(child_unit: str) -> None:
     [
         ("regions", {"id": "intro", "start": 1, "end": [2, 1]}, "start"),
         ("regions", {"id": "intro", "start": [1, 1], "end": 2}, "end"),
-        ("breaks", {"id": "fine", "coordinate": 4}, "coordinate"),
-        ("markers", {"id": "segno", "coordinate": 4}, "coordinate"),
         (
-            "jumps",
-            {"id": "back", "from_coordinate": 4, "to_coordinate": [0, 1]},
-            "from_coordinate",
+            "flow_control",
+            {
+                "id": "fine",
+                "type": "flow_marker",
+                "manifestation": "fine",
+                "coordinate": 4,
+            },
+            "coordinate",
         ),
         (
-            "jumps",
-            {"id": "back", "from_coordinate": [4, 1], "to_coordinate": 0},
-            "to_coordinate",
+            "flow_control",
+            {
+                "id": "segno",
+                "type": "jump_to",
+                "manifestation": "segno",
+                "coordinate": 4,
+            },
+            "coordinate",
+        ),
+        (
+            "flow_control",
+            {
+                "id": "back",
+                "type": "jump_from",
+                "manifestation": "da_capo",
+                "coordinate": 4,
+            },
+            "coordinate",
         ),
     ],
 )
 def test_every_own_axis_value_is_checked(member: str, entry: dict, key: str) -> None:
     root = timeline("score")
-    if member == "regions":
-        root["regions"] = [entry]
-        path: tuple[str | int, ...] = ("timelines", 0, "regions", 0, key)
-    else:
-        root["flow_control"] = {member: [entry]}
-        path = ("timelines", 0, "flow_control", member, 0, key)
+    root[member] = [entry]
+    path = ("timelines", 0, member, 0, key)
     value = entry[key]
     assert _problem(manifest(root)) == (
         path,
@@ -627,6 +645,28 @@ def test_the_schema_refuses_a_repeated_order_entry() -> None:
     order = ["score", "score/markers_1", "score"]
     value = manifest(timeline("score"), graphical={"order": {"score": order}})
     assert _problem(value)[0] == ("graphical", "order", "score")
+
+
+def test_a_da_capo_and_a_repeat_end_need_no_target() -> None:
+    def origin(identifier: str, manifestation: str) -> dict:
+        return {
+            "id": identifier,
+            "type": "jump_from",
+            "manifestation": manifestation,
+            "coordinate": [8, 1],
+        }
+
+    flow = [
+        origin("dc", "da_capo"),
+        origin("dcf", "da_capo_al_fine"),
+        origin("dcc", "da_capo_al_coda"),
+        {**origin("again", "repeat_end"), "repeat_count": 2},
+    ]
+    value = manifest(timeline("score", flow_control=flow))
+    validate(value)
+    assert unknown_keys(value) == []
+    missing = manifest(timeline("score", flow_control=[origin("ds", "dal_segno")]))
+    assert _problem(missing)[0] == ("timelines", 0, "flow_control", 0)
 
 
 def test_band_is_an_element_type_and_no_class() -> None:

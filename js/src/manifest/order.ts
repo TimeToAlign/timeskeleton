@@ -3,9 +3,8 @@
  *
  * Every array of a manifest whose order carries no meaning has one canonical
  * order: `timelines` by id; in every timeline, `children` by offset, then id,
- * `conversion_maps` by id, `regions` by start, then end, then id, flow-control
- * `breaks` and `markers` by coordinate, then id, `jumps` by from coordinate,
- * then to coordinate, then id; `groups` by id and every group's `members` by
+ * `conversion_maps` by id, `regions` by start, then end, then id,
+ * `flow_control` by coordinate, then id; `groups` by id and every group's `members` by
  * code point; `measure_maps` by id. Own-axis values compare by exact numeric
  * value, strings by Unicode code point. A `graphical.order` array is a
  * display order and is never re-ordered. Readers accept any order; `dumps` writes the canonical
@@ -54,12 +53,9 @@ function orderTimeline(timeline: JsonObject): void {
   }
   if (Array.isArray(timeline.conversion_maps)) timeline.conversion_maps.sort(byId);
   if (Array.isArray(timeline.regions)) timeline.regions.sort(by(at("start"), at("end"), byId));
-  const flow = timeline.flow_control;
-  if (!isJsonObject(flow)) return;
-  if (Array.isArray(flow.breaks)) flow.breaks.sort(by(at("coordinate"), byId));
-  if (Array.isArray(flow.jumps))
-    flow.jumps.sort(by(at("from_coordinate"), at("to_coordinate"), byId));
-  if (Array.isArray(flow.markers)) flow.markers.sort(by(at("coordinate"), byId));
+  if (Array.isArray(timeline.flow_control)) {
+    timeline.flow_control.sort(by(at("coordinate"), byId));
+  }
 }
 
 /**

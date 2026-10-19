@@ -21,10 +21,8 @@ function* elementIds(
       yield [text(entry, "id"), [...path, member, index, "id"]];
     }
   }
-  for (const member of ["breaks", "jumps", "markers"]) {
-    for (const [index, entry] of entries(timeline.flow_control, member).entries()) {
-      yield [text(entry, "id"), [...path, "flow_control", member, index, "id"]];
-    }
+  for (const [index, entry] of entries(timeline, "flow_control").entries()) {
+    yield [text(entry, "id"), [...path, "flow_control", index, "id"]];
   }
   for (const [index, child] of entries(timeline, "children").entries()) {
     yield* elementIds(child, [...path, "children", index]);
@@ -46,15 +44,16 @@ function* danglingTargets(
   path: readonly PathSegment[],
   measureMaps: ReadonlySet<string>,
 ): Generator<SchemaValidationError> {
-  const flow = timeline.flow_control;
-  const markers = new Set(entries(flow, "markers").map((marker) => marker.id));
-  for (const [index, jump] of entries(flow, "jumps").entries()) {
-    const target = jump.target ?? null;
-    if (target !== null && !markers.has(target)) {
+  const flow = entries(timeline, "flow_control");
+  const targets = new Set(
+    flow.filter((entry) => entry.type === "jump_to").map((entry) => entry.id),
+  );
+  for (const [index, entry] of flow.entries()) {
+    if (Object.hasOwn(entry, "target") && !targets.has(entry.target)) {
       yield new SchemaValidationError(
         "dangling_target",
-        [...path, "flow_control", "jumps", index, "target"],
-        `${JSON.stringify(target)} names no marker of this timeline`,
+        [...path, "flow_control", index, "target"],
+        `${JSON.stringify(entry.target)} names no jump_to of this timeline`,
       );
     }
   }

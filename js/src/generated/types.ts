@@ -290,35 +290,6 @@ export type TableMap = MapBase & {
   extrapolate?: "none" | "constant" | "linear";
 };
 /**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "FlowControlElement".
- */
-export type FlowControlElement =
-  | "repeat_start"
-  | "repeat_end"
-  | "da_capo"
-  | "dal_segno"
-  | "dal_segno_al_coda"
-  | "dal_segno_al_fine"
-  | "da_capo_al_coda"
-  | "da_capo_al_fine"
-  | "to_coda"
-  | "segno"
-  | "coda"
-  | "fine"
-  | "section_break"
-  | "double_barline"
-  | "final_barline"
-  | "first_measure"
-  | "last_measure"
-  | "jump_from"
-  | "jump_to";
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "ActivationCondition".
- */
-export type ActivationCondition = "always" | "first_n" | "after_first" | "after_dc_ds";
-/**
  * The rows of a measure map: compressed rows of the Measure Map standard, in measure order. A row equal to its predecessor's default successor is omitted as a whole.
  *
  * @minItems 1
@@ -352,7 +323,7 @@ export type FractionPositive = [number, number];
  */
 export type Paint = string;
 /**
- * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow-control break or jump, a wedge (a coordinate marker at a root's start or end; the flow markers of `flow_control` are not drawn), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
+ * The type of an element of the drawing: the box's background, a root timeline's line (a group member's or an ungrouped root's), a child timeline's line at any depth, one of the five bands of a timeline (which draws nothing of its own and holds the timeline's coordinate markers, conversion maps, children, regions or flow control), a conversion map, a region, a flow marker (a vertical line at its coordinate), a jump origin (an arc from its coordinate to its target's coordinate, or to 0 where it has no target; a jump target draws nothing of its own), a wedge (a coordinate marker at a root's start or end, never an element of `flow_control`), a name in the name column (or the title of a group or of the manifest), any other text label, a segment's boundary tick on its segment line, an ancestor line of a member that is a child timeline, a group's frame, or the raised card holding a timeline drawn in its own card.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "ElementType".
@@ -364,8 +335,8 @@ export type ElementType =
   | "band"
   | "map"
   | "region"
-  | "break"
-  | "jump"
+  | "flow_marker"
+  | "jump_from"
   | "wedge"
   | "name"
   | "label"
@@ -447,7 +418,7 @@ export type CompleteTimeline = {
   })[];
   conversion_maps: CompleteConversionMap[];
   regions: CompleteRegion[];
-  flow_control: CompleteFlowControl;
+  flow_control: CompleteFlowControlElement[];
 };
 /**
  * `ConversionMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -620,59 +591,36 @@ export type CompleteRegion = {
   meta: Meta;
 };
 /**
- * `FlowControl` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ * `FlowControlElement` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteFlowControl".
+ * via the `definition` "CompleteFlowControlElement".
  */
-export type CompleteFlowControl = {
-  breaks: CompleteBreak[];
-  jumps: CompleteJump[];
-  markers: CompleteMarker[];
-};
-/**
- * `Break` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteBreak".
- */
-export type CompleteBreak = {
+export type CompleteFlowControlElement = {
   id: Id;
+  type: "jump_from" | "jump_to" | "flow_marker";
+  manifestation:
+    | "repeat_end"
+    | "da_capo"
+    | "da_capo_al_fine"
+    | "da_capo_al_coda"
+    | "dal_segno"
+    | "dal_segno_al_fine"
+    | "dal_segno_al_coda"
+    | "to_coda"
+    | "repeat_start"
+    | "segno"
+    | "coda"
+    | "fine"
+    | "section_break"
+    | "double_barline"
+    | "final_barline";
   coordinate: Lossless<Number>;
-  control_type: FlowControlElement;
-  condition: ActivationCondition;
-  repeat_count: JsonNumber;
-  label: string | null;
+  target?: Id;
+  repeat_count?: JsonNumber;
   name: Name;
-  meta: Meta;
-};
-/**
- * `Jump` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteJump".
- */
-export type CompleteJump = {
-  id: Id;
-  from_coordinate: Lossless<Number>;
-  to_coordinate: Lossless<Number>;
-  control_type: FlowControlElement;
-  condition: ActivationCondition;
-  repeat_count: JsonNumber;
-  target: Id | null;
   label: string | null;
   meta: Meta;
-};
-/**
- * `Marker` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteMarker".
- */
-export type CompleteMarker = {
-  id: Id;
-  name: Name;
-  coordinate: Lossless<Number>;
 };
 /**
  * `Group` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -715,7 +663,7 @@ export type CompleteGraphical = {
 };
 
 /**
- * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.
+ * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region or flow-control element) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.
  */
 export interface TimeSkeleton {
   /**
@@ -762,7 +710,7 @@ export interface Meta {
   [k: string]: unknown;
 }
 /**
- * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.
+ * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, flow-control coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; flow-control elements by coordinate, then ID. Readers accept any order.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Timeline".
@@ -812,7 +760,10 @@ export interface Timeline {
    * Regions of this timeline.
    */
   regions?: Region[];
-  flow_control?: FlowControl;
+  /**
+   * The flow control of this timeline: its jump origins, jump targets and flow markers.
+   */
+  flow_control?: FlowControlElement[];
 }
 /**
  * What every conversion map carries: its type, its ID, its name, and the units of the axes it converts from and to, either null where that side is not a time axis. Each map type adds its own members.
@@ -856,71 +807,57 @@ export interface Region {
   meta?: Meta;
 }
 /**
- * The flow control of a timeline: its breaks, jumps and flow markers. A flow marker is a named position that jumps target; the markers band does not draw it. It differs from a coordinate marker, a wedge the markers band draws at a root's start and end.
+ * One element of a timeline's flow control, at a coordinate on the timeline's own axis. A jump_from is where playback leaves for another position: its target, a jump_to of the same timeline, or, for a da_capo manifestation or a repeat_end without a target, the timeline's start. A jump_to is a position a jump_from names as its target. A flow_marker marks a position without a jump of its own: a fine, where playback ends after a jump al fine, or a section_break, a double_barline or a final_barline, which divide the timeline. When a jump acts follows from its manifestation: a repeat_end on its first repeat_count passes, a to_coda only after a da_capo_al_coda or a dal_segno_al_coda, every other jump_from always. A flow marker is not a coordinate marker: the markers band holds the coordinate markers, the wedges at a root's start and end, and never a flow-control element.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "FlowControl".
+ * via the `definition` "FlowControlElement".
  */
-export interface FlowControl {
-  breaks?: Break[];
-  jumps?: Jump[];
-  markers?: Marker[];
-}
-/**
- * A flow-control break at a coordinate on the timeline's own axis.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "Break".
- */
-export interface Break {
+export interface FlowControlElement {
   /**
-   * The break ID.
+   * The element ID.
    */
   id: Id;
+  /**
+   * The element type: a jump origin, a jump target or a flow marker. It decides the manifestations the element may take and whether it may carry a target and a repeat count.
+   */
+  type: "jump_from" | "jump_to" | "flow_marker";
+  /**
+   * How the element is notated. A jump_from is a repeat_end, a da_capo, da_capo_al_fine or da_capo_al_coda, a dal_segno, dal_segno_al_fine or dal_segno_al_coda, or a to_coda; a jump_to is a repeat_start, a segno or a coda; a flow_marker is a fine, a section_break, a double_barline or a final_barline.
+   */
+  manifestation:
+    | "repeat_end"
+    | "da_capo"
+    | "da_capo_al_fine"
+    | "da_capo_al_coda"
+    | "dal_segno"
+    | "dal_segno_al_fine"
+    | "dal_segno_al_coda"
+    | "to_coda"
+    | "repeat_start"
+    | "segno"
+    | "coda"
+    | "fine"
+    | "section_break"
+    | "double_barline"
+    | "final_barline";
+  /**
+   * Where the element lies on the timeline's own axis.
+   */
   coordinate: Number;
-  control_type?: FlowControlElement;
-  condition?: ActivationCondition;
+  /**
+   * The ID of the jump_to of the same timeline a jump_from leads to; checked after the schema. Required on a dal_segno manifestation and a to_coda; optional on a da_capo manifestation and a repeat_end, where its absence means the timeline's start; carried by no other element.
+   */
+  target?: Id;
+  /**
+   * How many passes a repeat_end sends back to its target; carried by a repeat_end only.
+   */
   repeat_count?: number;
-  label?: string | null;
   name?: Name;
-  meta?: Meta;
-}
-/**
- * A flow-control jump from one coordinate to another on the timeline's own axis.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "Jump".
- */
-export interface Jump {
   /**
-   * The jump ID.
+   * The text the element is drawn with, or null.
    */
-  id: Id;
-  from_coordinate: Number;
-  to_coordinate: Number;
-  control_type?: FlowControlElement;
-  condition?: ActivationCondition;
-  repeat_count?: number;
-  /**
-   * The ID of the marker of the same timeline this jump targets, or null.
-   */
-  target?: Id | null;
   label?: string | null;
   meta?: Meta;
-}
-/**
- * A flow marker: a named position on the timeline's own axis, the target of jumps. Flow control holds it and nothing draws it; the markers band holds the coordinate markers instead, the wedges at a root's start and end.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "Marker".
- */
-export interface Marker {
-  /**
-   * The marker ID.
-   */
-  id: Id;
-  name?: Name;
-  coordinate: Number;
 }
 /**
  * A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.

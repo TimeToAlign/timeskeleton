@@ -63,7 +63,7 @@ rejection cases that use them (`test_schema.py`):
 - **Shared definitions.** A shape that repeats is defined once: `Name`
   (string or null, default null) and `Meta` (a free object, default `{}`)
   are referred to by every `name` of the manifest, a timeline, a group, a
-  region, a break, a marker, a measure map and a conversion map and by every
+  region, a flow-control element, a measure map and a conversion map and by every
   `meta`, and no property repeats their shapes inline. `MapBase` declares
   `type`, `id`, `name`, `source_unit` and `target_unit` and requires all but
   `name`; every conversion map is an object whose `allOf` is exactly
@@ -72,7 +72,7 @@ rejection cases that use them (`test_schema.py`):
   units, each a constant, and whose `required` lists `type`, as a
   discriminated union needs, and none of the base's other keys.
 - **References are IDs, addresses are `Address`.** `Selector.within`,
-  `Jump.target` and the `measure_map` of each of the four measure views
+  `FlowControlElement.target` and the `measure_map` of each of the four measure views
   refer to `Id`; the items of
   `Selector.ids` to `Address`, which accepts `score`, `score/regions_1`,
   `score/region_1/label` and `a b/c` and refuses `""`, `/score`, `score/`,
@@ -84,7 +84,7 @@ rejection cases that use them (`test_schema.py`):
   or in those of the base its `allOf` names, every key its `oneOf`/`anyOf`
   branches and `if`/`then`/`else` arms declare, which is what lets
   `unknown_keys` name the unknown keys from the node alone. `meta` (on the
-  manifest, a timeline, a region, a break, a jump, a group, a measure map)
+  manifest, a timeline, a region, a flow-control element, a group, a measure map)
   refers to `Meta`; `Meta` is the one free object: `additionalProperties:
   true` and no `properties`.
 - **Discriminated unions.** Exactly two nodes carry a `discriminator`, on
@@ -92,12 +92,15 @@ rejection cases that use them (`test_schema.py`):
   required string constant.
 - **Defaults agree with the table.** For every kind of `DEFAULTS` the
   schema's corresponding definitions (`TimeSkeleton`, `Timeline`,
-  `FlowControl`, `Region`, `Break`, `Jump`, `Marker`, `MeasureMap`, `Group`,
-  `Graphical`, every conversion map) declare `default` on exactly the keys
+  `Region`, `FlowControlElement`, `MeasureMap`, `Group`, `Graphical`, every
+  conversion map) declare `default` on exactly the keys
   of that kind's table, each equal to the table's value, and on no other
   key; a conversion map's kind is `conversion_map`, joined by `linear_map`
   for a `LinearMap` (`scalar` 1, `offset` 0) and by `table_map` for a
-  `TableMap` (`kind` `linear`, `extrapolate` `none`). A key's default is
+  `TableMap` (`kind` `linear`, `extrapolate` `none`); a flow-control
+  element's kind is `flow_control_element`, joined by `repeat_end`
+  (`repeat_count` 1), which `complete` applies to a `repeat_end` only, since
+  no other element may carry a repeat count. A key's default is
   stated on its property or on the definition the property refers to
   (`Name`, `Meta`), and a conversion map's keys include those of its base. `number_type`
   has no `default` (it depends on the unit). The JavaScript suite holds its
@@ -131,7 +134,7 @@ is 2.0. So a JSON round trip that respells numbers (`JSON.parse` and
 proves it (`test_validate.py`): one inline manifest (`respellable()` in
 `conftest.py`) validates, leaves `unknown_keys` empty and is unchanged by
 `validate`. In quarters it holds the length `[32, 1.0]`, a child offset
-`[8.0, 1]`, a region from `[0, 1.0]` to `[1.0, 2]`, a marker at `[2.0, 1]`, a
+`[8.0, 1]`, a region from `[0, 1.0]` to `[1.0, 2]`, a jump target at `[2.0, 1]`, a
 TableMap x value `[1.0, 2]` nested in a ChainMap, a LinearMap offset
 `[0, 1.0]` and, in the manifest's measure map, a row with `qstamp`
 `[0, 1.0]` and `actual_length` `[4.0, 1]`; in ticks a length `480.0` with a child offset
@@ -178,8 +181,7 @@ two traversal tables, naming every missing or extra entry on failure, so a
 schema addition cannot escape the canonical spelling.
 
 An own-axis value (a timeline's `length` and `offset`, a region's `start` and
-`end`, a break's and a marker's `coordinate`, a jump's `from_coordinate` and
-`to_coordinate`) is a bare Number whose representation the axis's number type
+`end`, a flow-control element's `coordinate`) is a bare Number whose representation the axis's number type
 selects: an int axis an integral JSON number, a float axis any JSON number
 that a float equals exactly (an integer beyond 2^53 may have none), a
 fraction axis a pair. The axis is the timeline's `number_type`, else its
@@ -210,14 +212,14 @@ proves it, one inline document per line, message stated literally:
   seconds with offset `[1, 2]` is reported the same way (the parent's axis),
   while its own length `[4, 1]` is fine; a root's own `offset 3` in quarters
   is `write [3, 1]`;
-- `start`, `end`, `coordinate` (a break and a marker), `from_coordinate` and
-  `to_coordinate` each reported at its own path with its holder's id.
+- `start`, `end` and the `coordinate` of a flow marker, a jump origin and a
+  jump target each reported at its own path with its holder's id.
 
 Accepted: `8` and `8.0` on an int axis (an integral number is an int),
 `8`, `0.5`, `9007199254740992` (2^53) and `10**20` on a float axis (each
 exactly a float), `[8, 1]` and `[8.0, 1]` on a fraction axis, `length:
 null` anywhere, a root's negative offset in its own number type. The checks
-visit a timeline's offset, length, regions, breaks, jumps and markers, then
+visit a timeline's offset, length, regions and flow-control elements, then
 its children in array order; the first problem is raised.
 
 ## Open objects and unknown keys
@@ -231,9 +233,9 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `fixtures/warnings/0.7.0/`, `validate` accepts the manifest and
   `unknown_keys` returns exactly its `unknown_keys` list; the JavaScript suite
   asserts the same lists. `several_depths` holds unknown keys on the
-  manifest, a timeline, a child, a region, the flow control, a break, a
-  jump, a marker, a conversion map and the map nested in it, a row of a
-  measure map, a group, the graphical block, a statement, a selector and a
+  manifest, a timeline, a child, a region, a flow marker, a jump origin, a
+  jump target, a conversion map and the map nested in it, a measure map and
+  one of its rows, a group, the graphical block, a statement, a selector and a
   declaration (sixteen entries). The other cases are the rules the closed
   0.7.0 draft enforced and the open one reports: a former timeline `class`,
   a manifest `support_policy`, a group's `order`, `arrangement` in
@@ -271,9 +273,9 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   manifest (`name` null, `meta` `{}`, `groups` and `measure_maps` `[]`, and
   on the timeline `name` null, `number_type` `fraction`, `locked` false,
   `is_segment_line` false, `meta` `{}`, `children`, `conversion_maps`,
-  `regions` `[]` and `flow_control` with three empty arrays), and that
-  minimizes back to the smallest file. A region, a break, a jump, a marker,
-  a group, a measure map, a conversion map (and the maps nested in a
+  `regions` and `flow_control` `[]`), and that minimizes back to the
+  smallest file. A region, a flow-control element (a `repeat_end` gains
+  `repeat_count` 1 besides, no other element does), a group, a measure map, a conversion map (and the maps nested in a
   `ChainMap`, a `CombinationMap` and a `PiecewiseMap`), a `LinearMap`, a
   `TableMap` and a graphical block each gain exactly their table's keys.
   The unit default of `number_type` is stated for ticks (`int`), seconds
@@ -283,16 +285,16 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `graphical: {}` completes to its three keys and minimizes to `{}`; a
   child's `offset` stays in the minimal form.
 - **Values that differ from the default stay.** `locked: true`,
-  `number_type` `float` on quarters, `repeat_count` 2 and a flow control
-  with one break survive `minimal` (the break keeps only its own non-default
-  keys, the empty `jumps` and `markers` go). A value is the default only in
+  `number_type` `float` on quarters and a `repeat_end` with `repeat_count` 2
+  survive `minimal`, the element keeping only its own non-default keys. A
+  value is the default only in
   type and value: `repeat_count: 1.0` is a float, not the default `1`, and
   survives `minimal` as `1.0`; were it stripped, `complete` would restore it
   as `1` and change the document. So do a `LinearMap`'s `scalar` `[1, 1]`
   and `offset` `0.0`, which equal but are not the defaults 1 and 0.
 - **Unknown keys pass through** both functions, at every depth, untouched.
 - **`length` survives** both, `null` included.
-- **The round trips.** For each of these documents (a break with
+- **The round trips.** For each of these documents (a `repeat_end` with
   `repeat_count: 1.0` among them) and for every fixture,
   `minimal(complete(x)) == minimal(x)`, `complete(minimal(x)) == complete(x)`
   and both results validate; both functions return new objects and leave
@@ -320,7 +322,7 @@ stops at the first. Python quotes ids as `repr` does.
 | `schema` | the schema document | the path rule below | the schema library's |
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
 | `duplicate_id` | ids unique within a root's tree | the later id | `duplicate id 'm', first at #/…` |
-| `dangling_target` | a jump target names a marker of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no marker of this timeline`, `'ghost' names no measure map of this manifest` |
+| `dangling_target` | a jump origin's `target` names a jump target of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no jump_to of this timeline`, `'ghost' names no measure map of this manifest` |
 | `conversion_map` | a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `y_values`, the value, the `maps`, the break | `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
@@ -367,13 +369,14 @@ problem** (`test_identity.py`, `test_segment_lines.py`), whose path and
 message are stated literally, and `validate` raises that same problem. The
 documents that bound each rule from the other side:
 
-- **Scopes.** A marker `m` in two roots, and a region `perf` beside a child
+- **Scopes.** A jump target `m` in two roots, and a region `perf` beside a child
   timeline `perf` of another root, are no problem; a timeline id repeated
   inside one root is reported once.
 - **Reserved ids.** Every part word (`start`, `end`, `name`, `label`,
   `card`) and band id (the five kinds numbered 1, `regions_12`,
   `flow_control_907`) is refused as the id of a timeline, a map, a region, a
-  break, a jump, a marker, a group, a measure map and the manifest, in a
+  flow marker, a jump origin, a jump target, a group, a measure map and the
+  manifest, in a
   manifest of one
   root; `starts`, `Start`, the bare kind words, `regions_0`, `regions_01`,
   `region_1`, `Regions_1` and `regions_1a` are accepted, since the pattern
@@ -414,6 +417,12 @@ documents that bound each rule from the other side:
   `CombinationMap` is checked at its own path (`…/maps/0`, `…/maps/beat`),
   the outputs `b` and `a` of a `CombinationMap` in the order `a`, `b`, and a
   map of a child at the child's path.
+- **Flow control.** The schema ties each element type to its
+  manifestations, its `target` and its `repeat_count`: the three `da_capo`
+  manifestations and a `repeat_end` without a target validate
+  (`test_validate.py`), a `dal_segno` without one is refused at the element; a jump origin whose target names a flow marker, or a jump target
+  of its child, is one `dangling_target` at that `target`, naming the target
+  (`'fine' names no jump_to of this timeline`).
 - **Measure maps.** A measure view naming `ghost` while `measure_maps` holds
   only `measures` is one problem at its `measure_map`, also when nested in a
   `CombinationMap`; a measure map in a manifest of a timeline in seconds
@@ -456,15 +465,17 @@ pin it where it matters: a negative fraction length reports its numerator
 (`length/0`), a zero denominator the denominator (`length/1`), a negative
 `actual_length` the row member, a negative `qstamp` pair its numerator, an
 unknown conversion-map type the map, a missing `x_values` the `TableMap`, a
-measure view's `source_unit` other than `quarters` the unit.
+measure view's `source_unit` other than `quarters` the unit, a `target` on a
+jump target or a `repeat_count` on a `to_coda` the member, a `dal_segno`
+without a `target` the element.
 
 ## The canonical order
 
 Every array whose order carries no meaning has one order: `timelines` by id;
 in every timeline `children` by offset then id, `conversion_maps` by id,
-`regions` by start, end, id, `breaks` and `markers` by coordinate then id,
-`jumps` by from and to coordinate then id; `groups` by id and `members` by
-code point; `measure_maps` by id. Values compare exactly; strings by code point. What proves it
+`regions` by start, end, id, `flow_control` by coordinate then id; `groups`
+by id and `members` by code point; `measure_maps` by id. Values compare
+exactly; strings by code point. What proves it
 (`test_manifest.py`): an inline manifest with ties at every level, own-axis
 values given as bare ints, floats and pairs mixed (`[5, 8]` before `[2, 1]`,
 `0.625` equal to `[5, 8]` and tied by id), ids where code-point and UTF-16

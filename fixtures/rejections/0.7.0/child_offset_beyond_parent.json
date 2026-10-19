@@ -11,11 +11,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "take",
             "is_segment_line": false,
             "length": null,
@@ -29,11 +25,7 @@
           }
         ],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "recording",
         "is_segment_line": false,
         "length": 60.0,

@@ -1,0 +1,39 @@
+{
+  "code": "schema",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "flow:quarters",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": "Flow control",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "flow_control"
+  ],
+  "reason": "Flow control is an array of elements, not an object of breaks, jumps and markers."
+}

@@ -32,15 +32,15 @@ function only(value: JsonObject): Problem {
   throw new Error("value was accepted");
 }
 
-const markers = (...ids: string[]) => ({
-  markers: ids.map((id, index) => ({ id, coordinate: [index, 1] })),
-});
+const targets = (...ids: string[]) =>
+  ids.map((id, index) => ({ id, type: "jump_to", manifestation: "segno", coordinate: [index, 1] }));
 
-const jump = (id: string, target: string | null) => ({
+const jump = (id: string, target: string | null, manifestation = "dal_segno") => ({
   id,
-  from_coordinate: [4, 1],
-  to_coordinate: [0, 1],
-  target,
+  type: "jump_from",
+  manifestation,
+  coordinate: [4, 1],
+  ...(target === null ? {} : { target }),
 });
 
 const ROWS = [{ count: 1, qstamp: [0, 1], actual_length: [4, 1] }];
@@ -243,23 +243,20 @@ describe("identity", () => {
   });
 
   it("reports a repeated id within a root at its later occurrence", () => {
-    const child = timeline("c", "quarters", [8, 1], { offset: [0, 1], flow_control: markers("m") });
+    const child = timeline("c", "quarters", [8, 1], { offset: [0, 1], flow_control: targets("m") });
     const root = timeline("bare", "quarters", [8, 1], {
-      flow_control: markers("m", "m", "bare"),
+      flow_control: targets("m", "m", "bare"),
       children: [child],
     });
     expect(problems(manifest([root]))).toEqual([
       [
-        ["timelines", 0, "flow_control", "markers", 1, "id"],
-        'duplicate id "m", first at #/timelines/0/flow_control/markers/0/id',
+        ["timelines", 0, "flow_control", 1, "id"],
+        'duplicate id "m", first at #/timelines/0/flow_control/0/id',
       ],
+      [["timelines", 0, "flow_control", 2, "id"], 'duplicate id "bare", first at #/timelines/0/id'],
       [
-        ["timelines", 0, "flow_control", "markers", 2, "id"],
-        'duplicate id "bare", first at #/timelines/0/id',
-      ],
-      [
-        ["timelines", 0, "children", 0, "flow_control", "markers", 0, "id"],
-        'duplicate id "m", first at #/timelines/0/flow_control/markers/0/id',
+        ["timelines", 0, "children", 0, "flow_control", 0, "id"],
+        'duplicate id "m", first at #/timelines/0/flow_control/0/id',
       ],
     ]);
   });
@@ -267,8 +264,8 @@ describe("identity", () => {
   it("scopes ids per root", () => {
     validate(
       manifest([
-        timeline("a", "quarters", [8, 1], { flow_control: markers("m") }),
-        timeline("b", "quarters", [8, 1], { flow_control: markers("m") }),
+        timeline("a", "quarters", [8, 1], { flow_control: targets("m") }),
+        timeline("b", "quarters", [8, 1], { flow_control: targets("m") }),
       ]),
     );
     validate(
@@ -286,26 +283,27 @@ describe("identity", () => {
   it("keeps targets within their timeline", () => {
     const child = timeline("c", "quarters", [8, 1], {
       offset: [0, 1],
-      flow_control: {
-        markers: [{ id: "there", coordinate: [1, 1] }],
-        jumps: [jump("cj", "here")],
-      },
+      flow_control: [...targets("there"), jump("cj", "here")],
     });
+    const fine = { id: "fine", type: "flow_marker", manifestation: "fine", coordinate: [6, 1] };
     const root = timeline("bare", "quarters", [8, 1], {
-      flow_control: {
-        markers: [{ id: "here", coordinate: [1, 1] }],
-        jumps: [jump("j1", "here"), jump("j2", null), jump("j3", "there")],
-      },
+      flow_control: [
+        ...targets("here"),
+        fine,
+        jump("j1", "here"),
+        jump("j2", null, "da_capo"),
+        jump("j3", "there"),
+        jump("j4", "fine"),
+        jump("j5", null, "repeat_end"),
+      ],
       children: [child],
     });
     expect(problems(manifest([root]))).toEqual([
+      [["timelines", 0, "flow_control", 4, "target"], '"there" names no jump_to of this timeline'],
+      [["timelines", 0, "flow_control", 5, "target"], '"fine" names no jump_to of this timeline'],
       [
-        ["timelines", 0, "flow_control", "jumps", 2, "target"],
-        '"there" names no marker of this timeline',
-      ],
-      [
-        ["timelines", 0, "children", 0, "flow_control", "jumps", 0, "target"],
-        '"here" names no marker of this timeline',
+        ["timelines", 0, "children", 0, "flow_control", 1, "target"],
+        '"here" names no jump_to of this timeline',
       ],
     ]);
   });
@@ -313,11 +311,11 @@ describe("identity", () => {
   /** A document for each place an id is checked, with the path of `word` in it. */
   const idDocuments = (word: string): [JsonObject, (string | number)[]][] => {
     const linear = { type: "LinearMap", id: word, source_unit: null, target_unit: null };
-    const flow: Record<string, JsonObject[]> = {
-      breaks: [{ id: word, coordinate: [1, 1] }],
-      jumps: [{ id: word, from_coordinate: [1, 1], to_coordinate: [0, 1] }],
-      markers: [{ id: word, coordinate: [1, 1] }],
-    };
+    const flow: JsonObject[] = [
+      { id: word, type: "flow_marker", manifestation: "fine", coordinate: [1, 1] },
+      { id: word, type: "jump_from", manifestation: "da_capo", coordinate: [1, 1] },
+      { id: word, type: "jump_to", manifestation: "coda", coordinate: [1, 1] },
+    ];
     return [
       [manifest([timeline(word)]), ["timelines", 0, "id"]],
       [
@@ -346,9 +344,9 @@ describe("identity", () => {
         ["measure_maps", 0, "id"],
       ],
       [manifest([timeline("s")], { id: word }), ["id"]],
-      ...Object.entries(flow).map(([member, entries]): [JsonObject, (string | number)[]] => [
-        manifest([timeline("s", "quarters", [8, 1], { flow_control: { [member]: entries } })]),
-        ["timelines", 0, "flow_control", member, 0, "id"],
+      ...flow.map((element): [JsonObject, (string | number)[]] => [
+        manifest([timeline("s", "quarters", [8, 1], { flow_control: [element] })]),
+        ["timelines", 0, "flow_control", 0, "id"],
       ]),
     ];
   };
@@ -814,9 +812,7 @@ describe("identity", () => {
 
   it("reports every step in order", () => {
     const first = timeline("first", "quarters", [8, 1], {
-      flow_control: {
-        jumps: [{ id: "j", from_coordinate: [1, 1], to_coordinate: [0, 1], target: "nowhere" }],
-      },
+      flow_control: [jump("j", "nowhere")],
       conversion_maps: [
         view("bars", "no-measures"),
         table(
@@ -859,8 +855,8 @@ describe("identity", () => {
     });
     expect(problems(value)).toEqual([
       [
-        ["timelines", 0, "flow_control", "jumps", 0, "target"],
-        '"nowhere" names no marker of this timeline',
+        ["timelines", 0, "flow_control", 0, "target"],
+        '"nowhere" names no jump_to of this timeline',
       ],
       [
         ["timelines", 0, "conversion_maps", 0, "measure_map"],

@@ -44,7 +44,8 @@
             "tempo": 120,
             "time_signature": "4/4"
           }
-        ]
+        ],
+        "source": "hand"
       }
     ],
     "meta": {
@@ -87,44 +88,39 @@
             "type": "ChainMap"
           }
         ],
-        "flow_control": {
-          "breaks": [
-            {
-              "coordinate": [
-                16,
-                1
-              ],
-              "id": "fine",
-              "pause": 1
-            }
-          ],
-          "codas": [],
-          "jumps": [
-            {
-              "from_coordinate": [
-                8,
-                1
-              ],
-              "id": "back",
-              "target": "top",
-              "to_coordinate": [
-                0,
-                1
-              ],
-              "via": null
-            }
-          ],
-          "markers": [
-            {
-              "coordinate": [
-                0,
-                1
-              ],
-              "glyph": "segno",
-              "id": "top"
-            }
-          ]
-        },
+        "flow_control": [
+          {
+            "coordinate": [
+              0,
+              1
+            ],
+            "glyph": "segno",
+            "id": "top",
+            "manifestation": "segno",
+            "type": "jump_to"
+          },
+          {
+            "coordinate": [
+              8,
+              1
+            ],
+            "id": "back",
+            "manifestation": "repeat_end",
+            "target": "top",
+            "type": "jump_from",
+            "via": null
+          },
+          {
+            "coordinate": [
+              16,
+              1
+            ],
+            "id": "fine",
+            "manifestation": "section_break",
+            "pause": 1,
+            "type": "flow_marker"
+          }
+        ],
         "id": "score",
         "lenght": [
           32,
@@ -201,6 +197,13 @@
       ]
     },
     {
+      "key": "source",
+      "path": [
+        "measure_maps",
+        0
+      ]
+    },
+    {
       "key": "tempo",
       "path": [
         "measure_maps",
@@ -246,20 +249,11 @@
       ]
     },
     {
-      "key": "codas",
-      "path": [
-        "timelines",
-        0,
-        "flow_control"
-      ]
-    },
-    {
-      "key": "pause",
+      "key": "glyph",
       "path": [
         "timelines",
         0,
         "flow_control",
-        "breaks",
         0
       ]
     },
@@ -269,18 +263,16 @@
         "timelines",
         0,
         "flow_control",
-        "jumps",
-        0
+        1
       ]
     },
     {
-      "key": "glyph",
+      "key": "pause",
       "path": [
         "timelines",
         0,
         "flow_control",
-        "markers",
-        0
+        2
       ]
     },
     {

@@ -11,11 +11,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "dlt_2",
             "is_segment_line": false,
             "length": 120,
@@ -30,11 +26,7 @@
           {
             "children": [],
             "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
+            "flow_control": [],
             "id": "dlt_3",
             "is_segment_line": false,
             "length": 96,
@@ -48,11 +40,7 @@
           }
         ],
         "conversion_maps": [],
-        "flow_control": {
-          "breaks": [],
-          "jumps": [],
-          "markers": []
-        },
+        "flow_control": [],
         "id": "dlt_1",
         "is_segment_line": false,
         "length": [

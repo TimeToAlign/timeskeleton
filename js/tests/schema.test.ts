@@ -182,13 +182,19 @@ describe("the schema document", () => {
       "Timeline",
       "Group",
       "Region",
-      "Break",
-      "Marker",
+      "FlowControlElement",
       "MeasureMap",
       "MapBase",
     ];
     for (const owner of names) expect(properties(owner).name?.$ref).toBe("#/$defs/Name");
-    const metas = ["TimeSkeleton", "Timeline", "Group", "Region", "Break", "Jump", "MeasureMap"];
+    const metas = [
+      "TimeSkeleton",
+      "Timeline",
+      "Group",
+      "Region",
+      "FlowControlElement",
+      "MeasureMap",
+    ];
     for (const owner of metas) expect(properties(owner).meta?.$ref).toBe("#/$defs/Meta");
     for (const [node] of nodes(document)) {
       const members = (node.properties ?? {}) as Record<string, Node>;
@@ -223,7 +229,7 @@ describe("the schema document", () => {
     const selector = properties("Selector");
     expect(selector.within?.$ref).toBe("#/$defs/Id");
     expect(selector.ids?.items).toEqual({ $ref: "#/$defs/Address" });
-    expect(properties("Jump").target?.anyOf).toEqual([{ $ref: "#/$defs/Id" }, { type: "null" }]);
+    expect(properties("FlowControlElement").target?.$ref).toBe("#/$defs/Id");
     for (const owner of Object.keys(MEASURE_VIEWS)) {
       expect(properties(owner).measure_map?.$ref).toBe("#/$defs/Id");
     }
@@ -292,20 +298,21 @@ describe("the schema document", () => {
     const kinds: Partial<Record<Kind, string[]>> = {
       manifest: ["TimeSkeleton"],
       timeline: ["Timeline"],
-      flow_control: ["FlowControl"],
       region: ["Region"],
-      break: ["Break"],
-      jump: ["Jump"],
-      marker: ["Marker"],
       measure_map: ["MeasureMap"],
       group: ["Group"],
       graphical: ["Graphical"],
     };
     const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
-    expect([...Object.keys(kinds), "conversion_map", ...Object.values(own)].sort()).toEqual(
-      Object.keys(DEFAULTS).sort(),
-    );
-    const covered = new Set<string>(["MapBase"]);
+    const element = ["flow_control_element", "repeat_end"];
+    expect(
+      [...Object.keys(kinds), "conversion_map", ...Object.values(own), ...element].sort(),
+    ).toEqual(Object.keys(DEFAULTS).sort());
+    const covered = new Set<string>(["MapBase", "FlowControlElement"]);
+    expect(defaultsOf(defs.FlowControlElement as Node)).toEqual({
+      ...DEFAULTS.flow_control_element,
+      ...DEFAULTS.repeat_end,
+    });
     for (const [kind, names] of Object.entries(kinds)) {
       for (const name of names) {
         covered.add(name);

@@ -258,10 +258,20 @@ describe("canonical order", () => {
     expect(ids((root.children as JsonObject[])[3]?.children)).toEqual(["x", "y"]);
     expect(ids(root.conversion_maps)).toEqual(["B", "B2", "a2", "\u{FB00}", "\u{1F600}"]);
     expect(ids(root.regions)).toEqual(["rd", "rc", "ra", "rb"]);
-    const flow = root.flow_control as JsonObject;
-    expect(ids(flow.breaks)).toEqual(["kz", "ka", "kb"]);
-    expect(ids(flow.jumps)).toEqual(["je", "js", "jd", "jj"]);
-    expect(ids(flow.markers)).toEqual(["starting", "Coda", "\u{E9}", "\u{FB00}!", "\u{1F600}!"]);
+    expect(ids(root.flow_control)).toEqual([
+      "je",
+      "kz",
+      "starting",
+      "Coda",
+      "\u{E9}",
+      "\u{FB00}!",
+      "\u{1F600}!",
+      "jd",
+      "jj",
+      "js",
+      "ka",
+      "kb",
+    ]);
     expect(ids(result.measure_maps)).toEqual(["ma", "mb", "m\u{FB00}"]);
   });
 
@@ -370,19 +380,39 @@ function tiedManifest(): JsonObject {
           offset: [1, 2],
         })),
         regions: regions.map(([id, start, end]) => ({ id, start, end })),
-        flow_control: {
-          breaks: [
-            { id: "kb", coordinate: [12, 1] },
-            { id: "ka", coordinate: [12, 1] },
-            { id: "kz", coordinate: [5, 8] },
-          ],
-          jumps: [
-            { id: "jj", from_coordinate: [8, 1], to_coordinate: [2, 1], target: "Coda" },
-            { id: "jd", from_coordinate: [8, 1], to_coordinate: [2, 1] },
-            { id: "js", from_coordinate: [8, 1], to_coordinate: [2, 3] },
-            { id: "je", from_coordinate: [5, 8], to_coordinate: [2, 1] },
-          ],
-          markers: (
+        flow_control: [
+          ...(
+            [
+              ["kb", [12, 1]],
+              ["ka", [12, 1]],
+              ["kz", [5, 8]],
+            ] as const
+          ).map(([id, coordinate]) => ({
+            id,
+            type: "flow_marker",
+            manifestation: "fine",
+            coordinate,
+          })),
+          {
+            id: "jj",
+            type: "jump_from",
+            manifestation: "dal_segno",
+            coordinate: [8, 1],
+            target: "Coda",
+          },
+          ...(
+            [
+              ["jd", [8, 1]],
+              ["js", [8, 1]],
+              ["je", [5, 8]],
+            ] as const
+          ).map(([id, coordinate]) => ({
+            id,
+            type: "jump_from",
+            manifestation: "da_capo",
+            coordinate,
+          })),
+          ...(
             [
               ["\u{1F600}!", [2, 1]],
               ["\u{FB00}!", [2, 1]],
@@ -390,8 +420,13 @@ function tiedManifest(): JsonObject {
               ["Coda", [2, 1]],
               ["starting", [5, 8]],
             ] as const
-          ).map(([id, coordinate]) => ({ id, coordinate })),
-        },
+          ).map(([id, coordinate]) => ({
+            id,
+            type: "jump_to",
+            manifestation: "segno",
+            coordinate,
+          })),
+        ],
       }),
     ],
     {
@@ -406,8 +441,8 @@ function tiedManifest(): JsonObject {
 /**
  * The value with every object's keys reversed, and the items of every array
  * whose order carries no meaning: `timelines`, `groups` and `measure_maps`, a group's
- * `members`, a timeline's `children`, `conversion_maps` and `regions`, and
- * the `breaks`, `jumps` and `markers` of its `flow_control`.
+ * `members`, a timeline's `children`, `conversion_maps`, `regions` and
+ * `flow_control`.
  */
 function reverse(value: unknown, unordered = false, arrays = true): Lossless<Json> {
   if (Array.isArray(value)) {
@@ -420,12 +455,10 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
       : "timelines" in value
         ? ["timelines", "groups", "measure_maps"]
         : "unit" in value && "length" in value
-          ? ["children", "conversion_maps", "regions"]
-          : "breaks" in value && "jumps" in value && "markers" in value
-            ? ["breaks", "jumps", "markers"]
-            : "members" in value && "id" in value
-              ? ["members"]
-              : [];
+          ? ["children", "conversion_maps", "regions", "flow_control"]
+          : "members" in value && "id" in value
+            ? ["members"]
+            : [];
     return Object.fromEntries(
       Object.keys(value)
         .reverse()
@@ -472,13 +505,13 @@ describe("canonical JSON text", () => {
     );
   });
 
-  it("equals Python's text for every break and jump of every fixture", () => {
+  it("equals Python's text for every flow-control element of every fixture", () => {
     const script = [
       "import json, pathlib, sys",
       "texts = []",
       "def visit(timeline):",
-      "    flow = timeline.get('flow_control', {})",
-      "    for entry in flow.get('breaks', []) + flow.get('jumps', []):",
+      "    flow = timeline.get('flow_control', [])",
+      "    for entry in flow if isinstance(flow, list) else []:",
       "        texts.append(json.dumps(entry, sort_keys=True, separators=(',', ':'), ensure_ascii=False))",
       "    for child in timeline.get('children', []):",
       "        visit(child)",
@@ -500,8 +533,7 @@ describe("canonical JSON text", () => {
     const list = (owner: unknown, key: string) =>
       isJsonObject(owner) && Array.isArray(owner[key]) ? (owner[key] as JsonObject[]) : [];
     const visit = (timeline: JsonObject): void => {
-      const flow = timeline.flow_control;
-      for (const entry of [...list(flow, "breaks"), ...list(flow, "jumps")]) {
+      for (const entry of list(timeline, "flow_control")) {
         texts.push(canonicalJson(entry as Lossless<Json>));
       }
       for (const child of list(timeline, "children")) visit(child);
