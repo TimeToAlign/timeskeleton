@@ -6,8 +6,8 @@ These rules apply to every contributor, human or automated.
 
 - `schema/`: the JSON Schema of the current version, one document
   `<version>/timeskeleton.schema.json` describing the one manifest shape
-  `{timeskeleton, timelines, id?, name?, meta?, groups?, graphical?}`; it
-  is the format contract and source of truth.
+  `{timeskeleton, timelines, id?, name?, meta?, groups?, measure_maps?,
+  graphical?}`; it is the format contract and source of truth.
 - `docs/`: `drawing.md`, the specification of the style cascade, layout,
   the box of frames and cards that draws every manifest, and SVG and TikZ
   writers; it is part of the contract, and both packages ship it.

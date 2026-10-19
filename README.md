@@ -1,10 +1,15 @@
 # timeskeleton
 
-TimeSkeleton is the JSON Schema for the structural serialization of musical
-timelines, alone or in timeline groups and alignment bundles, with fixtures
-emitted by [timetoalign](https://github.com/timetoalign/timetoalign) and
-validation packages for Python and TypeScript. It carries timeline
-structure, not event data.
+TimeSkeleton is an exchange format for the structures of musical
+timelines: their axes, extents, nesting, groups, conversion maps, regions,
+flow control and measure maps, without their events. Music-research
+software trades these structures in it like a currency. The format
+expresses the TimeToAlign! model
+([TISMIR](https://doi.org/10.5334/tismir.296)); the Python library
+[timetoalign](https://github.com/timetoalign/timetoalign) is one
+implementation of it, and emits the shared fixtures, but does not define
+the format. This repository holds the format as a JSON Schema, with
+validation packages for Python and TypeScript.
 
 **Status: alpha.** The repository holds one schema version, 0.7.0, the
 current version, as one JSON Schema document describing one manifest shape.
@@ -30,10 +35,11 @@ groups beside ungrouped timelines. The smallest manifest is
 | --- | --- | --- |
 | `timeskeleton` | yes | the version marker, `"0.7.0"` |
 | `timelines` | yes | the root timelines, an array that may be empty |
-| `id` | no | the manifest's id |
+| `id` | no | the manifest's ID |
 | `name` | no | the manifest's displayed name |
 | `meta` | no | an object of anything an application wants to record |
 | `groups` | no | timeline groups whose members name timelines of the manifest |
+| `measure_maps` | no | the measure maps the conversion maps read, each with an ID; they belong to no timeline |
 | `graphical` | no | the styling of the manifest's drawing, its groups' display orders and its timelines' band orders |
 | `$schema` | no | a string naming the schema, for editors; never read |
 
@@ -55,18 +61,31 @@ than embedded.
 
 A timeline (`$defs/Timeline`) requires `id`, `unit` and `length`. Its
 optional keys are `name`, `number_type`, `offset`, `locked`,
-`is_segment_line`, `meta`, `children`, `conversion_maps`, `regions`,
-`flow_control`, `measure_map` and `metric_hierarchy`.
+`is_segment_line`, `meta`, `children`, `conversion_maps`, `regions` and
+`flow_control`.
 
 - `unit` decides the timeline's domain (logical, physical or graphical)
   and modality (continuous or discrete), since each unit belongs to exactly
-  one of the six combinations. A timeline writes no class.
+  one of the six combinations, and the default of its number type:
+
+  | Unit | Domain | Modality | Default number type |
+  | --- | --- | --- | --- |
+  | `number`, `floating_measures` | logical | continuous | `float` |
+  | `whole_notes`, `quarters` | logical | continuous | `fraction` |
+  | `ticks` | logical | discrete | `int` |
+  | `milliseconds`, `seconds`, `minutes` | physical | continuous | `float` |
+  | `samples`, `frames` | physical | discrete | `int` |
+  | `pixels` | graphical | discrete | `int` |
+  | `meters`, `centimeters`, `millimeters`, `inches`, `points` | graphical | continuous | `float` |
+
+  The domain and modality decide the timeline's class (`seconds` makes a
+  `ContinuousPhysicalTimeline`), which a timeline never writes.
 - `number_type` is `int`, `float` or `fraction`; absent, it is the unit's
-  default (section [Defaults](#defaults)).
+  default number type above.
 - `length` is the timeline's length on its own axis, or `null` when it is
   not known (section [Unknown length](#unknown-length)).
 - `children` is an array of timelines, each carrying its `offset` on the
-  parent's axis, written in offset order with ties by id; a child shares
+  parent's axis, written in offset order with ties by ID; a child shares
   its parent's `unit`, here `seconds`:
 
   ```json
@@ -101,52 +120,114 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
   offset order to its length, all sharing its unit as every child does,
   and all with one `is_segment_line` value. Segments that are segment lines
   themselves make a nested segment line.
-- `conversion_maps`, `regions` and `flow_control` (`breaks`, `jumps` and
-  `markers`) hold the timeline's conversion maps, regions and flow
-  control; `metric_hierarchy` is an object without further rules.
+- `conversion_maps`, `regions` and `flow_control` hold the timeline's
+  conversion maps ([Conversion maps and measure
+  maps](#conversion-maps-and-measure-maps)), regions (`{id, name?, start,
+  end, meta?}`) and flow-control elements ([Flow control](#flow-control)).
 
-A measure map is the
-[Measure Map standard](https://github.com/measure-map/specification)'s
-compressed row array: an entry equal to the preceding entry's default
-successor is omitted. A row is the standard's Measure plus two extensions:
-the integer `volta`, and `offset_within_measure`, where the row begins inside
-its nominal measure in quarter notes. Lengths are strictly positive and
-`qstamp` is non-negative; exact Fraction pairs are permitted wherever the
-standard uses JSON numbers. Only a timeline whose unit is `quarters` may
-carry a measure map.
+### Conversion maps and measure maps
+
+A conversion map is a function from a position on its timeline's axis to a
+value, discriminated by its `type`. Every map carries `type`, `id`, `name`,
+`source_unit` and `target_unit`, a unit being null where that side is no
+time axis. A map is an abstract type, independent of any number type: each
+of its numbers is an int, a float or a Fraction pair, whatever the
+implementation computes in. Its domain and modality, which the drawing
+styles it by, are those of its `target_unit`. There are ten types:
+
+| Type | Maps x to | Own keys |
+| --- | --- | --- |
+| `LinearMap` | `scalar` · x + `offset` | `scalar` (default 1), `offset` (default 0) |
+| `TableMap` | an interpolation between anchor pairs | `x_values`, `y_values` (equal length, at least two, x strictly increasing); `kind` `linear` (default) or `previous`; `extrapolate` `none` (default), `constant` or `linear` |
+| `ConstantMap` | one value for every x | `value`, a number or a string |
+| `PiecewiseMap` | the value of the map of the interval `[breaks[i], breaks[i+1])` holding x | `breaks` (strictly increasing), `maps` (one fewer than `breaks`) |
+| `ChainMap` | the value of its maps applied in turn, the first first | `maps` (at least one) |
+| `CombinationMap` | several named outputs, each one map's value | `maps`, an object from output name to map |
+| `MeasureRecordMap` | the row of the measure holding x | `measure_map` |
+| `MeasureNumberMap` | that row's `number` | `measure_map` |
+| `FloatingMeasureMap` | floating measures | `measure_map` |
+| `MeasureBeatMap` | the measure number and the beat | `measure_map` |
+
+Scaling, shifting and every conversion between two units of fixed ratio
+(quarters to ticks at a resolution, samples to seconds at a sample rate)
+are linear maps. The last four are the **measure views**: each reads the
+measure map its `measure_map` names, from `quarters` (its constant
+`source_unit`) to `floating_measures` (`FloatingMeasureMap`) or to null
+(the other three, whose outputs are no positions on a time axis). A
+timeline in ticks or `whole_notes` reaches a measure view through a
+`ChainMap` whose first map is a `LinearMap` to quarters. The schema states
+the exact reading of every type.
+
+`measure_maps` holds the manifest's measure maps, each `{id, name?, meta?,
+rows}`. A measure map belongs to no timeline and is not drawn; its
+positions are quarters by definition, so it fits every timeline. `rows` is
+the [Measure Map standard](https://github.com/measure-map/specification)'s
+compressed row array, at least one row: an entry equal to the preceding
+entry's default successor is omitted. A row is the standard's Measure plus
+two extensions: the integer `volta`, and `offset_within_measure`, where the
+row begins inside its nominal measure in quarter notes. Lengths are
+strictly positive and `qstamp` is non-negative; exact Fraction pairs are
+permitted wherever the standard uses JSON numbers. A measure view's
+`measure_map` must name an entry of `measure_maps`, which both validators
+check after the schema.
+
+### Flow control
+
+A timeline's `flow_control` is one array of elements `{id, type,
+manifestation, coordinate, target?, repeat_count?, name?, label?, meta?}`,
+each at a `coordinate` on the timeline's own axis. Its `type` decides the
+manifestations it may take and whether it carries a `target`:
+
+| `type` | Manifestations | `target` |
+| --- | --- | --- |
+| `jump_from`, a jump origin | `repeat_end`, `da_capo`, `da_capo_al_fine`, `da_capo_al_coda`, `dal_segno`, `dal_segno_al_fine`, `dal_segno_al_coda`, `to_coda` | the ID of a `jump_to` of the same timeline; required on the `dal_segno` manifestations and `to_coda`, optional on the `da_capo` manifestations and `repeat_end`, whose jump without one goes to the timeline's start |
+| `jump_to`, a jump target | `repeat_start`, `segno`, `coda` | none |
+| `flow_marker`, a flow marker | `fine`, `section_break`, `double_barline`, `final_barline` | none |
+
+Only a `repeat_end` carries `repeat_count`, an integer of at least 1. When
+a jump origin acts follows from its manifestation: a `repeat_end` on its
+first `repeat_count` passes, a `to_coda` only after a `da_capo_al_coda` or
+a `dal_segno_al_coda`, every other jump origin always. A flow marker is
+not a coordinate marker: the markers band of a drawing holds the
+coordinate markers, the wedges at a root's start and end, never an element
+of `flow_control`.
 
 ### Values on a timeline's own axis
 
 A coordinate on its timeline's own axis is written as its value alone:
 `length`, a child's `offset` (on the parent's axis), a root's `offset`,
-region `start` and `end`, break and marker `coordinate`, and jump
-`from_coordinate` and `to_coordinate`. The value is represented as the
-axis's number type selects, that is `number_type`, or the unit's default
-when it is absent: a JSON integer for `int`, a JSON number for `float`, and
-a `[numerator, denominator]` pair of JSON integers with a strictly positive
-denominator for `fraction`, mirroring BOPP. An `int` axis also accepts an
-integral JSON number, read as that integer, and a `float` axis an integer
-that a float equals exactly; a `fraction` axis accepts only a pair. Writers
-write each axis's own form. A child's `offset` takes the parent's number
-type. The schema types these values as `Number`; both
-validators then check the representation and report a mismatch such as
+region `start` and `end`, and the `coordinate` of every flow-control
+element. The value is represented as the axis's number type selects, that
+is `number_type`, or the unit's default when it is absent: a JSON integer
+for `int`, a JSON number for `float`, and a `[numerator, denominator]` pair
+of integers with a strictly positive denominator for `fraction`, mirroring
+BOPP. A child's `offset` takes the parent's number type.
+
+The declared number type decides how a value is read, never its spelling,
+and a reader coerces: `2.0` on an `int` axis is the integer 2, `2` on a
+`float` axis the float 2.0, and `[1, 8.0]` the Fraction 1/8. A JSON round
+trip that respells numbers therefore never invalidates a manifest. Writers
+spell every value canonically: an int as a JSON integer, a float as
+Python's `repr` spells it, Fraction members as JSON integers. What a value
+cannot be read as stays refused: a number with a fractional part on an
+`int` axis, an integer that no float equals exactly on a `float` axis, a
+Fraction pair on an `int` or `float` axis and a bare number on a
+`fraction` axis, each with the code `representation`; and a Fraction
+member with a fractional part or a denominator below 1, which the schema
+refuses. The schema types own-axis values as `Number`; both validators then
+check the representation and report a mismatch such as
 `length 32 of 'score' is an int on a fraction axis: write [32, 1]`, or, for
 an integer no float holds exactly,
 `length 9007199254740993 of 'take' is an int on a float axis: write a float`.
-Both members of every Fraction pair are JSON integers, which no JSON Schema
-keyword can tell from integral floats: wherever a pair is written, on an
-own axis, in a conversion map's numbers (nested maps included) or in a
-measure map row's `qstamp`, `nominal_length`, `actual_length` and
-`offset_within_measure`, both validators refuse a member written as a float
-with the code `representation` at that member, such as
-`fraction numerator 8.0 is a float: write 8` at `timelines/0/length/0`.
 Every number of a manifest is finite: JSON spells no NaN or infinity, but a
 value built in memory, or read by a lenient reader, may hold one, and both
 validators refuse it at its path.
 
-A coordinate on another axis, as in a conversion map's tables, keeps the
-coordinate object `{unit, number_type, value}`, its value represented as its
-own `number_type` selects.
+A conversion map's numbers and a measure-map row's lengths are numbers of
+the same kind, each a JSON number or a Fraction pair. The self-describing
+coordinate object `{unit, number_type, value}` (`$defs/Coordinate`) serves
+a position outside such a container, as hosts exchange single positions;
+inside a manifest every position lies on an axis its container declares.
 
 ### Defaults
 
@@ -162,17 +243,24 @@ required in both forms.
 
 | Object | Key: default |
 | --- | --- |
-| manifest | `id`: absent (without a `name` too, an anonymous bundle); `name`: `null`; `meta`: `{}`; `groups`: `[]`; `graphical`: absent |
-| timeline | `name`: `null`; `number_type`: the unit's default (`int` for `ticks`, `samples`, `frames` and `pixels`; `fraction` for `quarters` and `whole_note`; `float` otherwise); `offset`: absent on a root, required on a child; `locked`: `false`; `is_segment_line`: `false`; `meta`: `{}`; `children`, `conversion_maps`, `regions`: `[]`; `flow_control`: `{"breaks": [], "jumps": [], "markers": []}`; `measure_map`, `metric_hierarchy`: `null` |
-| flow control | `breaks`, `jumps`, `markers`: `[]` |
+| manifest | `id`: absent (without a `name` too, an anonymous bundle); `name`: `null`; `meta`: `{}`; `groups`, `measure_maps`: `[]`; `graphical`: absent |
+| timeline | `name`: `null`; `number_type`: the unit's default (the unit table of [The timeline](#the-timeline)); `offset`: absent on a root, required on a child; `locked`: `false`; `is_segment_line`: `false`; `meta`: `{}`; `children`, `conversion_maps`, `regions`, `flow_control`: `[]` |
 | region | `name`: `null`; `meta`: `{}` |
-| break | `control_type`: `"section_break"`; `condition`: `"always"`; `repeat_count`: 1; `label`, `name`: `null`; `meta`: `{}` |
-| jump | `control_type`: `"repeat_end"`; `condition`: `"first_n"`; `repeat_count`: 1; `target`, `label`: `null`; `meta`: `{}` |
-| marker | `name`: `null` |
-| conversion map | `name`: `null` |
+| flow-control element (`flow_control_element`) | `name`, `label`: `null`; `meta`: `{}` |
+| a `repeat_end` besides (`repeat_end`) | `repeat_count`: 1 |
+| conversion map (`conversion_map`) | `name`: `null` |
+| a `LinearMap` besides (`linear_map`) | `scalar`: 1; `offset`: 0 |
+| a `TableMap` besides (`table_map`) | `kind`: `"linear"`; `extrapolate`: `"none"` |
+| measure map (`measure_map`) | `name`: `null`; `meta`: `{}` |
 | group | `name`: `null`; `meta`: `{}` |
 | graphical | `styles`: `{}`; `statements`: `[]`; `order`: `{}` |
 
+A row marked "besides" adds its keys to those of the general row it
+follows: a `repeat_end` has the keys of every flow-control element plus
+`repeat_count`, which no other element carries, and a `LinearMap` or a
+`TableMap` the keys of every conversion map plus its own, at any depth of
+nesting. The names in
+parentheses are the kinds of the packages' `DEFAULTS` table.
 Python's `complete(value)` and npm's `complete(value)` return a copy of a
 manifest in the complete form, and `minimal(value)` in both packages a copy
 in the minimal form; both are pure and read the one table above.
@@ -197,7 +285,7 @@ its content reaches, and ends its line in three chevrons.
 
 ### Groups and the `graphical` block
 
-A group is `{id, name?, meta?, members}`. `members` are the distinct ids of
+A group is `{id, name?, meta?, members}`. `members` are the distinct IDs of
 the member timelines, each naming a timeline of the manifest: a root or any
 descendant. Members share the same graphical start and end: every
 member's 0 coincides with every other member's 0 and every member's end
@@ -215,20 +303,20 @@ is a child keeps its parent.
 `graphical` is `{styles?, statements?, order?}`, at the manifest's top
 level only, never on a timeline: a timeline holds time, and what is
 graphical lies in this block. `styles` and `statements` style the drawing
-([Drawing a manifest](#drawing-a-manifest)). `order` maps the id of a group
+([Drawing a manifest](#drawing-a-manifest)). `order` maps the ID of a group
 or of a timeline to the order of what it stacks, top to bottom, and
 writers never reorder it:
 
-- a group's id to the **display order** of its members, a permutation of
+- a group's ID to the **display order** of its members, a permutation of
   them; a group without an entry is displayed in the order of `members`;
-- a timeline's id `T`, of a root or a descendant, to its **band order**, a
+- a timeline's ID `T`, of a root or a descendant, to its **band order**, a
   permutation of its five bands `T/markers_1`, `T/conversion_maps_1`,
   `T/children_1`, `T/regions_1` and `T/flow_control_1`
   ([Identity](#identity)) and of `T` itself: the bands before `T` lie
   above its line, the nearest last, and those after it below, the nearest
   first. Every timeline, root or child, has these bands at its own line. A
   timeline without an entry follows its parent's band order, band by band
-  id (the parent's `P/regions_1` becomes `T/regions_1`), a member that is
+  ID (the parent's `P/regions_1` becomes `T/regions_1`), a member that is
   a child included, and a root without one the default
   `["T/children_1", "T/conversion_maps_1", "T", "T/markers_1",
   "T/regions_1", "T/flow_control_1"]`; changing a timeline's band order so
@@ -245,11 +333,11 @@ too. A manifest carries no MatchClaims.
 
 ### Unknown keys
 
-Every object of the schema is open: a key the schema does not define is
-valid. The free objects `meta` and `metric_hierarchy` say so explicitly;
-every other object marks an unknown key with the keyword `x-unknown-key`,
-which a standard JSON Schema validator ignores and both packages' validators
-record. Unknown keys are warnings, never errors, since a misspelt optional
+Every object of the schema is open: the schema closes none and carries no
+custom keyword, so a key an object does not declare is valid. Both
+packages' validators find such keys themselves and report them as
+**unknown keys**, except inside `meta`, the one free object. Unknown keys
+are warnings, never errors, since a misspelt optional
 key would otherwise silently become its default. Python's
 `unknown_keys(value)` and npm's `unknownKeys(value)` return the same list of
 `{path, key}` entries, the path locating the object that holds the key,
@@ -261,83 +349,96 @@ host's own validator is unaffected.
 
 ### Identity
 
-Every timeline, group, conversion map, region, flow-control break, jump and
-marker carries an `id`, which identifies it, and so may the manifest. A
-`name`, where an element has one, is what is displayed, and it may repeat.
-An id is a non-empty string without `/` and without control characters, and
-it may contain spaces. Flow-control `markers` is a list of `{id, name,
-coordinate}` objects, and a jump's `target` is the id of a marker of the same
-timeline, or `null`.
+Every timeline, group, measure map, conversion map, region and
+flow-control element carries an `id`, which identifies it, and so may the
+manifest. A `name`, where an element has one, is what is displayed, and it
+may repeat. An ID is a non-empty string without `/` and without control
+characters, and it may contain spaces. A reference is an ID: a jump
+origin's `target` names a jump target of the same timeline, and a measure
+view's `measure_map` an entry of `measure_maps`.
 
-Timeline ids, of roots and descendants alike, group ids and the manifest's
-id are unique together across the manifest. Each root's tree is moreover one
-scope: within it, an id is unique across all the element kinds above, so a
-conversion map, region, break, jump or marker id is unique within the tree
-of its root and may repeat in another root's tree.
+Timeline IDs, of roots and descendants alike, group IDs, measure-map IDs
+and the manifest's ID are unique together across the manifest. Each root's
+tree is moreover one scope: within it, an ID is unique across all the
+element kinds above, so a conversion map, region or flow-control element ID
+is unique within the tree of its root and may repeat in another root's
+tree.
 
-One address rule holds in every manifest. A timeline, a group or the
-manifest is addressed by its bare id; a conversion map, region, break, jump
-or marker by the id of the root whose tree holds it, `/`, and its own id
+One address rule holds in every manifest. A timeline, a group, a measure
+map or the manifest is addressed by its bare ID; a conversion map, region
+or flow-control element by the ID of the root whose tree holds it, `/`,
+and its own ID
 (`score/region_1`); the parts of an element follow its address: `…/start`,
 `…/end`, `…/name`, `…/label` and a timeline's card `…/card`. The five
-**bands** every timeline has, root or child, follow the timeline's id
+**bands** every timeline has, root or child, follow the timeline's ID
 too, each by its kind and number: `…/markers_1`, `…/conversion_maps_1`,
 `…/children_1`, `…/regions_1` and `…/flow_control_1`, which hold its
-markers, conversion maps, children, regions and flow control in its
-drawing. The five part words are therefore reserved, and so is every id
+coordinate markers, conversion maps, children, regions and flow control in
+its drawing. The five part words are therefore reserved, and so is every ID
 that matches `^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`,
-whatever its number: no id of a manifest may be one of them or match the
+whatever its number: no ID of a manifest may be one of them or match the
 pattern. The manifest's title, the top label of its drawing, is addressed
 `name`, whether or not the manifest has an `id`, and a group's title
 `G/name`.
 
-The JSON Schema cannot express these rules, nor that a member names a
-timeline of the manifest, nor that no member of a group lies inside
-another, nor that a child lies within its parent's known length, nor that a
-segment line's segments are contiguous and alike, nor the representation of
-own-axis values and of Fraction members, so both validators check them after
-the schema. Each finding is one problem, located by a path into the
-manifest and named by a stable code:
+The JSON Schema cannot express these rules, nor that a reference names an
+element, nor that a map's arrays agree, nor that a member names a timeline
+of the manifest, nor that no member of a group lies inside another, nor
+that a child lies within its parent's known length, nor that a segment
+line's segments are contiguous and alike, nor the representation of
+own-axis values, so both validators check them after the schema. Each
+finding is one problem, located by a path into the manifest and named by a
+stable code:
 
 | Rule | Code | Location | Message |
 | --- | --- | --- | --- |
-| An id repeats within one root's tree | `duplicate_id` | the later occurrence | `duplicate id '<id>', first at <pointer>` |
-| A jump's `target` names no marker of its timeline | `dangling_target` | the `target` | `'<target>' names no marker of this timeline` |
+| An ID repeats within one root's tree | `duplicate_id` | the later occurrence | `duplicate id '<id>', first at <pointer>` |
+| A jump origin's `target` names no jump target of its timeline | `dangling_target` | the `target` | `'<target>' names no jump_to of this timeline` |
+| A measure view's `measure_map` names no entry of `measure_maps` | `dangling_target` | the `measure_map` | `'<id>' names no measure map of this manifest` |
+| A `TableMap`'s `x_values` and `y_values` differ in length | `conversion_map` | the `y_values` | `TableMap '<id>' has <n> x values and <m> y values` |
+| An x value of a `TableMap`, or a break of a `PiecewiseMap`, does not exceed the one before it | `conversion_map` | the value | `x value <value> of TableMap '<id>' does not exceed the one before it` (`break <value> of PiecewiseMap …`) |
+| A `PiecewiseMap` does not have one map fewer than breaks | `conversion_map` | the `maps` | `PiecewiseMap '<id>' has <n> maps for <m> breaks; it needs <m − 1> maps` |
 | A child's `unit` is not its parent's | `child_unit` | the child's `unit` | `child '<id>' has unit '<unit>', its parent '<id>' has '<unit>'` |
 | A child's `offset` lies beyond its parent's known length | `child_offset` | the child's `offset` | `offset <offset> of '<id>' is beyond the length <length> of its parent '<id>'` |
 | A child ends beyond its parent's known length, its own end known | `child_end` | the child's `length` | `child '<id>' ends at <end>, beyond the length <length> of its parent '<id>'` |
 | A segment's `is_segment_line` differs from the first segment's | `segment_line` | the segment's `is_segment_line`, or the segment when it leaves the key out | `segment '<id>' of segment line '<id>' differs from segment '<first id>' in is_segment_line` |
 | A segment does not start where the one before it ends, or the first at 0 | `segment_line` | the segment's `offset` | `segment '<id>' of segment line '<id>' does not start where the one before it ends` (`… does not start at 0`) |
 | The last segment does not end at the segment line's length, both known | `segment_line` | the segment line's `length` | `the segments of segment line '<id>' do not end at its length` |
-| An id is `start`, `end`, `name`, `label` or `card`, or matches the band pattern above | `reserved_id` | the `id` | `id '<id>' is reserved for the parts of an address` (`id '<id>' is reserved for the bands of a timeline`) |
-| A timeline id repeats one of an earlier root's tree | `duplicate_id` | the later occurrence | `duplicate id '<id>', first at <pointer>` |
-| A group id equals a timeline id or an earlier group's id | `duplicate_id` | the group's `id` | `duplicate id '<id>', first at <pointer>` |
-| The manifest's id equals a timeline id or a group id | `manifest_id` | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group |
+| An ID is `start`, `end`, `name`, `label` or `card`, or matches the band pattern above | `reserved_id` | the `id` | `id '<id>' is reserved for the parts of an address` (`id '<id>' is reserved for the bands of a timeline`) |
+| A timeline ID repeats one of an earlier root's tree | `duplicate_id` | the later occurrence | `duplicate id '<id>', first at <pointer>` |
+| A group ID equals a timeline ID or an earlier group's ID | `duplicate_id` | the group's `id` | `duplicate id '<id>', first at <pointer>` |
+| A measure-map ID equals a timeline ID, a group ID or an earlier measure map's ID | `duplicate_id` | the measure map's `id` | `duplicate id '<id>', first at <pointer>` |
+| The manifest's ID equals a timeline ID, a group ID or a measure-map ID | `manifest_id` | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group, else the first such measure map |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
 | A member is already a member of an earlier group | `group_member` | the later member | `duplicate member '<id>', first at <pointer>` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
 | A key of `graphical.order` names no group and no timeline | `order_key` | the key | `'<key>' names no group or timeline of this manifest` |
 | An entry of a display order is not a member of its group | `display_order` | the entry | `'<id>' is not a member of group '<group id>'` |
 | A member of a group is missing from its display order | `display_order` | the order | `member '<id>' of group '<group id>' is missing` |
-| An entry of a band order is neither its timeline's id nor one of its bands | `band_order` | the entry | `'<entry>' is not '<id>' or one of its bands` |
-| A band, or the timeline's own id, is missing from its band order | `band_order` | the order | `'<address>' is missing from the band order of '<id>'` |
+| An entry of a band order is neither its timeline's ID nor one of its bands | `band_order` | the entry | `'<entry>' is not '<id>' or one of its bands` |
+| A band, or the timeline's own ID, is missing from its band order | `band_order` | the order | `'<address>' is missing from the band order of '<id>'` |
 
-Within one root's tree, ids are visited in identity order (a timeline,
-then its conversion maps, regions, breaks, jumps and markers, then its
-children in array order); duplicates come first, then dangling targets,
-then children off their parent's axis (child by child, each followed by its
+Within one root's tree, IDs are visited in identity order (a timeline,
+then its conversion maps, regions and flow-control elements, then its
+children in array order); duplicates come first, then dangling targets
+(timeline by timeline, its jump origins' targets before its measure views),
+then the conversion-map rules (a timeline's maps in array order, each
+before the maps it holds, the outputs of a `CombinationMap` in code-point
+order of their names, then its children's), then children off their
+parent's axis (child by child, each followed by its
 own children: its unit, then an offset beyond its parent's known length
 or else an end beyond it), then segment lines, whose
 segments are visited in canonical order and compared by exact value. Across the manifest, the problems come in this
-order: each root's own problems, roots in array order; then reserved ids
-(the manifest's id, then root by root in identity order, then the group
-ids); repeated timeline ids, group ids, the manifest's id, members (member by member: dangling, repeated, nested), and
+order: each root's own problems, roots in array order; then reserved IDs
+(the manifest's ID, then root by root in identity order, then the group
+IDs, then the measure-map IDs); repeated timeline IDs, group IDs,
+measure-map IDs, the manifest's ID, members (member by member: dangling, repeated, nested), and
 the entries of `graphical.order` in code-point order of their keys: an
 order's strangers first, in its order, then its missing entries, in the
 order of the group's `members` or of the default band order. `<pointer>`
 is a JSON pointer in URI fragment form, such as `#/timelines/0/id`, as Python's
 `json_pointer(path)` and npm's `jsonPointer(path)` render a path. The
-messages above quote ids as Python does; the TypeScript package quotes them
+messages above quote IDs as Python does; the TypeScript package quotes them
 as JSON (`duplicate id "piece", first at #/timelines/0/id`), except the
 three messages about a child's unit, offset and end, which read the same in
 both packages, every value spelled as the standard writer spells it (`720`,
@@ -347,7 +448,7 @@ spelled as its parent's number type writes it, or as a `[numerator,
 denominator]` pair where that type cannot write it exactly. A repeated
 entry within one display or band order or within one group's `members` is
 refused by the schema, and so is, at the entry, an entry of an order that
-is neither an id nor an id followed by `/` and a band's id, its kind, `_`
+is neither an ID nor an ID followed by `/` and a band's ID, its kind, `_`
 and its number (`score/foo`, `score/region_1`); an entry of that shape in
 the band order of `score` that is neither `score` nor one of its bands,
 such as `score/regions_2` or `other`, is refused by the table's band-order
@@ -364,8 +465,8 @@ may be embedded by a host schema; within 0.7.x they change only by
 addition:
 
 `TimeSkeleton`, `Timeline`, `Group`, `Graphical`, `ConversionMap`,
-`Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id` and
-`MeasureMapRow`.
+`Coordinate`, `Number`, `Fraction`, `TimeUnit`, `NumberType`, `Id`,
+`MeasureMap` and `MeasureMapRow`.
 
 A host refers to the document, or to one definition as
 `timeskeleton.schema.json#/$defs/<Name>`, never through an `$anchor`. It
@@ -411,7 +512,10 @@ displayed hides everything it holds, and by default the markers, regions
 and flow control bands are hidden on every timeline but the one a card
 holds),
 `boundary` (a segment's start on its segment line), `ancestor`, `group` (a
-frame), `map`, `region`, `break`, `jump`, `wedge`, `name` and `label`.
+frame), `map`, `region`, `flow_marker` (a flow marker), `jump_from` (a
+jump origin, drawn as an arc to its target or to the start; a jump target
+draws nothing), `wedge` (a coordinate marker, never an element of
+`flow_control`), `name` and `label`.
 Besides `element`, a selector may name `ids`, `domain`, `modality`,
 `class`, `within` (a timeline and its descendants) and `inside` (an element
 type that holds the element at any depth); the selector's `class` names
@@ -462,13 +566,12 @@ canonical order, so equal manifests have equal text. The keys of every
 object, at every depth, are sorted by Unicode code point. The arrays whose
 order keys cannot express are put in this order:
 
-- `timelines` by id, `groups` by id, and every group's `members` by code
-  point;
-- in every timeline, `children` by offset, then id;
-- `conversion_maps` by id;
-- `regions` by start, then end, then id;
-- flow-control `breaks` and `markers` by coordinate, then id;
-- flow-control `jumps` by from coordinate, then to coordinate, then id.
+- `timelines`, `groups` and `measure_maps` by ID, and every group's
+  `members` by code point;
+- in every timeline, `children` by offset, then ID;
+- `conversion_maps` by ID;
+- `regions` by start, then end, then ID;
+- `flow_control` by coordinate, then ID.
 
 Ids are unique within their scope, so no two entries tie. Coordinates
 compare by exact numeric value, never by JSON spelling. Strings compare by
@@ -523,8 +626,7 @@ else:
 ```
 
 - `validate(value)` reads the version marker first, then checks the value
-  against the schema, the representation of its own-axis values and
-  Fraction members and the
+  against the schema, the representation of its own-axis values and the
   identity rules, and raises `SchemaValidationError` at the first problem.
   A value without `timeskeleton` is refused at the root; a value declaring
   another version raises `UnsupportedVersionError` naming 0.7.0. Unknown

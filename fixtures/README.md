@@ -18,7 +18,7 @@ The directories sort the manifests by content only:
 
 Version 0.7.0 has 41 manifests directly under `fixtures/0.7.0/`, 10 under
 `groups/` and 9 under `bundles/`, 60 in all, each with its minimal twin, so
-120 files. Beside them lie 91 rejection cases and 11 warning cases.
+120 files. Beside them lie 103 rejection cases and 11 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -71,16 +71,16 @@ display order in `graphical.order` is the library's own member order. The
 `graphical` block the script composes for a manifest, its styles,
 statements and band orders, is read back by the library, which keeps it as
 written, and takes part in the round trip too: the library must write the
-composed manifest back unchanged. Every timeline, conversion map, region,
-break, jump and marker carries an id; ids the script does not give are
+composed manifest back unchanged. Every timeline, measure map, conversion
+map, region and flow-control element carries an ID; IDs the script does not give are
 minted by timetoalign and depend on the construction order within the
 builder, which is part of the fixture contract.
 
 A catalogue case writes `<name>.json` in its directory. Several cases of
 one name, such as the four of `conversion_maps`, write
-`<name>__<slug>.json` each, where `<slug>` is the built object's id with
+`<name>__<slug>.json` each, where `<slug>` is the built object's ID with
 every character outside `[A-Za-z0-9_-]` replaced by `_`. The script refuses
-two ids that would produce the same file name.
+two IDs that would produce the same file name.
 
 ## Coverage of single timelines
 
@@ -102,12 +102,12 @@ The structural fixtures add focused examples:
 | --- | --- |
 | `with_region.json` | a named region |
 | `nested.json` | three levels of timelines |
-| `flow_control.json` | a break, a jump, and a named marker the jump targets |
-| `conversion_maps__*.json` | every registered conversion-map class, grouped by source timeline |
+| `flow_control.json` | a flow marker, a jump origin, and the named jump target it names |
+| `conversion_maps__*.json` | the conversion maps timetoalign writes, grouped by source timeline |
 | `bare.json` | one named timeline |
 | `contiguous.json` | children that touch and overlap |
 | `map.json` | conversion maps on a root and a child |
-| `styled__score.json`, `styled__performance.json` | `graphical.statements` selecting elements by type, id, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score; the score's band order in `graphical.order` lays its markers band against its line above it and its conversion maps band against its line below it |
+| `styled__score.json`, `styled__performance.json` | `graphical.statements` selecting elements by type, ID, class, domain, modality, and `within`, with a colour of its own for every drawn element and label of the score; the score's band order in `graphical.order` lays its markers band against its line above it and its conversion maps band against its line below it |
 | `locked_root.json` | a root of 16 quarters locked at construction, with a child `coda` of 4 quarters at 12 |
 | `segment_line.json` | a nested segment line of quarters: `form` (32) of the segments `a` (8), `b` (12) and `c` (12), each a segment line itself, `b` of `b1` and `b2` (6 each) |
 | `segment_pages.json` | an unlocked segment line `pages` of four pages of 1754 pixels |
@@ -128,9 +128,8 @@ fixtures are emitted first:
 
 Every generated manifest is in the complete form timetoalign writes:
 `name` is `null` when absent, every timeline states `number_type`,
-`locked` and `is_segment_line`, empty flow control contains `breaks`,
-`jumps`, and `markers`, and absent measure maps and metric hierarchies are
-`null`. Its minimal twin leaves all of these out. The children of these
+`locked` and `is_segment_line`, empty flow control is `[]`, and a
+manifest without measure maps writes `measure_maps` as `[]`. Its minimal twin leaves all of these out. The children of these
 fixtures are locked, as timetoalign embeds a child by default, except the
 segments: a segment is never locked, its segment line's lock governs it, so
 its `locked` is `false` and is left out of the minimal form. A segment line
@@ -172,33 +171,32 @@ specification, section 6.4):
 | `map_root_band_order.json` | the timelines of `map`, with such a band order for the root `melody` and none for `phrase`, which follows the order of `melody` band by band |
 | `styled_score_flow_inner.json` | `styled__score` with a band order whose flow control band lies nearer the line than its regions band |
 | `joint_rows.json` | a root `piece` of 16 quarters whose children `b` and `d` each hold a child holding one more, so that each depth's two lines share a row and their children bands are laid out together, at two depths; `b` carries one map, `d1` and `d11` two each |
-| `child_flow_control.json` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the break "Fine" at 4 and the jump "D.C. al Fine" from 8 back to 0, while the root holds no flow control |
+| `child_flow_control.json` | a root `piece` of 16 quarters whose child `verse` (8 at 4) holds a da capo al fine, the flow marker "Fine" at 4 and the jump origin "D.C. al Fine" at 8 back to 0, while the root holds no flow control |
 
 ## Coverage of groups and bundles
 
 Every builder writes its files; the constructed files are built first. The
 conversion maps of the constructed groups and bundles are of five kinds,
-each id minted and no name given: a map to ticks (`QuartersToTicks`, 480 per
-quarter), a tempo map to seconds (a `ScalarMap` of half a second per
-quarter), a map to samples (`SecondsToSamples`, 44100 per second), a map to
-seconds (`SamplesToSeconds`, 44100 per second) and a map to points (a
-`ScalarMap` of 3/4 of a point per pixel). A repeat is a jump labelled
-"Repeat" back to an earlier coordinate (`repeat_end`, `first_n`,
+each a `LinearMap`, each ID minted and no name given: a map to ticks (480
+per quarter), a tempo map to seconds (half a second per quarter), a map to
+samples (44100 per second), a map to seconds (1/44100 of a second per
+sample) and a map to points (3/4 of a point per pixel). A repeat is a jump
+origin labelled "Repeat" back to an earlier coordinate (`repeat_end`,
 `repeat_count` 1).
 
 | Builder | Construction |
 | --- | --- |
-| `group_number_types` | a group of three timelines whose axes have different number types (quarters as fractions, seconds as floats, pixels as integers), in a display order that differs from their id order |
+| `group_number_types` | a group of three timelines whose axes have different number types (quarters as fractions, seconds as floats, pixels as integers), in a display order that differs from their ID order |
 | `group_child_member` | a group of the second half of a score, a child of the score placed at its exact offset, with a whole recording |
-| `group_styled` | the group of `group_number_types` with conversion maps, a region, a jump and styling: the score has a map to ticks, the region "Theme" from 0 to 8 and a repeat from 8 back to 0, the performance a map to samples and the page a map to points; its `styles` and `statements` give every group frame the style `frame-highlight` (a violet stroke), fill the group's title `group_1/name` violet, and give every card inside a frame a light violet `shadow` and a corner radius `rx` of 2 |
+| `group_styled` | the group of `group_number_types` with conversion maps, a region, a jump origin and styling: the score has a map to ticks, the region "Theme" from 0 to 8 and a repeat from 8 back to 0, the performance a map to samples and the page a map to points; its `styles` and `statements` give every group frame the style `frame-highlight` (a violet stroke), fill the group's title `group_1/name` violet, and give every card inside a frame a light violet `shadow` and a corner radius `rx` of 2 |
 | `group_parent_right` | a child `first-half` (8 quarters at 0) of a piece of 16 quarters, with a whole recording; the piece runs on to the right of the member |
 | `group_parent_both` | as above with the child `middle` (8 quarters at 4); the piece runs on to both sides |
 | `group_parent_exact` | as above with the child `whole` (16 quarters at 0); the piece coincides with the member |
 | `group_parents_mixed` | three child members of different parents (an exposition of 32 quarters at 16 in a locked sonata of 48; a take of 25.5 seconds at 30.0 in a session of 90.0 seconds, with a map to samples; a system of 600 pixels at 0 in a page of 1754) and the root `audio` of 1323000 samples, with a map to seconds |
 | `group_grandchild` | a grandchild `theme` (8 quarters at 8 in a movement of 16 quarters at 16 in a score of 64) with a recording of 12.0 seconds |
 | `bundle_mixed` | the bundle "Mixed" of two groups, a score with its performance and a page with an excerpt (a child of a recording); `annotations` is ungrouped, and the recording, which no group names, contains the member `excerpt` and is drawn only as its ancestor line. The score has a map to ticks, then a tempo map to seconds, and a repeat from 8 back to 0; the performance a map to samples; the page a map to points; the excerpt a map to seconds; the recording a map to seconds, kept in the manifest and not drawn; `annotations` the regions "Verse" from 0 to 4 and "Chorus" from 4 to 12, and no map |
-| `bundle_shared_parent` | the bundle "Sonata" of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; a page is ungrouped, and the score, which no group names, contains both members and is drawn only as an ancestor line of each. Both children are segment lines: the exposition, with a map to ticks, of the segments "First theme" and "Second theme" of 6 quarters, the second with a tempo map to seconds; the recapitulation, with no map, of the segment lines "First theme" and "Second theme" of 6 quarters, each of the segments "Phrase 1" and "Phrase 2" of 3 quarters, and only its "Second theme" has a map to ticks. The take `take_1` is a segment line, with a map to samples, of "First theme" (14.0 seconds) and "Second theme" (16.0 seconds); the take `take_2` and the page carry no map. The score has a map to ticks, the region "Development" from 12 to 20 and a repeat from 12 back to 0, kept in the manifest and not drawn. A segment's id begins with its segment line's (`exposition_first`, `recapitulation_second_1`) |
-| `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the break "Fine" at 8 (`fine`, `after_dc_ds`) and the jump "D.C. al Fine" from 16 back to 0 (`da_capo_al_fine`, `after_first`, `repeat_count` 1); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
+| `bundle_shared_parent` | the bundle "Sonata" of two groups whose members are two children of one score (an exposition at 0 and a recapitulation at 20, 12 quarters each), each with a take; a page is ungrouped, and the score, which no group names, contains both members and is drawn only as an ancestor line of each. Both children are segment lines: the exposition, with a map to ticks, of the segments "First theme" and "Second theme" of 6 quarters, the second with a tempo map to seconds; the recapitulation, with no map, of the segment lines "First theme" and "Second theme" of 6 quarters, each of the segments "Phrase 1" and "Phrase 2" of 3 quarters, and only its "Second theme" has a map to ticks. The take `take_1` is a segment line, with a map to samples, of "First theme" (14.0 seconds) and "Second theme" (16.0 seconds); the take `take_2` and the page carry no map. The score has a map to ticks, the region "Development" from 12 to 20 and a repeat from 12 back to 0, kept in the manifest and not drawn. A segment's ID begins with its segment line's (`exposition_first`, `recapitulation_second_1`) |
+| `bundle_ungrouped` | the bundle "Sketches" of three ungrouped roots and no group: a score of 16 quarters with a map to ticks and a da capo al fine, the flow marker "Fine" at 8 (`fine`) and the jump origin "D.C. al Fine" at 16 back to 0 (`da_capo_al_fine`); a recording with a map to seconds; and an unlocked segment line, with a map to points, of three pages of 1754 pixels that carry none |
 
 The corpus builders, prefixed `corpus_`, write the groups and bundles that
 public timetoalign loaders create from corpus specimens: the group of a
@@ -234,11 +232,11 @@ segment line carries a map only in `bundle_shared_parent`.
 | regions on an ungrouped root | `annotations` of `bundle_mixed` |
 | a map, children, a region and flow control on one timeline | `score` of `styled__score` |
 | a map, a region and flow control on a root that contains group members and is drawn only as an ancestor line of each, kept in the manifest and not drawn | `score` of `bundle_shared_parent` |
-| a break and a jump together | `score` of `bundle_ungrouped` |
+| a flow marker and a jump origin together | `score` of `bundle_ungrouped` |
 | a map, a region and flow control inside a styled frame | `score` of `group_styled` |
 | a region on a child | `movement` of `unknown_length_child` |
 | regions on segments without a line of their own, joining their segment line's regions band | `a` and `c` of `unknown_length_segments` |
-| a break and a jump on a child, its root holding none | `verse` of `child_flow_control` |
+| a flow marker and a jump origin on a child, its root holding none | `verse` of `child_flow_control` |
 
 The defaults hide the markers, regions and flow control bands of every
 timeline held by a band, every timeline of a member drawing but its root
@@ -272,8 +270,8 @@ scale 2 (`nested__scale-2`); `bundle_mixed` with the places `{group_2: {x:
 performance: {width: 650, height: 120}}` (`bundle_mixed__cards`), with
 the frame spacing `{group_1: {spacing: 16}}`, the gap between the frame's
 two cards (`bundle_mixed__frame-spacing-16`), and with the card spacing
-`{score: {spacing: 8}}` of a member card, which deepens `score`'s jump
-(`bundle_mixed__member-card-spacing-8`);
+`{score: {spacing: 8}}` of a member card, which deepens the arc of
+`score`'s jump origin (`bundle_mixed__member-card-spacing-8`);
 `bundle_ungrouped` with the place `{score: {x: -60, y: -150, height: 120}}`
 (`bundle_ungrouped__places`), with the place `{recording: {scale: 1.5}}`
 (`bundle_ungrouped__scale`) and with the box's spacing 24 and the card
@@ -335,20 +333,21 @@ code with the case's. The cases cover every code:
 | --- | --- | --- |
 | `not_a_manifest` | the value is an object holding `timeskeleton` | `root_missing_marker` |
 | `finite_number` | every number is finite | `infinite_length`, `nan_offset` |
-| `schema` | the schema document | 49 cases named after the member they break: units and number types, lengths and offsets, ids, conversion maps, flow control, measure maps, metric hierarchies, groups, `graphical` selectors, declarations and `order` |
-| `representation` | an own-axis value is written in its axis's number type, and a fraction pair holds two integers | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis`, `length_fraction_integral_float` |
-| `duplicate_id` | ids unique within a root's tree; timeline and group ids unique together | `id_duplicate_across_kinds`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id` |
-| `dangling_target` | a jump's target names a marker of its own timeline | `jump_target_dangling`, `timelines_root_jump_target_dangling` |
+| `schema` | the schema document | 54 cases named after the member they break: units and number types, lengths and offsets (a Fraction member with a fractional part, `length_fraction_member_not_integral`, among them), IDs, conversion maps, flow control, measure maps, groups, `graphical` selectors, declarations and `order` |
+| `representation` | an own-axis value can be read as its axis's number type, however it is spelled | `length_int_on_fraction_axis`, `length_fraction_on_int_axis`, `length_float_on_int_axis`, `float_axis_int_not_exact`, `region_start_float_on_fraction_axis`, `child_offset_fraction_on_float_axis` |
+| `duplicate_id` | IDs unique within a root's tree; timeline, group and measure-map IDs unique together | `id_duplicate_across_kinds`, `timelines_id_duplicate_across_roots`, `timelines_child_id_duplicate_across_roots`, `group_id_duplicate`, `group_id_is_timeline_id`, `group_id_is_descendant_id`, `measure_map_id_is_timeline_id` |
+| `dangling_target` | a jump origin's target names a jump target of its own timeline, a measure view's `measure_map` an entry of `measure_maps` | `jump_target_flow_marker`, `timelines_root_jump_target_dangling`, `measure_view_dangling` |
+| `conversion_map` | a `TableMap`'s x and y values agree in length and its x values increase strictly; a `PiecewiseMap` has one map fewer than breaks, and its breaks increase strictly | `table_map_lengths_differ`, `table_map_x_not_increasing`, `piecewise_map_maps_count`, `piecewise_map_breaks_not_increasing` |
 | `child_unit` | a child has its parent's unit | `child_unit_differs` |
 | `child_offset` | a child starts within its parent's known length | `child_offset_beyond_parent` |
 | `child_end` | a child ends within its parent's known length | `child_end_beyond_parent` |
 | `segment_line` | segments run contiguously from 0 to the line's length, with one `is_segment_line` value | `segment_line_not_from_zero`, `segment_line_gap`, `segment_line_gap_in_later_root`, `segment_line_short_of_length`, `segment_line_segment_flag` |
-| `reserved_id` | the part words and the band ids are no id | `part_word_timeline_id`, `part_word_region_card`, `part_word_region_label`, `part_word_one_root`, `band_id_region` |
-| `manifest_id` | the manifest's id is no timeline or group id | `manifest_id_is_group_id`, `manifest_id_is_descendant_id` |
+| `reserved_id` | the part words and the band IDs are no ID | `part_word_timeline_id`, `part_word_region_card`, `part_word_region_label`, `part_word_one_root`, `band_id_region` |
+| `manifest_id` | the manifest's ID is no timeline, group or measure-map ID | `manifest_id_is_group_id`, `manifest_id_is_descendant_id`, `manifest_id_is_measure_map_id` |
 | `group_member` | a member names a timeline, lies in one group, and neither contains nor lies inside another member of its group | `member_dangling`, `member_in_two_groups`, `members_contain_member`, `members_inside_member` |
 | `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |
 | `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |
-| `band_order` | a band order is a permutation of its timeline's id and five bands | `band_order_unknown_entry`, `band_order_missing_band` |
+| `band_order` | a band order is a permutation of its timeline's ID and five bands | `band_order_unknown_entry`, `band_order_missing_band` |
 
 `version_unknown` names another version; its `code` is `null` and its
 `"error": "UnsupportedVersionError"` names the error both packages raise
