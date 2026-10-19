@@ -3,6 +3,7 @@
   "error": "UnsupportedVersionError",
   "manifest": {
     "groups": [],
+    "measure_maps": [],
     "meta": {},
     "name": null,
     "timelines": [
@@ -66,9 +67,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": "Flow control",
         "number_type": "fraction",
         "regions": [],

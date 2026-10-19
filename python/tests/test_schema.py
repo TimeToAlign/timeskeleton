@@ -24,8 +24,28 @@ PUBLIC = [
     "TimeUnit",
     "NumberType",
     "Id",
+    "MeasureMap",
     "MeasureMapRow",
 ]
+
+MAP_TYPES = [
+    "ChainMap",
+    "CombinationMap",
+    "ConstantMap",
+    "FloatingMeasureMap",
+    "LinearMap",
+    "MeasureBeatMap",
+    "MeasureNumberMap",
+    "MeasureRecordMap",
+    "PiecewiseMap",
+    "TableMap",
+]
+MEASURE_VIEWS = {
+    "FloatingMeasureMap": "floating_measures",
+    "MeasureBeatMap": None,
+    "MeasureNumberMap": None,
+    "MeasureRecordMap": None,
+}
 
 
 def _defs() -> dict[str, Any]:
@@ -117,6 +137,30 @@ def test_the_public_definitions() -> None:
         assert gone not in defs
 
 
+def test_the_ten_map_types() -> None:
+    defs = _defs()
+    assert _map_types() == MAP_TYPES
+    classes = defs["Selector"]["properties"]["class"]["enum"]
+    assert classes == [
+        "ContinuousLogicalTimeline",
+        "ContinuousPhysicalTimeline",
+        "ContinuousGraphicalTimeline",
+        "DiscreteLogicalTimeline",
+        "DiscretePhysicalTimeline",
+        "DiscreteGraphicalTimeline",
+        *MAP_TYPES,
+        "markers",
+        "conversion_maps",
+        "children",
+        "regions",
+        "flow_control",
+    ]
+    for name, target in MEASURE_VIEWS.items():
+        properties = defs[name]["properties"]
+        assert properties["source_unit"]["const"] == "quarters", name
+        assert properties["target_unit"]["const"] == target, name
+
+
 def test_the_unit_table_states_the_default_number_types() -> None:
     unit = _defs()["TimeUnit"]
     assert unit["type"] == "string"
@@ -148,11 +192,28 @@ def test_repeated_shapes_are_shared_definitions() -> None:
     }
     names = [
         defs[owner]["properties"]["name"]
-        for owner in ("TimeSkeleton", "Timeline", "Group", "Region", "Break", "Marker")
-    ] + [defs["MapBase"]["properties"]["name"]]
+        for owner in (
+            "TimeSkeleton",
+            "Timeline",
+            "Group",
+            "Region",
+            "Break",
+            "Marker",
+            "MeasureMap",
+            "MapBase",
+        )
+    ]
     metas = [
         defs[owner]["properties"]["meta"]
-        for owner in ("TimeSkeleton", "Timeline", "Group", "Region", "Break", "Jump")
+        for owner in (
+            "TimeSkeleton",
+            "Timeline",
+            "Group",
+            "Region",
+            "Break",
+            "Jump",
+            "MeasureMap",
+        )
     ]
     for node in names:
         assert node["$ref"] == "#/$defs/Name"
@@ -182,7 +243,10 @@ def test_every_conversion_map_extends_the_map_base() -> None:
         assert definition["type"] == "object"
         assert definition["allOf"] == [{"$ref": "#/$defs/MapBase"}]
         own = set(definition["properties"]) & set(base["properties"])
-        assert own == {"type"}, name
+        units = {"source_unit", "target_unit"} if name in MEASURE_VIEWS else set()
+        assert own == {"type"} | units, name
+        for key in units:
+            assert "const" in definition["properties"][key], name
         assert definition["properties"]["type"] == {"const": name}
         assert "type" in definition["required"]
         assert not set(definition["required"]) & {"id", "source_unit", "target_unit"}
@@ -197,12 +261,8 @@ def test_references_are_ids_and_addresses() -> None:
         {"$ref": "#/$defs/Id"},
         {"type": "null"},
     ]
-    for owner, key in (
-        ("InterpolationMap", "source_id"),
-        ("InterpolationMap", "target_id"),
-        ("MetricalPositionMap", "beat_map_id"),
-    ):
-        assert defs[owner]["properties"][key]["$ref"] == "#/$defs/Id"
+    for owner in MEASURE_VIEWS:
+        assert defs[owner]["properties"]["measure_map"]["$ref"] == "#/$defs/Id"
     address = Draft202012Validator({"$ref": "#/$defs/Address", "$defs": defs})
     for accepted in ("score", "score/regions_1", "score/region_1/label", "a b/c"):
         assert address.is_valid(accepted), accepted
@@ -216,12 +276,9 @@ def test_objects_are_open_without_a_custom_keyword() -> None:
     assert not [node for node, _ in nodes if node.get("additionalProperties") is False]
     assert not [node for node, _ in nodes if "unevaluatedProperties" in node]
     assert not _custom_keys(load_schema())
-    for name in ["Meta"]:
-        assert defs[name]["additionalProperties"] is True
-        assert "properties" not in defs[name]
-    hierarchy = defs["Timeline"]["properties"]["metric_hierarchy"]
-    assert hierarchy["additionalProperties"] is True
-    assert "properties" not in hierarchy
+    free = [node for node, _ in nodes if node.get("additionalProperties") is True]
+    assert free == [defs["Meta"]]
+    assert "properties" not in defs["Meta"]
 
 
 def test_every_object_declares_what_its_branches_declare() -> None:
@@ -276,16 +333,21 @@ def test_the_defaults_are_the_table() -> None:
         "break": ["Break"],
         "jump": ["Jump"],
         "marker": ["Marker"],
-        "conversion_map": _map_types(),
+        "measure_map": ["MeasureMap"],
         "group": ["Group"],
         "graphical": ["Graphical"],
     }
-    assert sorted(kinds) == sorted(DEFAULTS)
+    own = {"LinearMap": "linear_map", "TableMap": "table_map"}
+    assert sorted([*kinds, "conversion_map", *own.values()]) == sorted(DEFAULTS)
     covered = {"MapBase"}
     for kind, names in kinds.items():
         for name in names:
             covered.add(name)
             assert _defaults(defs[name]) == DEFAULTS[kind], name
+    for name in _map_types():
+        covered.add(name)
+        expected = DEFAULTS["conversion_map"] | DEFAULTS.get(own.get(name, ""), {})
+        assert _defaults(defs[name]) == expected, name
     for name, definition in defs.items():
         if name not in covered:
             assert _defaults(definition) == {}, name

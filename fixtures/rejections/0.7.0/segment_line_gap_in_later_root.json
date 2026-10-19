@@ -24,6 +24,7 @@
         "name": "Second half"
       }
     ],
+    "measure_maps": [],
     "meta": {},
     "name": null,
     "timelines": [
@@ -44,9 +45,7 @@
               1
             ],
             "locked": false,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
             "offset": [
@@ -70,9 +69,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],
@@ -93,9 +90,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],
@@ -118,9 +113,7 @@
               1
             ],
             "locked": false,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
             "offset": [
@@ -145,9 +138,7 @@
               1
             ],
             "locked": false,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
             "offset": [
@@ -171,9 +162,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": "Bare",
         "number_type": "fraction",
         "regions": [],

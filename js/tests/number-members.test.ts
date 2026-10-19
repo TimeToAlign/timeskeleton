@@ -56,9 +56,16 @@ function schemaFacts(): { number: string[]; nested: string[] } {
     for (const [key, memberValue] of Object.entries(properties)) {
       const member = object(memberValue) as Node;
       const directReference = referenceName(member);
+      const branchReferences = ((member.anyOf ?? []) as unknown[]).map(referenceName);
       const itemReference = referenceName(member.items);
       const additionalReference = referenceName(member.additionalProperties);
-      if (directReference !== undefined && numberDefinitions.has(directReference)) {
+      const branchHoldsNumber = branchReferences.some(
+        (reference) => reference !== undefined && numberDefinitions.has(reference),
+      );
+      if (
+        (directReference !== undefined && numberDefinitions.has(directReference)) ||
+        branchHoldsNumber
+      ) {
         number.push(`${mapName}.values.${key}`);
       }
       if (

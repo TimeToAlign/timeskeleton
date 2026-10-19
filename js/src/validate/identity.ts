@@ -7,6 +7,7 @@ import {
   SchemaValidationError,
   text,
 } from "./diagnostics.js";
+import { MEASURE_VIEWS, timelineMapProblems, timelineMaps } from "./maps.js";
 import { orderProblems } from "./order.js";
 import { timelineSegmentProblems } from "./segments.js";
 
@@ -43,6 +44,7 @@ function* timelineIds(
 function* danglingTargets(
   timeline: JsonObject,
   path: readonly PathSegment[],
+  measureMaps: ReadonlySet<string>,
 ): Generator<SchemaValidationError> {
   const flow = timeline.flow_control;
   const markers = new Set(entries(flow, "markers").map((marker) => marker.id));
@@ -56,8 +58,18 @@ function* danglingTargets(
       );
     }
   }
+  for (const [map, at] of timelineMaps(timeline, path)) {
+    const reference = map.measure_map;
+    if (MEASURE_VIEWS.has(text(map, "type")) && !measureMaps.has(reference as string)) {
+      yield new SchemaValidationError(
+        "dangling_target",
+        [...at, "measure_map"],
+        `${JSON.stringify(reference)} names no measure map of this manifest`,
+      );
+    }
+  }
   for (const [index, child] of entries(timeline, "children").entries()) {
-    yield* danglingTargets(child, [...path, "children", index]);
+    yield* danglingTargets(child, [...path, "children", index], measureMaps);
   }
 }
 
@@ -77,6 +89,7 @@ function duplicate(
 function* rootProblems(
   root: JsonObject,
   path: readonly PathSegment[],
+  measureMaps: ReadonlySet<string>,
 ): Generator<SchemaValidationError> {
   const first = new Map<string, PathSegment[]>();
   for (const [id, at] of elementIds(root, path)) {
@@ -84,7 +97,8 @@ function* rootProblems(
     if (earlier === undefined) first.set(id, at);
     else yield duplicate(id, at, earlier);
   }
-  yield* danglingTargets(root, path);
+  yield* danglingTargets(root, path, measureMaps);
+  yield* timelineMapProblems(root, path);
   yield* timelineContainmentProblems(root, path);
   yield* timelineSegmentProblems(root, path);
 }
@@ -188,15 +202,17 @@ function* memberProblems(
 /**
  * Yield semantic problems in the public identity order.
  *
- * Root by root: duplicates, dangling targets, containment and segment lines;
- * then reserved ids, cross-root timeline ids, group ids, the manifest id,
- * group members, and graphical orders.
+ * Root by root: duplicates, dangling targets, conversion maps, containment
+ * and segment lines; then reserved ids, cross-root timeline ids, group ids,
+ * measure-map ids, the manifest id, group members, and graphical orders.
  */
 export function* identityProblems(manifest: JsonObject): Generator<SchemaValidationError> {
   const roots = entries(manifest, "timelines");
   const groups = entries(manifest, "groups");
+  const measureMaps = entries(manifest, "measure_maps");
+  const measureMapIds = new Set(measureMaps.map((measureMap) => text(measureMap, "id")));
   for (const [index, root] of roots.entries()) {
-    yield* rootProblems(root, ["timelines", index]);
+    yield* rootProblems(root, ["timelines", index], measureMapIds);
   }
 
   const manifestId = typeof manifest.id === "string" ? manifest.id : null;
@@ -206,6 +222,9 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   }
   for (const [index, group] of groups.entries()) {
     yield* reserved(text(group, "id"), ["groups", index, "id"]);
+  }
+  for (const [index, measureMap] of measureMaps.entries()) {
+    yield* reserved(text(measureMap, "id"), ["measure_maps", index, "id"]);
   }
 
   const timelines = new Map<string, PathSegment[]>();
@@ -231,11 +250,26 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
     if (earlier === undefined) firstGroup.set(id, index);
   }
 
+  const firstMeasureMap = new Map<string, number>();
+  for (const [index, measureMap] of measureMaps.entries()) {
+    const id = text(measureMap, "id");
+    const path = ["measure_maps", index, "id"];
+    const timeline = timelines.get(id);
+    const group = firstGroup.get(id);
+    const earlier = firstMeasureMap.get(id);
+    if (timeline !== undefined) yield duplicate(id, path, timeline);
+    else if (group !== undefined) yield duplicate(id, path, ["groups", group, "id"]);
+    else if (earlier !== undefined) yield duplicate(id, path, ["measure_maps", earlier, "id"]);
+    if (earlier === undefined) firstMeasureMap.set(id, index);
+  }
+
   if (manifestId !== null) {
     const groupIndex = firstGroup.get(manifestId);
+    const measureMapIndex = firstMeasureMap.get(manifestId);
     const first =
       timelines.get(manifestId) ??
-      (groupIndex === undefined ? undefined : ["groups", groupIndex, "id"]);
+      (groupIndex === undefined ? undefined : ["groups", groupIndex, "id"]) ??
+      (measureMapIndex === undefined ? undefined : ["measure_maps", measureMapIndex, "id"]);
     if (first !== undefined) yield duplicate(manifestId, ["id"], first, "manifest_id");
   }
 

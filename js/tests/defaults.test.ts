@@ -29,6 +29,7 @@ describe("the complete and the minimal form", () => {
       name: null,
       meta: {},
       groups: [],
+      measure_maps: [],
       timelines: [
         {
           id: "piece",
@@ -43,8 +44,6 @@ describe("the complete and the minimal form", () => {
           conversion_maps: [],
           regions: [],
           flow_control: EMPTY_FLOW,
-          measure_map: null,
-          metric_hierarchy: null,
         },
       ],
     });
@@ -52,17 +51,26 @@ describe("the complete and the minimal form", () => {
   });
 
   it("gives every object exactly its defaults", () => {
-    const shift = { type: "ShiftMap", id: "s", source_unit: null, target_unit: null, offset: 1 };
-    const metric = {
-      type: "MetricMap",
-      id: "mm",
-      source_unit: null,
-      target_unit: null,
-      starts: [],
-      mcs: [],
-      mns: [],
-      lengths: [],
+    const linear = { type: "LinearMap", id: "s", source_unit: null, target_unit: null };
+    const table = {
+      type: "TableMap",
+      id: "t",
+      source_unit: "quarters",
+      target_unit: "seconds",
+      x_values: [
+        [0, 1],
+        [4, 1],
+      ],
+      y_values: [0.5, 2.5],
     };
+    const view = {
+      type: "MeasureNumberMap",
+      id: "bar",
+      source_unit: "quarters",
+      target_unit: null,
+      measure_map: "bars",
+    };
+    const rows = [{ count: 1, qstamp: [0, 1], actual_length: [4, 1] }];
     const value = complete(
       manifest(
         [
@@ -79,27 +87,34 @@ describe("the complete and the minimal form", () => {
                 id: "chain",
                 source_unit: null,
                 target_unit: null,
-                maps: [shift],
+                maps: [linear],
               },
               {
                 type: "CombinationMap",
                 id: "combo",
                 source_unit: null,
                 target_unit: null,
-                maps: { x: { ...shift, id: "x" } },
-                names: ["x"],
+                maps: { x: { ...linear, id: "x" }, bar: view },
               },
               {
-                type: "BeatInMeasureMap",
-                id: "bim",
-                source_unit: null,
-                target_unit: null,
-                meter_map: metric,
+                type: "PiecewiseMap",
+                id: "pieces",
+                source_unit: "quarters",
+                target_unit: "seconds",
+                breaks: [
+                  [0, 1],
+                  [4, 1],
+                ],
+                maps: [table],
               },
             ],
           }),
         ],
-        { groups: [{ id: "g", members: ["score"] }], graphical: {} },
+        {
+          groups: [{ id: "g", members: ["score"] }],
+          measure_maps: [{ id: "bars", rows }],
+          graphical: {},
+        },
       ),
     );
     const done = root(value);
@@ -133,14 +148,28 @@ describe("the complete and the minimal form", () => {
       meta: {},
     });
     expect(flow.markers?.[0]).toEqual({ id: "m", coordinate: [0, 1], name: null });
-    const [chain, combo, bim] = done.conversion_maps as [JsonObject, JsonObject, JsonObject];
-    expect(chain.name).toBeNull();
-    expect((chain.maps as JsonObject[])[0]?.name).toBeNull();
+    const [chain, combo, pieces] = done.conversion_maps as [JsonObject, JsonObject, JsonObject];
+    expect(chain).toEqual({
+      type: "ChainMap",
+      id: "chain",
+      source_unit: null,
+      target_unit: null,
+      name: null,
+      maps: [{ ...linear, name: null, scalar: 1, offset: 0 }],
+    });
     expect(combo.name).toBeNull();
-    expect(((combo.maps as JsonObject).x as JsonObject).name).toBeNull();
-    expect(bim.name).toBeNull();
-    expect((bim.meter_map as JsonObject).name).toBeNull();
+    expect((combo.maps as JsonObject).x).toEqual({
+      ...linear,
+      id: "x",
+      name: null,
+      scalar: 1,
+      offset: 0,
+    });
+    expect((combo.maps as JsonObject).bar).toEqual({ ...view, name: null });
+    expect(pieces.name).toBeNull();
+    expect(pieces.maps).toEqual([{ ...table, name: null, kind: "linear", extrapolate: "none" }]);
     expect(value.groups).toEqual([{ id: "g", members: ["score"], name: null, meta: {} }]);
+    expect(value.measure_maps).toEqual([{ id: "bars", rows, name: null, meta: {} }]);
     expect(value.graphical).toEqual({ styles: {}, statements: [], order: {} });
     validate(value);
   });
@@ -195,6 +224,16 @@ describe("the complete and the minimal form", () => {
     const value = manifest([
       timeline("score", "quarters", [8, 1], {
         flow_control: { breaks: [{ id: "b", coordinate: [1, 1], repeat_count: new JsonFloat(1) }] },
+        conversion_maps: [
+          {
+            type: "LinearMap",
+            id: "l",
+            source_unit: "quarters",
+            target_unit: "seconds",
+            scalar: [1, 1],
+            offset: new JsonFloat(0),
+          },
+        ],
       }),
     ]);
     expect(dumps(minimal(value))).toBe(dumps(value));
@@ -306,14 +345,13 @@ describe("the typed forms", () => {
     conversion_maps: [],
     regions: [],
     flow_control: { breaks: [], jumps: [], markers: [] },
-    measure_map: null,
-    metric_hierarchy: null,
   };
   const COMPLETE: CompleteTimeSkeleton = {
     timeskeleton: "0.7.0",
     name: null,
     meta: {},
     groups: [],
+    measure_maps: [],
     timelines: [COMPLETE_ROOT],
   };
 

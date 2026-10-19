@@ -22,6 +22,7 @@ def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
         "name": None,
         "meta": {},
         "groups": [],
+        "measure_maps": [],
         "timelines": [
             {
                 "id": "piece",
@@ -36,8 +37,6 @@ def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
                 "conversion_maps": [],
                 "regions": [],
                 "flow_control": EMPTY_FLOW,
-                "measure_map": None,
-                "metric_hierarchy": None,
             }
         ],
     }
@@ -45,22 +44,26 @@ def test_the_smallest_file_completes_to_the_literal_complete_form() -> None:
 
 
 def test_every_object_gains_exactly_its_defaults() -> None:
-    shift = {
-        "type": "ShiftMap",
+    linear = {
+        "type": "LinearMap",
         "id": "s",
         "source_unit": None,
         "target_unit": None,
-        "offset": 1,
     }
-    metric = {
-        "type": "MetricMap",
-        "id": "mm",
-        "source_unit": None,
+    table = {
+        "type": "TableMap",
+        "id": "t",
+        "source_unit": "quarters",
+        "target_unit": "seconds",
+        "x_values": [[0, 1], [4, 1]],
+        "y_values": [0.0, 2.0],
+    }
+    view = {
+        "type": "MeasureNumberMap",
+        "id": "bar",
+        "source_unit": "quarters",
         "target_unit": None,
-        "starts": [],
-        "mcs": [],
-        "mns": [],
-        "lengths": [],
+        "measure_map": "bars",
     }
     root = timeline(
         "score",
@@ -76,27 +79,33 @@ def test_every_object_gains_exactly_its_defaults() -> None:
                 "id": "chain",
                 "source_unit": None,
                 "target_unit": None,
-                "maps": [shift],
+                "maps": [linear],
             },
             {
                 "type": "CombinationMap",
                 "id": "combo",
                 "source_unit": None,
                 "target_unit": None,
-                "maps": {"x": {**shift, "id": "x"}},
-                "names": ["x"],
+                "maps": {"x": {**linear, "id": "x"}, "bar": view},
             },
             {
-                "type": "BeatInMeasureMap",
-                "id": "bim",
-                "source_unit": None,
-                "target_unit": None,
-                "meter_map": metric,
+                "type": "PiecewiseMap",
+                "id": "pieces",
+                "source_unit": "quarters",
+                "target_unit": "seconds",
+                "breaks": [[0, 1], [4, 1]],
+                "maps": [table],
             },
         ],
     )
+    rows = [{"count": 1, "qstamp": [0, 1], "actual_length": [4, 1]}]
     value = complete(
-        manifest(root, groups=[{"id": "g", "members": ["score"]}], graphical={})
+        manifest(
+            root,
+            groups=[{"id": "g", "members": ["score"]}],
+            measure_maps=[{"id": "bars", "rows": rows}],
+            graphical={},
+        )
     )
     done = value["timelines"][0]
     assert done["regions"][0] == {
@@ -129,12 +138,33 @@ def test_every_object_gains_exactly_its_defaults() -> None:
         "meta": {},
     }
     assert flow["markers"][0] == {"id": "m", "coordinate": [0, 1], "name": None}
-    chain, combo, bim = done["conversion_maps"]
-    assert chain["name"] is None and chain["maps"][0]["name"] is None
-    assert combo["name"] is None and combo["maps"]["x"]["name"] is None
-    assert bim["name"] is None and bim["meter_map"]["name"] is None
+    chain, combo, pieces = done["conversion_maps"]
+    assert chain == {
+        "type": "ChainMap",
+        "id": "chain",
+        "source_unit": None,
+        "target_unit": None,
+        "name": None,
+        "maps": [{**linear, "name": None, "scalar": 1, "offset": 0}],
+    }
+    assert combo["name"] is None
+    assert combo["maps"]["x"] == {
+        **linear,
+        "id": "x",
+        "name": None,
+        "scalar": 1,
+        "offset": 0,
+    }
+    assert combo["maps"]["bar"] == {**view, "name": None}
+    assert pieces["name"] is None
+    assert pieces["maps"] == [
+        {**table, "name": None, "kind": "linear", "extrapolate": "none"}
+    ]
     assert value["groups"] == [
         {"id": "g", "members": ["score"], "name": None, "meta": {}}
+    ]
+    assert value["measure_maps"] == [
+        {"id": "bars", "rows": rows, "name": None, "meta": {}}
     ]
     assert value["graphical"] == {"styles": {}, "statements": [], "order": {}}
     validate(value)
@@ -203,6 +233,16 @@ def test_a_value_of_another_type_is_not_the_default() -> None:
             flow_control={
                 "breaks": [{"id": "b", "coordinate": [1, 1], "repeat_count": 1.0}]
             },
+            conversion_maps=[
+                {
+                    "type": "LinearMap",
+                    "id": "l",
+                    "source_unit": "quarters",
+                    "target_unit": "seconds",
+                    "scalar": [1, 1],
+                    "offset": 0.0,
+                }
+            ],
         )
     )
     assert dumps(minimal(value)) == dumps(value)

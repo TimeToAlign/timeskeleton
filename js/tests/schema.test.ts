@@ -19,8 +19,29 @@ const PUBLIC = [
   "TimeUnit",
   "NumberType",
   "Id",
+  "MeasureMap",
   "MeasureMapRow",
 ];
+
+const MAP_TYPES = [
+  "ChainMap",
+  "CombinationMap",
+  "ConstantMap",
+  "FloatingMeasureMap",
+  "LinearMap",
+  "MeasureBeatMap",
+  "MeasureNumberMap",
+  "MeasureRecordMap",
+  "PiecewiseMap",
+  "TableMap",
+];
+
+const MEASURE_VIEWS: Readonly<Record<string, string | null>> = {
+  FloatingMeasureMap: "floating_measures",
+  MeasureBeatMap: null,
+  MeasureNumberMap: null,
+  MeasureRecordMap: null,
+};
 
 const document: Node = schema;
 const defs = document.$defs as Record<string, Node>;
@@ -107,6 +128,28 @@ describe("the schema document", () => {
     }
   });
 
+  it("chooses between the ten map types", () => {
+    expect(mapTypes).toEqual(MAP_TYPES);
+    expect(properties("Selector").class?.enum).toEqual([
+      "ContinuousLogicalTimeline",
+      "ContinuousPhysicalTimeline",
+      "ContinuousGraphicalTimeline",
+      "DiscreteLogicalTimeline",
+      "DiscretePhysicalTimeline",
+      "DiscreteGraphicalTimeline",
+      ...MAP_TYPES,
+      "markers",
+      "conversion_maps",
+      "children",
+      "regions",
+      "flow_control",
+    ]);
+    for (const [name, unit] of Object.entries(MEASURE_VIEWS)) {
+      expect(properties(name).source_unit?.const, name).toBe("quarters");
+      expect(properties(name).target_unit?.const, name).toBe(unit);
+    }
+  });
+
   it("states the default number type of every unit in the unit table", () => {
     const unit = defs.TimeUnit as Node;
     expect(unit.type).toBe("string");
@@ -134,9 +177,18 @@ describe("the schema document", () => {
       description: "Free-form metadata.",
       default: {},
     });
-    const names = ["TimeSkeleton", "Timeline", "Group", "Region", "Break", "Marker", "MapBase"];
+    const names = [
+      "TimeSkeleton",
+      "Timeline",
+      "Group",
+      "Region",
+      "Break",
+      "Marker",
+      "MeasureMap",
+      "MapBase",
+    ];
     for (const owner of names) expect(properties(owner).name?.$ref).toBe("#/$defs/Name");
-    const metas = ["TimeSkeleton", "Timeline", "Group", "Region", "Break", "Jump"];
+    const metas = ["TimeSkeleton", "Timeline", "Group", "Region", "Break", "Jump", "MeasureMap"];
     for (const owner of metas) expect(properties(owner).meta?.$ref).toBe("#/$defs/Meta");
     for (const [node] of nodes(document)) {
       const members = (node.properties ?? {}) as Record<string, Node>;
@@ -157,7 +209,9 @@ describe("the schema document", () => {
       const own = Object.keys(definition.properties as Node).filter((key) =>
         baseKeys.includes(key),
       );
-      expect(own, name).toEqual(["type"]);
+      const units = name in MEASURE_VIEWS ? ["source_unit", "target_unit"] : [];
+      expect(own, name).toEqual(["type", ...units]);
+      for (const key of units) expect(properties(name)[key], name).toHaveProperty("const");
       expect(properties(name).type).toEqual({ const: name });
       const required = definition.required as string[];
       expect(required).toContain("type");
@@ -170,12 +224,8 @@ describe("the schema document", () => {
     expect(selector.within?.$ref).toBe("#/$defs/Id");
     expect(selector.ids?.items).toEqual({ $ref: "#/$defs/Address" });
     expect(properties("Jump").target?.anyOf).toEqual([{ $ref: "#/$defs/Id" }, { type: "null" }]);
-    for (const [owner, key] of [
-      ["InterpolationMap", "source_id"],
-      ["InterpolationMap", "target_id"],
-      ["MetricalPositionMap", "beat_map_id"],
-    ] as const) {
-      expect(properties(owner)[key]?.$ref).toBe("#/$defs/Id");
+    for (const owner of Object.keys(MEASURE_VIEWS)) {
+      expect(properties(owner).measure_map?.$ref).toBe("#/$defs/Id");
     }
     const address = new Ajv2020({ strict: false }).compile({
       $ref: "#/$defs/Address",
@@ -194,10 +244,8 @@ describe("the schema document", () => {
     expect(all.filter((node) => node.additionalProperties === false)).toEqual([]);
     expect(all.filter((node) => "unevaluatedProperties" in node)).toEqual([]);
     expect(customKeys(document)).toEqual([]);
-    for (const node of [defs.Meta, properties("Timeline").metric_hierarchy]) {
-      expect(node?.additionalProperties).toBe(true);
-      expect(node?.properties).toBeUndefined();
-    }
+    expect(all.filter((node) => node.additionalProperties === true)).toEqual([defs.Meta]);
+    expect(defs.Meta?.properties).toBeUndefined();
   });
 
   it("declares on every object what its branches and arms declare", () => {
@@ -240,7 +288,8 @@ describe("the schema document", () => {
   });
 
   it("declares the defaults of the table and no other", () => {
-    const kinds: Record<keyof typeof DEFAULTS, string[]> = {
+    type Kind = keyof typeof DEFAULTS;
+    const kinds: Partial<Record<Kind, string[]>> = {
       manifest: ["TimeSkeleton"],
       timeline: ["Timeline"],
       flow_control: ["FlowControl"],
@@ -248,19 +297,28 @@ describe("the schema document", () => {
       break: ["Break"],
       jump: ["Jump"],
       marker: ["Marker"],
-      conversion_map: mapTypes,
+      measure_map: ["MeasureMap"],
       group: ["Group"],
       graphical: ["Graphical"],
     };
-    expect(Object.keys(kinds).sort()).toEqual(Object.keys(DEFAULTS).sort());
+    const own: Readonly<Record<string, Kind>> = { LinearMap: "linear_map", TableMap: "table_map" };
+    expect([...Object.keys(kinds), "conversion_map", ...Object.values(own)].sort()).toEqual(
+      Object.keys(DEFAULTS).sort(),
+    );
     const covered = new Set<string>(["MapBase"]);
     for (const [kind, names] of Object.entries(kinds)) {
       for (const name of names) {
         covered.add(name);
-        expect(defaultsOf(defs[name] as Node), name).toEqual(
-          DEFAULTS[kind as keyof typeof DEFAULTS],
-        );
+        expect(defaultsOf(defs[name] as Node), name).toEqual(DEFAULTS[kind as Kind]);
       }
+    }
+    for (const name of mapTypes) {
+      covered.add(name);
+      const added = Object.hasOwn(own, name) ? DEFAULTS[own[name] as Kind] : {};
+      expect(defaultsOf(defs[name] as Node), name).toEqual({
+        ...DEFAULTS.conversion_map,
+        ...added,
+      });
     }
     for (const [name, definition] of Object.entries(defs)) {
       if (!covered.has(name)) expect(defaultsOf(definition), name).toEqual({});

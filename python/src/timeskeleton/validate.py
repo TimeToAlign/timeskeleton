@@ -362,8 +362,8 @@ def unknown_keys(value: Mapping[str, Any]) -> list[dict[str, Any]]:
 def identity_problems(value: Mapping[str, Any]) -> list[SchemaValidationError]:
     """Return all semantic violations in the established identity order.
 
-    Root by root: duplicates, dangling targets, containment and segment lines;
-    then reserved ids, cross-root timeline ids, group ids, the manifest id,
-    group members, and graphical orders.
+    Root by root: duplicates, dangling targets, conversion maps, containment
+    and segment lines; then reserved ids, cross-root timeline ids, group ids,
+    measure-map ids, the manifest id, group members, and graphical orders.
     """
     return list(_semantic_problems(value))

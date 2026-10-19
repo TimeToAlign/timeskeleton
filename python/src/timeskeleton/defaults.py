@@ -20,7 +20,7 @@ from .manifest import UNIT_NUMBER_TYPES, _respell
 __all__ = ["DEFAULTS", "complete", "minimal"]
 
 DEFAULTS: dict[str, dict[str, Any]] = {
-    "manifest": {"name": None, "meta": {}, "groups": []},
+    "manifest": {"name": None, "meta": {}, "groups": [], "measure_maps": []},
     "timeline": {
         "name": None,
         "locked": False,
@@ -30,8 +30,6 @@ DEFAULTS: dict[str, dict[str, Any]] = {
         "conversion_maps": [],
         "regions": [],
         "flow_control": {"breaks": [], "jumps": [], "markers": []},
-        "measure_map": None,
-        "metric_hierarchy": None,
     },
     "flow_control": {"breaks": [], "jumps": [], "markers": []},
     "region": {"name": None, "meta": {}},
@@ -53,15 +51,23 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     },
     "marker": {"name": None},
     "conversion_map": {"name": None},
+    "linear_map": {"scalar": 1, "offset": 0},
+    "table_map": {"kind": "linear", "extrapolate": "none"},
+    "measure_map": {"name": None, "meta": {}},
     "group": {"name": None, "meta": {}},
     "graphical": {"styles": {}, "statements": [], "order": {}},
 }
 """The default of every key that has one, by the kind of object holding it.
 
-A timeline's ``number_type`` defaults to its unit's default number type. The
+A timeline's ``number_type`` defaults to its unit's default number type.
+Every conversion map has the keys of ``conversion_map``; a ``LinearMap`` adds
+those of ``linear_map`` and a ``TableMap`` those of ``table_map``. The
 JavaScript package's ``DEFAULTS`` holds the same table, and the schema
 declares each value as the key's ``default``.
 """
+
+_MAP_KINDS = {"LinearMap": "linear_map", "TableMap": "table_map"}
+"""The kind of the defaults a conversion map type adds to those of every map."""
 
 _Pass = Callable[[dict[str, Any], str], None]
 
@@ -78,6 +84,9 @@ def _objects(owner: dict[str, Any], key: str) -> list[dict[str, Any]]:
 def _visit_map(conversion_map: dict[str, Any], apply: _Pass) -> None:
     """Apply a pass to a conversion map and to the maps it holds."""
     apply(conversion_map, "conversion_map")
+    map_type = conversion_map.get("type")
+    if isinstance(map_type, str) and map_type in _MAP_KINDS:
+        apply(conversion_map, _MAP_KINDS[map_type])
     maps = conversion_map.get("maps")
     nested = (
         maps
@@ -89,8 +98,6 @@ def _visit_map(conversion_map: dict[str, Any], apply: _Pass) -> None:
     for entry in nested:
         if isinstance(entry, dict):
             _visit_map(entry, apply)
-    if isinstance(conversion_map.get("meter_map"), dict):
-        _visit_map(conversion_map["meter_map"], apply)
 
 
 def _visit_timeline(timeline: dict[str, Any], apply: _Pass) -> None:
@@ -123,6 +130,8 @@ def _visit_manifest(manifest: Any, apply: _Pass) -> None:
         _visit_timeline(timeline, apply)
     for group in _objects(manifest, "groups"):
         apply(group, "group")
+    for measure_map in _objects(manifest, "measure_maps"):
+        apply(measure_map, "measure_map")
     if isinstance(manifest.get("graphical"), dict):
         apply(manifest["graphical"], "graphical")
 

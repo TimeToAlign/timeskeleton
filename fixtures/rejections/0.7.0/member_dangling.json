@@ -33,6 +33,7 @@
       }
     ],
     "id": "bundle_1",
+    "measure_maps": [],
     "meta": {},
     "name": "Mixed",
     "timelines": [
@@ -51,9 +52,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],
@@ -74,9 +73,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],
@@ -97,9 +94,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],
@@ -122,9 +117,7 @@
               1
             ],
             "locked": false,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
             "offset": [
@@ -148,9 +141,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],
@@ -171,9 +162,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],

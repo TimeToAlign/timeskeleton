@@ -9,7 +9,8 @@ array of a manifest whose order carries no meaning has one canonical order:
   id; ``regions`` by start, then end, then id; flow-control ``breaks`` and
   ``markers`` by coordinate, then id; ``jumps`` by from coordinate, then to
   coordinate, then id;
-* ``groups`` by id and every group's ``members`` by code point.
+* ``groups`` by id and every group's ``members`` by code point;
+* ``measure_maps`` by id.
 
 Own-axis values compare by their exact numeric value, never by their JSON
 spelling; strings compare by Unicode code point. Nothing else is reordered;
@@ -59,27 +60,16 @@ UNIT_NUMBER_TYPES = {
 """The default number type of each unit."""
 
 _MAP_NUMBER_MEMBERS = {
-    "IntervalToConstantMap": {"arrays": ("boundaries",)},
+    "ConstantMap": {"values": ("value",)},
     "LinearMap": {"values": ("scalar", "offset")},
-    "MetricMap": {"arrays": ("starts", "lengths")},
     "PiecewiseMap": {"arrays": ("breaks",)},
-    "QuartersToFloatingMeasures": {"arrays": ("x_values", "y_values")},
-    "QuartersToMeasureNumber": {"arrays": ("boundaries",)},
-    "QuartersToTicks": {"values": ("scalar",)},
-    "SamplesToSeconds": {"values": ("scalar",)},
-    "ScalarMap": {"values": ("scalar",)},
-    "SecondsToSamples": {"values": ("scalar",)},
-    "ShiftMap": {"values": ("offset",)},
     "TableMap": {"arrays": ("x_values", "y_values")},
-    "TicksToQuarters": {"values": ("scalar",)},
 }
 """The members of each conversion map type that hold a Number."""
 
 _MAP_NESTED_MEMBERS = {
-    "BeatInMeasureMap": {"values": ("meter_map",)},
     "ChainMap": {"arrays": ("maps",)},
     "CombinationMap": {"records": ("maps",)},
-    "MetricalPositionMap": {"values": ("meter_map",)},
     "PiecewiseMap": {"arrays": ("maps",)},
 }
 """The members of each conversion map type that hold nested conversion maps."""
@@ -318,10 +308,6 @@ def _respell_timeline(timeline: dict[str, Any], offset_type: str | None) -> None
                 _respell_axis(entry, keys, own)
     for conversion_map in _dicts(timeline.get("conversion_maps")):
         _respell_map(conversion_map)
-    for row in _dicts(timeline.get("measure_map")):
-        for key in _ROW_NUMBER_MEMBERS:
-            if key in row:
-                row[key] = _fraction(row[key])
     for child in _dicts(timeline.get("children")):
         _respell_timeline(child, own)
 
@@ -335,17 +321,24 @@ def _respell(manifest: Any) -> None:
     integer where it is integral. Anything else is left as it is, so any
     value may be given.
     """
-    if isinstance(manifest, dict):
-        for timeline in _dicts(manifest.get("timelines")):
-            _respell_timeline(timeline, None)
+    if not isinstance(manifest, dict):
+        return
+    for timeline in _dicts(manifest.get("timelines")):
+        _respell_timeline(timeline, None)
+    for measure_map in _dicts(manifest.get("measure_maps")):
+        for row in _dicts(measure_map.get("rows")):
+            for key in _ROW_NUMBER_MEMBERS:
+                if key in row:
+                    row[key] = _fraction(row[key])
 
 
 def canonical_order(value: Any) -> Any:
     """Return a deep copy of ``value``, its manifest in canonical order and spelling.
 
     A value with a top-level ``timelines`` array is a manifest: every timeline
-    in it is ordered at every depth and the array itself by id, and its
-    ``groups`` are ordered by id, each with its ``members`` by code point.
+    in it is ordered at every depth and the array itself by id, its ``groups``
+    are ordered by id, each with its ``members`` by code point, and its
+    ``measure_maps`` by id.
     Every value it reads by a number type is spelled as that type selects
     (module docstring). Only the arrays listed in the module docstring move;
     object keys are left as they are (``dumps`` sorts them), and any other
@@ -370,6 +363,8 @@ def canonical_order(value: Any) -> Any:
             if isinstance(group, dict) and isinstance(group.get("members"), list):
                 group["members"] = _sorted(group["members"], _identifier, "members")
         result["groups"] = _sorted(groups, _by_id, "groups")
+    if isinstance(result.get("measure_maps"), list):
+        result["measure_maps"] = _sorted(result["measure_maps"], _by_id, "measure_maps")
     return result
 
 

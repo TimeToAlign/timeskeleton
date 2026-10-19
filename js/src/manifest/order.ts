@@ -6,9 +6,9 @@
  * `conversion_maps` by id, `regions` by start, then end, then id, flow-control
  * `breaks` and `markers` by coordinate, then id, `jumps` by from coordinate,
  * then to coordinate, then id; `groups` by id and every group's `members` by
- * code point. Own-axis values compare by exact numeric value, strings by
- * Unicode code point. A `graphical.order` array is a display order and is
- * never re-ordered. Readers accept any order; `dumps` writes the canonical
+ * code point; `measure_maps` by id. Own-axis values compare by exact numeric
+ * value, strings by Unicode code point. A `graphical.order` array is a
+ * display order and is never re-ordered. Readers accept any order; `dumps` writes the canonical
  * one, every object's keys sorted by code point, two-space indentation and a
  * final newline, the same bytes as Python's `timeskeleton.dumps`.
  */
@@ -66,9 +66,10 @@ function orderTimeline(timeline: JsonObject): void {
  * Return a deep copy of `value`, its manifest in canonical order and spelling.
  *
  * A value with a top-level `timelines` array is a manifest: every timeline in
- * it is ordered at every depth and the array itself by id, and its `groups`
- * are ordered by id, each with its `members` by code point. Every value it
- * reads by a number type is spelled as that type selects (`./spelling.ts`).
+ * it is ordered at every depth and the array itself by id, its `groups` are
+ * ordered by id, each with its `members` by code point, and its
+ * `measure_maps` by id. Every value it reads by a number type is spelled as
+ * that type selects (`./spelling.ts`).
  * Object keys are left as they are (`dumps` sorts them), and any other JSON
  * value is copied unchanged. Python's `timeskeleton.canonical_order` gives
  * the same value.
@@ -92,6 +93,8 @@ export function canonicalOrder<T>(value: T): T {
     }
     groups.sort(byId);
   }
+  const measureMaps = member(result, "measure_maps");
+  if (Array.isArray(measureMaps)) measureMaps.sort(byId);
   return result;
 }
 

@@ -14,6 +14,7 @@ from .diagnostics import (
     _Path,
     json_pointer,
 )
+from .maps import MEASURE_VIEWS, timeline_map_problems, timeline_maps
 from .order import order_problems
 from .segments import timeline_segment_problems
 
@@ -42,7 +43,7 @@ def _timeline_ids(
 
 
 def _dangling_targets(
-    timeline: Mapping[str, Any], path: _Path
+    timeline: Mapping[str, Any], path: _Path, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
     flow = timeline.get("flow_control")
     markers = {marker["id"] for marker in _entries(flow, "markers")}
@@ -54,8 +55,16 @@ def _dangling_targets(
                 (*path, "flow_control", "jumps", index, "target"),
                 f"{target!r} names no marker of this timeline",
             )
+    for conversion_map, at in timeline_maps(timeline, path):
+        reference = conversion_map.get("measure_map")
+        if conversion_map["type"] in MEASURE_VIEWS and reference not in measure_maps:
+            yield SchemaValidationError(
+                "dangling_target",
+                (*at, "measure_map"),
+                f"{reference!r} names no measure map of this manifest",
+            )
     for index, child in enumerate(_entries(timeline, "children")):
-        yield from _dangling_targets(child, (*path, "children", index))
+        yield from _dangling_targets(child, (*path, "children", index), measure_maps)
 
 
 def _duplicate(
@@ -70,7 +79,7 @@ def _duplicate(
 
 
 def _root_problems(
-    root: Mapping[str, Any], path: _Path
+    root: Mapping[str, Any], path: _Path, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
     first: dict[str, _Path] = {}
     for identifier, at in _element_ids(root, path):
@@ -78,7 +87,8 @@ def _root_problems(
             yield _duplicate(identifier, at, first[identifier])
         else:
             first[identifier] = at
-    yield from _dangling_targets(root, path)
+    yield from _dangling_targets(root, path, measure_maps)
+    yield from timeline_map_problems(root, path)
     yield from timeline_containment_problems(root, path)
     yield from timeline_segment_problems(root, path)
 
@@ -180,8 +190,10 @@ def identity_problems(
     """Yield semantic violations in the established identity order."""
     roots = _entries(value, "timelines")
     groups = _entries(value, "groups")
+    measure_maps = _entries(value, "measure_maps")
+    measure_map_ids = {measure_map["id"] for measure_map in measure_maps}
     for index, root in enumerate(roots):
-        yield from _root_problems(root, ("timelines", index))
+        yield from _root_problems(root, ("timelines", index), measure_map_ids)
 
     manifest_id = value.get("id")
     yield from _reserved(manifest_id, ("id",))
@@ -190,6 +202,8 @@ def identity_problems(
             yield from _reserved(identifier, at)
     for index, group in enumerate(groups):
         yield from _reserved(group["id"], ("groups", index, "id"))
+    for index, measure_map in enumerate(measure_maps):
+        yield from _reserved(measure_map["id"], ("measure_maps", index, "id"))
 
     timelines: dict[str, _Path] = {}
     for index, root in enumerate(roots):
@@ -215,6 +229,24 @@ def identity_problems(
             )
         first_group.setdefault(identifier, index)
 
+    first_measure_map: dict[str, int] = {}
+    for index, measure_map in enumerate(measure_maps):
+        identifier = measure_map["id"]
+        path = ("measure_maps", index, "id")
+        if identifier in timelines:
+            yield _duplicate(identifier, path, timelines[identifier])
+        elif identifier in first_group:
+            yield _duplicate(
+                identifier, path, ("groups", first_group[identifier], "id")
+            )
+        elif identifier in first_measure_map:
+            yield _duplicate(
+                identifier,
+                path,
+                ("measure_maps", first_measure_map[identifier], "id"),
+            )
+        first_measure_map.setdefault(identifier, index)
+
     if manifest_id is not None:
         if manifest_id in timelines:
             yield _duplicate(
@@ -225,6 +257,13 @@ def identity_problems(
                 manifest_id,
                 ("id",),
                 ("groups", first_group[manifest_id], "id"),
+                "manifest_id",
+            )
+        elif manifest_id in first_measure_map:
+            yield _duplicate(
+                manifest_id,
+                ("id",),
+                ("measure_maps", first_measure_map[manifest_id], "id"),
                 "manifest_id",
             )
 

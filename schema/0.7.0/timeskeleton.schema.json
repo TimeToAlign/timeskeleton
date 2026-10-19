@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json",
   "title": "TimeSkeleton manifest",
-  "description": "The TimeSkeleton 0.7.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and measure maps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: the schema closes none, and a key an object does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
+  "description": "The TimeSkeleton 0.7.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and measure maps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: the schema closes none, and a key an object does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
   "$ref": "#/$defs/TimeSkeleton",
   "$defs": {
     "TimeSkeleton": {
       "type": "object",
-      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.",
+      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.",
       "properties": {
         "$schema": {
           "type": "string",
@@ -44,6 +44,14 @@
           },
           "default": []
         },
+        "measure_maps": {
+          "type": "array",
+          "description": "The measure maps, which the measure views among the conversion maps name by ID. A measure map belongs to no timeline and is not drawn. The array may be empty.",
+          "items": {
+            "$ref": "#/$defs/MeasureMap"
+          },
+          "default": []
+        },
         "graphical": {
           "$ref": "#/$defs/Graphical"
         }
@@ -55,7 +63,7 @@
     },
     "Timeline": {
       "type": "object",
-      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.",
+      "description": "One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.",
       "properties": {
         "id": {
           "$ref": "#/$defs/Id",
@@ -133,55 +141,13 @@
             "jumps": [],
             "markers": []
           }
-        },
-        "measure_map": {
-          "description": "The measure map, or null. A measure map is anchored in note values, so only a timeline whose unit is quarters or whole_note may carry one.",
-          "anyOf": [
-            {
-              "$ref": "#/$defs/MeasureMap"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "metric_hierarchy": {
-          "type": [
-            "object",
-            "null"
-          ],
-          "additionalProperties": true,
-          "description": "The metric hierarchy, or null; an object without further constraints.",
-          "default": null
         }
       },
       "required": [
         "id",
         "unit",
         "length"
-      ],
-      "$comment": "Only a timeline in quarters or whole_note, the symbolic note-value units, may hold a measure map. Any other unit leaves measure_map out or null.",
-      "if": {
-        "properties": {
-          "unit": {
-            "enum": [
-              "quarters",
-              "whole_note"
-            ]
-          }
-        },
-        "required": [
-          "unit"
-        ]
-      },
-      "else": {
-        "properties": {
-          "measure_map": {
-            "type": "null"
-          }
-        }
-      }
+      ]
     },
     "Group": {
       "type": "object",
@@ -245,11 +211,8 @@
       }
     },
     "ConversionMap": {
-      "description": "A conversion map of a timeline, discriminated by its type.",
+      "description": "A conversion map of a timeline, discriminated by its type: a function from a position on the timeline's axis to a value. A map is an abstract type, independent of any number type: each of its Numbers is an int, a float or a Fraction, whatever the implementation computes in. Six types are general (LinearMap, TableMap, ConstantMap, PiecewiseMap, ChainMap, CombinationMap) and four read a measure map (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap).",
       "oneOf": [
-        {
-          "$ref": "#/$defs/BeatInMeasureMap"
-        },
         {
           "$ref": "#/$defs/ChainMap"
         },
@@ -260,55 +223,25 @@
           "$ref": "#/$defs/ConstantMap"
         },
         {
-          "$ref": "#/$defs/FloorMap"
-        },
-        {
-          "$ref": "#/$defs/InterpolationMap"
-        },
-        {
-          "$ref": "#/$defs/IntervalToConstantMap"
+          "$ref": "#/$defs/FloatingMeasureMap"
         },
         {
           "$ref": "#/$defs/LinearMap"
         },
         {
-          "$ref": "#/$defs/MetricMap"
+          "$ref": "#/$defs/MeasureBeatMap"
         },
         {
-          "$ref": "#/$defs/MetricalPositionMap"
+          "$ref": "#/$defs/MeasureNumberMap"
+        },
+        {
+          "$ref": "#/$defs/MeasureRecordMap"
         },
         {
           "$ref": "#/$defs/PiecewiseMap"
         },
         {
-          "$ref": "#/$defs/QuartersToFloatingMeasures"
-        },
-        {
-          "$ref": "#/$defs/QuartersToMeasureNumber"
-        },
-        {
-          "$ref": "#/$defs/QuartersToTicks"
-        },
-        {
-          "$ref": "#/$defs/RotationMap"
-        },
-        {
-          "$ref": "#/$defs/SamplesToSeconds"
-        },
-        {
-          "$ref": "#/$defs/ScalarMap"
-        },
-        {
-          "$ref": "#/$defs/SecondsToSamples"
-        },
-        {
-          "$ref": "#/$defs/ShiftMap"
-        },
-        {
           "$ref": "#/$defs/TableMap"
-        },
-        {
-          "$ref": "#/$defs/TicksToQuarters"
         }
       ],
       "discriminator": {
@@ -596,6 +529,37 @@
         }
       ]
     },
+    "MeasureMap": {
+      "type": "object",
+      "description": "A measure map: the measures of a score as compressed rows of the Measure Map standard, identified by an ID that the measure views (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap) name. Its positions (a row's qstamp and lengths) are quarters by definition, so it fits every timeline: a timeline in ticks or whole notes reaches a view through a ChainMap whose first map is a LinearMap to quarters. It belongs to no timeline and is not drawn. The row holding a position x in quarters is the last row, in measure order once decompressed, whose qstamp is at or before x; a position before the first row is held by the first row.",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id",
+          "description": "The measure-map ID."
+        },
+        "name": {
+          "$ref": "#/$defs/Name"
+        },
+        "meta": {
+          "$ref": "#/$defs/Meta"
+        },
+        "rows": {
+          "$ref": "#/$defs/MeasureMapRows"
+        }
+      },
+      "required": [
+        "id",
+        "rows"
+      ]
+    },
+    "MeasureMapRows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/MeasureMapRow"
+      },
+      "minItems": 1,
+      "description": "The rows of a measure map: compressed rows of the Measure Map standard, in measure order. A row equal to its predecessor's default successor is omitted as a whole."
+    },
     "NumberNonnegative": {
       "description": "A non-negative bare JSON number or a non-negative exact Fraction pair.",
       "oneOf": [
@@ -860,14 +824,6 @@
         "after_dc_ds"
       ]
     },
-    "MeasureMap": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/MeasureMapRow"
-      },
-      "minItems": 1,
-      "description": "Compressed rows from the Measure Map standard. A row equal to its predecessor's default successor is omitted as a whole."
-    },
     "Order": {
       "type": "array",
       "description": "One order of `graphical.order`, top to bottom, never reordered by a writer: a group's display order, a permutation of its members' IDs, or a timeline's band order, a permutation of the timeline's ID `T` and its five band addresses `T/markers_1`, `T/conversion_maps_1`, `T/children_1`, `T/regions_1` and `T/flow_control_1`. The markers band holds the coordinate markers, the wedges at a root's start and end, never the flow markers of `flow_control`. Each entry is an ID, or an ID, `/` and a band's ID: its kind, `_` and its number.",
@@ -943,27 +899,16 @@
             "DiscreteLogicalTimeline",
             "DiscretePhysicalTimeline",
             "DiscreteGraphicalTimeline",
-            "BeatInMeasureMap",
             "ChainMap",
             "CombinationMap",
             "ConstantMap",
-            "FloorMap",
-            "InterpolationMap",
-            "IntervalToConstantMap",
+            "FloatingMeasureMap",
             "LinearMap",
-            "MetricMap",
-            "MetricalPositionMap",
+            "MeasureBeatMap",
+            "MeasureNumberMap",
+            "MeasureRecordMap",
             "PiecewiseMap",
-            "QuartersToFloatingMeasures",
-            "QuartersToMeasureNumber",
-            "QuartersToTicks",
-            "RotationMap",
-            "SamplesToSeconds",
-            "ScalarMap",
-            "SecondsToSamples",
-            "ShiftMap",
             "TableMap",
-            "TicksToQuarters",
             "markers",
             "conversion_maps",
             "children",
@@ -1111,192 +1056,9 @@
         "target_unit"
       ]
     },
-    "BeatInMeasureMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "BeatInMeasureMap"
-        },
-        "meter_map": {
-          "$ref": "#/$defs/MetricMap"
-        }
-      },
-      "required": [
-        "type",
-        "meter_map"
-      ]
-    },
-    "ChainMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "ChainMap"
-        },
-        "maps": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/ConversionMap"
-          }
-        }
-      },
-      "required": [
-        "type",
-        "maps"
-      ]
-    },
-    "CombinationMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "CombinationMap"
-        },
-        "maps": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/$defs/ConversionMap"
-          }
-        },
-        "names": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "type",
-        "maps",
-        "names"
-      ]
-    },
-    "ConstantMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "ConstantMap"
-        },
-        "value": {}
-      },
-      "required": [
-        "type",
-        "value"
-      ]
-    },
-    "FloorMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "FloorMap"
-        },
-        "divisor": {
-          "type": "number"
-        },
-        "base": {
-          "type": "integer"
-        },
-        "offset": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "type",
-        "divisor",
-        "base",
-        "offset"
-      ]
-    },
-    "InterpolationMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "InterpolationMap"
-        },
-        "source_coords": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "target_coords": {
-          "type": "array",
-          "items": {
-            "type": "number"
-          }
-        },
-        "source_id": {
-          "$ref": "#/$defs/Id"
-        },
-        "target_id": {
-          "$ref": "#/$defs/Id"
-        }
-      },
-      "required": [
-        "type",
-        "source_coords",
-        "target_coords",
-        "source_id",
-        "target_id"
-      ]
-    },
-    "IntervalToConstantMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "IntervalToConstantMap"
-        },
-        "boundaries": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Number"
-          }
-        },
-        "values": {
-          "type": "array"
-        }
-      },
-      "required": [
-        "type",
-        "boundaries",
-        "values"
-      ]
-    },
     "LinearMap": {
       "type": "object",
+      "description": "Maps x to scalar \u00b7 x + offset. Scaling, shifting and every conversion between two units of fixed ratio (quarters to ticks at a resolution, samples to seconds at a sample rate) are linear maps.",
       "allOf": [
         {
           "$ref": "#/$defs/MapBase"
@@ -1307,344 +1069,23 @@
           "const": "LinearMap"
         },
         "scalar": {
-          "$ref": "#/$defs/Number"
+          "$ref": "#/$defs/Number",
+          "description": "The factor x is multiplied by.",
+          "default": 1
         },
         "offset": {
-          "$ref": "#/$defs/Number"
+          "$ref": "#/$defs/Number",
+          "description": "What is added to the product.",
+          "default": 0
         }
       },
       "required": [
-        "type",
-        "scalar",
-        "offset"
-      ]
-    },
-    "MetricMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "MetricMap"
-        },
-        "starts": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Number"
-          }
-        },
-        "mcs": {
-          "type": "array",
-          "items": {
-            "type": "integer"
-          }
-        },
-        "mns": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "lengths": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Number"
-          }
-        }
-      },
-      "required": [
-        "type",
-        "starts",
-        "mcs",
-        "mns",
-        "lengths"
-      ]
-    },
-    "MetricalPositionMap": {
-      "type": "object",
-      "description": "Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose ID is beat_map_id.",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "MetricalPositionMap"
-        },
-        "meter_map": {
-          "$ref": "#/$defs/MetricMap"
-        },
-        "beat_map_id": {
-          "$ref": "#/$defs/Id",
-          "description": "The ID of the BeatInMeasureMap derived from meter_map."
-        }
-      },
-      "required": [
-        "type",
-        "meter_map",
-        "beat_map_id"
-      ]
-    },
-    "PiecewiseMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "PiecewiseMap"
-        },
-        "breaks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Number"
-          }
-        },
-        "maps": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/ConversionMap"
-          }
-        }
-      },
-      "required": [
-        "type",
-        "breaks",
-        "maps"
-      ]
-    },
-    "QuartersToFloatingMeasures": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "QuartersToFloatingMeasures"
-        },
-        "x_values": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Number"
-          }
-        },
-        "y_values": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Number"
-          }
-        },
-        "kind": {
-          "type": "string",
-          "enum": [
-            "linear",
-            "nearest",
-            "previous",
-            "next"
-          ]
-        },
-        "extrapolate": {
-          "type": "string",
-          "enum": [
-            "error",
-            "extrapolate",
-            "constant",
-            "nan"
-          ]
-        }
-      },
-      "required": [
-        "type",
-        "x_values",
-        "y_values",
-        "kind",
-        "extrapolate"
-      ]
-    },
-    "QuartersToMeasureNumber": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "QuartersToMeasureNumber"
-        },
-        "boundaries": {
-          "type": "array",
-          "items": {
-            "$ref": "#/$defs/Number"
-          }
-        },
-        "values": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "type",
-        "boundaries",
-        "values"
-      ]
-    },
-    "QuartersToTicks": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "QuartersToTicks"
-        },
-        "scalar": {
-          "$ref": "#/$defs/Number"
-        },
-        "ppq": {
-          "type": "integer"
-        }
-      },
-      "required": [
-        "type",
-        "scalar",
-        "ppq"
-      ]
-    },
-    "RotationMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "RotationMap"
-        },
-        "period": {
-          "type": "number"
-        },
-        "scale": {
-          "type": "number"
-        },
-        "base": {
-          "type": "number"
-        },
-        "offset": {
-          "type": "number"
-        }
-      },
-      "required": [
-        "type",
-        "period",
-        "scale",
-        "base",
-        "offset"
-      ]
-    },
-    "SamplesToSeconds": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "SamplesToSeconds"
-        },
-        "scalar": {
-          "$ref": "#/$defs/Number"
-        },
-        "sample_rate": {
-          "type": "integer"
-        }
-      },
-      "required": [
-        "type",
-        "scalar",
-        "sample_rate"
-      ]
-    },
-    "ScalarMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "ScalarMap"
-        },
-        "scalar": {
-          "$ref": "#/$defs/Number"
-        }
-      },
-      "required": [
-        "type",
-        "scalar"
-      ]
-    },
-    "SecondsToSamples": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "SecondsToSamples"
-        },
-        "scalar": {
-          "$ref": "#/$defs/Number"
-        },
-        "sample_rate": {
-          "type": "integer"
-        }
-      },
-      "required": [
-        "type",
-        "scalar",
-        "sample_rate"
-      ]
-    },
-    "ShiftMap": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/$defs/MapBase"
-        }
-      ],
-      "properties": {
-        "type": {
-          "const": "ShiftMap"
-        },
-        "offset": {
-          "$ref": "#/$defs/Number"
-        }
-      },
-      "required": [
-        "type",
-        "offset"
+        "type"
       ]
     },
     "TableMap": {
       "type": "object",
+      "description": "Maps x by interpolating between anchor pairs (x_values[i], y_values[i]). The two arrays have equal length, at least two, and x_values increase strictly; both are checked after the schema.",
       "allOf": [
         {
           "$ref": "#/$defs/MapBase"
@@ -1656,45 +1097,49 @@
         },
         "x_values": {
           "type": "array",
+          "description": "The anchor positions, strictly increasing.",
           "items": {
             "$ref": "#/$defs/Number"
-          }
+          },
+          "minItems": 2
         },
         "y_values": {
           "type": "array",
+          "description": "The value at each anchor, one per x value.",
           "items": {
             "$ref": "#/$defs/Number"
-          }
+          },
+          "minItems": 2
         },
         "kind": {
           "type": "string",
           "enum": [
             "linear",
-            "nearest",
-            "previous",
-            "next"
-          ]
+            "previous"
+          ],
+          "description": "How a position between two anchors reads: linear interpolates between their values, previous takes the value of the last anchor at or before x.",
+          "default": "linear"
         },
         "extrapolate": {
           "type": "string",
           "enum": [
-            "error",
-            "extrapolate",
+            "none",
             "constant",
-            "nan"
-          ]
+            "linear"
+          ],
+          "description": "How a position outside the anchors reads: none leaves it undefined, constant takes the value of the nearest anchor, linear continues the first or the last segment between two anchors.",
+          "default": "none"
         }
       },
       "required": [
         "type",
         "x_values",
-        "y_values",
-        "kind",
-        "extrapolate"
+        "y_values"
       ]
     },
-    "TicksToQuarters": {
+    "ConstantMap": {
       "type": "object",
+      "description": "Maps every x to one value, a Number or a string such as a label or a file name.",
       "allOf": [
         {
           "$ref": "#/$defs/MapBase"
@@ -1702,19 +1147,228 @@
       ],
       "properties": {
         "type": {
-          "const": "TicksToQuarters"
+          "const": "ConstantMap"
         },
-        "scalar": {
-          "$ref": "#/$defs/Number"
-        },
-        "ppq": {
-          "type": "integer"
+        "value": {
+          "description": "The value of every input.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Number"
+            },
+            {
+              "type": "string"
+            }
+          ]
         }
       },
       "required": [
         "type",
-        "scalar",
-        "ppq"
+        "value"
+      ]
+    },
+    "PiecewiseMap": {
+      "type": "object",
+      "description": "Maps x by the map of the interval holding it: maps[i] reads every x in [breaks[i], breaks[i+1]), and a position outside [breaks[0], the last break) is undefined. There is one map fewer than breaks, and the breaks increase strictly; both are checked after the schema.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "PiecewiseMap"
+        },
+        "breaks": {
+          "type": "array",
+          "description": "The interval bounds, strictly increasing.",
+          "items": {
+            "$ref": "#/$defs/Number"
+          },
+          "minItems": 2
+        },
+        "maps": {
+          "type": "array",
+          "description": "One map per interval, in the order of the intervals.",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "breaks",
+        "maps"
+      ]
+    },
+    "ChainMap": {
+      "type": "object",
+      "description": "Maps x through its maps in turn, the first applied first: each map reads the value the one before it gives.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "ChainMap"
+        },
+        "maps": {
+          "type": "array",
+          "description": "The maps in the order they apply.",
+          "items": {
+            "$ref": "#/$defs/ConversionMap"
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "type",
+        "maps"
+      ]
+    },
+    "CombinationMap": {
+      "type": "object",
+      "description": "Maps x to several named outputs at once, each the value one map gives for x: a measure number with its beat, or a pixel position with the file name of its image. The outputs carry no order.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "CombinationMap"
+        },
+        "maps": {
+          "type": "object",
+          "description": "The map of each output, keyed by the output's name.",
+          "additionalProperties": {
+            "$ref": "#/$defs/ConversionMap"
+          }
+        }
+      },
+      "required": [
+        "type",
+        "maps"
+      ]
+    },
+    "MeasureRecordMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to the record of the measure holding it: the row of the measure map that holds x (`MeasureMap`), with every member its decompressed form carries.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "MeasureRecordMap"
+        },
+        "source_unit": {
+          "const": "quarters",
+          "description": "Quarters, the unit of every measure-map position."
+        },
+        "target_unit": {
+          "const": null,
+          "description": "Null: the output is no position on a time axis."
+        },
+        "measure_map": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+        }
+      },
+      "required": [
+        "type",
+        "measure_map"
+      ]
+    },
+    "MeasureNumberMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to the number of the measure holding it: the `number` of the row of the measure map that holds x (`MeasureMap`).",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "MeasureNumberMap"
+        },
+        "source_unit": {
+          "const": "quarters",
+          "description": "Quarters, the unit of every measure-map position."
+        },
+        "target_unit": {
+          "const": null,
+          "description": "Null: the output is no position on a time axis."
+        },
+        "measure_map": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+        }
+      },
+      "required": [
+        "type",
+        "measure_map"
+      ]
+    },
+    "FloatingMeasureMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to floating measures, a measure ordinal followed by how far into that bar x lies (12.5 is the middle of the twelfth bar). The measure map gives the knots: one per row, at the row's nominal downbeat, its qstamp minus its offset_within_measure, so the content of an incomplete bar sits where it is notated (a pickup of one eighth in 9/8 begins at 0.888); and a last knot at the end of the last row, its qstamp plus its actual_length. A knot carries the ordinal of its row, the last knot the ordinal after the last row's. Ordinals count rows, never measure numbers: the first row is 0 when it is an anacrusis (an offset_within_measure above 0 and an actual_length below its nominal_length) and 1 otherwise, and every following row adds one, through voltas and without reset. Between two knots the map is linear, and beyond the first and the last knot it continues the first and the last segment. A reading is truncated, never rounded, to three decimals, the resolution of floating measures. A measure map in which two rows share a nominal downbeat (the halves of a split bar) has no floating measures.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "FloatingMeasureMap"
+        },
+        "source_unit": {
+          "const": "quarters",
+          "description": "Quarters, the unit of every measure-map position."
+        },
+        "target_unit": {
+          "const": "floating_measures",
+          "description": "Floating measures."
+        },
+        "measure_map": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+        }
+      },
+      "required": [
+        "type",
+        "measure_map"
+      ]
+    },
+    "MeasureBeatMap": {
+      "type": "object",
+      "description": "Maps a position x in quarters to the pair of the measure number and the beat: the `number` of the row of the measure map that holds x (`MeasureMap`), and 1 plus the distance in quarters from that row's qstamp to x. Beats are 1-indexed and counted in quarters: beat 1 is the row's start, and a position halfway through its second quarter is beat 5/2.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "type": {
+          "const": "MeasureBeatMap"
+        },
+        "source_unit": {
+          "const": "quarters",
+          "description": "Quarters, the unit of every measure-map position."
+        },
+        "target_unit": {
+          "const": null,
+          "description": "Null: the output is no position on a time axis."
+        },
+        "measure_map": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+        }
+      },
+      "required": [
+        "type",
+        "measure_map"
       ]
     }
   }

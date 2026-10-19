@@ -38,11 +38,15 @@ as in the Python suite's "The fixture set".
 `schema.test.ts` checks invariants, not the tree's private shape, so a
 refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist
-and the former ones do not; the unit table's consts are exactly the keys of
+and the former ones do not; `ConversionMap` chooses between exactly the ten
+map types, `Selector.class` names the six timeline classes, the ten types and
+the five band kinds, and each measure view fixes its two units; the unit
+table's consts are exactly the keys of
 `UNIT_NUMBER_TYPES` in order, each description naming that unit's default
 number type, as in the Python suite; `Name`, `Meta` and `MapBase` are the
 shared definitions every `name`, every `meta` and every conversion map
-refers to, the references are `Id`s and `Selector.ids` holds `Address`es
+refers to (a measure view narrowing the base's units to constants), the
+references are `Id`s and `Selector.ids` holds `Address`es
 accepting and refusing the Python suite's strings; no node is closed, none
 carries `unevaluatedProperties` and no key begins with `x-`; every object
 declares, itself or in its `allOf` base, what its branches declare; every
@@ -64,12 +68,13 @@ with the same inline documents, paths, codes and messages, in the same
 order: every semantic rule by its smallest document with one problem, which
 `validate` raises too, and one document breaking every step once, whose
 problems and codes `identityProblems` lists in order and whose first problem
-`validate` raises. The rules live in five modules of the same names and
+`validate` raises. The rules live in six modules of the same names and
 decomposition in both packages, so a rule changes in both or the shared
 cases fail. The packages differ only where JavaScript must:
 
 `number-members.test.ts` derives every scalar and array member of a
-conversion map that can hold a Number, and every scalar, array and
+conversion map that can hold a Number (by reference or as a branch of an
+`anyOf`), and every scalar, array and
 keyed-object member that holds a nested conversion map, from the schema's
 conversion-map definitions. It asserts exact equality with the respelling's
 two traversal tables, naming every missing or extra entry on failure, so a
@@ -101,7 +106,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 92 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 99 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its
@@ -112,7 +117,7 @@ case has one reading, the reader's value, since JSON text cannot carry it,
 and a test pins the two values in place. One `JSON.parse` reading is exempt:
 `float_axis_int_not_exact`, since `9007199254740993` becomes
 `9007199254740992`, exactly a float; the test asserts that this lossy
-reading validates. The set of names and the sixteen codes are stated literally.
+reading validates. The set of names and the seventeen codes are stated literally.
 
 The path rule is the Python README's ("One path rule for both validators");
 Ajv applies a discriminated `oneOf` to the candidate its tag selects through
@@ -123,7 +128,7 @@ its `discriminator` option. The shared cases pin the paths.
 `unknown-keys.test.ts`: every shared warning case validates, its text is the
 standard writer's, and `dumps(unknownKeys(manifest))` equals
 `dumps(case.unknown_keys)`; `several_depths` lists its sixteen entries in the
-stated order; keys inside `meta`, `metric_hierarchy`, `styles`,
+stated order; keys inside `meta`, `styles`,
 `graphical.order` and unknown values are not reported; the sort (keys by
 code point, `ﬀ` before `😀`, indices by number, `timelines[2]` before
 `timelines[10]`); an invalid value raises before any key is listed. The
@@ -159,8 +164,8 @@ pairs mixed, and adds:
 - **Both writers, from any order.** Every fixture, rejection and warning
   case, with the keys of every object reversed and, in the fixtures, the
   items of every array the canonical order sorts (`timelines`, `groups`,
-  `members`, `children`, `conversion_maps`, `regions`, `breaks`, `jumps`,
-  `markers`), is written by this `dumps` and by Python's `dumps` (loaded by
+  `members`, `measure_maps`, `children`, `conversion_maps`, `regions`,
+  `breaks`, `jumps`, `markers`), is written by this `dumps` and by Python's `dumps` (loaded by
   `python3` from its path) to the same bytes, equal to the file.
 - **Python's `repr` itself.** 2000 doubles from a fixed pseudo-random
   sequence are spelled exactly as `python3` spells them with `repr`.

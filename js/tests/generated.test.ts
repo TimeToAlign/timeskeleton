@@ -47,6 +47,7 @@ describe("generated files", () => {
       "Break",
       "Jump",
       "Marker",
+      "MeasureMap",
     ];
     expect(exportsOf(committed("types.ts"))).toEqual(
       [

@@ -2,197 +2,12 @@
   "code": "schema",
   "manifest": {
     "groups": [],
-    "meta": {},
-    "name": null,
-    "timelines": [
+    "measure_maps": [
       {
-        "children": [
-          {
-            "children": [],
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "controls",
-            "is_segment_line": false,
-            "length": [
-              37,
-              1
-            ],
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": null,
-            "number_type": "fraction",
-            "offset": [
-              0,
-              1
-            ],
-            "regions": [],
-            "unit": "quarters"
-          },
-          {
-            "children": [],
-            "conversion_maps": [],
-            "flow_control": {
-              "breaks": [],
-              "jumps": [],
-              "markers": []
-            },
-            "id": "notes",
-            "is_segment_line": false,
-            "length": [
-              37,
-              1
-            ],
-            "locked": true,
-            "measure_map": null,
-            "meta": {},
-            "metric_hierarchy": null,
-            "name": null,
-            "number_type": "fraction",
-            "offset": [
-              0,
-              1
-            ],
-            "regions": [],
-            "unit": "quarters"
-          }
-        ],
-        "conversion_maps": [
-          {
-            "id": "cmap_1",
-            "name": "quarters_to_ticks",
-            "scalar": 480,
-            "source_unit": "quarters",
-            "target_unit": "ticks",
-            "type": "ScalarMap"
-          }
-        ],
-        "flow_control": {
-          "breaks": [
-            {
-              "condition": "after_dc_ds",
-              "control_type": "fine",
-              "coordinate": [
-                12,
-                1
-              ],
-              "id": "break_1",
-              "label": "fine at MC 7",
-              "meta": {},
-              "name": "fine",
-              "repeat_count": 1
-            }
-          ],
-          "jumps": [
-            {
-              "condition": "first_n",
-              "control_type": "repeat_end",
-              "from_coordinate": [
-                6,
-                1
-              ],
-              "id": "jump_1",
-              "label": "MC 3 → MC 1",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                0,
-                1
-              ]
-            },
-            {
-              "condition": "first_n",
-              "control_type": "repeat_end",
-              "from_coordinate": [
-                9,
-                1
-              ],
-              "id": "jump_2",
-              "label": "MC 5 → MC 4",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                6,
-                1
-              ]
-            },
-            {
-              "condition": "first_n",
-              "control_type": "repeat_end",
-              "from_coordinate": [
-                28,
-                1
-              ],
-              "id": "jump_3",
-              "label": "MC 11 → MC 9",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                16,
-                1
-              ]
-            },
-            {
-              "condition": "after_first",
-              "control_type": "da_capo_al_fine",
-              "from_coordinate": [
-                37,
-                1
-              ],
-              "id": "jump_4",
-              "label": "MC 15 → start (MC 1)",
-              "meta": {},
-              "repeat_count": 1,
-              "target": null,
-              "to_coordinate": [
-                0,
-                1
-              ]
-            }
-          ],
-          "markers": [
-            {
-              "coordinate": [
-                10,
-                1
-              ],
-              "id": "marker_1",
-              "name": "fine"
-            },
-            {
-              "coordinate": [
-                16,
-                1
-              ],
-              "id": "marker_2",
-              "name": "segno & coda"
-            },
-            {
-              "coordinate": [
-                30,
-                1
-              ],
-              "id": "marker_3",
-              "name": "codab"
-            }
-          ]
-        },
-        "id": "clt_1",
-        "is_segment_line": false,
-        "length": [
-          37,
-          1
-        ],
-        "locked": false,
-        "measure_map": [
+        "id": "measures",
+        "meta": {},
+        "name": null,
+        "rows": [
           {
             "actual_length": [
               1,
@@ -531,9 +346,197 @@
             "time_signature": "4/4",
             "volta": 2
           }
+        ]
+      }
+    ],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "controls",
+            "is_segment_line": false,
+            "length": [
+              37,
+              1
+            ],
+            "locked": true,
+            "meta": {},
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              0,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          },
+          {
+            "children": [],
+            "conversion_maps": [],
+            "flow_control": {
+              "breaks": [],
+              "jumps": [],
+              "markers": []
+            },
+            "id": "notes",
+            "is_segment_line": false,
+            "length": [
+              37,
+              1
+            ],
+            "locked": true,
+            "meta": {},
+            "name": null,
+            "number_type": "fraction",
+            "offset": [
+              0,
+              1
+            ],
+            "regions": [],
+            "unit": "quarters"
+          }
         ],
+        "conversion_maps": [
+          {
+            "id": "cmap_1",
+            "name": "quarters_to_ticks",
+            "offset": 0,
+            "scalar": 480,
+            "source_unit": "quarters",
+            "target_unit": "ticks",
+            "type": "LinearMap"
+          }
+        ],
+        "flow_control": {
+          "breaks": [
+            {
+              "condition": "after_dc_ds",
+              "control_type": "fine",
+              "coordinate": [
+                12,
+                1
+              ],
+              "id": "break_1",
+              "label": "fine at MC 7",
+              "meta": {},
+              "name": "fine",
+              "repeat_count": 1
+            }
+          ],
+          "jumps": [
+            {
+              "condition": "first_n",
+              "control_type": "repeat_end",
+              "from_coordinate": [
+                6,
+                1
+              ],
+              "id": "jump_1",
+              "label": "MC 3 → MC 1",
+              "meta": {},
+              "repeat_count": 1,
+              "target": null,
+              "to_coordinate": [
+                0,
+                1
+              ]
+            },
+            {
+              "condition": "first_n",
+              "control_type": "repeat_end",
+              "from_coordinate": [
+                9,
+                1
+              ],
+              "id": "jump_2",
+              "label": "MC 5 → MC 4",
+              "meta": {},
+              "repeat_count": 1,
+              "target": null,
+              "to_coordinate": [
+                6,
+                1
+              ]
+            },
+            {
+              "condition": "first_n",
+              "control_type": "repeat_end",
+              "from_coordinate": [
+                28,
+                1
+              ],
+              "id": "jump_3",
+              "label": "MC 11 → MC 9",
+              "meta": {},
+              "repeat_count": 1,
+              "target": null,
+              "to_coordinate": [
+                16,
+                1
+              ]
+            },
+            {
+              "condition": "after_first",
+              "control_type": "da_capo_al_fine",
+              "from_coordinate": [
+                37,
+                1
+              ],
+              "id": "jump_4",
+              "label": "MC 15 → start (MC 1)",
+              "meta": {},
+              "repeat_count": 1,
+              "target": null,
+              "to_coordinate": [
+                0,
+                1
+              ]
+            }
+          ],
+          "markers": [
+            {
+              "coordinate": [
+                10,
+                1
+              ],
+              "id": "marker_1",
+              "name": "fine"
+            },
+            {
+              "coordinate": [
+                16,
+                1
+              ],
+              "id": "marker_2",
+              "name": "segno & coda"
+            },
+            {
+              "coordinate": [
+                30,
+                1
+              ],
+              "id": "marker_3",
+              "name": "codab"
+            }
+          ]
+        },
+        "id": "clt_1",
+        "is_segment_line": false,
+        "length": [
+          37,
+          1
+        ],
+        "locked": false,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],
@@ -543,9 +546,9 @@
     "timeskeleton": "0.7.0"
   },
   "path": [
-    "timelines",
+    "measure_maps",
     0,
-    "measure_map",
+    "rows",
     0,
     "qstamp"
   ],

@@ -24,11 +24,13 @@ import { numberTypeOf } from "./validate/diagnostics.js";
 /**
  * The default of every key that has one, by the kind of object holding it.
  * A timeline's `number_type` defaults to its unit's default number type,
- * which `numberTypeOf` gives. Python's `timeskeleton.defaults` holds the same
+ * which `numberTypeOf` gives. Every conversion map has the keys of
+ * `conversion_map`; a `LinearMap` adds those of `linear_map` and a `TableMap`
+ * those of `table_map`. Python's `timeskeleton.defaults` holds the same
  * table, and the schema declares each value as the key's `default`.
  */
 export const DEFAULTS = {
-  manifest: { name: null, meta: {}, groups: [] },
+  manifest: { name: null, meta: {}, groups: [], measure_maps: [] },
   timeline: {
     name: null,
     locked: false,
@@ -38,8 +40,6 @@ export const DEFAULTS = {
     conversion_maps: [],
     regions: [],
     flow_control: { breaks: [], jumps: [], markers: [] },
-    measure_map: null,
-    metric_hierarchy: null,
   },
   flow_control: { breaks: [], jumps: [], markers: [] },
   region: { name: null, meta: {} },
@@ -61,11 +61,20 @@ export const DEFAULTS = {
   },
   marker: { name: null },
   conversion_map: { name: null },
+  linear_map: { scalar: 1, offset: 0 },
+  table_map: { kind: "linear", extrapolate: "none" },
+  measure_map: { name: null, meta: {} },
   group: { name: null, meta: {} },
   graphical: { styles: {}, statements: [], order: {} },
 } as const;
 
 type Kind = keyof typeof DEFAULTS;
+
+/** The kind of the defaults a conversion map type adds to those of every map. */
+const MAP_KINDS: Readonly<Record<string, Kind>> = {
+  LinearMap: "linear_map",
+  TableMap: "table_map",
+};
 
 /** A pass over one object of a manifest: complete it, or strip its defaults. */
 type Pass = (owner: JsonObject, kind: Kind) => void;
@@ -78,10 +87,13 @@ function objects(owner: JsonObject, key: string): JsonObject[] {
 /** Apply a pass to a conversion map and to the maps it holds. */
 function visitMap(map: JsonObject, pass: Pass): void {
   pass(map, "conversion_map");
+  const { type } = map;
+  if (typeof type === "string" && Object.hasOwn(MAP_KINDS, type)) {
+    pass(map, MAP_KINDS[type] as Kind);
+  }
   const maps = map.maps;
   const nested = Array.isArray(maps) ? maps : isJsonObject(maps) ? Object.values(maps) : [];
   for (const entry of nested) if (isJsonObject(entry)) visitMap(entry, pass);
-  if (isJsonObject(map.meter_map)) visitMap(map.meter_map, pass);
 }
 
 /** Apply a pass to a timeline and to everything it holds. */
@@ -105,6 +117,7 @@ function visitManifest(manifest: unknown, pass: Pass): void {
   pass(manifest, "manifest");
   for (const timeline of objects(manifest, "timelines")) visitTimeline(timeline, pass);
   for (const group of objects(manifest, "groups")) pass(group, "group");
+  for (const measureMap of objects(manifest, "measure_maps")) pass(measureMap, "measure_map");
   if (isJsonObject(manifest.graphical)) pass(manifest.graphical, "graphical");
 }
 

@@ -2,6 +2,7 @@
   "code": "representation",
   "manifest": {
     "groups": [],
+    "measure_maps": [],
     "meta": {},
     "name": null,
     "timelines": [
@@ -19,9 +20,7 @@
             "is_segment_line": false,
             "length": 120,
             "locked": true,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "int",
             "offset": 3,
@@ -40,9 +39,7 @@
             "is_segment_line": false,
             "length": 96,
             "locked": true,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "int",
             "offset": 7,
@@ -63,9 +60,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "int",
         "regions": [],

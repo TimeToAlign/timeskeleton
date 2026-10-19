@@ -121,7 +121,7 @@ def _tied_manifest() -> dict[str, Any]:
         ],
         conversion_maps=[
             {
-                "type": "ShiftMap",
+                "type": "LinearMap",
                 "id": map_id,
                 "source_unit": "quarters",
                 "target_unit": None,
@@ -159,7 +159,14 @@ def _tied_manifest() -> dict[str, Any]:
             ],
         },
     )
-    return manifest(root)
+    rows = [{"count": 1, "qstamp": [0, 1], "actual_length": [4, 1]}]
+    return manifest(
+        root,
+        measure_maps=[
+            {"id": measure_map_id, "rows": rows}
+            for measure_map_id in ["m\ufb00", "mb", "ma"]
+        ],
+    )
 
 
 def test_every_tie_resolves_to_the_canonical_order() -> None:
@@ -186,6 +193,7 @@ def test_every_tie_resolves_to_the_canonical_order() -> None:
         "\ufb00!",
         "\U0001f600!",
     ]
+    assert [entry["id"] for entry in result["measure_maps"]] == ["ma", "mb", "m\ufb00"]
 
 
 def test_bare_values_compare_by_exact_value() -> None:

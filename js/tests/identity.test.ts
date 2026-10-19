@@ -43,6 +43,199 @@ const jump = (id: string, target: string | null) => ({
   target,
 });
 
+const ROWS = [{ count: 1, qstamp: [0, 1], actual_length: [4, 1] }];
+
+const table = (xValues: unknown[], yValues: unknown[], id = "tempo") => ({
+  type: "TableMap",
+  id,
+  source_unit: "quarters",
+  target_unit: null,
+  x_values: xValues,
+  y_values: yValues,
+});
+
+const piecewise = (breaks: unknown[], maps: JsonObject[]) => ({
+  type: "PiecewiseMap",
+  id: "sections",
+  source_unit: "quarters",
+  target_unit: null,
+  breaks,
+  maps,
+});
+
+const linear = (id: string) => ({ type: "LinearMap", id, source_unit: null, target_unit: null });
+
+const view = (id: string, reference: string) => ({
+  type: "MeasureNumberMap",
+  id,
+  source_unit: "quarters",
+  target_unit: null,
+  measure_map: reference,
+});
+
+const maps = (...conversionMaps: JsonObject[]) =>
+  manifest([timeline("score", "quarters", [8, 1], { conversion_maps: conversionMaps })]);
+
+describe("conversion maps and measure maps", () => {
+  it("holds a TableMap's arrays to agree", () => {
+    expect(
+      only(
+        maps(
+          table(
+            [
+              [0, 1],
+              [4, 1],
+              [8, 1],
+            ],
+            [60, 72],
+          ),
+        ),
+      ),
+    ).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "y_values"],
+      'TableMap "tempo" has 3 x values and 2 y values',
+    ]);
+    expect(only(maps(table([[0, 1], [2, 1], new JsonFloat(2)], [1, 2, 3])))).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "x_values", 2],
+      'x value 2.0 of TableMap "tempo" does not exceed the one before it',
+    ]);
+    const accepted = maps(table([[0, 1], 0.5, [3, 4]], [1, 2, 3]));
+    expect(problems(accepted)).toEqual([]);
+    validate(accepted);
+  });
+
+  it("gives a PiecewiseMap one map per interval", () => {
+    const three = [
+      [0, 1],
+      [8, 1],
+      [16, 1],
+    ];
+    expect(only(maps(piecewise(three, [linear("a")])))).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "maps"],
+      'PiecewiseMap "sections" has 1 map for 3 breaks; it needs 2 maps',
+    ]);
+    const back = [
+      [0, 1],
+      [8, 1],
+      [4, 1],
+    ];
+    expect(only(maps(piecewise(back, [linear("a"), linear("b")])))).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "breaks", 2],
+      'break [4, 1] of PiecewiseMap "sections" does not exceed the one before it',
+    ]);
+  });
+
+  it("checks a nested map at its own path", () => {
+    const repeated = (id: string) =>
+      table(
+        [
+          [1, 1],
+          [1, 1],
+        ],
+        [1, 2],
+        id,
+      );
+    const chain = {
+      type: "ChainMap",
+      id: "chain",
+      source_unit: "quarters",
+      target_unit: null,
+      maps: [repeated("tc")],
+    };
+    const both = {
+      type: "CombinationMap",
+      id: "both",
+      source_unit: "quarters",
+      target_unit: null,
+      maps: { b: repeated("tb"), a: repeated("ta") },
+    };
+    const pieces = piecewise(
+      [
+        [0, 1],
+        [8, 1],
+      ],
+      [repeated("tp")],
+    );
+    const child = timeline("c", "quarters", [8, 1], {
+      offset: [0, 1],
+      conversion_maps: [repeated("tk")],
+    });
+    const root = timeline("score", "quarters", [8, 1], {
+      conversion_maps: [chain, both, pieces],
+      children: [child],
+    });
+    const message = (id: string) =>
+      `x value [1, 1] of TableMap "${id}" does not exceed the one before it`;
+    expect(problems(manifest([root]))).toEqual([
+      [["timelines", 0, "conversion_maps", 0, "maps", 0, "x_values", 1], message("tc")],
+      [["timelines", 0, "conversion_maps", 1, "maps", "a", "x_values", 1], message("ta")],
+      [["timelines", 0, "conversion_maps", 1, "maps", "b", "x_values", 1], message("tb")],
+      [["timelines", 0, "conversion_maps", 2, "maps", 0, "x_values", 1], message("tp")],
+      [["timelines", 0, "children", 0, "conversion_maps", 0, "x_values", 1], message("tk")],
+    ]);
+    expect(new Set(identityProblems(manifest([root])).map((problem) => problem.code))).toEqual(
+      new Set(["conversion_map"]),
+    );
+  });
+
+  it("holds a measure view to name a measure map", () => {
+    const both = {
+      type: "CombinationMap",
+      id: "both",
+      source_unit: "quarters",
+      target_unit: null,
+      maps: { bar: view("bar", "ghost") },
+    };
+    const value = manifest(
+      [timeline("score", "quarters", [8, 1], { conversion_maps: [view("number", "ghost"), both] })],
+      { measure_maps: [{ id: "measures", rows: ROWS }] },
+    );
+    expect(problems(value)).toEqual([
+      [
+        ["timelines", 0, "conversion_maps", 0, "measure_map"],
+        '"ghost" names no measure map of this manifest',
+      ],
+      [
+        ["timelines", 0, "conversion_maps", 1, "maps", "bar", "measure_map"],
+        '"ghost" names no measure map of this manifest',
+      ],
+    ]);
+    expect(new Set(identityProblems(value).map((problem) => problem.code))).toEqual(
+      new Set(["dangling_target"]),
+    );
+    const named = manifest(
+      [
+        timeline("score", "quarters", [8, 1], { conversion_maps: [view("number", "measures")] }),
+        timeline("take", "seconds", new JsonFloat(60)),
+      ],
+      { measure_maps: [{ id: "measures", rows: ROWS }] },
+    );
+    expect(problems(named)).toEqual([]);
+    validate(named);
+  });
+
+  it("shares the manifest scope between measure-map ids", () => {
+    const value = manifest([timeline("score")], {
+      groups: [group("g", ["score"])],
+      measure_maps: ["score", "g", "m", "m"].map((id) => ({ id, rows: ROWS })),
+    });
+    expect(problems(value)).toEqual([
+      [["measure_maps", 0, "id"], 'duplicate id "score", first at #/timelines/0/id'],
+      [["measure_maps", 1, "id"], 'duplicate id "g", first at #/groups/0/id'],
+      [["measure_maps", 3, "id"], 'duplicate id "m", first at #/measure_maps/2/id'],
+    ]);
+    expect(new Set(identityProblems(value).map((problem) => problem.code))).toEqual(
+      new Set(["duplicate_id"]),
+    );
+    const named = manifest([timeline("score")], {
+      id: "m",
+      measure_maps: [{ id: "m", rows: ROWS }],
+    });
+    expect(only(named)).toEqual([["id"], 'duplicate id "m", first at #/measure_maps/0/id']);
+    expect(identityProblems(named).map((problem) => problem.code)).toEqual(["manifest_id"]);
+  });
+});
+
 describe("identity", () => {
   it("finds nothing in the bundle document", () => {
     expect(problems(bundle())).toEqual([]);
@@ -119,7 +312,7 @@ describe("identity", () => {
 
   /** A document for each place an id is checked, with the path of `word` in it. */
   const idDocuments = (word: string): [JsonObject, (string | number)[]][] => {
-    const shift = { type: "ShiftMap", id: word, source_unit: null, target_unit: null, offset: 1 };
+    const linear = { type: "LinearMap", id: word, source_unit: null, target_unit: null };
     const flow: Record<string, JsonObject[]> = {
       breaks: [{ id: word, coordinate: [1, 1] }],
       jumps: [{ id: word, from_coordinate: [1, 1], to_coordinate: [0, 1] }],
@@ -136,7 +329,7 @@ describe("identity", () => {
         ["timelines", 0, "children", 0, "id"],
       ],
       [
-        manifest([timeline("s", "quarters", [8, 1], { conversion_maps: [shift] })]),
+        manifest([timeline("s", "quarters", [8, 1], { conversion_maps: [linear] })]),
         ["timelines", 0, "conversion_maps", 0, "id"],
       ],
       [
@@ -148,6 +341,10 @@ describe("identity", () => {
         ["timelines", 0, "regions", 0, "id"],
       ],
       [manifest([timeline("s")], { groups: [group(word, ["s"])] }), ["groups", 0, "id"]],
+      [
+        manifest([timeline("s")], { measure_maps: [{ id: word, rows: ROWS }] }),
+        ["measure_maps", 0, "id"],
+      ],
       [manifest([timeline("s")], { id: word }), ["id"]],
       ...Object.entries(flow).map(([member, entries]): [JsonObject, (string | number)[]] => [
         manifest([timeline("s", "quarters", [8, 1], { flow_control: { [member]: entries } })]),
@@ -620,6 +817,17 @@ describe("identity", () => {
       flow_control: {
         jumps: [{ id: "j", from_coordinate: [1, 1], to_coordinate: [0, 1], target: "nowhere" }],
       },
+      conversion_maps: [
+        view("bars", "no-measures"),
+        table(
+          [
+            [0, 1],
+            [4, 1],
+            [8, 1],
+          ],
+          [60, 72],
+        ),
+      ],
       regions: [
         { id: "end", start: [0, 1], end: [1, 1] },
         { id: "regions_3", start: [0, 1], end: [1, 1] },
@@ -633,6 +841,7 @@ describe("identity", () => {
     const value = manifest([first, timeline("second"), timeline("second")], {
       id: "g2",
       groups: [group("first", ["ghost", "second"]), group("g2", ["second"])],
+      measure_maps: [{ id: "first", rows: ROWS }],
       graphical: {
         order: {
           zz: [],
@@ -654,6 +863,14 @@ describe("identity", () => {
         '"nowhere" names no marker of this timeline',
       ],
       [
+        ["timelines", 0, "conversion_maps", 0, "measure_map"],
+        '"no-measures" names no measure map of this manifest',
+      ],
+      [
+        ["timelines", 0, "conversion_maps", 1, "y_values"],
+        'TableMap "tempo" has 3 x values and 2 y values',
+      ],
+      [
         ["timelines", 0, "children", 0, "unit"],
         "child 'kid' has unit 'seconds', its parent 'first' has 'quarters'",
       ],
@@ -672,6 +889,7 @@ describe("identity", () => {
       ],
       [["timelines", 2, "id"], 'duplicate id "second", first at #/timelines/1/id'],
       [["groups", 0, "id"], 'duplicate id "first", first at #/timelines/0/id'],
+      [["measure_maps", 0, "id"], 'duplicate id "first", first at #/timelines/0/id'],
       [["id"], 'duplicate id "g2", first at #/groups/1/id'],
       [["groups", 0, "members", 0], '"ghost" names no timeline of this manifest'],
       [["groups", 1, "members", 0], 'duplicate member "second", first at #/groups/0/members/1'],
@@ -682,12 +900,13 @@ describe("identity", () => {
       [["graphical", "order", "zz"], '"zz" names no group or timeline of this manifest'],
     ]);
     expect(identityProblems(value).map((problem) => problem.code)).toEqual([
-      "dangling_target",
+      ...Array<string>(2).fill("dangling_target"),
+      "conversion_map",
       "child_unit",
       "child_offset",
       "child_end",
       ...Array<string>(2).fill("reserved_id"),
-      ...Array<string>(2).fill("duplicate_id"),
+      ...Array<string>(3).fill("duplicate_id"),
       "manifest_id",
       ...Array<string>(2).fill("group_member"),
       ...Array<string>(2).fill("display_order"),

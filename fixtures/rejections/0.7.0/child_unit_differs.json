@@ -2,6 +2,7 @@
   "code": "child_unit",
   "manifest": {
     "groups": [],
+    "measure_maps": [],
     "meta": {},
     "name": null,
     "timelines": [
@@ -19,9 +20,7 @@
             "is_segment_line": false,
             "length": 4.0,
             "locked": false,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "float",
             "offset": [
@@ -45,9 +44,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": null,
         "number_type": "fraction",
         "regions": [],

@@ -44,9 +44,14 @@ def _schema_facts() -> tuple[list[str], list[str]]:
         assert map_name is not None
         for key, member in definitions[map_name]["properties"].items():
             direct_reference = _reference_name(member)
+            branch_references = {
+                _reference_name(branch) for branch in member.get("anyOf", [])
+            }
             item_reference = _reference_name(member.get("items"))
             additional_reference = _reference_name(member.get("additionalProperties"))
-            if direct_reference in number_definitions:
+            if direct_reference in number_definitions or (
+                branch_references & number_definitions
+            ):
                 number.add(f"{map_name}.values.{key}")
             if member.get("type") == "array" and item_reference in number_definitions:
                 number.add(f"{map_name}.arrays.{key}")

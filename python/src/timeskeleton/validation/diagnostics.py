@@ -20,6 +20,7 @@ ValidationCode: TypeAlias = Literal[
     "representation",
     "duplicate_id",
     "dangling_target",
+    "conversion_map",
     "child_unit",
     "child_offset",
     "child_end",

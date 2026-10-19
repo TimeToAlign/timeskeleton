@@ -81,234 +81,213 @@ export type Number = number | Fraction;
  */
 export type Fraction = [number, number];
 /**
- * A conversion map of a timeline, discriminated by its type.
+ * A conversion map of a timeline, discriminated by its type: a function from a position on the timeline's axis to a value. A map is an abstract type, independent of any number type: each of its Numbers is an int, a float or a Fraction, whatever the implementation computes in. Six types are general (LinearMap, TableMap, ConstantMap, PiecewiseMap, ChainMap, CombinationMap) and four read a measure map (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap).
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "ConversionMap".
  */
 export type ConversionMap =
-  | BeatInMeasureMap
   | ChainMap
   | CombinationMap
   | ConstantMap
-  | FloorMap
-  | InterpolationMap
-  | IntervalToConstantMap
+  | FloatingMeasureMap
   | LinearMap
-  | MetricMap
-  | MetricalPositionMap
+  | MeasureBeatMap
+  | MeasureNumberMap
+  | MeasureRecordMap
   | PiecewiseMap
-  | QuartersToFloatingMeasures
-  | QuartersToMeasureNumber
-  | QuartersToTicks
-  | RotationMap
-  | SamplesToSeconds
-  | ScalarMap
-  | SecondsToSamples
-  | ShiftMap
-  | TableMap
-  | TicksToQuarters;
+  | TableMap;
 /**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "BeatInMeasureMap".
- */
-export type BeatInMeasureMap = MapBase & {
-  type: "BeatInMeasureMap";
-  meter_map: MetricMap;
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "MetricMap".
- */
-export type MetricMap = MapBase & {
-  type: "MetricMap";
-  starts: Number[];
-  mcs: number[];
-  mns: string[];
-  lengths: Number[];
-};
-/**
+ * Maps x through its maps in turn, the first applied first: each map reads the value the one before it gives.
+ *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "ChainMap".
  */
 export type ChainMap = MapBase & {
   type: "ChainMap";
-  maps: ConversionMap[];
+  /**
+   * The maps in the order they apply.
+   *
+   * @minItems 1
+   */
+  maps: [ConversionMap, ...ConversionMap[]];
 };
 /**
+ * Maps x to several named outputs at once, each the value one map gives for x: a measure number with its beat, or a pixel position with the file name of its image. The outputs carry no order.
+ *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CombinationMap".
  */
 export type CombinationMap = MapBase & {
   type: "CombinationMap";
+  /**
+   * The map of each output, keyed by the output's name.
+   */
   maps: {
     [k: string]: ConversionMap;
   };
-  names: string[];
 };
 /**
+ * Maps every x to one value, a Number or a string such as a label or a file name.
+ *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "ConstantMap".
  */
 export type ConstantMap = MapBase & {
   type: "ConstantMap";
-  value: unknown;
+  /**
+   * The value of every input.
+   */
+  value: Number | string;
 };
 /**
+ * Maps a position x in quarters to floating measures, a measure ordinal followed by how far into that bar x lies (12.5 is the middle of the twelfth bar). The measure map gives the knots: one per row, at the row's nominal downbeat, its qstamp minus its offset_within_measure, so the content of an incomplete bar sits where it is notated (a pickup of one eighth in 9/8 begins at 0.888); and a last knot at the end of the last row, its qstamp plus its actual_length. A knot carries the ordinal of its row, the last knot the ordinal after the last row's. Ordinals count rows, never measure numbers: the first row is 0 when it is an anacrusis (an offset_within_measure above 0 and an actual_length below its nominal_length) and 1 otherwise, and every following row adds one, through voltas and without reset. Between two knots the map is linear, and beyond the first and the last knot it continues the first and the last segment. A reading is truncated, never rounded, to three decimals, the resolution of floating measures. A measure map in which two rows share a nominal downbeat (the halves of a split bar) has no floating measures.
+ *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "FloorMap".
+ * via the `definition` "FloatingMeasureMap".
  */
-export type FloorMap = MapBase & {
-  type: "FloorMap";
-  divisor: number;
-  base: number;
-  offset: number;
+export type FloatingMeasureMap = MapBase & {
+  type: "FloatingMeasureMap";
+  /**
+   * Quarters, the unit of every measure-map position.
+   */
+  source_unit?: "quarters";
+  /**
+   * Floating measures.
+   */
+  target_unit?: "floating_measures";
+  /**
+   * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
+   */
+  measure_map: Id;
 };
 /**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "InterpolationMap".
- */
-export type InterpolationMap = MapBase & {
-  type: "InterpolationMap";
-  source_coords: number[];
-  target_coords: number[];
-  source_id: Id;
-  target_id: Id;
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "IntervalToConstantMap".
- */
-export type IntervalToConstantMap = MapBase & {
-  type: "IntervalToConstantMap";
-  boundaries: Number[];
-  values: unknown[];
-};
-/**
+ * Maps x to scalar · x + offset. Scaling, shifting and every conversion between two units of fixed ratio (quarters to ticks at a resolution, samples to seconds at a sample rate) are linear maps.
+ *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "LinearMap".
  */
 export type LinearMap = MapBase & {
   type: "LinearMap";
-  scalar: Number;
-  offset: Number;
+  /**
+   * The factor x is multiplied by.
+   */
+  scalar?: Number;
+  /**
+   * What is added to the product.
+   */
+  offset?: Number;
 };
 /**
- * Metrical position (measure count and beat) of a quarter position. Its two outputs are derived from meter_map: the measure count by the meter map itself, the beat by a BeatInMeasureMap whose ID is beat_map_id.
+ * Maps a position x in quarters to the pair of the measure number and the beat: the `number` of the row of the measure map that holds x (`MeasureMap`), and 1 plus the distance in quarters from that row's qstamp to x. Beats are 1-indexed and counted in quarters: beat 1 is the row's start, and a position halfway through its second quarter is beat 5/2.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "MetricalPositionMap".
+ * via the `definition` "MeasureBeatMap".
  */
-export type MetricalPositionMap = MapBase & {
-  type: "MetricalPositionMap";
-  meter_map: MetricMap;
+export type MeasureBeatMap = MapBase & {
+  type: "MeasureBeatMap";
   /**
-   * The ID of the BeatInMeasureMap derived from meter_map.
+   * Quarters, the unit of every measure-map position.
    */
-  beat_map_id: Id;
+  source_unit?: "quarters";
+  /**
+   * Null: the output is no position on a time axis.
+   */
+  target_unit?: null;
+  /**
+   * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
+   */
+  measure_map: Id;
 };
 /**
+ * Maps a position x in quarters to the number of the measure holding it: the `number` of the row of the measure map that holds x (`MeasureMap`).
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "MeasureNumberMap".
+ */
+export type MeasureNumberMap = MapBase & {
+  type: "MeasureNumberMap";
+  /**
+   * Quarters, the unit of every measure-map position.
+   */
+  source_unit?: "quarters";
+  /**
+   * Null: the output is no position on a time axis.
+   */
+  target_unit?: null;
+  /**
+   * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
+   */
+  measure_map: Id;
+};
+/**
+ * Maps a position x in quarters to the record of the measure holding it: the row of the measure map that holds x (`MeasureMap`), with every member its decompressed form carries.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "MeasureRecordMap".
+ */
+export type MeasureRecordMap = MapBase & {
+  type: "MeasureRecordMap";
+  /**
+   * Quarters, the unit of every measure-map position.
+   */
+  source_unit?: "quarters";
+  /**
+   * Null: the output is no position on a time axis.
+   */
+  target_unit?: null;
+  /**
+   * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
+   */
+  measure_map: Id;
+};
+/**
+ * Maps x by the map of the interval holding it: maps[i] reads every x in [breaks[i], breaks[i+1]), and a position outside [breaks[0], the last break) is undefined. There is one map fewer than breaks, and the breaks increase strictly; both are checked after the schema.
+ *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "PiecewiseMap".
  */
 export type PiecewiseMap = MapBase & {
   type: "PiecewiseMap";
-  breaks: Number[];
+  /**
+   * The interval bounds, strictly increasing.
+   *
+   * @minItems 2
+   */
+  breaks: [Number, Number, ...Number[]];
+  /**
+   * One map per interval, in the order of the intervals.
+   */
   maps: ConversionMap[];
 };
 /**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "QuartersToFloatingMeasures".
- */
-export type QuartersToFloatingMeasures = MapBase & {
-  type: "QuartersToFloatingMeasures";
-  x_values: Number[];
-  y_values: Number[];
-  kind: "linear" | "nearest" | "previous" | "next";
-  extrapolate: "error" | "extrapolate" | "constant" | "nan";
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "QuartersToMeasureNumber".
- */
-export type QuartersToMeasureNumber = MapBase & {
-  type: "QuartersToMeasureNumber";
-  boundaries: Number[];
-  values: string[];
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "QuartersToTicks".
- */
-export type QuartersToTicks = MapBase & {
-  type: "QuartersToTicks";
-  scalar: Number;
-  ppq: number;
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "RotationMap".
- */
-export type RotationMap = MapBase & {
-  type: "RotationMap";
-  period: number;
-  scale: number;
-  base: number;
-  offset: number;
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "SamplesToSeconds".
- */
-export type SamplesToSeconds = MapBase & {
-  type: "SamplesToSeconds";
-  scalar: Number;
-  sample_rate: number;
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "ScalarMap".
- */
-export type ScalarMap = MapBase & {
-  type: "ScalarMap";
-  scalar: Number;
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "SecondsToSamples".
- */
-export type SecondsToSamples = MapBase & {
-  type: "SecondsToSamples";
-  scalar: Number;
-  sample_rate: number;
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "ShiftMap".
- */
-export type ShiftMap = MapBase & {
-  type: "ShiftMap";
-  offset: Number;
-};
-/**
+ * Maps x by interpolating between anchor pairs (x_values[i], y_values[i]). The two arrays have equal length, at least two, and x_values increase strictly; both are checked after the schema.
+ *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "TableMap".
  */
 export type TableMap = MapBase & {
   type: "TableMap";
-  x_values: Number[];
-  y_values: Number[];
-  kind: "linear" | "nearest" | "previous" | "next";
-  extrapolate: "error" | "extrapolate" | "constant" | "nan";
-};
-/**
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "TicksToQuarters".
- */
-export type TicksToQuarters = MapBase & {
-  type: "TicksToQuarters";
-  scalar: Number;
-  ppq: number;
+  /**
+   * The anchor positions, strictly increasing.
+   *
+   * @minItems 2
+   */
+  x_values: [Number, Number, ...Number[]];
+  /**
+   * The value at each anchor, one per x value.
+   *
+   * @minItems 2
+   */
+  y_values: [Number, Number, ...Number[]];
+  /**
+   * How a position between two anchors reads: linear interpolates between their values, previous takes the value of the last anchor at or before x.
+   */
+  kind?: "linear" | "previous";
+  /**
+   * How a position outside the anchors reads: none leaves it undefined, constant takes the value of the nearest anchor, linear continues the first or the last segment between two anchors.
+   */
+  extrapolate?: "none" | "constant" | "linear";
 };
 /**
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -340,14 +319,14 @@ export type FlowControlElement =
  */
 export type ActivationCondition = "always" | "first_n" | "after_first" | "after_dc_ds";
 /**
- * Compressed rows from the Measure Map standard. A row equal to its predecessor's default successor is omitted as a whole.
+ * The rows of a measure map: compressed rows of the Measure Map standard, in measure order. A row equal to its predecessor's default successor is omitted as a whole.
  *
  * @minItems 1
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "MeasureMap".
+ * via the `definition` "MeasureMapRows".
  */
-export type MeasureMap = [MeasureMapRow, ...MeasureMapRow[]];
+export type MeasureMapRows = [MeasureMapRow, ...MeasureMapRow[]];
 /**
  * A strictly positive bare JSON number or a strictly positive exact Fraction pair.
  *
@@ -444,6 +423,7 @@ export type CompleteTimeSkeleton = {
   meta: Meta;
   timelines: CompleteTimeline[];
   groups: CompleteGroup[];
+  measure_maps: CompleteMeasureMap[];
   graphical?: CompleteGraphical;
 };
 /**
@@ -468,10 +448,6 @@ export type CompleteTimeline = {
   conversion_maps: CompleteConversionMap[];
   regions: CompleteRegion[];
   flow_control: CompleteFlowControl;
-  measure_map: Lossless<MeasureMap> | null;
-  metric_hierarchy: {
-    [k: string]: unknown;
-  } | null;
 };
 /**
  * `ConversionMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -480,36 +456,28 @@ export type CompleteTimeline = {
  * via the `definition` "CompleteConversionMap".
  */
 export type CompleteConversionMap =
-  | CompleteBeatInMeasureMap
   | CompleteChainMap
   | CompleteCombinationMap
   | CompleteConstantMap
-  | CompleteFloorMap
-  | CompleteInterpolationMap
-  | CompleteIntervalToConstantMap
+  | CompleteFloatingMeasureMap
   | CompleteLinearMap
-  | CompleteMetricMap
-  | CompleteMetricalPositionMap
+  | CompleteMeasureBeatMap
+  | CompleteMeasureNumberMap
+  | CompleteMeasureRecordMap
   | CompletePiecewiseMap
-  | CompleteQuartersToFloatingMeasures
-  | CompleteQuartersToMeasureNumber
-  | CompleteQuartersToTicks
-  | CompleteRotationMap
-  | CompleteSamplesToSeconds
-  | CompleteScalarMap
-  | CompleteSecondsToSamples
-  | CompleteShiftMap
-  | CompleteTableMap
-  | CompleteTicksToQuarters;
+  | CompleteTableMap;
 /**
- * `BeatInMeasureMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ * `ChainMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteBeatInMeasureMap".
+ * via the `definition` "CompleteChainMap".
  */
-export type CompleteBeatInMeasureMap = CompleteMapBase & {
-  type: "BeatInMeasureMap";
-  meter_map: CompleteMetricMap;
+export type CompleteChainMap = CompleteMapBase & {
+  type: "ChainMap";
+  /**
+   * @minItems 1
+   */
+  maps: [CompleteConversionMap, ...CompleteConversionMap[]];
 };
 /**
  * `MapBase` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -525,29 +493,6 @@ export type CompleteMapBase = {
   target_unit: TimeUnit | null;
 };
 /**
- * `MetricMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteMetricMap".
- */
-export type CompleteMetricMap = CompleteMapBase & {
-  type: "MetricMap";
-  starts: Lossless<Number>[];
-  mcs: JsonNumber[];
-  mns: string[];
-  lengths: Lossless<Number>[];
-};
-/**
- * `ChainMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteChainMap".
- */
-export type CompleteChainMap = CompleteMapBase & {
-  type: "ChainMap";
-  maps: CompleteConversionMap[];
-};
-/**
  * `CombinationMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -558,7 +503,6 @@ export type CompleteCombinationMap = CompleteMapBase & {
   maps: {
     [k: string]: CompleteConversionMap;
   };
-  names: string[];
 };
 /**
  * `ConstantMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -568,43 +512,19 @@ export type CompleteCombinationMap = CompleteMapBase & {
  */
 export type CompleteConstantMap = CompleteMapBase & {
   type: "ConstantMap";
-  value: unknown;
+  value: Lossless<Number> | string;
 };
 /**
- * `FloorMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ * `FloatingMeasureMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteFloorMap".
+ * via the `definition` "CompleteFloatingMeasureMap".
  */
-export type CompleteFloorMap = CompleteMapBase & {
-  type: "FloorMap";
-  divisor: JsonNumber;
-  base: JsonNumber;
-  offset: JsonNumber;
-};
-/**
- * `InterpolationMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteInterpolationMap".
- */
-export type CompleteInterpolationMap = CompleteMapBase & {
-  type: "InterpolationMap";
-  source_coords: JsonNumber[];
-  target_coords: JsonNumber[];
-  source_id: Id;
-  target_id: Id;
-};
-/**
- * `IntervalToConstantMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteIntervalToConstantMap".
- */
-export type CompleteIntervalToConstantMap = CompleteMapBase & {
-  type: "IntervalToConstantMap";
-  boundaries: Lossless<Number>[];
-  values: unknown[];
+export type CompleteFloatingMeasureMap = CompleteMapBase & {
+  type: "FloatingMeasureMap";
+  source_unit?: "quarters";
+  target_unit?: "floating_measures";
+  measure_map: Id;
 };
 /**
  * `LinearMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -618,15 +538,40 @@ export type CompleteLinearMap = CompleteMapBase & {
   offset: Lossless<Number>;
 };
 /**
- * `MetricalPositionMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ * `MeasureBeatMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteMetricalPositionMap".
+ * via the `definition` "CompleteMeasureBeatMap".
  */
-export type CompleteMetricalPositionMap = CompleteMapBase & {
-  type: "MetricalPositionMap";
-  meter_map: CompleteMetricMap;
-  beat_map_id: Id;
+export type CompleteMeasureBeatMap = CompleteMapBase & {
+  type: "MeasureBeatMap";
+  source_unit?: "quarters";
+  target_unit?: null;
+  measure_map: Id;
+};
+/**
+ * `MeasureNumberMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "CompleteMeasureNumberMap".
+ */
+export type CompleteMeasureNumberMap = CompleteMapBase & {
+  type: "MeasureNumberMap";
+  source_unit?: "quarters";
+  target_unit?: null;
+  measure_map: Id;
+};
+/**
+ * `MeasureRecordMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "CompleteMeasureRecordMap".
+ */
+export type CompleteMeasureRecordMap = CompleteMapBase & {
+  type: "MeasureRecordMap";
+  source_unit?: "quarters";
+  target_unit?: null;
+  measure_map: Id;
 };
 /**
  * `PiecewiseMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -636,98 +581,11 @@ export type CompleteMetricalPositionMap = CompleteMapBase & {
  */
 export type CompletePiecewiseMap = CompleteMapBase & {
   type: "PiecewiseMap";
-  breaks: Lossless<Number>[];
+  /**
+   * @minItems 2
+   */
+  breaks: [Lossless<Number>, Lossless<Number>, ...Lossless<Number>[]];
   maps: CompleteConversionMap[];
-};
-/**
- * `QuartersToFloatingMeasures` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteQuartersToFloatingMeasures".
- */
-export type CompleteQuartersToFloatingMeasures = CompleteMapBase & {
-  type: "QuartersToFloatingMeasures";
-  x_values: Lossless<Number>[];
-  y_values: Lossless<Number>[];
-  kind: "linear" | "nearest" | "previous" | "next";
-  extrapolate: "error" | "extrapolate" | "constant" | "nan";
-};
-/**
- * `QuartersToMeasureNumber` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteQuartersToMeasureNumber".
- */
-export type CompleteQuartersToMeasureNumber = CompleteMapBase & {
-  type: "QuartersToMeasureNumber";
-  boundaries: Lossless<Number>[];
-  values: string[];
-};
-/**
- * `QuartersToTicks` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteQuartersToTicks".
- */
-export type CompleteQuartersToTicks = CompleteMapBase & {
-  type: "QuartersToTicks";
-  scalar: Lossless<Number>;
-  ppq: JsonNumber;
-};
-/**
- * `RotationMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteRotationMap".
- */
-export type CompleteRotationMap = CompleteMapBase & {
-  type: "RotationMap";
-  period: JsonNumber;
-  scale: JsonNumber;
-  base: JsonNumber;
-  offset: JsonNumber;
-};
-/**
- * `SamplesToSeconds` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteSamplesToSeconds".
- */
-export type CompleteSamplesToSeconds = CompleteMapBase & {
-  type: "SamplesToSeconds";
-  scalar: Lossless<Number>;
-  sample_rate: JsonNumber;
-};
-/**
- * `ScalarMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteScalarMap".
- */
-export type CompleteScalarMap = CompleteMapBase & {
-  type: "ScalarMap";
-  scalar: Lossless<Number>;
-};
-/**
- * `SecondsToSamples` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteSecondsToSamples".
- */
-export type CompleteSecondsToSamples = CompleteMapBase & {
-  type: "SecondsToSamples";
-  scalar: Lossless<Number>;
-  sample_rate: JsonNumber;
-};
-/**
- * `ShiftMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteShiftMap".
- */
-export type CompleteShiftMap = CompleteMapBase & {
-  type: "ShiftMap";
-  offset: Lossless<Number>;
 };
 /**
  * `TableMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -737,21 +595,16 @@ export type CompleteShiftMap = CompleteMapBase & {
  */
 export type CompleteTableMap = CompleteMapBase & {
   type: "TableMap";
-  x_values: Lossless<Number>[];
-  y_values: Lossless<Number>[];
-  kind: "linear" | "nearest" | "previous" | "next";
-  extrapolate: "error" | "extrapolate" | "constant" | "nan";
-};
-/**
- * `TicksToQuarters` in the complete form: every key with a default present, every number as `parseJson` reads it.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "CompleteTicksToQuarters".
- */
-export type CompleteTicksToQuarters = CompleteMapBase & {
-  type: "TicksToQuarters";
-  scalar: Lossless<Number>;
-  ppq: JsonNumber;
+  /**
+   * @minItems 2
+   */
+  x_values: [Lossless<Number>, Lossless<Number>, ...Lossless<Number>[]];
+  /**
+   * @minItems 2
+   */
+  y_values: [Lossless<Number>, Lossless<Number>, ...Lossless<Number>[]];
+  kind: "linear" | "previous";
+  extrapolate: "none" | "constant" | "linear";
 };
 /**
  * `Region` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -834,6 +687,18 @@ export type CompleteGroup = {
   members: Id[];
 };
 /**
+ * `MeasureMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "CompleteMeasureMap".
+ */
+export type CompleteMeasureMap = {
+  id: Id;
+  name: Name;
+  meta: Meta;
+  rows: Lossless<MeasureMapRows>;
+};
+/**
  * `Graphical` in the complete form: every key with a default present, every number as `parseJson` reads it.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -850,7 +715,7 @@ export type CompleteGraphical = {
 };
 
 /**
- * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines), optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots and the groups are written sorted by ID and each group's members by code point; readers accept any order.
+ * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region, break, jump or marker) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.
  */
 export interface TimeSkeleton {
   /**
@@ -881,6 +746,10 @@ export interface TimeSkeleton {
    * The timeline groups. A root that no group names remains ungrouped in the bundle. A root whose descendants are named in a group is indirectly linked with that group.
    */
   groups?: Group[];
+  /**
+   * The measure maps, which the measure views among the conversion maps name by ID. A measure map belongs to no timeline and is not drawn. The array may be empty.
+   */
+  measure_maps?: MeasureMap[];
   graphical?: Graphical;
 }
 /**
@@ -893,7 +762,7 @@ export interface Meta {
   [k: string]: unknown;
 }
 /**
- * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions, flow control, measure map and metric hierarchy. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.
+ * One timeline without its events: its axis (unit and number type), its length, its children, conversion maps, regions and flow control. The unit decides the timeline's domain and modality. Every coordinate on the timeline's own axis (its length, its children's offsets, region bounds, break and marker coordinates, jump coordinates) is a bare Number represented as the axis's number type selects: a JSON integer for int, a JSON number for float, a Fraction pair for fraction. The declared number type decides how a value is read, never its spelling: on an int axis a number written with a zero fractional part is read as the integer it equals, on a float axis an integer as the float it equals, and a Fraction as Fraction says. Writers spell every value canonically: an int as a JSON integer, a float as Python's repr spells it, Fraction members as JSON integers. Arrays have one canonical order: children by offset, then ID; conversion maps by ID; regions by start, end, ID; breaks and markers by coordinate, then ID; jumps by from and to coordinate, then ID. Readers accept any order.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "Timeline".
@@ -944,16 +813,6 @@ export interface Timeline {
    */
   regions?: Region[];
   flow_control?: FlowControl;
-  /**
-   * The measure map, or null. A measure map is anchored in note values, so only a timeline whose unit is quarters or whole_note may carry one.
-   */
-  measure_map?: MeasureMap | null;
-  /**
-   * The metric hierarchy, or null; an object without further constraints.
-   */
-  metric_hierarchy?: {
-    [k: string]: unknown;
-  } | null;
 }
 /**
  * What every conversion map carries: its type, its ID, its name, and the units of the axes it converts from and to, either null where that side is not a time axis. Each map type adds its own members.
@@ -1064,6 +923,39 @@ export interface Marker {
   coordinate: Number;
 }
 /**
+ * A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "Group".
+ */
+export interface Group {
+  /**
+   * The group ID.
+   */
+  id: Id;
+  name?: Name;
+  meta?: Meta;
+  /**
+   * The IDs of the member timelines, sorted by code point. The array may be empty.
+   */
+  members: Id[];
+}
+/**
+ * A measure map: the measures of a score as compressed rows of the Measure Map standard, identified by an ID that the measure views (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap) name. Its positions (a row's qstamp and lengths) are quarters by definition, so it fits every timeline: a timeline in ticks or whole notes reaches a view through a ChainMap whose first map is a LinearMap to quarters. It belongs to no timeline and is not drawn. The row holding a position x in quarters is the last row, in measure order once decompressed, whose qstamp is at or before x; a position before the first row is held by the first row.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "MeasureMap".
+ */
+export interface MeasureMap {
+  /**
+   * The measure-map ID.
+   */
+  id: Id;
+  name?: Name;
+  meta?: Meta;
+  rows: MeasureMapRows;
+}
+/**
  * One row of the Measure Map standard plus the TimeSkeleton extensions volta and offset_within_measure.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
@@ -1122,24 +1014,6 @@ export interface MeasureMapRow {
    * A TimeSkeleton extension: where this row begins inside its nominal measure, in quarter notes, when the row represents only part of that measure (an anacrusis, or one constituent of a split measure). Absent means 0; a row never states 0.
    */
   offset_within_measure?: NumberPositive;
-}
-/**
- * A timeline group: member timelines sharing, by definition, the same graphical start and end. Every member's 0 coincides with every other member's 0 and every member's length with every other member's length, and positions in between convert linearly; a member's length may be unknown. It is possible for child timelines to participate in a group. A group is defined by naming member timelines of the manifest, roots or children at any depth; a timeline may be a member of several groups, and no member lies inside or contains another member of the same group. A child may belong to a group while its root belongs to another or to none.
- *
- * This interface was referenced by `TimeSkeleton`'s JSON-Schema
- * via the `definition` "Group".
- */
-export interface Group {
-  /**
-   * The group ID.
-   */
-  id: Id;
-  name?: Name;
-  meta?: Meta;
-  /**
-   * The IDs of the member timelines, sorted by code point. The array may be empty.
-   */
-  members: Id[];
 }
 /**
  * How the manifest is drawn (`docs/drawing.md`): named styles, an ordered list of statements, the display order of each group's members and the band order of each timeline. A statement selects drawn elements and sets presentation properties on them, either directly or by naming a style of `styles`; a name that `styles` does not hold sets nothing. Writers never reorder the statements or an order. An absent block draws every element with the other style layers alone.
@@ -1229,27 +1103,16 @@ export interface Selector {
     | "DiscreteLogicalTimeline"
     | "DiscretePhysicalTimeline"
     | "DiscreteGraphicalTimeline"
-    | "BeatInMeasureMap"
     | "ChainMap"
     | "CombinationMap"
     | "ConstantMap"
-    | "FloorMap"
-    | "InterpolationMap"
-    | "IntervalToConstantMap"
+    | "FloatingMeasureMap"
     | "LinearMap"
-    | "MetricMap"
-    | "MetricalPositionMap"
+    | "MeasureBeatMap"
+    | "MeasureNumberMap"
+    | "MeasureRecordMap"
     | "PiecewiseMap"
-    | "QuartersToFloatingMeasures"
-    | "QuartersToMeasureNumber"
-    | "QuartersToTicks"
-    | "RotationMap"
-    | "SamplesToSeconds"
-    | "ScalarMap"
-    | "SecondsToSamples"
-    | "ShiftMap"
     | "TableMap"
-    | "TicksToQuarters"
     | "markers"
     | "conversion_maps"
     | "children"

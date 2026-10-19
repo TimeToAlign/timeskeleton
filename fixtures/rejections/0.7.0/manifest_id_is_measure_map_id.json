@@ -1,0 +1,72 @@
+{
+  "code": "manifest_id",
+  "manifest": {
+    "groups": [],
+    "id": "measures",
+    "measure_maps": [
+      {
+        "id": "measures",
+        "meta": {},
+        "name": null,
+        "rows": [
+          {
+            "actual_length": [
+              4,
+              1
+            ],
+            "count": 1,
+            "nominal_length": [
+              4,
+              1
+            ],
+            "number": 1,
+            "qstamp": [
+              0,
+              1
+            ],
+            "time_signature": "4/4"
+          }
+        ]
+      }
+    ],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "id": "bars",
+            "measure_map": "measures",
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "MeasureNumberMap"
+          }
+        ],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "id"
+  ],
+  "reason": "The manifest ID is no measure-map ID."
+}

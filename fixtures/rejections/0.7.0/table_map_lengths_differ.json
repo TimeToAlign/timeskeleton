@@ -1,0 +1,69 @@
+{
+  "code": "conversion_map",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "extrapolate": "none",
+            "id": "tempo",
+            "kind": "linear",
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "TableMap",
+            "x_values": [
+              [
+                0,
+                1
+              ],
+              [
+                4,
+                1
+              ],
+              [
+                8,
+                1
+              ]
+            ],
+            "y_values": [
+              60,
+              72
+            ]
+          }
+        ],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "conversion_maps",
+    0,
+    "y_values"
+  ],
+  "reason": "A TableMap has one y value per x value."
+}

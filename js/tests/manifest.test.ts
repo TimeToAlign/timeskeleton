@@ -262,6 +262,7 @@ describe("canonical order", () => {
     expect(ids(flow.breaks)).toEqual(["kz", "ka", "kb"]);
     expect(ids(flow.jumps)).toEqual(["je", "js", "jd", "jj"]);
     expect(ids(flow.markers)).toEqual(["starting", "Coda", "\u{E9}", "\u{FB00}!", "\u{1F600}!"]);
+    expect(ids(result.measure_maps)).toEqual(["ma", "mb", "m\u{FB00}"]);
   });
 
   it("compares bare values by exact value", () => {
@@ -346,57 +347,65 @@ function tiedManifest(): JsonObject {
     ["rd", [5, 8], [2, 3]],
   ];
   const at = (offset: unknown) => ({ offset });
-  return manifest([
-    timeline("piece", "quarters", [16, 1], {
-      children: [
-        timeline("z", "quarters", [8, 1], {
-          ...at([1, 1]),
-          children: [
-            timeline("y", "quarters", [2, 1], at([1, 1])),
-            timeline("x", "quarters", [2, 1], at([0, 1])),
+  return manifest(
+    [
+      timeline("piece", "quarters", [16, 1], {
+        children: [
+          timeline("z", "quarters", [8, 1], {
+            ...at([1, 1]),
+            children: [
+              timeline("y", "quarters", [2, 1], at([1, 1])),
+              timeline("x", "quarters", [2, 1], at([0, 1])),
+            ],
+          }),
+          timeline("m", "quarters", [8, 1], at([1, 1])),
+          timeline("b", "quarters", [8, 1], at([5, 8])),
+          timeline("a", "quarters", [8, 1], at([2, 3])),
+        ],
+        conversion_maps: ["\u{1F600}", "\u{FB00}", "B2", "a2", "B"].map((id) => ({
+          type: "LinearMap",
+          id,
+          source_unit: "quarters",
+          target_unit: null,
+          offset: [1, 2],
+        })),
+        regions: regions.map(([id, start, end]) => ({ id, start, end })),
+        flow_control: {
+          breaks: [
+            { id: "kb", coordinate: [12, 1] },
+            { id: "ka", coordinate: [12, 1] },
+            { id: "kz", coordinate: [5, 8] },
           ],
-        }),
-        timeline("m", "quarters", [8, 1], at([1, 1])),
-        timeline("b", "quarters", [8, 1], at([5, 8])),
-        timeline("a", "quarters", [8, 1], at([2, 3])),
-      ],
-      conversion_maps: ["\u{1F600}", "\u{FB00}", "B2", "a2", "B"].map((id) => ({
-        type: "ShiftMap",
+          jumps: [
+            { id: "jj", from_coordinate: [8, 1], to_coordinate: [2, 1], target: "Coda" },
+            { id: "jd", from_coordinate: [8, 1], to_coordinate: [2, 1] },
+            { id: "js", from_coordinate: [8, 1], to_coordinate: [2, 3] },
+            { id: "je", from_coordinate: [5, 8], to_coordinate: [2, 1] },
+          ],
+          markers: (
+            [
+              ["\u{1F600}!", [2, 1]],
+              ["\u{FB00}!", [2, 1]],
+              ["\u{E9}", [2, 1]],
+              ["Coda", [2, 1]],
+              ["starting", [5, 8]],
+            ] as const
+          ).map(([id, coordinate]) => ({ id, coordinate })),
+        },
+      }),
+    ],
+    {
+      measure_maps: ["m\u{FB00}", "mb", "ma"].map((id) => ({
         id,
-        source_unit: "quarters",
-        target_unit: null,
-        offset: [1, 2],
+        rows: [{ count: 1, qstamp: [0, 1], actual_length: [4, 1] }],
       })),
-      regions: regions.map(([id, start, end]) => ({ id, start, end })),
-      flow_control: {
-        breaks: [
-          { id: "kb", coordinate: [12, 1] },
-          { id: "ka", coordinate: [12, 1] },
-          { id: "kz", coordinate: [5, 8] },
-        ],
-        jumps: [
-          { id: "jj", from_coordinate: [8, 1], to_coordinate: [2, 1], target: "Coda" },
-          { id: "jd", from_coordinate: [8, 1], to_coordinate: [2, 1] },
-          { id: "js", from_coordinate: [8, 1], to_coordinate: [2, 3] },
-          { id: "je", from_coordinate: [5, 8], to_coordinate: [2, 1] },
-        ],
-        markers: (
-          [
-            ["\u{1F600}!", [2, 1]],
-            ["\u{FB00}!", [2, 1]],
-            ["\u{E9}", [2, 1]],
-            ["Coda", [2, 1]],
-            ["starting", [5, 8]],
-          ] as const
-        ).map(([id, coordinate]) => ({ id, coordinate })),
-      },
-    }),
-  ]);
+    },
+  );
 }
 
 /**
  * The value with every object's keys reversed, and the items of every array
- * whose order carries no meaning: `timelines` and `groups`, a group's
+ * whose order carries no meaning: `timelines`, `groups` and `measure_maps`, a group's
  * `members`, a timeline's `children`, `conversion_maps` and `regions`, and
  * the `breaks`, `jumps` and `markers` of its `flow_control`.
  */
@@ -409,7 +418,7 @@ function reverse(value: unknown, unordered = false, arrays = true): Lossless<Jso
     const members = !arrays
       ? []
       : "timelines" in value
-        ? ["timelines", "groups"]
+        ? ["timelines", "groups", "measure_maps"]
         : "unit" in value && "length" in value
           ? ["children", "conversion_maps", "regions"]
           : "breaks" in value && "jumps" in value && "markers" in value

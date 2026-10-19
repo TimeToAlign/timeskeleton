@@ -21,27 +21,16 @@ interface MapMembers {
 
 /** The members of each conversion map type that hold a Number. */
 export const MAP_NUMBER_MEMBERS: Readonly<Record<string, MapMembers>> = {
-  IntervalToConstantMap: { arrays: ["boundaries"] },
+  ConstantMap: { values: ["value"] },
   LinearMap: { values: ["scalar", "offset"] },
-  MetricMap: { arrays: ["starts", "lengths"] },
   PiecewiseMap: { arrays: ["breaks"] },
-  QuartersToFloatingMeasures: { arrays: ["x_values", "y_values"] },
-  QuartersToMeasureNumber: { arrays: ["boundaries"] },
-  QuartersToTicks: { values: ["scalar"] },
-  SamplesToSeconds: { values: ["scalar"] },
-  ScalarMap: { values: ["scalar"] },
-  SecondsToSamples: { values: ["scalar"] },
-  ShiftMap: { values: ["offset"] },
   TableMap: { arrays: ["x_values", "y_values"] },
-  TicksToQuarters: { values: ["scalar"] },
 };
 
 /** The members of each conversion map type that hold nested conversion maps. */
 export const MAP_NESTED_MEMBERS: Readonly<Record<string, MapMembers>> = {
-  BeatInMeasureMap: { values: ["meter_map"] },
   ChainMap: { arrays: ["maps"] },
   CombinationMap: { records: ["maps"] },
-  MetricalPositionMap: { values: ["meter_map"] },
   PiecewiseMap: { arrays: ["maps"] },
 };
 
@@ -135,10 +124,6 @@ function respellTimeline(timeline: JsonObject, offsetType: NumberType | undefine
     for (const entry of objects(flow.markers)) respellAxis(entry, ["coordinate"], own);
   }
   for (const map of objects(timeline.conversion_maps)) respellMap(map);
-  for (const row of objects(timeline.measure_map)) {
-    for (const key of ROW_NUMBER_MEMBERS)
-      if (Object.hasOwn(row, key)) row[key] = fraction(row[key]);
-  }
   for (const child of objects(timeline.children)) respellTimeline(child, own);
 }
 
@@ -154,4 +139,11 @@ function respellTimeline(timeline: JsonObject, offsetType: NumberType | undefine
 export function respell(manifest: unknown): void {
   if (!isJsonObject(manifest)) return;
   for (const timeline of objects(manifest.timelines)) respellTimeline(timeline, undefined);
+  for (const measureMap of objects(manifest.measure_maps)) {
+    for (const row of objects(measureMap.rows)) {
+      for (const key of ROW_NUMBER_MEMBERS) {
+        if (Object.hasOwn(row, key)) row[key] = fraction(row[key]);
+      }
+    }
+  }
 }

@@ -31,6 +31,22 @@
       }
     ],
     "id": "op35",
+    "measure_maps": [
+      {
+        "id": "measures",
+        "rows": [
+          {
+            "actual_length": 4,
+            "count": 1,
+            "nominal_length": 4,
+            "number": 1,
+            "qstamp": 0,
+            "tempo": 120,
+            "time_signature": "4/4"
+          }
+        ]
+      }
+    ],
     "meta": {
       "anything": {
         "goes": true
@@ -62,7 +78,7 @@
                 "offset": 1,
                 "source_unit": "quarters",
                 "target_unit": "quarters",
-                "type": "ShiftMap"
+                "type": "LinearMap"
               }
             ],
             "note": "outer",
@@ -117,17 +133,6 @@
         "length": [
           32,
           1
-        ],
-        "measure_map": [
-          {
-            "actual_length": 4,
-            "count": 1,
-            "nominal_length": 4,
-            "number": 1,
-            "qstamp": 0,
-            "tempo": 120,
-            "time_signature": "4/4"
-          }
         ],
         "regions": [
           {
@@ -192,6 +197,15 @@
       "key": "colour",
       "path": [
         "groups",
+        0
+      ]
+    },
+    {
+      "key": "tempo",
+      "path": [
+        "measure_maps",
+        0,
+        "rows",
         0
       ]
     },
@@ -266,15 +280,6 @@
         0,
         "flow_control",
         "markers",
-        0
-      ]
-    },
-    {
-      "key": "tempo",
-      "path": [
-        "timelines",
-        0,
-        "measure_map",
         0
       ]
     },

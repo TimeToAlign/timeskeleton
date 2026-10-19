@@ -81,7 +81,7 @@ def _respellable(canonical: bool) -> dict:
                             "x_values": [[0, 1], [number(1.0, 1), 2]],
                             "y_values": [0.0, 0.5],
                             "kind": "linear",
-                            "extrapolate": "error",
+                            "extrapolate": "none",
                         }
                     ],
                 },
@@ -98,14 +98,6 @@ def _respellable(canonical: bool) -> dict:
                 {"id": "r", "start": [0, number(1.0, 1)], "end": [number(1.0, 1), 2]}
             ],
             flow_control={"markers": [{"id": "m", "coordinate": [number(2.0, 2), 1]}]},
-            measure_map=[
-                {
-                    "count": 1,
-                    "qstamp": [0, number(1.0, 1)],
-                    "actual_length": [number(4.0, 4), 1],
-                    "nominal_length": 4.0,
-                }
-            ],
         ),
         timeline(
             "take",
@@ -113,6 +105,19 @@ def _respellable(canonical: bool) -> dict:
             number(60, 60.0),
             regions=[{"id": "s", "start": number(0, 0.0), "end": 1.5}],
         ),
+        measure_maps=[
+            {
+                "id": "bars",
+                "rows": [
+                    {
+                        "count": 1,
+                        "qstamp": [0, number(1.0, 1)],
+                        "actual_length": [number(4.0, 4), 1],
+                        "nominal_length": 4.0,
+                    }
+                ],
+            }
+        ],
     )
 
 
@@ -121,7 +126,7 @@ def respellable() -> dict:
 
     A Fraction member is written as an integral float in a length, a child
     offset, a region, a marker, a nested TableMap's x value, a LinearMap's
-    offset and two measure-map row values; a ticks length and offset as
+    offset and two values of a measure-map row; a ticks length and offset as
     integral floats; a seconds length and region start as integers. The bare
     LinearMap scalar ``1.0``, the TableMap's y values and the row's bare
     ``nominal_length`` ``4.0`` have no declared number type.

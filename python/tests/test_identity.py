@@ -106,6 +106,182 @@ def test_targets_stay_within_their_timeline() -> None:
     ]
 
 
+ROWS = [{"count": 1, "qstamp": [0, 1], "actual_length": [4, 1]}]
+
+
+def _table(x_values: list, y_values: list, identifier: str = "tempo") -> dict:
+    return {
+        "type": "TableMap",
+        "id": identifier,
+        "source_unit": "quarters",
+        "target_unit": None,
+        "x_values": x_values,
+        "y_values": y_values,
+    }
+
+
+def _piecewise(breaks: list, maps: list) -> dict:
+    return {
+        "type": "PiecewiseMap",
+        "id": "sections",
+        "source_unit": "quarters",
+        "target_unit": None,
+        "breaks": breaks,
+        "maps": maps,
+    }
+
+
+def _linear(identifier: str) -> dict:
+    return {
+        "type": "LinearMap",
+        "id": identifier,
+        "source_unit": None,
+        "target_unit": None,
+    }
+
+
+def _view(identifier: str, reference: str) -> dict:
+    return {
+        "type": "MeasureNumberMap",
+        "id": identifier,
+        "source_unit": "quarters",
+        "target_unit": None,
+        "measure_map": reference,
+    }
+
+
+def _maps(*conversion_maps: dict) -> dict:
+    return manifest(timeline("score", conversion_maps=list(conversion_maps)))
+
+
+def test_a_table_maps_arrays_agree() -> None:
+    assert _only(_maps(_table([[0, 1], [4, 1], [8, 1]], [60, 72]))) == (
+        ("timelines", 0, "conversion_maps", 0, "y_values"),
+        "TableMap 'tempo' has 3 x values and 2 y values",
+    )
+    assert _only(_maps(_table([[0, 1], [2, 1], 2.0], [1, 2, 3]))) == (
+        ("timelines", 0, "conversion_maps", 0, "x_values", 2),
+        "x value 2.0 of TableMap 'tempo' does not exceed the one before it",
+    )
+    accepted = _maps(_table([[0, 1], 0.5, [3, 4]], [1, 2, 3]))
+    assert _problems(accepted) == []
+    validate(accepted)
+
+
+def test_a_piecewise_map_has_one_map_per_interval() -> None:
+    assert _only(_maps(_piecewise([[0, 1], [8, 1], [16, 1]], [_linear("a")]))) == (
+        ("timelines", 0, "conversion_maps", 0, "maps"),
+        "PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps",
+    )
+    pieces = _piecewise([[0, 1], [8, 1], [4, 1]], [_linear("a"), _linear("b")])
+    assert _only(_maps(pieces)) == (
+        ("timelines", 0, "conversion_maps", 0, "breaks", 2),
+        "break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it",
+    )
+
+
+def test_nested_maps_are_checked_at_their_own_paths() -> None:
+    def repeated(identifier: str) -> dict:
+        return _table([[1, 1], [1, 1]], [1, 2], identifier)
+
+    chain = {
+        "type": "ChainMap",
+        "id": "chain",
+        "source_unit": "quarters",
+        "target_unit": None,
+        "maps": [repeated("tc")],
+    }
+    both = {
+        "type": "CombinationMap",
+        "id": "both",
+        "source_unit": "quarters",
+        "target_unit": None,
+        "maps": {"b": repeated("tb"), "a": repeated("ta")},
+    }
+    pieces = _piecewise([[0, 1], [8, 1]], [repeated("tp")])
+    child = timeline("c", offset=(0, 1), conversion_maps=[repeated("tk")])
+    root = timeline("score", conversion_maps=[chain, both, pieces], children=[child])
+    message = "x value [1, 1] of TableMap {} does not exceed the one before it"
+    assert _problems(manifest(root)) == [
+        (
+            ("timelines", 0, "conversion_maps", 0, "maps", 0, "x_values", 1),
+            message.format("'tc'"),
+        ),
+        (
+            ("timelines", 0, "conversion_maps", 1, "maps", "a", "x_values", 1),
+            message.format("'ta'"),
+        ),
+        (
+            ("timelines", 0, "conversion_maps", 1, "maps", "b", "x_values", 1),
+            message.format("'tb'"),
+        ),
+        (
+            ("timelines", 0, "conversion_maps", 2, "maps", 0, "x_values", 1),
+            message.format("'tp'"),
+        ),
+        (
+            ("timelines", 0, "children", 0, "conversion_maps", 0, "x_values", 1),
+            message.format("'tk'"),
+        ),
+    ]
+    assert {problem.code for problem in identity_problems(manifest(root))} == {
+        "conversion_map"
+    }
+
+
+def test_a_measure_view_names_a_measure_map() -> None:
+    both = {
+        "type": "CombinationMap",
+        "id": "both",
+        "source_unit": "quarters",
+        "target_unit": None,
+        "maps": {"bar": _view("bar", "ghost")},
+    }
+    value = manifest(
+        timeline("score", conversion_maps=[_view("number", "ghost"), both]),
+        measure_maps=[{"id": "measures", "rows": ROWS}],
+    )
+    assert _problems(value) == [
+        (
+            ("timelines", 0, "conversion_maps", 0, "measure_map"),
+            "'ghost' names no measure map of this manifest",
+        ),
+        (
+            ("timelines", 0, "conversion_maps", 1, "maps", "bar", "measure_map"),
+            "'ghost' names no measure map of this manifest",
+        ),
+    ]
+    assert {problem.code for problem in identity_problems(value)} == {"dangling_target"}
+    named = manifest(
+        timeline("score", conversion_maps=[_view("number", "measures")]),
+        timeline("take", "seconds", 60.0),
+        measure_maps=[{"id": "measures", "rows": ROWS}],
+    )
+    assert _problems(named) == []
+    validate(named)
+
+
+def test_measure_map_ids_share_the_manifest_scope() -> None:
+    value = manifest(
+        timeline("score"),
+        groups=[group("g", "score")],
+        measure_maps=[
+            {"id": identifier, "rows": ROWS} for identifier in ("score", "g", "m", "m")
+        ],
+    )
+    assert _problems(value) == [
+        (("measure_maps", 0, "id"), "duplicate id 'score', first at #/timelines/0/id"),
+        (("measure_maps", 1, "id"), "duplicate id 'g', first at #/groups/0/id"),
+        (("measure_maps", 3, "id"), "duplicate id 'm', first at #/measure_maps/2/id"),
+    ]
+    assert {problem.code for problem in identity_problems(value)} == {"duplicate_id"}
+    named = manifest(
+        timeline("score"), id="m", measure_maps=[{"id": "m", "rows": ROWS}]
+    )
+    assert _only(named) == (("id",), "duplicate id 'm', first at #/measure_maps/0/id")
+    assert [problem.code for problem in identity_problems(named)] == ["manifest_id"]
+
+
 def test_a_child_shares_its_parents_unit() -> None:
     value = manifest(
         timeline("score", children=[timeline("take", "seconds", 4.0, offset=(2, 1))])
@@ -331,13 +507,13 @@ def test_the_shared_identity_rejections_carry_their_messages(
 def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
     """``word`` as the id of each kind, with the path of that id."""
     region = {"id": word, "start": [0, 1], "end": [1, 1]}
-    shift = {
-        "type": "ShiftMap",
+    linear = {
+        "type": "LinearMap",
         "id": word,
         "source_unit": None,
         "target_unit": None,
-        "offset": 1,
     }
+    rows = [{"count": 1, "qstamp": [0, 1], "actual_length": [4, 1]}]
     flow = {
         "breaks": [{"id": word, "coordinate": [1, 1]}],
         "jumps": [{"id": word, "from_coordinate": [1, 1], "to_coordinate": [0, 1]}],
@@ -346,7 +522,7 @@ def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
     documents = [
         (manifest(timeline(word)), ("timelines", 0, "id")),
         (
-            manifest(timeline("s", conversion_maps=[shift])),
+            manifest(timeline("s", conversion_maps=[linear])),
             ("timelines", 0, "conversion_maps", 0, "id"),
         ),
         (
@@ -354,6 +530,10 @@ def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
             ("timelines", 0, "regions", 0, "id"),
         ),
         (manifest(timeline("s"), groups=[group(word, "s")]), ("groups", 0, "id")),
+        (
+            manifest(timeline("s"), measure_maps=[{"id": word, "rows": rows}]),
+            ("measure_maps", 0, "id"),
+        ),
         (manifest(timeline("s"), id=word), ("id",)),
     ]
     for member, entries in flow.items():
@@ -645,6 +825,10 @@ def test_every_step_in_order() -> None:
     first = timeline(
         "first",
         flow_control={"jumps": [jump("nowhere")]},
+        conversion_maps=[
+            _view("bars", "no-measures"),
+            _table([[0, 1], [4, 1], [8, 1]], [60, 72]),
+        ],
         regions=[
             {"id": "end", "start": [0, 1], "end": [1, 1]},
             {"id": "regions_1", "start": [0, 1], "end": [1, 1]},
@@ -665,6 +849,7 @@ def test_every_step_in_order() -> None:
             group("g2", "second"),
             group("children_2"),
         ],
+        measure_maps=[{"id": "first", "rows": ROWS}],
         graphical={
             "order": {
                 "zz": [],
@@ -684,6 +869,14 @@ def test_every_step_in_order() -> None:
         (
             ("timelines", 0, "flow_control", "jumps", 0, "target"),
             "'nowhere' names no marker of this timeline",
+        ),
+        (
+            ("timelines", 0, "conversion_maps", 0, "measure_map"),
+            "'no-measures' names no measure map of this manifest",
+        ),
+        (
+            ("timelines", 0, "conversion_maps", 1, "y_values"),
+            "TableMap 'tempo' has 3 x values and 2 y values",
         ),
         (
             ("timelines", 0, "children", 0, "unit"),
@@ -712,6 +905,10 @@ def test_every_step_in_order() -> None:
         ),
         (("timelines", 2, "id"), "duplicate id 'second', first at #/timelines/1/id"),
         (("groups", 0, "id"), "duplicate id 'first', first at #/timelines/0/id"),
+        (
+            ("measure_maps", 0, "id"),
+            "duplicate id 'first', first at #/timelines/0/id",
+        ),
         (("id",), "duplicate id 'g2', first at #/groups/1/id"),
         (("groups", 0, "members", 0), "'ghost' names no timeline of this manifest"),
         (
@@ -734,12 +931,13 @@ def test_every_step_in_order() -> None:
         ),
     ]
     assert [problem.code for problem in identity_problems(value)] == [
-        "dangling_target",
+        *["dangling_target"] * 2,
+        "conversion_map",
         "child_unit",
         "child_offset",
         "child_end",
         *["reserved_id"] * 3,
-        *["duplicate_id"] * 2,
+        *["duplicate_id"] * 3,
         "manifest_id",
         *["group_member"] * 2,
         *["display_order"] * 2,

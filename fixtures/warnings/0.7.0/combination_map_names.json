@@ -1,0 +1,276 @@
+{
+  "manifest": {
+    "groups": [],
+    "measure_maps": [
+      {
+        "id": "measures",
+        "meta": {},
+        "name": null,
+        "rows": [
+          {
+            "actual_length": [
+              4,
+              1
+            ],
+            "count": 1,
+            "nominal_length": [
+              4,
+              1
+            ],
+            "number": 1,
+            "qstamp": [
+              0,
+              1
+            ],
+            "time_signature": "4/4"
+          }
+        ]
+      }
+    ],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "id": "cmap_1",
+            "maps": [
+              {
+                "id": "step_1",
+                "name": "quarters_to_seconds",
+                "offset": 0,
+                "scalar": [
+                  1,
+                  2
+                ],
+                "source_unit": "quarters",
+                "target_unit": "seconds",
+                "type": "LinearMap"
+              },
+              {
+                "id": "step_2",
+                "name": "seconds_to_minutes",
+                "offset": 0,
+                "scalar": [
+                  1,
+                  60
+                ],
+                "source_unit": "seconds",
+                "target_unit": "minutes",
+                "type": "LinearMap"
+              }
+            ],
+            "name": "quarters_to_minutes",
+            "source_unit": "quarters",
+            "target_unit": "minutes",
+            "type": "ChainMap"
+          },
+          {
+            "id": "cmap_2",
+            "maps": {
+              "beat": {
+                "id": "beat",
+                "measure_map": "measures",
+                "name": null,
+                "source_unit": "quarters",
+                "target_unit": null,
+                "type": "MeasureBeatMap"
+              },
+              "label": {
+                "id": "label",
+                "name": null,
+                "source_unit": "quarters",
+                "target_unit": null,
+                "type": "ConstantMap",
+                "value": "verse"
+              }
+            },
+            "name": "position",
+            "names": [
+              "label",
+              "beat"
+            ],
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "CombinationMap"
+          },
+          {
+            "id": "cmap_3",
+            "name": "section",
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "ConstantMap",
+            "value": [
+              1,
+              2
+            ]
+          },
+          {
+            "id": "cmap_4",
+            "measure_map": "measures",
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": "floating_measures",
+            "type": "FloatingMeasureMap"
+          },
+          {
+            "id": "cmap_5",
+            "name": "quarters_to_ticks",
+            "offset": 0,
+            "scalar": 480,
+            "source_unit": "quarters",
+            "target_unit": "ticks",
+            "type": "LinearMap"
+          },
+          {
+            "id": "cmap_6",
+            "measure_map": "measures",
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "MeasureBeatMap"
+          },
+          {
+            "id": "cmap_7",
+            "measure_map": "measures",
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "MeasureNumberMap"
+          },
+          {
+            "id": "cmap_8",
+            "measure_map": "measures",
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "MeasureRecordMap"
+          },
+          {
+            "breaks": [
+              [
+                0,
+                1
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                16,
+                1
+              ]
+            ],
+            "id": "cmap_9",
+            "maps": [
+              {
+                "id": "piece_1",
+                "name": null,
+                "offset": 0,
+                "scalar": [
+                  1,
+                  2
+                ],
+                "source_unit": "quarters",
+                "target_unit": "seconds",
+                "type": "LinearMap"
+              },
+              {
+                "id": "piece_2",
+                "name": null,
+                "offset": 2.0,
+                "scalar": [
+                  1,
+                  4
+                ],
+                "source_unit": "quarters",
+                "target_unit": "seconds",
+                "type": "LinearMap"
+              }
+            ],
+            "name": "quarters_to_seconds",
+            "source_unit": "quarters",
+            "target_unit": "seconds",
+            "type": "PiecewiseMap"
+          },
+          {
+            "extrapolate": "constant",
+            "id": "tmap_1",
+            "kind": "linear",
+            "name": "quarters_to_seconds",
+            "source_unit": "quarters",
+            "target_unit": "seconds",
+            "type": "TableMap",
+            "x_values": [
+              [
+                0,
+                1
+              ],
+              [
+                4,
+                1
+              ]
+            ],
+            "y_values": [
+              0.0,
+              2.5
+            ]
+          },
+          {
+            "extrapolate": "none",
+            "id": "tmap_2",
+            "kind": "previous",
+            "name": "tempo",
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "TableMap",
+            "x_values": [
+              [
+                0,
+                1
+              ],
+              [
+                8,
+                1
+              ]
+            ],
+            "y_values": [
+              60,
+              72
+            ]
+          }
+        ],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "maps:quarters",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": "Quarter-note maps",
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "unknown_keys": [
+    {
+      "key": "names",
+      "path": [
+        "timelines",
+        0,
+        "conversion_maps",
+        1
+      ]
+    }
+  ]
+}

@@ -18,13 +18,13 @@ from timeskeleton import (
 from .conftest import group, manifest, timeline
 
 WARNINGS = [
+    "combination_map_names",
     "declaration_show_projections",
     "declaration_unknown_key",
     "graphical_unknown_key",
     "group_unknown_key",
     "measure_map_row_offset_key",
     "measure_map_row_unknown_key",
-    "metrical_position_map_with_maps",
     "selector_unknown_key",
     "several_depths",
     "support_policy",
@@ -56,6 +56,7 @@ def test_unknown_keys_at_several_depths() -> None:
         (["graphical", "statements", 0, "select"], "kind"),
         (["graphical", "statements", 0, "set"], "colour"),
         (["groups", 0], "colour"),
+        (["measure_maps", 0, "rows", 0], "tempo"),
         (["timelines", 0], "lenght"),
         (["timelines", 0, "children", 0], "x-tilia"),
         (["timelines", 0, "conversion_maps", 0], "note"),
@@ -64,7 +65,6 @@ def test_unknown_keys_at_several_depths() -> None:
         (["timelines", 0, "flow_control", "breaks", 0], "pause"),
         (["timelines", 0, "flow_control", "jumps", 0], "via"),
         (["timelines", 0, "flow_control", "markers", 0], "glyph"),
-        (["timelines", 0, "measure_map", 0], "tempo"),
         (["timelines", 0, "regions", 0], "colour"),
     ]
 
@@ -74,7 +74,6 @@ def test_free_objects_maps_and_unknown_values_are_not_looked_into() -> None:
         timeline(
             "score",
             meta={"anything": {"deep": 1}},
-            metric_hierarchy={"levels": []},
             regions=[{"id": "r", "start": [0, 1], "end": [1, 1], "meta": {"x": 1}}],
         ),
         meta={"source": "hand"},

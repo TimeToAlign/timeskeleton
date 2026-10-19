@@ -55,7 +55,7 @@
         },
         {
           "select": {
-            "class": "QuartersToTicks"
+            "class": "LinearMap"
           },
           "set": {
             "stroke": "#7C3AED",
@@ -219,6 +219,7 @@
       }
     },
     "groups": [],
+    "measure_maps": [],
     "meta": {},
     "name": null,
     "timelines": [
@@ -239,9 +240,7 @@
               1
             ],
             "locked": true,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
             "offset": [
@@ -266,9 +265,7 @@
               1
             ],
             "locked": true,
-            "measure_map": null,
             "meta": {},
-            "metric_hierarchy": null,
             "name": null,
             "number_type": "fraction",
             "offset": [
@@ -283,11 +280,11 @@
           {
             "id": "ticks",
             "name": "Ticks",
-            "ppq": 480,
+            "offset": 0,
             "scalar": 480,
             "source_unit": "quarters",
             "target_unit": "ticks",
-            "type": "QuartersToTicks"
+            "type": "LinearMap"
           }
         ],
         "flow_control": {
@@ -320,9 +317,7 @@
           1
         ],
         "locked": false,
-        "measure_map": null,
         "meta": {},
-        "metric_hierarchy": null,
         "name": "Score",
         "number_type": "fraction",
         "regions": [

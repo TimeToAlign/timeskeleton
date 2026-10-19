@@ -1,0 +1,77 @@
+{
+  "code": "conversion_map",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "breaks": [
+              [
+                0,
+                1
+              ],
+              [
+                8,
+                1
+              ],
+              [
+                16,
+                1
+              ]
+            ],
+            "id": "sections",
+            "maps": [
+              {
+                "id": "piece_1",
+                "name": null,
+                "offset": 0,
+                "scalar": [
+                  1,
+                  2
+                ],
+                "source_unit": "quarters",
+                "target_unit": "seconds",
+                "type": "LinearMap"
+              }
+            ],
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": "seconds",
+            "type": "PiecewiseMap"
+          }
+        ],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "conversion_maps",
+    0,
+    "maps"
+  ],
+  "reason": "A PiecewiseMap has one map fewer than breaks."
+}

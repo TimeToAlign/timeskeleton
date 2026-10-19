@@ -1,0 +1,101 @@
+{
+  "code": "conversion_map",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "id": "chain",
+            "maps": [
+              {
+                "breaks": [
+                  [
+                    0,
+                    1
+                  ],
+                  [
+                    8,
+                    1
+                  ],
+                  [
+                    4,
+                    1
+                  ]
+                ],
+                "id": "sections",
+                "maps": [
+                  {
+                    "id": "piece_1",
+                    "name": null,
+                    "offset": 0,
+                    "scalar": [
+                      1,
+                      2
+                    ],
+                    "source_unit": "quarters",
+                    "target_unit": "seconds",
+                    "type": "LinearMap"
+                  },
+                  {
+                    "id": "piece_2",
+                    "name": null,
+                    "offset": 0,
+                    "scalar": [
+                      1,
+                      2
+                    ],
+                    "source_unit": "quarters",
+                    "target_unit": "seconds",
+                    "type": "LinearMap"
+                  }
+                ],
+                "name": null,
+                "source_unit": "quarters",
+                "target_unit": "seconds",
+                "type": "PiecewiseMap"
+              }
+            ],
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": "seconds",
+            "type": "ChainMap"
+          }
+        ],
+        "flow_control": {
+          "breaks": [],
+          "jumps": [],
+          "markers": []
+        },
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          16,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "conversion_maps",
+    0,
+    "maps",
+    0,
+    "breaks",
+    2
+  ],
+  "reason": "A PiecewiseMap's breaks increase strictly, in a nested map too."
+}
