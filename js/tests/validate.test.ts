@@ -80,6 +80,7 @@ const REJECTIONS = [
   "manifest_id_is_descendant_id",
   "manifest_id_is_group_id",
   "manifest_id_is_measure_map_id",
+  "map_source_unit_mismatch",
   "measure_map_id_is_timeline_id",
   "measure_map_row_actual_length_negative",
   "measure_map_row_offset_within_measure_zero",

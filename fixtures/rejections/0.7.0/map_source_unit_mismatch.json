@@ -1,0 +1,68 @@
+{
+  "code": "conversion_map",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [
+      {
+        "id": "measures",
+        "meta": {},
+        "name": null,
+        "rows": [
+          {
+            "actual_length": [
+              4,
+              1
+            ],
+            "count": 1,
+            "nominal_length": [
+              4,
+              1
+            ],
+            "number": 1,
+            "qstamp": [
+              0,
+              1
+            ],
+            "time_signature": "4/4"
+          }
+        ]
+      }
+    ],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "id": "bars",
+            "measure_map": "measures",
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "MeasureRecordMap"
+          }
+        ],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": 3840,
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "int",
+        "regions": [],
+        "unit": "ticks"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "conversion_maps",
+    0,
+    "source_unit"
+  ],
+  "reason": "A map attached to a timeline converts from the timeline's unit: a MeasureRecordMap, which converts from quarters, cannot be attached to a timeline in ticks; a ChainMap whose first map is a LinearMap from ticks to quarters reaches it."
+}

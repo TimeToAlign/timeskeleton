@@ -325,7 +325,8 @@ table, root by root for the first six (a root's duplicates, then its
 targets, then its conversion maps, then child by child, each followed by its
 own children, the containment rules, then its segment lines), the rest over
 the whole manifest. A timeline's maps are read in array order, each before
-the maps it holds, a `CombinationMap`'s by output name in code-point order.
+the maps it holds, a `CombinationMap`'s by output name in code-point order,
+and a map's source unit before its arrays.
 `identity_problems` returns every semantic problem in that order; `validate`
 stops at the first. Python quotes IDs as `repr` does.
 
@@ -337,7 +338,7 @@ stops at the first. Python quotes IDs as `repr` does.
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
 | `duplicate_id` | IDs unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other IDs | the later ID | `duplicate id 'm', first at #/…` |
 | `dangling_target` | a jump origin's `target` names a jump target of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no jump_to of this timeline`, `'ghost' names no measure map of this manifest` |
-| `conversion_map` | a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `y_values`, the value, the `maps`, the break | `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
+| `conversion_map` | a non-null `source_unit` of a map attached to a timeline is the timeline's unit, and that of every map a `PiecewiseMap` or `CombinationMap` holds, and of a `ChainMap`'s first map, is its holder's non-null `source_unit`; a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `source_unit`, the `y_values`, the value, the `maps`, the break | `MeasureRecordMap 'bars' has source unit 'quarters', its timeline 'score' has 'ticks'`, `LinearMap 'scale' has source unit 'ticks', its ChainMap 'chain' has 'quarters'`, `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
@@ -360,7 +361,7 @@ ID comes first); `identity_problems` reads it as the group's.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 105 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
+the 106 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the seventeen of the table, so every code is reached by a case both
@@ -436,6 +437,21 @@ documents that bound each rule from the other side:
   `CombinationMap` is checked at its own path (`…/maps/0`, `…/maps/beat`),
   the outputs `b` and `a` of a `CombinationMap` in the order `a`, `b`, and a
   map of a child at the child's path.
+- **Source units.** A map converts from its timeline's axis, and a map
+  another holds reads its holder's input. A `MeasureRecordMap` (source
+  `quarters`) attached to a ticks timeline `score` is one problem at its
+  `source_unit`, `MeasureRecordMap 'bars' has source unit 'quarters', its
+  timeline 'score' has 'ticks'`, also on a child in ticks, at the child's
+  path; the same view held second by a `ChainMap` from ticks whose first
+  map is a `LinearMap` from ticks to quarters passes, as does a map whose
+  `source_unit` is null and a map held by a holder whose `source_unit` is
+  null. A `ChainMap` from quarters whose first map, the `LinearMap`
+  `scale`, is from ticks is one problem at `…/maps/0/source_unit`,
+  `LinearMap 'scale' has source unit 'ticks', its ChainMap 'chain' has
+  'quarters'`; a measure view held by a `CombinationMap` from ticks is one
+  at `…/maps/bar/source_unit`, and a `LinearMap` from seconds held by a
+  `PiecewiseMap` from quarters one at `…/maps/0/source_unit`. Every
+  emitted fixture passes (`test_fixtures.py`).
 - **Flow control.** The schema ties each element type to its
   manifestations, its `target` and its `repeat_count`: the three `da_capo`
   manifestations and a `repeat_end` without a target validate

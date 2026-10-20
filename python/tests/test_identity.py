@@ -288,6 +288,99 @@ def test_nested_maps_are_checked_at_their_own_paths() -> None:
     }
 
 
+def _record(identifier: str = "bars") -> dict:
+    return {
+        "type": "MeasureRecordMap",
+        "id": identifier,
+        "source_unit": "quarters",
+        "target_unit": None,
+        "measure_map": "measures",
+    }
+
+
+def _scale(
+    source: str | None, target: str | None = "quarters", identifier: str = "scale"
+) -> dict:
+    return {
+        "type": "LinearMap",
+        "id": identifier,
+        "source_unit": source,
+        "target_unit": target,
+        "scalar": [1, 480],
+    }
+
+
+def _holder(kind: str, source: str | None, maps: list | dict, **rest: object) -> dict:
+    identifier = {"ChainMap": "chain", "CombinationMap": "both"}.get(kind, "sections")
+    return {
+        "type": kind,
+        "id": identifier,
+        "source_unit": source,
+        "target_unit": None,
+        "maps": maps,
+        **rest,
+    }
+
+
+def _ticks(*conversion_maps: dict, children: list | None = None) -> dict:
+    root = timeline(
+        "score",
+        "ticks",
+        3840,
+        conversion_maps=list(conversion_maps),
+        children=children or [],
+    )
+    return manifest(root, measure_maps=[{"id": "measures", "rows": ROWS}])
+
+
+def test_a_map_converts_from_its_timelines_unit() -> None:
+    assert _only(_ticks(_record())) == (
+        ("timelines", 0, "conversion_maps", 0, "source_unit"),
+        "MeasureRecordMap 'bars' has source unit 'quarters', its timeline 'score' "
+        "has 'ticks'",
+    )
+    child = timeline("c", "ticks", 960, offset=0, conversion_maps=[_record()])
+    assert _only(_ticks(children=[child])) == (
+        ("timelines", 0, "children", 0, "conversion_maps", 0, "source_unit"),
+        "MeasureRecordMap 'bars' has source unit 'quarters', its timeline 'c' "
+        "has 'ticks'",
+    )
+    chained = _holder("ChainMap", "ticks", [_scale("ticks"), _record()])
+    loose = _scale(None, None, "loose")
+    held = _scale("seconds", identifier="held")
+    unstated = _holder("PiecewiseMap", None, [held], breaks=[0, 960])
+    accepted = _ticks(chained, loose, unstated)
+    assert _problems(accepted) == []
+    validate(accepted)
+
+
+def test_a_held_map_converts_from_its_holders_source_unit() -> None:
+    later = _scale("seconds", identifier="later")
+    chain = _holder("ChainMap", "quarters", [_scale("ticks"), later])
+    assert _only(_maps(chain)) == (
+        ("timelines", 0, "conversion_maps", 0, "maps", 0, "source_unit"),
+        "LinearMap 'scale' has source unit 'ticks', its ChainMap 'chain' has "
+        "'quarters'",
+    )
+    both = _holder("CombinationMap", "ticks", {"bar": _record("bar")})
+    assert _only(_ticks(both)) == (
+        ("timelines", 0, "conversion_maps", 0, "maps", "bar", "source_unit"),
+        "MeasureRecordMap 'bar' has source unit 'quarters', its CombinationMap "
+        "'both' has 'ticks'",
+    )
+    pieces = _holder(
+        "PiecewiseMap", "quarters", [_scale("seconds")], breaks=[[0, 1], [8, 1]]
+    )
+    assert _only(_maps(pieces)) == (
+        ("timelines", 0, "conversion_maps", 0, "maps", 0, "source_unit"),
+        "LinearMap 'scale' has source unit 'seconds', its PiecewiseMap "
+        "'sections' has 'quarters'",
+    )
+    assert {problem.code for problem in identity_problems(_maps(chain))} == {
+        "conversion_map"
+    }
+
+
 def test_a_measure_view_names_a_measure_map() -> None:
     both = {
         "type": "CombinationMap",

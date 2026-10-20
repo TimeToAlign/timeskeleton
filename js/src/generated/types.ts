@@ -81,7 +81,7 @@ export type Number = number | Fraction;
  */
 export type Fraction = [number, number];
 /**
- * A conversion map of a timeline, discriminated by its type: a function from a position on the timeline's axis to a value. A map is an abstract type, independent of any number type: each of its Numbers is an int, a float or a Fraction, whatever the implementation computes in. Six types are general (LinearMap, TableMap, ConstantMap, PiecewiseMap, ChainMap, CombinationMap) and four read a measure map (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap).
+ * A conversion map of a timeline, discriminated by its type: a function from a position on the timeline's axis to a value. A map is an abstract type, independent of any number type: each of its Numbers is an int, a float or a Fraction, whatever the implementation computes in. Six types are general (LinearMap, TableMap, ConstantMap, PiecewiseMap, ChainMap, CombinationMap) and four read a measure map (MeasureRecordMap, MeasureNumberMap, FloatingMeasureMap, MeasureBeatMap). A map attached to a timeline converts from the timeline's axis: its source_unit, where not null, is the timeline's unit, so a timeline in ticks reaches a measure view through a ChainMap. A map that another map holds reads its holder's input: every map of a PiecewiseMap or a CombinationMap, and the first map of a ChainMap, has its holder's source_unit wherever both are stated. Both rules are checked after the schema.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "ConversionMap".
@@ -768,7 +768,7 @@ export interface MapBase {
   id: Id;
   name?: Name;
   /**
-   * The unit of the axis the map converts from, or null.
+   * The unit of the axis the map converts from, or null. Where stated, it is the unit of the timeline the map is attached to, or the source unit of the map holding it, as `ConversionMap` states.
    */
   source_unit: TimeUnit | null;
   /**

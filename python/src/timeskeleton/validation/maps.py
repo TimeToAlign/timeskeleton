@@ -1,4 +1,4 @@
-"""Conversion-map rules: the members of a map that must agree."""
+"""Conversion-map rules: the source units and the members of a map that must agree."""
 
 from __future__ import annotations
 
@@ -14,17 +14,37 @@ MEASURE_VIEWS = frozenset(
 """The conversion map types that read a measure map."""
 
 
+_Reader = tuple[str, str] | None
+"""What a map converts from: the unit its source unit must be and who demands it."""
+
+
 def _held(
-    conversion_map: Mapping[str, Any], path: _Path
-) -> Iterator[tuple[Any, _Path]]:
-    yield conversion_map, path
+    conversion_map: Mapping[str, Any], path: _Path, reader: _Reader
+) -> Iterator[tuple[Any, _Path, _Reader]]:
+    yield conversion_map, path, reader
+    source = conversion_map.get("source_unit")
+    holder = (
+        None
+        if source is None
+        else (source, f"its {conversion_map['type']} {conversion_map['id']!r}")
+    )
     maps = conversion_map.get("maps")
     if isinstance(maps, list):
+        chain = conversion_map["type"] == "ChainMap"
         for index, entry in enumerate(maps):
-            yield from _held(entry, (*path, "maps", index))
+            first = not chain or index == 0
+            yield from _held(entry, (*path, "maps", index), holder if first else None)
     elif isinstance(maps, Mapping):
         for name in sorted(maps):
-            yield from _held(maps[name], (*path, "maps", name))
+            yield from _held(maps[name], (*path, "maps", name), holder)
+
+
+def _timeline_held(
+    timeline: Mapping[str, Any], path: _Path
+) -> Iterator[tuple[Mapping[str, Any], _Path, _Reader]]:
+    reader = (timeline["unit"], f"its timeline {timeline['id']!r}")
+    for index, entry in enumerate(_entries(timeline, "conversion_maps")):
+        yield from _held(entry, (*path, "conversion_maps", index), reader)
 
 
 def timeline_maps(
@@ -35,8 +55,8 @@ def timeline_maps(
     A ``CombinationMap``'s outputs carry no order; they are visited by name, in
     code-point order.
     """
-    for index, entry in enumerate(_entries(timeline, "conversion_maps")):
-        yield from _held(entry, (*path, "conversion_maps", index))
+    for conversion_map, at, _ in _timeline_held(timeline, path):
+        yield conversion_map, at
 
 
 def _count(number: int, noun: str) -> str:
@@ -58,9 +78,17 @@ def _increasing(
 
 
 def _map_problems(
-    conversion_map: Mapping[str, Any], path: _Path
+    conversion_map: Mapping[str, Any], path: _Path, reader: _Reader
 ) -> Iterator[SchemaValidationError]:
     identifier = conversion_map["id"]
+    source = conversion_map.get("source_unit")
+    if reader is not None and source is not None and source != reader[0]:
+        yield SchemaValidationError(
+            "conversion_map",
+            (*path, "source_unit"),
+            f"{conversion_map['type']} {identifier!r} has source unit {source!r}, "
+            f"{reader[1]} has {reader[0]!r}",
+        )
     if conversion_map["type"] == "TableMap":
         x_values, y_values = conversion_map["x_values"], conversion_map["y_values"]
         if len(x_values) != len(y_values):
@@ -86,8 +114,14 @@ def _map_problems(
 def timeline_map_problems(
     timeline: Mapping[str, Any], path: _Path
 ) -> Iterator[SchemaValidationError]:
-    """Yield the map rules a timeline tree breaks: arrays that must agree."""
-    for conversion_map, at in timeline_maps(timeline, path):
-        yield from _map_problems(conversion_map, at)
+    """Yield the map rules a timeline tree breaks: source units, arrays that agree.
+
+    A map attached to a timeline converts from the timeline's unit; a map a
+    ``PiecewiseMap`` or ``CombinationMap`` holds, and a ``ChainMap``'s first
+    map, from its holder's source unit. A null source unit on either side
+    checks nothing.
+    """
+    for conversion_map, at, reader in _timeline_held(timeline, path):
+        yield from _map_problems(conversion_map, at, reader)
     for index, child in enumerate(_entries(timeline, "children")):
         yield from timeline_map_problems(child, (*path, "children", index))

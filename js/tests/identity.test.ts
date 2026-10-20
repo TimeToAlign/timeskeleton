@@ -178,6 +178,89 @@ describe("conversion maps and measure maps", () => {
     );
   });
 
+  const record = (id = "bars") => ({
+    type: "MeasureRecordMap",
+    id,
+    source_unit: "quarters",
+    target_unit: null,
+    measure_map: "measures",
+  });
+  const scale = (source: string | null, target: string | null = "quarters", id = "scale") => ({
+    type: "LinearMap",
+    id,
+    source_unit: source,
+    target_unit: target,
+    scalar: [1, 480],
+  });
+  const HOLDER_IDS: Readonly<Record<string, string>> = {
+    ChainMap: "chain",
+    CombinationMap: "both",
+  };
+  const holder = (
+    kind: string,
+    source: string | null,
+    maps: JsonObject[] | JsonObject,
+    rest: JsonObject = {},
+  ) => ({
+    type: kind,
+    id: HOLDER_IDS[kind] ?? "sections",
+    source_unit: source,
+    target_unit: null,
+    maps,
+    ...rest,
+  });
+  const ticks = (conversionMaps: JsonObject[], children: JsonObject[] = []) =>
+    manifest([timeline("score", "ticks", 3840, { conversion_maps: conversionMaps, children })], {
+      measure_maps: [{ id: "measures", rows: ROWS }],
+    });
+
+  it("holds a map to convert from its timeline's unit", () => {
+    expect(only(ticks([record()]))).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "source_unit"],
+      'MeasureRecordMap "bars" has source unit "quarters", its timeline "score" has "ticks"',
+    ]);
+    const child = timeline("c", "ticks", 960, { offset: 0, conversion_maps: [record()] });
+    expect(only(ticks([], [child]))).toEqual([
+      ["timelines", 0, "children", 0, "conversion_maps", 0, "source_unit"],
+      'MeasureRecordMap "bars" has source unit "quarters", its timeline "c" has "ticks"',
+    ]);
+    const chained = holder("ChainMap", "ticks", [scale("ticks"), record()]);
+    const loose = scale(null, null, "loose");
+    const unstated = holder("PiecewiseMap", null, [scale("seconds", "quarters", "held")], {
+      breaks: [0, 960],
+    });
+    const accepted = ticks([chained, loose, unstated]);
+    expect(problems(accepted)).toEqual([]);
+    validate(accepted);
+  });
+
+  it("holds a held map to convert from its holder's source unit", () => {
+    const later = scale("seconds", "quarters", "later");
+    const chain = holder("ChainMap", "quarters", [scale("ticks"), later]);
+    expect(only(maps(chain))).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "maps", 0, "source_unit"],
+      'LinearMap "scale" has source unit "ticks", its ChainMap "chain" has "quarters"',
+    ]);
+    const both = holder("CombinationMap", "ticks", { bar: record("bar") });
+    expect(only(ticks([both]))).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "maps", "bar", "source_unit"],
+      'MeasureRecordMap "bar" has source unit "quarters", its CombinationMap "both" has "ticks"',
+    ]);
+    const pieces = holder("PiecewiseMap", "quarters", [scale("seconds")], {
+      breaks: [
+        [0, 1],
+        [8, 1],
+      ],
+    });
+    expect(only(maps(pieces))).toEqual([
+      ["timelines", 0, "conversion_maps", 0, "maps", 0, "source_unit"],
+      'LinearMap "scale" has source unit "seconds", its PiecewiseMap "sections" has "quarters"',
+    ]);
+    expect(new Set(identityProblems(maps(chain)).map((problem) => problem.code))).toEqual(
+      new Set(["conversion_map"]),
+    );
+  });
+
   it("holds a measure view to name a measure map", () => {
     const both = {
       type: "CombinationMap",

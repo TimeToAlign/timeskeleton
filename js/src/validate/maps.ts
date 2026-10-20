@@ -1,4 +1,4 @@
-/** Conversion-map rules: the members of a map that must agree. */
+/** Conversion-map rules: the source units and the members of a map that must agree. */
 
 import { isJsonObject, type JsonObject } from "../json/value.js";
 import { compareCodePoints, spell } from "../json/write.js";
@@ -13,17 +13,44 @@ export const MEASURE_VIEWS: ReadonlySet<string> = new Set([
   "MeasureBeatMap",
 ]);
 
-function* held(map: JsonObject, path: PathSegment[]): Generator<[JsonObject, PathSegment[]]> {
-  yield [map, path];
+/** What a map converts from: the unit its source unit must be and who demands it. */
+type Reader = readonly [unit: string, owner: string] | null;
+
+function* held(
+  map: JsonObject,
+  path: PathSegment[],
+  reader: Reader,
+): Generator<[JsonObject, PathSegment[], Reader]> {
+  yield [map, path, reader];
+  const source = map.source_unit;
+  const holder: Reader =
+    typeof source === "string"
+      ? [source, `its ${text(map, "type")} ${JSON.stringify(text(map, "id"))}`]
+      : null;
   const { maps } = map;
   if (Array.isArray(maps)) {
+    const chain = map.type === "ChainMap";
     for (const [index, entry] of (maps as JsonObject[]).entries()) {
-      yield* held(entry, [...path, "maps", index]);
+      const first = !chain || index === 0;
+      yield* held(entry, [...path, "maps", index], first ? holder : null);
     }
   } else if (isJsonObject(maps)) {
     for (const name of Object.keys(maps).sort(compareCodePoints)) {
-      yield* held(maps[name] as JsonObject, [...path, "maps", name]);
+      yield* held(maps[name] as JsonObject, [...path, "maps", name], holder);
     }
+  }
+}
+
+function* timelineHeld(
+  timeline: JsonObject,
+  path: readonly PathSegment[],
+): Generator<[JsonObject, PathSegment[], Reader]> {
+  const reader: Reader = [
+    text(timeline, "unit"),
+    `its timeline ${JSON.stringify(text(timeline, "id"))}`,
+  ];
+  for (const [index, entry] of entries(timeline, "conversion_maps").entries()) {
+    yield* held(entry, [...path, "conversion_maps", index], reader);
   }
 }
 
@@ -36,9 +63,7 @@ export function* timelineMaps(
   timeline: JsonObject,
   path: readonly PathSegment[],
 ): Generator<[JsonObject, PathSegment[]]> {
-  for (const [index, entry] of entries(timeline, "conversion_maps").entries()) {
-    yield* held(entry, [...path, "conversion_maps", index]);
-  }
+  for (const [map, at] of timelineHeld(timeline, path)) yield [map, at];
 }
 
 function count(number: number, noun: string): string {
@@ -66,8 +91,17 @@ function* increasing(
 function* mapProblems(
   map: JsonObject,
   path: readonly PathSegment[],
+  reader: Reader,
 ): Generator<SchemaValidationError> {
   const id = JSON.stringify(text(map, "id"));
+  const source = map.source_unit;
+  if (reader !== null && typeof source === "string" && source !== reader[0]) {
+    yield new SchemaValidationError(
+      "conversion_map",
+      [...path, "source_unit"],
+      `${text(map, "type")} ${id} has source unit ${JSON.stringify(source)}, ${reader[1]} has ${JSON.stringify(reader[0])}`,
+    );
+  }
   if (map.type === "TableMap") {
     const xValues = map.x_values as unknown[];
     const yValues = map.y_values as unknown[];
@@ -93,12 +127,20 @@ function* mapProblems(
   }
 }
 
-/** Yield the map rules a timeline tree breaks: arrays that must agree. */
+/**
+ * Yield the map rules a timeline tree breaks: source units, arrays that agree.
+ * A map attached to a timeline converts from the timeline's unit; a map a
+ * `PiecewiseMap` or `CombinationMap` holds, and a `ChainMap`'s first map,
+ * from its holder's source unit. A null source unit on either side checks
+ * nothing.
+ */
 export function* timelineMapProblems(
   timeline: JsonObject,
   path: readonly PathSegment[],
 ): Generator<SchemaValidationError> {
-  for (const [map, at] of timelineMaps(timeline, path)) yield* mapProblems(map, at);
+  for (const [map, at, reader] of timelineHeld(timeline, path)) {
+    yield* mapProblems(map, at, reader);
+  }
   for (const [index, child] of entries(timeline, "children").entries()) {
     yield* timelineMapProblems(child, [...path, "children", index]);
   }
