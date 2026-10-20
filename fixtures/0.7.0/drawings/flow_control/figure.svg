@@ -1,11 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="550.2566" height="134.332" viewBox="0 0 550.2566 134.332" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
+<svg xmlns="http://www.w3.org/2000/svg" width="550.2566" height="154.8086" viewBox="0 0 550.2566 154.8086" font-family="DejaVu Sans" text-rendering="geometricPrecision" style="font-kerning:none;font-variant-ligatures:none">
 <g transform="translate(16 16)">
-<rect x="0" y="0" width="518.2566" height="102.332" rx="10" fill="#F3F4F6"/>
-<rect data-address="flow:quarters/card" x="10" y="10" width="500.2566" height="84.332" rx="5" fill="#B8BEC8"/>
-<rect data-address="flow:quarters/card" x="8" y="8" width="500.2566" height="84.332" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect x="0" y="0" width="518.2566" height="122.8086" rx="10" fill="#F3F4F6"/>
+<rect data-address="flow:quarters/card" x="10" y="10" width="500.2566" height="104.8086" rx="5" fill="#B8BEC8"/>
+<rect data-address="flow:quarters/card" x="8" y="8" width="500.2566" height="104.8086" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="flow:quarters/break_1" x1="390.9775" y1="63.8555" x2="390.9775" y2="16" stroke="#FF0000" stroke-width="1.5" stroke-dasharray="2 2"/>
 <path data-address="flow:quarters/jump_1" d="M290.9775 63.8555C253.4775 74.5221 178.4775 74.5221 144.8249 64.9498" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
 <polygon data-address="flow:quarters/jump_1" points="140.9775,63.8555 144.2777,66.8735 145.3721,63.0261" fill="#000000"/>
+<path data-address="flow:quarters/jump_2" d="M490.9775 63.8555C415.9775 101.8242 265.9775 101.8242 194.5463 65.6621" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="flow:quarters/jump_2" points="190.9775,63.8555 193.6429,67.4465 195.4496,63.8778" fill="#000000"/>
 <line data-address="flow:quarters" x1="90.9775" y1="22.4023" x2="490.9775" y2="22.4023" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="flow:quarters" cx="90.9775" cy="22.4023" r="3" fill="#00CC00"/>
 <polygon data-address="flow:quarters" points="499.9775,22.4023 490.9775,17.9023 490.9775,26.9023" fill="#00CC00"/>
@@ -15,6 +17,7 @@
 <text data-address="flow:quarters/start/label" x="90.9775" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-address="flow:quarters/end/label" x="490.9775" y="47.2563" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
 <text data-address="flow:quarters/jump_1/label" x="215.9775" y="82.2095" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
+<text data-address="flow:quarters/jump_2/label" x="340.9775" y="102.686" text-anchor="middle" font-size="9" fill="#000000">D.S.</text>
 <text data-address="flow:quarters/break_1/label" x="393.9775" y="61.7329" text-anchor="start" font-size="9" fill="#000000">Fine</text>
 </g>
 </svg>

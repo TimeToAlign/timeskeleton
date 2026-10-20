@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Twenty-eight of the 66 drawings in this directory are derived by hand from
+Twenty-eight of the 69 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the font metrics
 alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
@@ -199,19 +199,67 @@ and `melody/ticks`.
 
 ## `flow_control`
 
-The root ("Flow control", 16 quarters) with a flow marker, a jump origin and
-the jump target it names.
+The root `flow:quarters` ("Flow control", 16 quarters) with the jump
+targets `marker_1` (repeat start) at 2 and `marker_2` (segno) at 4, which
+draw nothing, the jump origin `jump_1` ("Repeat") from 8 to `marker_1`, the
+flow marker `break_1` ("Fine") at 12 and the jump origin `jump_2` ("D.S.")
+from 16 to `marker_2`. Above the line no band is present; below it lie the
+markers band at level −1 and the flow control band at level −2 (its
+regions band is absent).
 
 - `N` = w(`Flow control`, 11) = 66.9775390625.
 - `x0` = 16 + 66.9775390625 + 8 = 90.9775390625 → 90.9775; the jump-origin
-  label, centred on the midpoint 5 (`u` = 5/16), gives only
-  −92.957763671875.
+  labels, `Repeat` (32.08447265625 wide) centred on the midpoint 5 (`u` =
+  5/16) and `D.S.` (18.36474609375 wide) on the midpoint 10 (`u` = 10/16),
+  give only −92.957763671875 and −224.817626953125.
 - `R` = the end label `16 ♩` at 490.9775390625 + 18.55810546875 / 2 =
-  500.256591796875, beyond the arrowhead tip 499.9775390625.
-- `Hm` = 84.33203125.
-- `W` = 8 + 510.256591796875 = 518.256591796875; `H` = 8 + 94.33203125 =
-  102.33203125.
-- Page 550.256591796875 × 134.33203125 → **550.2566 × 134.332**.
+  500.256591796875, beyond the arrowhead tip 499.9775390625; the arc of
+  `jump_2` reaches no further right than its from `x(16)` = 490.9775390625,
+  and the label `Fine` ends at `x(12)` + 3 + 18.91845703125 =
+  412.89599609375.
+- Above: no band, so `Ea` = 0 and `y_root` = max(8 + 0, 8 + 6.40234375) =
+  14.40234375.
+- Below: the markers band of 26.9765625 (Shared quantities); the flow
+  control band from 26.9765625 + 4 = 30.9765625. The label `Fine` fills one
+  flow-marker label tier, `T` = 1, so the flow row lies at `f0` =
+  30.9765625 + 10.4765625 = 41.453125. The jump origins, sorted by span,
+  are `jump_1` (span 6) and `jump_2` (span 12). `jump_1`'s extent is [50,
+  200], its label's [107.957763671875, 142.042236328125] inside it: row 1.
+  `jump_2`'s is [100, 400] and conflicts with it: row 2. With `pj` = 6 + 4
+  + 10.4765625 = 20.4765625 the apexes lie at 41.453125 + 8 = 49.453125
+  and 49.453125 + 20.4765625 = 69.9296875. The band is 10.4765625 + 8 +
+  20.4765625 + 2 + 10.4765625 = 51.4296875 wide, so `Eb` = 82.40625.
+- `Hm` = 14.40234375 + 82.40625 + 8 = 104.80859375 → 104.8086.
+- Drawn, each ordinate the card's top 8 plus its item-coordinate value: the
+  line at 22.40234375 → 22.4023 and the flow row at 63.85546875 →
+  63.8555.
+- The flow marker at `x(12)` = 390.9775390625 → 390.9775, from the flow row
+  to `P`, drawn at 16; its label from 393.9775390625 → 393.9775 with its
+  baseline at 63.85546875 − 2.12255859375 = 61.73291015625 → 61.7329.
+- `jump_1` from `Xf` = `x(8)` = 290.9775390625 to `Xt` = `x(2)` =
+  140.9775390625 (§6.6), in item coordinates: `q` = −37.5, `yc` =
+  55.85546875 + 4/3 × 8 = 66.52213541666667, `C1` = (253.4775390625,
+  `yc`), `C2` = (178.4775390625, `yc`); `ℓ` = 38.98753362009166, `(ux, uy)`
+  = (−0.9618459163232351, −0.2735917273097203), `Bh` =
+  (144.82492272779294, 56.94983565923888). Drawn: `yc` 74.5221, `Bh`
+  (144.8249, 64.9498), the head's corners (144.2777, 66.8735) and
+  (145.3721, 63.0261), its label centred on `x(5)` = 215.9775390625 with
+  its baseline at 8 + ((14.40234375 + (49.453125 + 2)) + 8.35400390625) =
+  82.20947265625 → 82.2095.
+- `jump_2` from `Xf` = `x(16)` = 490.9775390625 to `Xt` = `x(4)` =
+  190.9775390625: `q` = −75, `ya` = 14.40234375 + 69.9296875 =
+  84.33203125, `yc` = 55.85546875 + 4/3 × 28.4765625 = 93.82421875, `C1` =
+  (415.9775390625, `yc`), `C2` = (265.9775390625, `yc`); `ℓ` =
+  84.06322606563764, `(ux, uy)` = (−0.8921856025539521,
+  −0.4516689612929382), `Bh` = (194.5462814727158, 57.66214459517175).
+  Drawn: `yc` 101.82421875 → 101.8242, `Bh` (194.5463, 65.6621), the
+  head's corners (193.6429, 67.4465) and (195.4496, 63.8778), its label
+  centred on `x(10)` = 340.9775390625 with its baseline at 8 +
+  ((14.40234375 + (69.9296875 + 2)) + 8.35400390625) = 102.68603515625 →
+  102.686.
+- `W` = 8 + 510.256591796875 = 518.256591796875; `H` = 8 + (10 +
+  104.80859375) = 122.80859375.
+- Page 550.256591796875 × 154.80859375 → **550.2566 × 154.8086**.
 
 ## `with_region`
 

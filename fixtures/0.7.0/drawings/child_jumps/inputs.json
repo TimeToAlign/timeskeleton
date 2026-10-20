@@ -1,0 +1,12 @@
+{
+  "layers": [],
+  "manifest": "child_jumps.json",
+  "placement": {
+    "height": null,
+    "length": 400,
+    "places": {},
+    "spacing": 8,
+    "width": null
+  },
+  "scale": 1
+}
