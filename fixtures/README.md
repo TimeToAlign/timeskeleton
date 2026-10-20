@@ -18,7 +18,7 @@ The directories sort the manifests by content only:
 
 Version 0.7.0 has 41 manifests directly under `fixtures/0.7.0/`, 10 under
 `groups/` and 9 under `bundles/`, 60 in all, each with its minimal twin, so
-120 files. Beside them lie 103 rejection cases and 11 warning cases.
+120 files. Beside them lie 104 rejection cases and 11 warning cases.
 
 Every accepted fixture is written in the complete form, every key with a
 default written with it, and has a **minimal twin** beside it,
@@ -342,7 +342,7 @@ code with the case's. The cases cover every code:
 | `child_offset` | a child starts within its parent's known length | `child_offset_beyond_parent` |
 | `child_end` | a child ends within its parent's known length | `child_end_beyond_parent` |
 | `segment_line` | segments run contiguously from 0 to the line's length, with one `is_segment_line` value | `segment_line_not_from_zero`, `segment_line_gap`, `segment_line_gap_in_later_root`, `segment_line_short_of_length`, `segment_line_segment_flag` |
-| `reserved_id` | the part words and the band IDs are no ID | `part_word_timeline_id`, `part_word_region_card`, `part_word_region_label`, `part_word_one_root`, `band_id_region` |
+| `reserved_id` | the part words and the band IDs are no ID, nor the ID of a map another map holds | `part_word_timeline_id`, `part_word_region_card`, `part_word_region_label`, `part_word_one_root`, `band_id_region`, `nested_map_id_reserved` |
 | `manifest_id` | the manifest's ID is no timeline, group or measure-map ID | `manifest_id_is_group_id`, `manifest_id_is_descendant_id`, `manifest_id_is_measure_map_id` |
 | `group_member` | a member names a timeline, lies in one group, and neither contains nor lies inside another member of its group | `member_dangling`, `member_in_two_groups`, `members_contain_member`, `members_inside_member` |
 | `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |

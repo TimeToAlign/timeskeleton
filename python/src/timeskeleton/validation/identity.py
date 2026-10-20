@@ -32,6 +32,16 @@ def _element_ids(
         yield from _element_ids(child, (*path, "children", index))
 
 
+def _nested_map_ids(
+    timeline: Mapping[str, Any], path: _Path
+) -> Iterator[tuple[Any, _Path]]:
+    for conversion_map, at in timeline_maps(timeline, path):
+        if at[-2] == "maps":
+            yield conversion_map["id"], (*at, "id")
+    for index, child in enumerate(_entries(timeline, "children")):
+        yield from _nested_map_ids(child, (*path, "children", index))
+
+
 def _timeline_ids(
     timeline: Mapping[str, Any], path: _Path
 ) -> Iterator[tuple[str, _Path]]:
@@ -196,6 +206,8 @@ def identity_problems(
     yield from _reserved(manifest_id, ("id",))
     for index, root in enumerate(roots):
         for identifier, at in _element_ids(root, ("timelines", index)):
+            yield from _reserved(identifier, at)
+        for identifier, at in _nested_map_ids(root, ("timelines", index)):
             yield from _reserved(identifier, at)
     for index, group in enumerate(groups):
         yield from _reserved(group["id"], ("groups", index, "id"))

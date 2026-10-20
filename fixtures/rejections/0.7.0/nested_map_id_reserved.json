@@ -1,0 +1,57 @@
+{
+  "code": "reserved_id",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "id": "cmap_1",
+            "maps": {
+              "section": {
+                "id": "label",
+                "name": null,
+                "source_unit": "quarters",
+                "target_unit": null,
+                "type": "ConstantMap",
+                "value": "verse"
+              }
+            },
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": null,
+            "type": "CombinationMap"
+          }
+        ],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "conversion_maps",
+    0,
+    "maps",
+    "section",
+    "id"
+  ],
+  "reason": "No conversion map carries a part word (start, end, name, label or card) as its id, a map held by another map included; label is one."
+}

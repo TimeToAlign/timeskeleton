@@ -311,6 +311,22 @@ describe("identity", () => {
   /** A document for each place an id is checked, with the path of `word` in it. */
   const idDocuments = (word: string): [JsonObject, (string | number)[]][] => {
     const linear = { type: "LinearMap", id: word, source_unit: null, target_unit: null };
+    const holders: [JsonObject, (string | number)[]][] = [
+      [{ type: "ChainMap", id: "c", maps: [linear] }, ["maps", 0, "id"]],
+      [
+        {
+          type: "PiecewiseMap",
+          id: "p",
+          breaks: [
+            [0, 1],
+            [4, 1],
+          ],
+          maps: [linear],
+        },
+        ["maps", 0, "id"],
+      ],
+      [{ type: "CombinationMap", id: "o", maps: { output: linear } }, ["maps", "output", "id"]],
+    ];
     const flow: JsonObject[] = [
       { id: word, type: "flow_marker", manifestation: "fine", coordinate: [1, 1] },
       { id: word, type: "jump_from", manifestation: "da_capo", coordinate: [1, 1] },
@@ -330,6 +346,14 @@ describe("identity", () => {
         manifest([timeline("s", "quarters", [8, 1], { conversion_maps: [linear] })]),
         ["timelines", 0, "conversion_maps", 0, "id"],
       ],
+      ...holders.map(([holder, at]): [JsonObject, (string | number)[]] => [
+        manifest([
+          timeline("s", "quarters", [8, 1], {
+            conversion_maps: [{ source_unit: null, target_unit: null, ...holder }],
+          }),
+        ]),
+        ["timelines", 0, "conversion_maps", 0, ...at],
+      ]),
       [
         manifest([
           timeline("s", "quarters", [8, 1], {

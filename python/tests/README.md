@@ -328,7 +328,7 @@ stops at the first. Python quotes ids as `repr` does.
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
-| `reserved_id` | part words and band ids are no id: the manifest's, then each root's tree, then the groups', then the measure maps' | the id | `id 'start' is reserved for the parts of an address`, `id 'regions_1' is reserved for the bands of a timeline` |
+| `reserved_id` | part words and band ids are no id: the manifest's, then each root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds after the tree's other ids, then the groups', then the measure maps' | the id | `id 'start' is reserved for the parts of an address`, `id 'regions_1' is reserved for the bands of a timeline` |
 | `duplicate_id` | timeline ids unique across roots, group ids unique among themselves and the timelines', measure-map ids unique among themselves and the timelines' and groups' | the later id | as above |
 | `manifest_id` | the manifest id is no timeline, group or measure-map id | `id` | `duplicate id 'g2', first at #/groups/1/id` |
 | `group_member` | a member names a timeline, lies in one group, and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `duplicate member 'second', first at …`, `member 'b' lies inside member 'a' of the same group` |
@@ -346,7 +346,7 @@ id comes first); `identity_problems` reads it as the group's.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 99 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
+the 104 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the seventeen of the table, so every code is reached by a case both
@@ -374,10 +374,10 @@ documents that bound each rule from the other side:
   inside one root is reported once.
 - **Reserved ids.** Every part word (`start`, `end`, `name`, `label`,
   `card`) and band id (the five kinds numbered 1, `regions_12`,
-  `flow_control_907`) is refused as the id of a timeline, a map, a region, a
-  flow marker, a jump origin, a jump target, a group, a measure map and the
-  manifest, in a
-  manifest of one
+  `flow_control_907`) is refused as the id of a timeline, a map, a map held
+  by a `ChainMap`, by a `PiecewiseMap` and by a `CombinationMap` (reported
+  at the nested `id`), a region, a flow marker, a jump origin, a jump
+  target, a group, a measure map and the manifest, in a manifest of one
   root; `starts`, `Start`, the bare kind words, `regions_0`, `regions_01`,
   `region_1`, `Regions_1` and `regions_1a` are accepted, since the pattern
   names a whole id.

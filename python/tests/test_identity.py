@@ -545,11 +545,44 @@ def _id_documents(word: str) -> list[tuple[dict, tuple[str | int, ...]]]:
         },
         {"id": word, "type": "jump_to", "manifestation": "coda", "coordinate": [1, 1]},
     ]
+    holders = [
+        (
+            {"type": "ChainMap", "id": "c", "maps": [linear]},
+            ("maps", 0, "id"),
+        ),
+        (
+            {
+                "type": "PiecewiseMap",
+                "id": "p",
+                "breaks": [[0, 1], [4, 1]],
+                "maps": [linear],
+            },
+            ("maps", 0, "id"),
+        ),
+        (
+            {"type": "CombinationMap", "id": "o", "maps": {"output": linear}},
+            ("maps", "output", "id"),
+        ),
+    ]
     documents = [
         (manifest(timeline(word)), ("timelines", 0, "id")),
         (
             manifest(timeline("s", conversion_maps=[linear])),
             ("timelines", 0, "conversion_maps", 0, "id"),
+        ),
+        *(
+            (
+                manifest(
+                    timeline(
+                        "s",
+                        conversion_maps=[
+                            {"source_unit": None, "target_unit": None} | holder
+                        ],
+                    )
+                ),
+                ("timelines", 0, "conversion_maps", 0, *at),
+            )
+            for holder, at in holders
         ),
         (
             manifest(timeline("s", regions=[region])),

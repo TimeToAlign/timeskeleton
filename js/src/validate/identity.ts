@@ -29,6 +29,18 @@ function* elementIds(
   }
 }
 
+function* nestedMapIds(
+  timeline: JsonObject,
+  path: readonly PathSegment[],
+): Generator<[string, PathSegment[]]> {
+  for (const [map, at] of timelineMaps(timeline, path)) {
+    if (at[at.length - 2] === "maps") yield [text(map, "id"), [...at, "id"]];
+  }
+  for (const [index, child] of entries(timeline, "children").entries()) {
+    yield* nestedMapIds(child, [...path, "children", index]);
+  }
+}
+
 function* timelineIds(
   timeline: JsonObject,
   path: readonly PathSegment[],
@@ -218,6 +230,7 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   if (manifestId !== null) yield* reserved(manifestId, ["id"]);
   for (const [index, root] of roots.entries()) {
     for (const [id, at] of elementIds(root, ["timelines", index])) yield* reserved(id, at);
+    for (const [id, at] of nestedMapIds(root, ["timelines", index])) yield* reserved(id, at);
   }
   for (const [index, group] of groups.entries()) {
     yield* reserved(text(group, "id"), ["groups", index, "id"]);
