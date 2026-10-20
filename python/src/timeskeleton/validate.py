@@ -298,11 +298,12 @@ def _branches(error: ValidationError) -> Iterable[list[ValidationError]]:
 
 
 def _declared(node: Mapping[str, Any]) -> set[str]:
-    """The keys an object node declares, its ``allOf`` bases' included."""
+    """The keys an object node declares, its ``allOf`` bases' included, at any depth."""
     declared = set(node["properties"])
     for entry in node.get("allOf", ()):
-        base = load_schema()["$defs"][entry["$ref"].removeprefix("#/$defs/")]
-        declared |= set(base["properties"])
+        declared |= _declared(
+            load_schema()["$defs"][entry["$ref"].removeprefix("#/$defs/")]
+        )
     return declared
 
 

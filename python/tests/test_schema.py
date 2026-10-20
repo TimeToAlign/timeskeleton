@@ -155,10 +155,10 @@ def test_the_ten_map_types() -> None:
         "regions",
         "flow_control",
     ]
+    assert defs["MeasureView"]["properties"]["source_unit"]["const"] == "quarters"
     for name, target in MEASURE_VIEWS.items():
-        properties = defs[name]["properties"]
-        assert properties["source_unit"]["const"] == "quarters", name
-        assert properties["target_unit"]["const"] == target, name
+        assert defs[name]["allOf"] == [{"$ref": "#/$defs/MeasureView"}], name
+        assert defs[name]["properties"]["target_unit"]["const"] == target, name
 
 
 def test_the_unit_table_states_the_default_number_types() -> None:
@@ -236,12 +236,20 @@ def test_every_conversion_map_extends_the_map_base() -> None:
         "target_unit",
     ]
     assert base["required"] == ["type", "id", "source_unit", "target_unit"]
+    view = defs["MeasureView"]
+    assert view["type"] == "object"
+    assert view["allOf"] == [{"$ref": "#/$defs/MapBase"}]
+    assert list(view["properties"]) == ["source_unit", "measure_map"]
+    assert view["properties"]["source_unit"]["const"] == "quarters"
+    assert view["required"] == ["measure_map"]
     for name in _map_types():
         definition = defs[name]
         assert definition["type"] == "object"
-        assert definition["allOf"] == [{"$ref": "#/$defs/MapBase"}]
-        own = set(definition["properties"]) & set(base["properties"])
-        units = {"source_unit", "target_unit"} if name in MEASURE_VIEWS else set()
+        parent = "MeasureView" if name in MEASURE_VIEWS else "MapBase"
+        assert definition["allOf"] == [{"$ref": f"#/$defs/{parent}"}], name
+        bases = set(base["properties"]) | set(view["properties"])
+        own = set(definition["properties"]) & bases
+        units = {"target_unit"} if name in MEASURE_VIEWS else set()
         assert own == {"type"} | units, name
         for key in units:
             assert "const" in definition["properties"][key], name
@@ -256,8 +264,7 @@ def test_references_are_ids_and_addresses() -> None:
     assert selector["within"]["$ref"] == "#/$defs/Id"
     assert selector["ids"]["items"] == {"$ref": "#/$defs/Address"}
     assert defs["FlowControlElement"]["properties"]["target"]["$ref"] == "#/$defs/Id"
-    for owner in MEASURE_VIEWS:
-        assert defs[owner]["properties"]["measure_map"]["$ref"] == "#/$defs/Id"
+    assert defs["MeasureView"]["properties"]["measure_map"]["$ref"] == "#/$defs/Id"
     address = Draft202012Validator({"$ref": "#/$defs/Address", "$defs": defs})
     for accepted in ("score", "score/regions_1", "score/region_1/label", "a b/c"):
         assert address.is_valid(accepted), accepted
@@ -276,13 +283,19 @@ def test_objects_are_open_without_a_custom_keyword() -> None:
     assert "properties" not in defs["Meta"]
 
 
+def _declared(node: dict) -> set[str]:
+    """The keys a node declares, its ``allOf`` bases' included, at any depth."""
+    declared = set(node.get("properties", {}))
+    for entry in node.get("allOf", []):
+        declared |= _declared(_target(entry))
+    return declared
+
+
 def test_every_object_declares_what_its_branches_declare() -> None:
     for node, inside in _nodes(load_schema()):
         if inside or node.get("type") != "object" or "properties" not in node:
             continue
-        declared = set(node["properties"])
-        for entry in node.get("allOf", []):
-            declared |= set(_target(entry)["properties"])
+        declared = _declared(node)
         assert "patternProperties" not in node
         for key in ("oneOf", "anyOf"):
             for branch in node.get(key, []):
@@ -307,10 +320,15 @@ def test_every_discriminated_union_tags_each_branch_with_a_distinct_constant() -
 
 
 def _defaults(definition: dict) -> dict[str, Any]:
-    """The defaults a definition declares, through references and its base."""
+    """The defaults a definition declares, through references and its bases."""
     members = dict(definition.get("properties", {}))
     for entry in definition.get("allOf", []):
-        members |= _target(entry)["properties"]
+        base = _target(entry)
+        members |= {
+            key: {"default": value}
+            for key, value in _defaults(base).items()
+            if key not in members
+        }
     return {
         key: (member if "default" in member else _target(member))["default"]
         for key, member in members.items()
@@ -333,10 +351,12 @@ def test_the_defaults_are_the_table() -> None:
     assert sorted([*kinds, "conversion_map", *own.values(), *element]) == sorted(
         DEFAULTS
     )
-    covered = {"MapBase", "FlowControlElement"}
-    assert _defaults(defs["FlowControlElement"]) == (
-        DEFAULTS["flow_control_element"] | DEFAULTS["repeat_end"]
-    )
+    covered = {"MapBase", "MeasureView", "FlowControlElement"}
+    element_defs = defs["FlowControlElement"]
+    assert _defaults(element_defs) == DEFAULTS["flow_control_element"]
+    repeat_end = element_defs["then"]["else"]
+    assert repeat_end["if"]["properties"]["manifestation"] == {"const": "repeat_end"}
+    assert _defaults(repeat_end["then"]) == DEFAULTS["repeat_end"]
     for kind, names in kinds.items():
         for name in names:
             covered.add(name)

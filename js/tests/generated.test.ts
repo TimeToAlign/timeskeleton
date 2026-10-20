@@ -41,6 +41,7 @@ describe("generated files", () => {
       "Graphical",
       "ConversionMap",
       "MapBase",
+      "MeasureView",
       ...mapTypes,
       "Region",
       "FlowControlElement",

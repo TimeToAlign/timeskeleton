@@ -2,12 +2,12 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://timetoalign.github.io/timeskeleton/0.7.0/timeskeleton.schema.json",
   "title": "TimeSkeleton manifest",
-  "description": "The TimeSkeleton 0.7.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and measure maps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of one or multiple root timelines, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: the schema closes none, and a key an object does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
+  "description": "The TimeSkeleton 0.7.0 manifest, an exchange format for the structures of musical timelines without their events: their axes, extents, nesting, groups, conversion maps, regions, flow control and measure maps. Music-research software trades these structures in it like a currency. The format expresses the TimeToAlign! model (TISMIR, https://doi.org/10.5334/tismir.296); the Python library timetoalign is one implementation of it. Every manifest is one AlignmentBundle with an array of root timelines, possibly empty, optionally named, optionally attributing timelines to groups, optionally styled for drawing (`docs/drawing.md`). Time coordinates use the model's time units and number-type primitives: a fraction is a [numerator, denominator] pair of integers with a strictly positive denominator, an integer is a JSON integer and a float is a JSON number. Every object is open: the schema closes none, and a key an object does not declare is kept and reported as unknown by the TimeSkeleton validators, never refused. The `discriminator` annotations follow OpenAPI: they serve validators that understand them and change nothing for the others. Every key with a default may be left out; a reader supplies the default. The definitions TimeSkeleton, Timeline, Group, Graphical, ConversionMap, Coordinate, Number, Fraction, TimeUnit, NumberType, Id, MeasureMap and MeasureMapRow are public: a host may refer to this document or to `#/$defs/<name>`, and they change only by addition within 0.7.x.",
   "$ref": "#/$defs/TimeSkeleton",
   "$defs": {
     "TimeSkeleton": {
       "type": "object",
-      "description": "A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region or flow-control element) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.",
+      "description": "A TimeSkeleton manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region or flow-control element) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.",
       "properties": {
         "$schema": {
           "type": "string",
@@ -696,8 +696,7 @@
         "repeat_count": {
           "type": "integer",
           "minimum": 1,
-          "description": "How many passes a repeat_end sends back to its target; carried by a repeat_end only.",
-          "default": 1
+          "description": "How many passes a repeat_end sends back to its target, 1 by default; carried by a repeat_end only."
         },
         "name": {
           "$ref": "#/$defs/Name"
@@ -780,6 +779,13 @@
             "required": [
               "manifestation"
             ]
+          },
+          "then": {
+            "properties": {
+              "repeat_count": {
+                "default": 1
+              }
+            }
           },
           "else": {
             "properties": {
@@ -1261,64 +1267,68 @@
         "maps"
       ]
     },
+    "MeasureView": {
+      "type": "object",
+      "description": "What every measure view carries beside the map base: its source unit, quarters, and the ID of the measure map it reads. Each view adds its type, its target unit and its function.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/MapBase"
+        }
+      ],
+      "properties": {
+        "source_unit": {
+          "const": "quarters",
+          "description": "Quarters, the unit of every measure-map position."
+        },
+        "measure_map": {
+          "$ref": "#/$defs/Id",
+          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+        }
+      },
+      "required": [
+        "measure_map"
+      ]
+    },
     "MeasureRecordMap": {
       "type": "object",
       "description": "Maps a position x in quarters to the record of the measure holding it: the row of the measure map that holds x (`MeasureMap`), with every member its decompressed form carries.",
       "allOf": [
         {
-          "$ref": "#/$defs/MapBase"
+          "$ref": "#/$defs/MeasureView"
         }
       ],
       "properties": {
         "type": {
           "const": "MeasureRecordMap"
         },
-        "source_unit": {
-          "const": "quarters",
-          "description": "Quarters, the unit of every measure-map position."
-        },
         "target_unit": {
           "const": null,
-          "description": "Null: the output is no position on a time axis."
-        },
-        "measure_map": {
-          "$ref": "#/$defs/Id",
-          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+          "description": "Null: the output is not a position on a time axis."
         }
       },
       "required": [
-        "type",
-        "measure_map"
+        "type"
       ]
     },
     "MeasureNumberMap": {
       "type": "object",
-      "description": "Maps a position x in quarters to the number of the measure holding it: the `number` of the row of the measure map that holds x (`MeasureMap`).",
+      "description": "Maps a position x in quarters to the number of the measure holding it: the `number` of the row of the measure map that holds x (`MeasureMap`), or the row's `count` where the row states no number.",
       "allOf": [
         {
-          "$ref": "#/$defs/MapBase"
+          "$ref": "#/$defs/MeasureView"
         }
       ],
       "properties": {
         "type": {
           "const": "MeasureNumberMap"
         },
-        "source_unit": {
-          "const": "quarters",
-          "description": "Quarters, the unit of every measure-map position."
-        },
         "target_unit": {
           "const": null,
-          "description": "Null: the output is no position on a time axis."
-        },
-        "measure_map": {
-          "$ref": "#/$defs/Id",
-          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+          "description": "Null: the output is not a position on a time axis."
         }
       },
       "required": [
-        "type",
-        "measure_map"
+        "type"
       ]
     },
     "FloatingMeasureMap": {
@@ -1326,59 +1336,41 @@
       "description": "Maps a position x in quarters to floating measures, a measure ordinal followed by how far into that bar x lies (12.5 is the middle of the twelfth bar). The measure map gives the knots: one per row, at the row's nominal downbeat, its qstamp minus its offset_within_measure, so the content of an incomplete bar sits where it is notated (a pickup of one eighth in 9/8 begins at 0.888); and a last knot at the end of the last row, its qstamp plus its actual_length. A knot carries the ordinal of its row, the last knot the ordinal after the last row's. Ordinals count rows, never measure numbers: the first row is 0 when it is an anacrusis (an offset_within_measure above 0 and an actual_length below its nominal_length) and 1 otherwise, and every following row adds one, through voltas and without reset. Between two knots the map is linear, and beyond the first and the last knot it continues the first and the last segment. A reading is truncated, never rounded, to three decimals, the resolution of floating measures. A measure map in which two rows share a nominal downbeat (the halves of a split bar) has no floating measures.",
       "allOf": [
         {
-          "$ref": "#/$defs/MapBase"
+          "$ref": "#/$defs/MeasureView"
         }
       ],
       "properties": {
         "type": {
           "const": "FloatingMeasureMap"
         },
-        "source_unit": {
-          "const": "quarters",
-          "description": "Quarters, the unit of every measure-map position."
-        },
         "target_unit": {
           "const": "floating_measures",
           "description": "Floating measures."
-        },
-        "measure_map": {
-          "$ref": "#/$defs/Id",
-          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
         }
       },
       "required": [
-        "type",
-        "measure_map"
+        "type"
       ]
     },
     "MeasureBeatMap": {
       "type": "object",
-      "description": "Maps a position x in quarters to the pair of the measure number and the beat: the `number` of the row of the measure map that holds x (`MeasureMap`), and 1 plus the distance in quarters from that row's qstamp to x. Beats are 1-indexed and counted in quarters: beat 1 is the row's start, and a position halfway through its second quarter is beat 5/2.",
+      "description": "Maps a position x in quarters to the pair of the measure number and the beat: the `number` of the row of the measure map that holds x (`MeasureMap`), or the row's `count` where the row states no number, and 1 plus the distance in quarters from that row's qstamp to x. Beats are 1-indexed and counted in quarters: beat 1 is the row's start, and a position halfway through its second quarter is beat 5/2.",
       "allOf": [
         {
-          "$ref": "#/$defs/MapBase"
+          "$ref": "#/$defs/MeasureView"
         }
       ],
       "properties": {
         "type": {
           "const": "MeasureBeatMap"
         },
-        "source_unit": {
-          "const": "quarters",
-          "description": "Quarters, the unit of every measure-map position."
-        },
         "target_unit": {
           "const": null,
-          "description": "Null: the output is no position on a time axis."
-        },
-        "measure_map": {
-          "$ref": "#/$defs/Id",
-          "description": "The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema."
+          "description": "Null: the output is not a position on a time axis."
         }
       },
       "required": [
-        "type",
-        "measure_map"
+        "type"
       ]
     }
   }

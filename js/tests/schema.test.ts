@@ -53,11 +53,13 @@ const mapTypes = ((defs.ConversionMap as Node).oneOf as Node[]).map((branch) =>
   (branch.$ref as string).slice("#/$defs/".length),
 );
 
-/** The defaults a definition declares, through references and its base. */
+/** The defaults a definition declares, through references and its bases. */
 function defaultsOf(definition: Node): Record<string, unknown> {
   const members = { ...((definition.properties ?? {}) as Record<string, Node>) };
   for (const entry of (definition.allOf ?? []) as Node[]) {
-    Object.assign(members, target(entry).properties as Record<string, Node>);
+    for (const [key, value] of Object.entries(defaultsOf(target(entry)))) {
+      if (!(key in members)) members[key] = { default: value };
+    }
   }
   return Object.fromEntries(
     Object.entries(members)
@@ -65,6 +67,15 @@ function defaultsOf(definition: Node): Record<string, unknown> {
       .filter(([, owner]) => "default" in owner)
       .map(([key, owner]) => [key, owner.default]),
   );
+}
+
+/** The keys a node declares, its `allOf` bases' included, at any depth. */
+function declaredKeys(node: Node): Set<string> {
+  const declared = new Set(Object.keys((node.properties ?? {}) as Node));
+  for (const entry of (node.allOf ?? []) as Node[]) {
+    for (const key of declaredKeys(target(entry))) declared.add(key);
+  }
+  return declared;
 }
 
 /** Every key of the document that begins with `x-`. */
@@ -144,8 +155,9 @@ describe("the schema document", () => {
       "regions",
       "flow_control",
     ]);
+    expect(properties("MeasureView").source_unit?.const).toBe("quarters");
     for (const [name, unit] of Object.entries(MEASURE_VIEWS)) {
-      expect(properties(name).source_unit?.const, name).toBe("quarters");
+      expect(defs[name]?.allOf, name).toEqual([{ $ref: "#/$defs/MeasureView" }]);
       expect(properties(name).target_unit?.const, name).toBe(unit);
     }
   });
@@ -208,14 +220,20 @@ describe("the schema document", () => {
     const baseKeys = Object.keys(base.properties as Node);
     expect(baseKeys).toEqual(["type", "id", "name", "source_unit", "target_unit"]);
     expect(base.required).toEqual(["type", "id", "source_unit", "target_unit"]);
+    const view = defs.MeasureView as Node;
+    expect(view.type).toBe("object");
+    expect(view.allOf).toEqual([{ $ref: "#/$defs/MapBase" }]);
+    expect(Object.keys(view.properties as Node)).toEqual(["source_unit", "measure_map"]);
+    expect(properties("MeasureView").source_unit?.const).toBe("quarters");
+    expect(view.required).toEqual(["measure_map"]);
+    const bases = [...baseKeys, ...Object.keys(view.properties as Node)];
     for (const name of mapTypes) {
       const definition = defs[name] as Node;
       expect(definition.type).toBe("object");
-      expect(definition.allOf).toEqual([{ $ref: "#/$defs/MapBase" }]);
-      const own = Object.keys(definition.properties as Node).filter((key) =>
-        baseKeys.includes(key),
-      );
-      const units = name in MEASURE_VIEWS ? ["source_unit", "target_unit"] : [];
+      const parent = name in MEASURE_VIEWS ? "MeasureView" : "MapBase";
+      expect(definition.allOf, name).toEqual([{ $ref: `#/$defs/${parent}` }]);
+      const own = Object.keys(definition.properties as Node).filter((key) => bases.includes(key));
+      const units = name in MEASURE_VIEWS ? ["target_unit"] : [];
       expect(own, name).toEqual(["type", ...units]);
       for (const key of units) expect(properties(name)[key], name).toHaveProperty("const");
       expect(properties(name).type).toEqual({ const: name });
@@ -230,9 +248,7 @@ describe("the schema document", () => {
     expect(selector.within?.$ref).toBe("#/$defs/Id");
     expect(selector.ids?.items).toEqual({ $ref: "#/$defs/Address" });
     expect(properties("FlowControlElement").target?.$ref).toBe("#/$defs/Id");
-    for (const owner of Object.keys(MEASURE_VIEWS)) {
-      expect(properties(owner).measure_map?.$ref).toBe("#/$defs/Id");
-    }
+    expect(properties("MeasureView").measure_map?.$ref).toBe("#/$defs/Id");
     const address = new Ajv2020({ strict: false }).compile({
       $ref: "#/$defs/Address",
       $defs: defs,
@@ -257,10 +273,7 @@ describe("the schema document", () => {
   it("declares on every object what its branches and arms declare", () => {
     for (const [node, inside] of nodes(document)) {
       if (inside || node.type !== "object" || node.properties === undefined) continue;
-      const declared = new Set(Object.keys(node.properties as Node));
-      for (const entry of (node.allOf ?? []) as Node[]) {
-        for (const key of Object.keys(target(entry).properties as Node)) declared.add(key);
-      }
+      const declared = declaredKeys(node);
       expect(node.patternProperties).toBeUndefined();
       const branches = [
         ...((node.oneOf ?? []) as Node[]),
@@ -308,11 +321,14 @@ describe("the schema document", () => {
     expect(
       [...Object.keys(kinds), "conversion_map", ...Object.values(own), ...element].sort(),
     ).toEqual(Object.keys(DEFAULTS).sort());
-    const covered = new Set<string>(["MapBase", "FlowControlElement"]);
-    expect(defaultsOf(defs.FlowControlElement as Node)).toEqual({
-      ...DEFAULTS.flow_control_element,
-      ...DEFAULTS.repeat_end,
+    const covered = new Set<string>(["MapBase", "MeasureView", "FlowControlElement"]);
+    const flowControl = defs.FlowControlElement as Node;
+    expect(defaultsOf(flowControl)).toEqual(DEFAULTS.flow_control_element);
+    const repeatEnd = (flowControl.then as Node).else as Node;
+    expect(((repeatEnd.if as Node).properties as Node).manifestation).toEqual({
+      const: "repeat_end",
     });
+    expect(defaultsOf(repeatEnd.then as Node)).toEqual(DEFAULTS.repeat_end);
     for (const [kind, names] of Object.entries(kinds)) {
       for (const name of names) {
         covered.add(name);

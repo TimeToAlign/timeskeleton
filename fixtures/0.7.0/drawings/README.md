@@ -171,7 +171,7 @@ The root `bare` ("Bare", 8 quarters), with nothing else.
 
 The root `clt_1` (16 quarters), its locked child `clt_3` (8 at 4), and
 that child's locked child `clt_2` (2 at 3/2). No timeline has a name, so
-each row shows its id.
+each row shows its ID.
 
 - `N` = w(`clt_1`, 11) = 25.91552734375, the same for all three.
 - `x0` = 16 + 25.91552734375 + 8 = 49.91552734375 → 49.9155.
@@ -922,7 +922,7 @@ its line below it. `melody` has no entry and keeps the default band order
 The manifest of `map` with the band order `melody/children_1`, `melody`,
 `melody/conversion_maps_1`, `melody/markers_1`, `melody/regions_1`,
 `melody/flow_control_1` for the root `melody` in its `graphical.order`.
-`phrase` has no entry, so it follows `melody`'s order band by band id
+`phrase` has no entry, so it follows `melody`'s order band by band ID
 (§6.4). Both lines therefore have their maps against them, below. Above
 `melody`'s line lies its children band alone. Below it, the markers band
 lies beyond the maps.
@@ -1030,7 +1030,7 @@ Children).
 ["movement/regions_1"]}, "set": {"display": "inline"}}]`. It outranks the
 default that hides that band (§2.5, §4), so the region `score/region_1` is
 drawn in `movement`'s regions band, at `movement`'s line. `movement` has no
-band order of its own and follows `score`'s, the default, band by band id
+band order of its own and follows `score`'s, the default, band by band ID
 (§6.4), so its regions band lies below its line, towards `score`'s. Its
 markers band draws nothing, so the regions band is at level −1 and the only
 band `movement` draws.
@@ -1113,7 +1113,7 @@ the default that hides the flow control band of every timeline held by a
 band (§2.5, §4), so the flow marker and the jump origin, addressed
 `piece/fine` and `piece/da_capo_al_fine` (§2.2), are drawn at `verse`'s own
 line (§6.4). `verse` has no band order of its own and follows `piece`'s
-default one band by band id, so its flow control band lies below its line.
+default one band by band ID, so its flow control band lies below its line.
 Its markers band and regions band draw nothing, so the flow control band is
 at level −1. `verse` has no map and no boundary, so its line reaches 0
 below, less than `w / 2` = 1.5, and the band starts at `S` beyond `w / 2`:

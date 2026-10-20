@@ -66,11 +66,16 @@ rejection cases that use them (`test_schema.py`):
   region, a flow-control element, a measure map and a conversion map and by every
   `meta`, and no property repeats their shapes inline. `MapBase` declares
   `type`, `id`, `name`, `source_unit` and `target_unit` and requires all but
-  `name`; every conversion map is an object whose `allOf` is exactly
-  `[{"$ref": "#/$defs/MapBase"}]`, whose own `properties` declare of the
-  base's keys only `type`, its constant, and, on a measure view, the two
-  units, each a constant, and whose `required` lists `type`, as a
-  discriminated union needs, and none of the base's other keys.
+  `name`; `MeasureView` is an object whose `allOf` is exactly
+  `[{"$ref": "#/$defs/MapBase"}]`, whose own `properties` are exactly
+  `source_unit`, the constant `quarters`, and `measure_map`, and whose
+  `required` is exactly `["measure_map"]`. Every conversion map is an
+  object whose `allOf` is exactly `[{"$ref": "#/$defs/MeasureView"}]` for
+  the four measure views and `[{"$ref": "#/$defs/MapBase"}]` for the six
+  others, whose own `properties` declare of the bases' keys only `type`,
+  its constant, and, on a measure view, `target_unit`, a constant, and
+  whose `required` lists `type`, as a discriminated union needs, and none
+  of the bases' other keys.
 - **References are IDs, addresses are `Address`.** `Selector.within`,
   `FlowControlElement.target` and the `measure_map` of each of the four measure views
   refer to `Id`; the items of
@@ -81,7 +86,7 @@ rejection cases that use them (`test_schema.py`):
   `unevaluatedProperties`, and no key anywhere in the document begins with
   `x-`: objects are open by omission, with no custom keyword. Every object
   node with `properties` outside a branch declares, in its own `properties`
-  or in those of the base its `allOf` names, every key its `oneOf`/`anyOf`
+  or in those of the bases its `allOf` names, at any depth, every key its `oneOf`/`anyOf`
   branches and `if`/`then`/`else` arms declare, which is what lets
   `unknown_keys` name the unknown keys from the node alone. `meta` (on the
   manifest, a timeline, a region, a flow-control element, a group, a measure map)
@@ -100,9 +105,14 @@ rejection cases that use them (`test_schema.py`):
   `TableMap` (`kind` `linear`, `extrapolate` `none`); a flow-control
   element's kind is `flow_control_element`, joined by `repeat_end`
   (`repeat_count` 1), which `complete` applies to a `repeat_end` only, since
-  no other element may carry a repeat count. A key's default is
+  no other element may carry a repeat count: the schema states that one
+  default in the `then` arm of the `if` that tests for a `repeat_end`, and
+  not on the shared `repeat_count` property, so a reader that supplies
+  every default it finds on a property never writes `repeat_count` to an
+  element that must not carry it. A key's default is
   stated on its property or on the definition the property refers to
-  (`Name`, `Meta`), and a conversion map's keys include those of its base. `number_type`
+  (`Name`, `Meta`), and a conversion map's keys include those of its bases,
+  at any depth. `number_type`
   has no `default` (it depends on the unit). The JavaScript suite holds its
   table to the same schema, so the two tables are equal.
 
@@ -189,7 +199,7 @@ unit's default (`int` for ticks, samples, frames, pixels; `fraction` for
 quarters, whole_notes; `float` otherwise). A child's offset lies on its
 parent's axis, a root's on its own. A mismatch is reported after the schema,
 at the value, as `<key> <value> of '<id>' is <found> on <axis> axis: write
-<value rewritten>`, the id that of the object holding the key, the value
+<value rewritten>`, the ID that of the object holding the key, the value
 rewritten where an exact rewriting exists, else the number type named. What
 proves it, one inline document per line, message stated literally:
 
@@ -213,7 +223,7 @@ proves it, one inline document per line, message stated literally:
   while its own length `[4, 1]` is fine; a root's own `offset 3` in quarters
   is `write [3, 1]`;
 - `start`, `end` and the `coordinate` of a flow marker, a jump origin and a
-  jump target each reported at its own path with its holder's id.
+  jump target each reported at its own path with its holder's ID.
 
 Accepted: `8` and `8.0` on an int axis (an integral number is an int),
 `8`, `0.5`, `9007199254740992` (2^53) and `10**20` on a float axis (each
@@ -242,11 +252,15 @@ an object before its descendants) and then by key (`test_unknown_keys.py`):
   `graphical`, a selector's `kind`, a declaration's `colour` and
   `show-projections`, a measure-map row's `tempo` and `offset`, and a
   `CombinationMap`'s former `names`.
-- **A former property.** `side` is no property: a manifest whose statement
+- **A former property.** `side` is not a property: a manifest whose statement
   sets `{"fill": "#000000", "side": "above"}` on maps and whose style
   `below` is `{"side": "below"}` validates, and `unknown_keys` lists exactly
   `{"path": ["graphical", "statements", 0, "set"], "key": "side"}` and
   `{"path": ["graphical", "styles", "below"], "key": "side"}`.
+- **A base of a base.** A measure view's base is `MeasureView`, whose own
+  base is `MapBase`: a `MeasureNumberMap` carrying the unknown key
+  `colour` lists exactly `{"path": ["timelines", 0, "conversion_maps",
+  0], "key": "colour"}`, its `id`, `name` and units counting as declared.
 - **What is not reported.** Keys inside `meta` (a free object), keys inside the value of an unknown key, keys of `styles` and of
   `graphical.order` (maps keyed by data), and a known key whose value is
   its default: a manifest with none of these and a key in each lists
@@ -313,35 +327,35 @@ own children, the containment rules, then its segment lines), the rest over
 the whole manifest. A timeline's maps are read in array order, each before
 the maps it holds, a `CombinationMap`'s by output name in code-point order.
 `identity_problems` returns every semantic problem in that order; `validate`
-stops at the first. Python quotes ids as `repr` does.
+stops at the first. Python quotes IDs as `repr` does.
 
 | Code | Rule | Reported at | Message |
 | --- | --- | --- | --- |
 | `not_a_manifest` | an object holding `timeskeleton` | the root | `not a TimeSkeleton manifest` |
-| `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no id above it |
+| `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no ID above it |
 | `schema` | the schema document | the path rule below | the schema library's |
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
-| `duplicate_id` | ids unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other ids | the later id | `duplicate id 'm', first at #/…` |
+| `duplicate_id` | IDs unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other IDs | the later ID | `duplicate id 'm', first at #/…` |
 | `dangling_target` | a jump origin's `target` names a jump target of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no jump_to of this timeline`, `'ghost' names no measure map of this manifest` |
 | `conversion_map` | a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `y_values`, the value, the `maps`, the break | `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
 | `child_offset` | a child starts within the parent's known length | its `offset` | `offset 75.0 of 'take' is beyond the length 60.0 of its parent 'recording'` |
 | `child_end` | else, it ends within it | its `length` | `child 'coda' ends at [12, 1], beyond the length [10, 1] of its parent 'score'` |
 | `segment_line` | segments contiguous from 0 to the length, one flag | the segment's flag or offset, the line's `length` | `segment 'b' of segment line 'line' does not start where the one before it ends` |
-| `reserved_id` | part words and band ids are no id: the manifest's, then each root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds after the tree's other ids, then the groups', then the measure maps' | the id | `id 'start' is reserved for the parts of an address`, `id 'regions_1' is reserved for the bands of a timeline` |
-| `duplicate_id` | timeline ids unique across roots, group ids unique among themselves and the timelines', measure-map ids unique among themselves and the timelines' and groups' | the later id | as above |
-| `manifest_id` | the manifest id is no timeline, group or measure-map id | `id` | `duplicate id 'g2', first at #/groups/1/id` |
+| `reserved_id` | part words and band IDs are not IDs: the manifest's, then each root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds after the tree's other IDs, then the groups', then the measure maps' | the ID | `id 'start' is reserved for the parts of an address`, `id 'regions_1' is reserved for the bands of a timeline` |
+| `duplicate_id` | timeline IDs unique across roots, group IDs unique among themselves and the timelines', measure-map IDs unique among themselves and the timelines' and groups' | the later ID | as above |
+| `manifest_id` | the manifest ID is not a timeline, group or measure-map ID | `id` | `duplicate id 'g2', first at #/groups/1/id` |
 | `group_member` | a member names a timeline, lies in one group, and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `duplicate member 'second', first at …`, `member 'b' lies inside member 'a' of the same group` |
 | `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
 | `display_order` | a group's order permutes its members | the entry, then the order | `'x' is not a member of group 'g'`, `member 'b' of group 'g' is missing` |
-| `band_order` | a timeline's order permutes its id and its five bands | the entry, then the order | `'score/regions_2' is not 'score' or one of its bands`, `'score/flow_control_1' is missing from the band order of 'score'` |
+| `band_order` | a timeline's order permutes its ID and its five bands | the entry, then the order | `'score/regions_2' is not 'score' or one of its bands`, `'score/flow_control_1' is missing from the band order of 'score'` |
 
 The keys of `graphical.order` are read in code-point order, each order's
 strangers before its missing entries, missing members in the order of
 `members`, missing bands in the default band order (`T/children_1`,
 `T/conversion_maps_1`, `T`, `T/markers_1`, `T/regions_1`, `T/flow_control_1`).
 A key naming a group and a timeline never reaches `validate` (the duplicate
-id comes first); `identity_problems` reads it as the group's.
+ID comes first); `identity_problems` reads it as the group's.
 
 ## What proves the rules
 
@@ -370,22 +384,22 @@ message are stated literally, and `validate` raises that same problem. The
 documents that bound each rule from the other side:
 
 - **Scopes.** A jump target `m` in two roots, and a region `perf` beside a child
-  timeline `perf` of another root, are no problem; a timeline id repeated
-  inside one root is reported once. Nested map ids share their root's
+  timeline `perf` of another root, are no problem; a timeline ID repeated
+  inside one root is reported once. Nested map IDs share their root's
   scope: two maps `l` held by one `ChainMap`, a map `l` held by a
   `PiecewiseMap` beside a region `l`, and a map `cmap_1` held by the
   `CombinationMap` `cmap_1` are each one `duplicate_id` at the nested
-  `id`, the tree's own ids counting first; the same nested id in two roots
+  `id`, the tree's own IDs counting first; the same nested ID in two roots
   is no problem.
-- **Reserved ids.** Every part word (`start`, `end`, `name`, `label`,
-  `card`) and band id (the five kinds numbered 1, `regions_12`,
-  `flow_control_907`) is refused as the id of a timeline, a map, a map held
+- **Reserved IDs.** Every part word (`start`, `end`, `name`, `label`,
+  `card`) and band ID (the five kinds numbered 1, `regions_12`,
+  `flow_control_907`) is refused as the ID of a timeline, a map, a map held
   by a `ChainMap`, by a `PiecewiseMap` and by a `CombinationMap` (reported
   at the nested `id`), a region, a flow marker, a jump origin, a jump
   target, a group, a measure map and the manifest, in a manifest of one
   root; `starts`, `Start`, the bare kind words, `regions_0`, `regions_01`,
   `region_1`, `Regions_1` and `regions_1a` are accepted, since the pattern
-  names a whole id.
+  names a whole ID.
 - **Containment.** A child's end is its offset plus its length, or, for a
   segment of unknown length, its successor's offset; values compare exactly
   and the end is spelled in the parent's number type, a fraction pair where
@@ -431,9 +445,9 @@ documents that bound each rule from the other side:
 - **Measure maps.** A measure view naming `ghost` while `measure_maps` holds
   only `measures` is one problem at its `measure_map`, also when nested in a
   `CombinationMap`; a measure map in a manifest of a timeline in seconds
-  is no problem, as no unit constraint remains. A measure-map id equal to
-  a timeline id, a group id or an earlier measure-map id is one
-  `duplicate_id` at the later id, and a manifest id equal to a measure-map id
+  is no problem, as no unit constraint remains. A measure-map ID equal to
+  a timeline ID, a group ID or an earlier measure-map ID is one
+  `duplicate_id` at the later ID, and a manifest ID equal to a measure-map ID
   one `manifest_id`.
 - **Groups and orders.** A child in one group with its root in another or in
   none, a group without members and members of unknown length pass. A band
@@ -476,20 +490,20 @@ without a `target` the element.
 
 ## The canonical order
 
-Every array whose order carries no meaning has one order: `timelines` by id;
-in every timeline `children` by offset then id, `conversion_maps` by id,
-`regions` by start, end, id, `flow_control` by coordinate then id; `groups`
-by id and `members` by code point; `measure_maps` by id. Values compare
+Every array whose order carries no meaning has one order: `timelines` by ID;
+in every timeline `children` by offset then ID, `conversion_maps` by ID,
+`regions` by start, end, ID, `flow_control` by coordinate then ID; `groups`
+by ID and `members` by code point; `measure_maps` by ID. Values compare
 exactly; strings by code point. What proves it
 (`test_manifest.py`): an inline manifest with ties at every level, own-axis
 values given as bare ints, floats and pairs mixed (`[5, 8]` before `[2, 1]`,
-`0.625` equal to `[5, 8]` and tied by id), ids where code-point and UTF-16
-order disagree (`ﬀ` before `😀`), yields the literally stated id sequences
+`0.625` equal to `[5, 8]` and tied by ID), IDs where code-point and UTF-16
+order disagree (`ﬀ` before `😀`), yields the literally stated ID sequences
 and validates; children `z` (1), `m` (1), `b` (`[5, 8]`), `a` (`[2, 3]`) come
 out `b`, `a`, `m`, `z`; roots, groups, members and measure maps (`mﬀ`,
 `mb`, `ma` come out `ma`, `mb`, `mﬀ`) sorted while
 `graphical.order` keeps its order; the input is unchanged; a value without a
-`timelines` array is copied as it is; a member that is no string and two
+`timelines` array is copied as it is; a member that is not a string and two
 regions without `start` are refused (`cannot put … in canonical order`).
 
 ## The standard writer
@@ -527,8 +541,8 @@ the band selectors of section 2.3, `{"element": "band"}`, `{"element":
 `conversion_maps`, `children`, `regions` and `flow_control`, `{"ids":
 ["score/regions_1"]}` and `{"inside": "band"}`, each setting `display:
 none`, while the class `band` is refused at the selector's `class`. The
-schema shapes each entry of an order, an id or an id followed by `/` and a
-band's id: `score/foo`, `score/regions_0` and, after two valid entries,
+schema shapes each entry of an order, an ID or an ID followed by `/` and a
+band's ID: `score/foo`, `score/regions_0` and, after two valid entries,
 `score/region_1` are refused at the entry, and a repeated entry
 (`score`, `score/markers_1`, `score`) at the order, before any identity
 rule is read; property

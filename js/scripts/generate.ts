@@ -66,8 +66,8 @@ function banner(source: string): string {
  * The root type is `TimeSkeleton`, and every definition joins under its own
  * name. Objects take only their declared properties
  * (`additionalProperties: false` for generation), so a misspelt key is a
- * compile error, while the free objects (`meta`, `metric_hierarchy`), which
- * declare `additionalProperties: true`, stay free. Every definition that
+ * compile error, while `Meta`, the one free object, which declares
+ * `additionalProperties: true`, stays free. Every definition that
  * states a default, or refers to one that does, joins a second time as its
  * complete form (`CompleteTimeSkeleton`, `CompleteTimeline`, …, see
  * `completeDefinitions`), and `LosslessTimeSkeleton` closes the file.
@@ -113,38 +113,6 @@ type Node = Record<string, unknown>;
 const STATED_DEFAULTS: Readonly<Record<string, readonly string[]>> = {
   Timeline: ["number_type"],
 };
-
-/** Whether a schema accepts nothing: `{"not": {}}`. */
-function forbids(member: unknown): boolean {
-  if (typeof member !== "object" || member === null) return false;
-  const { not } = member as Node;
-  return (
-    Object.keys(member).join() === "not" &&
-    typeof not === "object" &&
-    not !== null &&
-    Object.keys(not).length === 0
-  );
-}
-
-/**
- * The keys an `if`/`then`/`else` arm of a node forbids (`{"not": {}}`), at any depth
- * of arms: their default applies only where the element may carry the key,
- * as a flow-control element's repeat count on a repeat_end only, so the
- * complete form keeps them optional.
- */
-function forbiddenInArms(node: Node): Set<string> {
-  const found = new Set<string>();
-  const visit = (arm: unknown): void => {
-    if (typeof arm !== "object" || arm === null) return;
-    const { properties } = arm as Node;
-    for (const [key, member] of Object.entries((properties ?? {}) as Node)) {
-      if (forbids(member)) found.add(key);
-    }
-    for (const keyword of ["if", "then", "else"]) visit((arm as Node)[keyword]);
-  };
-  for (const keyword of ["then", "else"]) visit(node[keyword]);
-  return found;
-}
 
 const COMPLETE = "Complete";
 const REFERENCE = "#/$defs/";
@@ -198,9 +166,11 @@ const NUMBER_TYPES: Readonly<Record<string, string>> = {
  * name's `Name`, a `meta`'s `Meta`), or a default `STATED_DEFAULTS` names,
  * or when it refers to a
  * definition that has one. In a complete form every property with a
- * default is required, at every depth, except one an `if`/`then`/`else` arm
- * forbids (`forbiddenInArms`); a property whose default is "absent" (it states none, as a manifest's `id` and `graphical` and a
- * root's `offset`) stays optional. Numbers are typed as `parseJson` reads
+ * default is required, at every depth; a default stated only in an
+ * `if`/`then`/`else` arm (a flow-control element's repeat count, on a
+ * repeat_end only) leaves its property optional, as the generation view
+ * drops the arms; a property whose default is "absent" (it states none, as
+ * a manifest's `id` and `graphical` and a root's `offset`) stays optional. Numbers are typed as `parseJson` reads
  * them: a number leaf is a `JsonNumber`, a reference to a definition without
  * a complete form is that definition's `Lossless` type (the definition
  * itself where it holds no number), and a reference to one with a complete
@@ -272,9 +242,8 @@ function completeDefinitions(definitions: Record<string, Node>): Record<string, 
     }
     const { properties } = value as Node;
     if (typeof properties === "object" && properties !== null) {
-      const conditional = forbiddenInArms(value as Node);
       const withDefault = Object.entries(properties as Record<string, Node>)
-        .filter(([key, member]) => defaulted(member) && !conditional.has(key))
+        .filter(([, member]) => defaulted(member))
         .map(([key]) => key);
       const stated = definition === null ? [] : (STATED_DEFAULTS[definition] ?? []);
       const required = (node.required as string[] | undefined) ?? [];

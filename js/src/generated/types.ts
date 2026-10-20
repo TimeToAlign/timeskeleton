@@ -146,16 +146,24 @@ export type ConstantMap = MapBase & {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "FloatingMeasureMap".
  */
-export type FloatingMeasureMap = MapBase & {
+export type FloatingMeasureMap = MeasureView & {
   type: "FloatingMeasureMap";
-  /**
-   * Quarters, the unit of every measure-map position.
-   */
-  source_unit?: "quarters";
   /**
    * Floating measures.
    */
   target_unit?: "floating_measures";
+};
+/**
+ * What every measure view carries beside the map base: its source unit, quarters, and the ID of the measure map it reads. Each view adds its type, its target unit and its function.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "MeasureView".
+ */
+export type MeasureView = MapBase & {
+  /**
+   * Quarters, the unit of every measure-map position.
+   */
+  source_unit?: "quarters";
   /**
    * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
    */
@@ -179,46 +187,30 @@ export type LinearMap = MapBase & {
   offset?: Number;
 };
 /**
- * Maps a position x in quarters to the pair of the measure number and the beat: the `number` of the row of the measure map that holds x (`MeasureMap`), and 1 plus the distance in quarters from that row's qstamp to x. Beats are 1-indexed and counted in quarters: beat 1 is the row's start, and a position halfway through its second quarter is beat 5/2.
+ * Maps a position x in quarters to the pair of the measure number and the beat: the `number` of the row of the measure map that holds x (`MeasureMap`), or the row's `count` where the row states no number, and 1 plus the distance in quarters from that row's qstamp to x. Beats are 1-indexed and counted in quarters: beat 1 is the row's start, and a position halfway through its second quarter is beat 5/2.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "MeasureBeatMap".
  */
-export type MeasureBeatMap = MapBase & {
+export type MeasureBeatMap = MeasureView & {
   type: "MeasureBeatMap";
   /**
-   * Quarters, the unit of every measure-map position.
-   */
-  source_unit?: "quarters";
-  /**
-   * Null: the output is no position on a time axis.
+   * Null: the output is not a position on a time axis.
    */
   target_unit?: null;
-  /**
-   * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
-   */
-  measure_map: Id;
 };
 /**
- * Maps a position x in quarters to the number of the measure holding it: the `number` of the row of the measure map that holds x (`MeasureMap`).
+ * Maps a position x in quarters to the number of the measure holding it: the `number` of the row of the measure map that holds x (`MeasureMap`), or the row's `count` where the row states no number.
  *
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "MeasureNumberMap".
  */
-export type MeasureNumberMap = MapBase & {
+export type MeasureNumberMap = MeasureView & {
   type: "MeasureNumberMap";
   /**
-   * Quarters, the unit of every measure-map position.
-   */
-  source_unit?: "quarters";
-  /**
-   * Null: the output is no position on a time axis.
+   * Null: the output is not a position on a time axis.
    */
   target_unit?: null;
-  /**
-   * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
-   */
-  measure_map: Id;
 };
 /**
  * Maps a position x in quarters to the record of the measure holding it: the row of the measure map that holds x (`MeasureMap`), with every member its decompressed form carries.
@@ -226,20 +218,12 @@ export type MeasureNumberMap = MapBase & {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "MeasureRecordMap".
  */
-export type MeasureRecordMap = MapBase & {
+export type MeasureRecordMap = MeasureView & {
   type: "MeasureRecordMap";
   /**
-   * Quarters, the unit of every measure-map position.
-   */
-  source_unit?: "quarters";
-  /**
-   * Null: the output is no position on a time axis.
+   * Null: the output is not a position on a time axis.
    */
   target_unit?: null;
-  /**
-   * The ID of the measure map the view reads, an entry of the manifest's `measure_maps`; checked after the schema.
-   */
-  measure_map: Id;
 };
 /**
  * Maps x by the map of the interval holding it: maps[i] reads every x in [breaks[i], breaks[i+1]), and a position outside [breaks[0], the last break) is undefined. There is one map fewer than breaks, and the breaks increase strictly; both are checked after the schema.
@@ -491,10 +475,18 @@ export type CompleteConstantMap = CompleteMapBase & {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteFloatingMeasureMap".
  */
-export type CompleteFloatingMeasureMap = CompleteMapBase & {
+export type CompleteFloatingMeasureMap = CompleteMeasureView & {
   type: "FloatingMeasureMap";
-  source_unit?: "quarters";
   target_unit?: "floating_measures";
+};
+/**
+ * `MeasureView` in the complete form: every key with a default present, every number as `parseJson` reads it.
+ *
+ * This interface was referenced by `TimeSkeleton`'s JSON-Schema
+ * via the `definition` "CompleteMeasureView".
+ */
+export type CompleteMeasureView = CompleteMapBase & {
+  source_unit?: "quarters";
   measure_map: Id;
 };
 /**
@@ -514,11 +506,9 @@ export type CompleteLinearMap = CompleteMapBase & {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteMeasureBeatMap".
  */
-export type CompleteMeasureBeatMap = CompleteMapBase & {
+export type CompleteMeasureBeatMap = CompleteMeasureView & {
   type: "MeasureBeatMap";
-  source_unit?: "quarters";
   target_unit?: null;
-  measure_map: Id;
 };
 /**
  * `MeasureNumberMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -526,11 +516,9 @@ export type CompleteMeasureBeatMap = CompleteMapBase & {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteMeasureNumberMap".
  */
-export type CompleteMeasureNumberMap = CompleteMapBase & {
+export type CompleteMeasureNumberMap = CompleteMeasureView & {
   type: "MeasureNumberMap";
-  source_unit?: "quarters";
   target_unit?: null;
-  measure_map: Id;
 };
 /**
  * `MeasureRecordMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -538,11 +526,9 @@ export type CompleteMeasureNumberMap = CompleteMapBase & {
  * This interface was referenced by `TimeSkeleton`'s JSON-Schema
  * via the `definition` "CompleteMeasureRecordMap".
  */
-export type CompleteMeasureRecordMap = CompleteMapBase & {
+export type CompleteMeasureRecordMap = CompleteMeasureView & {
   type: "MeasureRecordMap";
-  source_unit?: "quarters";
   target_unit?: null;
-  measure_map: Id;
 };
 /**
  * `PiecewiseMap` in the complete form: every key with a default present, every number as `parseJson` reads it.
@@ -663,7 +649,7 @@ export type CompleteGraphical = {
 };
 
 /**
- * A TimeSkeleton manifest: one or more root timelines with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region or flow-control element) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.
+ * A TimeSkeleton manifest: an array of root timelines, possibly empty, with all their descendants (child timelines) and the measure maps their conversion maps read, optionally named, optionally attributing timelines to groups, and optionally styled. A single timeline is represented as a manifest of a single root; a TimelineGroup is represented as a manifest with a single group. A manifest with an ID or a name constitutes a named AlignmentBundle, one with neither is anonymous. Timeline IDs (of roots and descendants), group IDs, measure-map IDs and the manifest ID are unique together; every other ID (of a conversion map, region or flow-control element) is unique within its root's tree. A timeline, a group, a measure map or the manifest is addressed by its bare ID and every other element by `<root ID>/<element ID>`; an element's parts follow its address as `/start`, `/end`, `/name`, `/label` and `/card`, so none of these five words may be an ID. The manifest's title is addressed `name`. Object keys carry no order and are written sorted by code point. The roots, the groups and the measure maps are written sorted by ID and each group's members by code point; readers accept any order.
  */
 export interface TimeSkeleton {
   /**
@@ -849,7 +835,7 @@ export interface FlowControlElement {
    */
   target?: Id;
   /**
-   * How many passes a repeat_end sends back to its target; carried by a repeat_end only.
+   * How many passes a repeat_end sends back to its target, 1 by default; carried by a repeat_end only.
    */
   repeat_count?: number;
   name?: Name;

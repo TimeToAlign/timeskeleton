@@ -40,16 +40,18 @@ refactor that keeps the accepted language stays green: the bundled `schema`
 is the file; references are local and resolve; the public definitions exist
 and the former ones do not; `ConversionMap` chooses between exactly the ten
 map types, `Selector.class` names the six timeline classes, the ten types and
-the five band kinds, and each measure view fixes its two units; the unit
+the five band kinds, and each measure view fixes its target unit over
+`MeasureView`, which fixes the source unit; the unit
 table's consts are exactly the keys of
 `UNIT_NUMBER_TYPES` in order, each description naming that unit's default
 number type, as in the Python suite; `Name`, `Meta` and `MapBase` are the
 shared definitions every `name`, every `meta` and every conversion map
-refers to (a measure view narrowing the base's units to constants), the
+refers to (a measure view through `MeasureView`, whose `allOf` is
+`MapBase`, as in the Python suite), the
 references are `Id`s and `Selector.ids` holds `Address`es
 accepting and refusing the Python suite's strings; no node is closed, none
 carries `unevaluatedProperties` and no key begins with `x-`; every object
-declares, itself or in its `allOf` base, what its branches declare; every
+declares, itself or in its `allOf` bases at any depth, what its branches declare; every
 discriminated union tags each branch with a distinct required constant; the
 `default`s, read through references and bases, are exactly `DEFAULTS`. `generated.test.ts`: a fresh generator run exports the committed
 names, which are every definition, the complete form of exactly the
@@ -58,8 +60,11 @@ text is `check:drift`'s oracle. Statements marked `@ts-expect-error` (a
 misspelt key, a missing `length` or child `offset`, a complete form missing
 a defaulted key, a three-member Fraction) make a looser generation break
 the typecheck gate. A complete flow-control element without `repeat_count`
-compiles: a key an `if`/`then`/`else` arm forbids (`{"not": {}}`) has a
-default only where it is allowed, so the complete form keeps it optional.
+compiles: the schema states the repeat count's default in the `then` arm
+for a `repeat_end`, not on the shared property, and the generator removes
+the arms, so the complete form keeps it optional. A complete
+`MeasureRecordMap` carries `id`, `name`, `source_unit`, `target_unit` and
+`measure_map`, the members of both its bases.
 
 ## The validator
 

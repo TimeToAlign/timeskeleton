@@ -3,6 +3,7 @@ import { complete, minimal } from "../src/defaults.js";
 import { canonicalManifest, completeManifest, minimalManifest } from "../src/forms.js";
 import type {
   CompleteFlowControlElement,
+  CompleteMeasureRecordMap,
   CompleteTimeline,
   CompleteTimeSkeleton,
   Fraction,
@@ -359,6 +360,18 @@ describe("the typed forms", () => {
     };
     // A repeat count is no key of every element, so the complete form keeps it optional.
     const marker: CompleteFlowControlElement = { ...uncounted, label: null };
+    // A measure view carries the members of both its bases.
+    const view: CompleteMeasureRecordMap = {
+      type: "MeasureRecordMap",
+      id: "bars",
+      name: null,
+      source_unit: "quarters",
+      target_unit: null,
+      measure_map: "measures",
+    };
+    const { name: _name, ...nameless } = view;
+    // @ts-expect-error a complete measure view states its name
+    const unnamed: CompleteMeasureRecordMap = nameless;
     // A key whose default is absent stays optional: the manifest's id and
     // graphical block, a root's offset.
     const named: CompleteTimeSkeleton = {
@@ -379,13 +392,15 @@ describe("the typed forms", () => {
       groupless,
       uncounted,
       marker,
+      view,
+      unnamed,
       named,
       placed,
       exact,
       pair,
       triple,
       lossless,
-    ]).toHaveLength(10);
+    ]).toHaveLength(12);
   });
 
   it("complete, strip and order the literal complete form", () => {

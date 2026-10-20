@@ -105,6 +105,26 @@ def test_side_is_no_property() -> None:
     ]
 
 
+def test_a_measure_view_declares_the_keys_of_both_its_bases() -> None:
+    view = {
+        "type": "MeasureNumberMap",
+        "id": "bars",
+        "name": "bars",
+        "source_unit": "quarters",
+        "target_unit": None,
+        "measure_map": "measures",
+        "colour": "red",
+    }
+    rows = [{"count": 1, "qstamp": [0, 1], "actual_length": [4, 1]}]
+    value = manifest(
+        timeline("score", conversion_maps=[view]),
+        measure_maps=[{"id": "measures", "rows": rows}],
+    )
+    assert unknown_keys(value) == [
+        {"path": ["timelines", 0, "conversion_maps", 0], "key": "colour"}
+    ]
+
+
 def test_unknown_keys_are_sorted() -> None:
     roots = [timeline(f"t{index}") for index in range(11)]
     roots[2]["zz"] = 1

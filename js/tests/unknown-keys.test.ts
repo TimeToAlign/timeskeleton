@@ -96,6 +96,25 @@ describe("unknown keys", () => {
     ]);
   });
 
+  it("counts the keys of both bases of a measure view as declared", () => {
+    const view = {
+      type: "MeasureNumberMap",
+      id: "bars",
+      name: "bars",
+      source_unit: "quarters",
+      target_unit: null,
+      measure_map: "measures",
+      colour: "red",
+    };
+    const rows = [{ count: 1, qstamp: [0, 1], actual_length: [4, 1] }];
+    const value = manifest([timeline("score", "quarters", [8, 1], { conversion_maps: [view] })], {
+      measure_maps: [{ id: "measures", rows }],
+    });
+    expect(unknownKeys(value)).toEqual([
+      { path: ["timelines", 0, "conversion_maps", 0], key: "colour" },
+    ]);
+  });
+
   it("sorts keys by code point and indices by number", () => {
     const roots = Array.from({ length: 11 }, (_, index) => timeline(`t${index}`));
     (roots[2] as JsonObject).zz = 1;
