@@ -89,6 +89,7 @@ REJECTIONS = [
     "members_contain_member",
     "members_inside_member",
     "nan_offset",
+    "nested_map_id_duplicate",
     "nested_map_id_reserved",
     "order_missing_member",
     "order_not_array",

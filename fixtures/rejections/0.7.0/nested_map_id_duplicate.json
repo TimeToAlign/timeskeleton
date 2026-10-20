@@ -1,0 +1,73 @@
+{
+  "code": "duplicate_id",
+  "manifest": {
+    "groups": [],
+    "measure_maps": [],
+    "meta": {},
+    "name": null,
+    "timelines": [
+      {
+        "children": [],
+        "conversion_maps": [
+          {
+            "id": "cmap_1",
+            "maps": [
+              {
+                "id": "lmap_1",
+                "name": null,
+                "offset": 0,
+                "scalar": [
+                  1,
+                  2
+                ],
+                "source_unit": "quarters",
+                "target_unit": "seconds",
+                "type": "LinearMap"
+              },
+              {
+                "id": "lmap_1",
+                "name": null,
+                "offset": 0,
+                "scalar": [
+                  1,
+                  60
+                ],
+                "source_unit": "seconds",
+                "target_unit": "minutes",
+                "type": "LinearMap"
+              }
+            ],
+            "name": null,
+            "source_unit": "quarters",
+            "target_unit": "minutes",
+            "type": "ChainMap"
+          }
+        ],
+        "flow_control": [],
+        "id": "score",
+        "is_segment_line": false,
+        "length": [
+          8,
+          1
+        ],
+        "locked": false,
+        "meta": {},
+        "name": null,
+        "number_type": "fraction",
+        "regions": [],
+        "unit": "quarters"
+      }
+    ],
+    "timeskeleton": "0.7.0"
+  },
+  "path": [
+    "timelines",
+    0,
+    "conversion_maps",
+    0,
+    "maps",
+    1,
+    "id"
+  ],
+  "reason": "IDs are unique within a root's tree, the maps a ChainMap, PiecewiseMap or CombinationMap holds included; a ChainMap holds two maps lmap_1, and the second is reported."
+}

@@ -70,6 +70,49 @@ def test_scopes_are_per_root() -> None:
     validate(manifest(score, take))
 
 
+def test_a_nested_map_id_shares_its_root_s_scope() -> None:
+    def linear(identifier: str) -> dict:
+        return {
+            "type": "LinearMap",
+            "id": identifier,
+            "source_unit": None,
+            "target_unit": None,
+        }
+
+    units = {"source_unit": None, "target_unit": None}
+    chain = {"type": "ChainMap", "id": "c", "maps": [linear("l"), linear("l")]} | units
+    piecewise = {
+        "type": "PiecewiseMap",
+        "id": "p",
+        "breaks": [[0, 1], [4, 1]],
+        "maps": [linear("l")],
+    } | units
+    combination = {
+        "type": "CombinationMap",
+        "id": "cmap_1",
+        "maps": {"output": linear("cmap_1")},
+    } | units
+    region = {"id": "l", "start": [0, 1], "end": [1, 1]}
+    held = ("timelines", 0, "conversion_maps", 0, "maps")
+    assert _only(manifest(timeline("s", conversion_maps=[chain]))) == (
+        (*held, 1, "id"),
+        "duplicate id 'l', first at #/timelines/0/conversion_maps/0/maps/0/id",
+    )
+    assert _only(
+        manifest(timeline("s", conversion_maps=[piecewise], regions=[region]))
+    ) == ((*held, 0, "id"), "duplicate id 'l', first at #/timelines/0/regions/0/id")
+    assert _only(manifest(timeline("s", conversion_maps=[combination]))) == (
+        (*held, "output", "id"),
+        "duplicate id 'cmap_1', first at #/timelines/0/conversion_maps/0/id",
+    )
+    validate(
+        manifest(
+            timeline("a", conversion_maps=[piecewise]),
+            timeline("b", conversion_maps=[piecewise]),
+        )
+    )
+
+
 def test_targets_stay_within_their_timeline() -> None:
     def jump(
         identifier: str, target: str | None, manifestation: str = "dal_segno"

@@ -103,10 +103,12 @@ function* rootProblems(
   measureMaps: ReadonlySet<string>,
 ): Generator<SchemaValidationError> {
   const first = new Map<string, PathSegment[]>();
-  for (const [id, at] of elementIds(root, path)) {
-    const earlier = first.get(id);
-    if (earlier === undefined) first.set(id, at);
-    else yield duplicate(id, at, earlier);
+  for (const ids of [elementIds(root, path), nestedMapIds(root, path)]) {
+    for (const [id, at] of ids) {
+      const earlier = first.get(id);
+      if (earlier === undefined) first.set(id, at);
+      else yield duplicate(id, at, earlier);
+    }
   }
   yield* danglingTargets(root, path, measureMaps);
   yield* timelineMapProblems(root, path);

@@ -108,7 +108,7 @@ schema addition cannot escape the canonical spelling.
 
 ## Shared rejection cases
 
-Each of the 104 cases (`validate.test.ts`), read by `parseJson`, is written
+Each of the 105 cases (`validate.test.ts`), read by `parseJson`, is written
 as the standard writer writes it and raises `SchemaValidationError` with its
 stored path and code through `validate` on the parsed value, through
 `validate` on the value as `JSON.parse` reads it, and through `parse` of its

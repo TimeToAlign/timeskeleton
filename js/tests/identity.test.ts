@@ -261,6 +261,55 @@ describe("identity", () => {
     ]);
   });
 
+  it("scopes a nested map id with its root", () => {
+    const units = { source_unit: null, target_unit: null };
+    const linear = (id: string): JsonObject => ({ type: "LinearMap", id, ...units });
+    const chain = { type: "ChainMap", id: "c", maps: [linear("l"), linear("l")], ...units };
+    const piecewise = {
+      type: "PiecewiseMap",
+      id: "p",
+      breaks: [
+        [0, 1],
+        [4, 1],
+      ],
+      maps: [linear("l")],
+      ...units,
+    };
+    const combination = {
+      type: "CombinationMap",
+      id: "cmap_1",
+      maps: { output: linear("cmap_1") },
+      ...units,
+    };
+    const region = { id: "l", start: [0, 1], end: [1, 1] };
+    const held = ["timelines", 0, "conversion_maps", 0, "maps"];
+    expect(
+      only(manifest([timeline("s", "quarters", [8, 1], { conversion_maps: [chain] })])),
+    ).toEqual([
+      [...held, 1, "id"],
+      'duplicate id "l", first at #/timelines/0/conversion_maps/0/maps/0/id',
+    ]);
+    expect(
+      only(
+        manifest([
+          timeline("s", "quarters", [8, 1], { conversion_maps: [piecewise], regions: [region] }),
+        ]),
+      ),
+    ).toEqual([[...held, 0, "id"], 'duplicate id "l", first at #/timelines/0/regions/0/id']);
+    expect(
+      only(manifest([timeline("s", "quarters", [8, 1], { conversion_maps: [combination] })])),
+    ).toEqual([
+      [...held, "output", "id"],
+      'duplicate id "cmap_1", first at #/timelines/0/conversion_maps/0/id',
+    ]);
+    validate(
+      manifest([
+        timeline("a", "quarters", [8, 1], { conversion_maps: [piecewise] }),
+        timeline("b", "quarters", [8, 1], { conversion_maps: [piecewise] }),
+      ]),
+    );
+  });
+
   it("scopes ids per root", () => {
     validate(
       manifest([

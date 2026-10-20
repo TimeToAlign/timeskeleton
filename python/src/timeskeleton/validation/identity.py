@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterator, Mapping
+from itertools import chain
 from typing import Any
 
 from .containment import timeline_containment_problems
@@ -89,7 +90,7 @@ def _root_problems(
     root: Mapping[str, Any], path: _Path, measure_maps: set[str]
 ) -> Iterator[SchemaValidationError]:
     first: dict[str, _Path] = {}
-    for identifier, at in _element_ids(root, path):
+    for identifier, at in chain(_element_ids(root, path), _nested_map_ids(root, path)):
         if identifier in first:
             yield _duplicate(identifier, at, first[identifier])
         else:

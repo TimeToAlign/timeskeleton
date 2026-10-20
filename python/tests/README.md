@@ -321,7 +321,7 @@ stops at the first. Python quotes ids as `repr` does.
 | `finite_number` | every number finite | the leaf | `length of 'take' is not a finite number`, or `#/graphical/styles/s/opacity is not a finite number` with no id above it |
 | `schema` | the schema document | the path rule below | the schema library's |
 | `representation` | own-axis values in the axis's number type | the value | `length 32 of 'score' is an int on a fraction axis: write [32, 1]` |
-| `duplicate_id` | ids unique within a root's tree | the later id | `duplicate id 'm', first at #/…` |
+| `duplicate_id` | ids unique within a root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds included after the tree's other ids | the later id | `duplicate id 'm', first at #/…` |
 | `dangling_target` | a jump origin's `target` names a jump target of its timeline; then, map by map, a measure view's `measure_map` names an entry of `measure_maps` | the target, the `measure_map` | `'there' names no jump_to of this timeline`, `'ghost' names no measure map of this manifest` |
 | `conversion_map` | a `TableMap`'s x and y values of equal length, its x values strictly increasing; a `PiecewiseMap`'s maps one fewer than its breaks, its breaks strictly increasing | the `y_values`, the value, the `maps`, the break | `TableMap 'tempo' has 3 x values and 2 y values`, `x value [0, 1] of TableMap 'tempo' does not exceed the one before it`, `PiecewiseMap 'sections' has 1 map for 3 breaks; it needs 2 maps`, `break [4, 1] of PiecewiseMap 'sections' does not exceed the one before it` |
 | `child_unit` | a child has its parent's unit | its `unit` | `child 'take' has unit 'seconds', its parent 'score' has 'quarters'` |
@@ -346,7 +346,7 @@ id comes first); `identity_problems` reads it as the group's.
 ## What proves the rules
 
 **The shared rejection cases are the oracle the two packages share.** Each of
-the 104 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
+the 105 cases of `fixtures/rejections/0.7.0/` breaks one rule and stores the
 path and the code (`test_validate.py`); `validate` raises
 `SchemaValidationError` with exactly both, and the codes of the cases are
 exactly the seventeen of the table, so every code is reached by a case both
@@ -371,7 +371,12 @@ documents that bound each rule from the other side:
 
 - **Scopes.** A jump target `m` in two roots, and a region `perf` beside a child
   timeline `perf` of another root, are no problem; a timeline id repeated
-  inside one root is reported once.
+  inside one root is reported once. Nested map ids share their root's
+  scope: two maps `l` held by one `ChainMap`, a map `l` held by a
+  `PiecewiseMap` beside a region `l`, and a map `cmap_1` held by the
+  `CombinationMap` `cmap_1` are each one `duplicate_id` at the nested
+  `id`, the tree's own ids counting first; the same nested id in two roots
+  is no problem.
 - **Reserved ids.** Every part word (`start`, `end`, `name`, `label`,
   `card`) and band id (the five kinds numbered 1, `regions_12`,
   `flow_control_907`) is refused as the id of a timeline, a map, a map held
