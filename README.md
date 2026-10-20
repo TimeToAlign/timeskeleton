@@ -298,8 +298,8 @@ member's 0 coincides with every other member's 0 and every member's end
 with every other member's end, and positions in between convert linearly.
 When only part of a timeline takes part, the member is a child of that
 timeline, placed at its exact offset; a member is never placed partially.
-A timeline is a member of at most one group, and no member of a group lies
-inside another member of the same group, since a timeline and its
+A timeline may be a member of several groups, and no member of a group
+lies inside another member of the same group, since a timeline and its
 descendant in one group would give two answers for one position; a child
 may belong to one group while its root belongs to another or to none. The
 roots that no group names, and that contain no member, are ungrouped. A
@@ -375,12 +375,16 @@ map or the manifest is addressed by its bare ID; a conversion map, region
 or flow-control element by the ID of the root whose tree holds it, `/`,
 and its own ID
 (`score/region_1`); the parts of an element follow its address: `…/start`,
-`…/end`, `…/name`, `…/label` and a timeline's card `…/card`. The five
+`…/end`, `…/name` and `…/label`. A card follows the timeline it holds:
+an ungrouped root's card is `T/card`, and a member's card `G/T/card`, one
+for each group `G` that has the timeline `T` as a member; every other
+element keeps one address however often it is drawn. The five
 **bands** every timeline has, root or child, follow the timeline's ID
 too, each by its kind and number: `…/markers_1`, `…/conversion_maps_1`,
 `…/children_1`, `…/regions_1` and `…/flow_control_1`, which hold its
 coordinate markers, conversion maps, children, regions and flow control in
-its drawing. The five part words are therefore reserved, and so is every ID
+its drawing. The words `start`, `end`, `name`, `label` and `card` are
+therefore reserved, and so is every ID
 that matches `^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`,
 whatever its number: no ID of a manifest may be one of them or match the
 pattern. The manifest's title, the top label of its drawing, is addressed
@@ -418,7 +422,7 @@ stable code:
 | A measure-map ID equals a timeline ID, a group ID or an earlier measure map's ID | `duplicate_id` | the measure map's `id` | `duplicate id '<id>', first at <pointer>` |
 | The manifest's ID equals a timeline ID, a group ID or a measure-map ID | `manifest_id` | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group, else the first such measure map |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
-| A member is already a member of an earlier group | `group_member` | the later member | `duplicate member '<id>', first at <pointer>` |
+| A member repeats an earlier member of its group | `group_member` | the later member | `duplicate member '<id>', first at <pointer>` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
 | A key of `graphical.order` names no group and no timeline | `order_key` | the key | `'<key>' names no group or timeline of this manifest` |
 | An entry of a display order is not a member of its group | `display_order` | the entry | `'<id>' is not a member of group '<group id>'` |
@@ -514,7 +518,8 @@ are defined by the
 
 Every manifest is drawn as one box, opened by its title: its `name`, or its
 `id` when it has no name; an anonymous bundle has none. Each group is a
-frame, and each member and each ungrouped root lies in its own card; a
+frame; each ungrouped root lies in a card of its own, and each member in
+one card in the frame of each group that has it as a member; a
 member that is a child timeline is drawn with the faded lines of its
 ancestors. The element types are `block`,
 `card`, `timeline`, `child`, `band` (one of a timeline's five bands, which

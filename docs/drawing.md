@@ -39,10 +39,12 @@ ungrouped roots as cards. Terms in `code` are JSON members.
   - `width` and `height`, the requested **box size** in canvas units, or
     `null` (the default) for the content's own size;
   - `places`, the **places** of the box's items and the sizes of its
-    members' cards (section 8.6): an object whose keys are the IDs of
-    groups, of ungrouped roots and of members, each value an object with
-    any of the members `x`, `y`, `length`, `scale`, `spacing`, `width` and
-    `height` (default `{}`).
+    members' cards (section 8.6): an object keyed by the ID of a group
+    (its frame), by the ID of an ungrouped root (its card), and by
+    `G/T`, a group's ID, `/` and a member's ID, for the card of member `T`
+    in the frame of group `G`, one key for each group that has `T` as a
+    member; each value an object with any of the members `x`, `y`,
+    `length`, `scale`, `spacing`, `width` and `height` (default `{}`).
 - `layers`: the statement lists that style the drawing, from the lowest to
   the highest precedence: the defaults of section 4, then any lists an
   application supplies below the manifest (such as an editor's settings),
@@ -87,10 +89,12 @@ changing entries of `places` only (section 8.6). An item, a group's frame
 or an ungrouped root's card: Scale changes its `scale`, Box its `width`
 and `height`, Stretch its `length` (horizontal), its `spacing` (vertical)
 or both (a corner), its `width` and `height` following the stretched
-content as the box's do. A member's card: Scale and the horizontal Stretch
-change its group's `scale` and `length`, since the members of a group
-share them; the vertical Stretch changes the card's own `spacing`; Box
-changes the card's own `width` and `height`. An item's or card's content,
+content as the box's do. The card of a member `T` in the frame of a group
+`G`: Scale and the horizontal Stretch change `G`'s `scale` and `length`, since
+the members of a group share them; the vertical Stretch changes the card's
+own `spacing`, and Box its own `width` and `height`, the entry of `places`
+under `G/T`, so the cards of the same member in other groups' frames keep
+theirs. An item's or card's content,
 for this rule, is its frame or card without its own request (for a
 member's card, without its frame's request too, since the frame's width
 widens its cards), in item coordinates: for `width` its right edge less its left (section 8.2), for
@@ -143,8 +147,8 @@ of a timeline, which draws nothing of its own:
 | Type | What it is |
 |---|---|
 | `block` | the box's background |
-| `card` | the raised container of a timeline drawn in its own card: a group member or an ungrouped root (section 8) |
-| `timeline` | the line of a timeline drawn in its own card (section 8) |
+| `card` | the raised container of a member drawing: one in the frame of each group that has the timeline as a member, or one for an ungrouped root (section 8) |
+| `timeline` | the line of a timeline drawn in a card (section 8) |
 | `child` | a child timeline's line, at any depth |
 | `band` | one of the five bands of a timeline, holding its markers, conversion maps, children, regions or flow control (below; section 6.4) |
 | `boundary` | the start of a segment on its segment line, drawn as a thin vertical rule (section 6.4) |
@@ -233,12 +237,17 @@ manifest, one timeline or many:
   flow-control element) is addressed by the ID of the root of `timelines`
   whose tree holds it, `/`, and its own ID;
 - a part of an element is addressed by that element's address, `/`, and
-  the part's word: `start`, `end`, `name`, `label` or `card`;
+  the part's word: `start`, `end`, `name` or `label`;
+- a card is addressed by the ID of the ungrouped root it holds and
+  `/card`, and a member's card by the ID of the group in whose frame it
+  lies, `/`, the member's ID and `/card`: one card, and one address, for
+  each group that has the timeline as a member (section 8.1);
 - a band of a timeline, root or child, is addressed by the timeline's ID,
   `/`, and the band's ID: its kind (section 2.1), `_` and its number.
   Every timeline has five bands, one of each kind, each numbered 1.
 
-The five part words are reserved, and so is every ID that matches
+The words `start`, `end`, `name`, `label` and `card` are reserved, and so
+is every ID that matches
 `^(markers|conversion_maps|children|regions|flow_control)_[1-9][0-9]*$`,
 whatever its number: no ID of a manifest may be one of them or match the
 pattern, so an address is read without ambiguity.
@@ -257,7 +266,8 @@ an element's address:
 | the root's wedges at its start and end, the root's ID being `T` | `T/start`, `T/end` | `T` |
 | the name of an element with address `C` | `C/name` | that element's timeline |
 | the label of an element with address `C` | `C/label` | that element's timeline |
-| the card of a timeline with ID `T` | `T/card` | `T` |
+| the card of an ungrouped root with ID `T` | `T/card` | `T` |
+| the card of a member with ID `T` in the frame of a group with ID `G` | `G/T/card` | `T` |
 | the boundary of a segment with ID `S` | `S/start` | `S` |
 | the label of a segment with ID `S` | `S/label` | `S` |
 | the ancestor line of a timeline with ID `A` | `A` | `A` |
@@ -271,8 +281,10 @@ So a region `region_1` of a timeline in the tree of root `score` is
 holds `score` alone or many roots, and also when a member below `score` is
 drawn as the root of its own member drawing; a jump origin `jump_1` of the
 root `score` itself is `score/jump_1`, its label `score/jump_1/label`. A band
-follows its timeline's own address, as a card does: the regions band of a
-child `b` of `score` is `b/regions_1`. The
+follows its timeline's own address: the regions band of a child `b` of
+`score` is `b/regions_1`. A timeline `perf` that the groups `g1` and `g2`
+both have as a member lies in the cards `g1/perf/card` and `g2/perf/card`,
+and an ungrouped root `score` in `score/card`. The
 manifest's title is addressed `name` whether or not the manifest has an
 `id`, so naming a manifest, or giving it an ID, changes no address. The
 manifest's own ID addresses the manifest, which draws no element of its
@@ -280,10 +292,16 @@ own: the block has no address. A jump target is addressed like a region
 but draws nothing. A measure map belongs to no timeline and is not drawn;
 its bare ID addresses it.
 
-One timeline may be drawn more than once, as an ancestor line of several
-members or also as a member, and a member's start and end are marked on its
-own line and on each of its ancestor lines (section 8.3); every drawing of
-an element carries its address.
+One timeline may be drawn more than once: as a member in the frame of each
+group that has it as a member, as an ancestor line of several members, or
+as both; and a member's start and end are marked on its own line and on
+each of its ancestor lines (section 8.3). An element drawn more than once,
+such a timeline with its descendants, bands, maps, regions and flow-control
+elements, an ancestor line with its marks, and the parts of each, keeps
+one address, which every drawing of it carries; only a card's address
+names its group. So a statement selecting that address styles every
+drawing of it (section 2.5), and an application that selects or marks an
+element by its address marks every drawing of it.
 
 ### 2.3 Selectors
 
@@ -1380,7 +1398,9 @@ group's frame, and every other manifest alike. The box opens with the
 manifest's title (section 5.3), which an anonymous bundle, with neither a
 `name` nor an `id`, does not have.
 Every timeline drawn as a root (a member or an ungrouped root) is drawn as
-sections 3 to 6 draw a root, in its own **card**. The box's **items** are
+sections 3 to 6 draw a root, in a **card**: an ungrouped root in one card
+of its own, a member in one card in the frame of each group that has it as
+a member. The box's **items** are
 its frames and its ungrouped roots' cards; each lies at its own place
 (section 8.6) and has its own graphical length `L`. The member drawings of
 one item share its `L` and one start `x0`, so that the members of a group
@@ -1402,10 +1422,16 @@ root of unknown length is drawn with its reach at the shared end (section
   under the other, in the group's display order: the entry of
   `graphical.order` under the group's ID, or `members` when `order` has no
   entry for it. An ungrouped root has no frame.
-- **Cards.** Each member and each ungrouped root `M` lies in a **card**, a
-  `card` element with the address `M/card`: a raised rounded rectangle
-  around `M`'s member drawing (in the tree below, a card holds nothing). The card is the same whether it lies on the
-  grey box or in a frame.
+- **Cards.** A **card** is a `card` element, a raised rounded rectangle
+  around one member drawing of a timeline `M` (in the tree below, a card
+  holds nothing). An ungrouped root `M` lies in one card, `M/card`; a
+  member `M` lies in one card in the frame of each group `G` that has it as
+  a member, `G/M/card` (section 2.2). A timeline that several groups have
+  as a member is so drawn once in each of their frames, each drawing laid
+  out with its own frame's length and scale and its own card's spacing
+  and size (section 8.6), and its elements carry the same addresses in
+  every one. The card is the same whether it lies on the grey box or in a
+  frame.
 - **Member drawings.** A **member drawing** is the drawing of sections 3
   to 6 of one timeline `M` taken as the root: its line is a `timeline`
   element, its wedges mark its own `0` and `length` (its `0` alone when
@@ -1630,7 +1656,9 @@ origin in canvas units, its graphical length `length`, its **scale**
 `scale` (positive), its `spacing` (finite, ≥ 0), and its
 requested size `width` and `height` (positive, or left out for its
 content's own size). `places` (section 1) states any of
-these members for the item whose ID is its key; a key naming nothing drawn
+these members for the item whose ID is its key, and for a member's card
+under its key `G/M`; a key naming no item and no member's card, such as a
+member's bare ID or a `G/M` whose group `G` does not have `M` as a member,
 is not used, and so is any of a value's members that this section gives
 no use for (a member's card uses only `width`, `height` and `spacing`). A member that is not stated takes its default:
 
@@ -1663,8 +1691,9 @@ and member drawing keeping its top. `width` and `height` are in item
 coordinates, before the scale.
 
 The **card spacing** `S` of a member drawing (sections 6.2 to 6.5 and
-8.3) is its card's `spacing`: the entry of `places` under the member's
-ID, or under the ungrouped root's ID. A group's entry states its frame's
+8.3) is its card's `spacing`: the entry of `places` under `G/M` for a
+member `M` drawn in the frame of group `G` (section 1), or under the
+ungrouped root's ID. A group's entry states its frame's
 spacing `Sf`, the gap between its member cards (section 8.4); the
 placement's `spacing` is the gap between the box's items at their default
 `y`. Each container's spacing spaces only its own contents: no spacing
@@ -1673,9 +1702,10 @@ padding `P` and the card's padding `P` above and below do not change with
 any of them.
 
 A **member's card** may request a size and a spacing of its own:
-the entry of `places` under the member's ID states its `width` and
-`height`, in item coordinates, before its group's scale, and its
-`spacing`, and nothing else of it is used. The card is then the larger of its own width and `width` wide,
+the entry of `places` under `G/M`, for the card of member `M` in the frame
+of group `G`, states its `width` and `height`, in item coordinates, before
+`G`'s scale, and its `spacing`, and nothing else of it is used; the cards
+of `M` in other groups' frames take their own entries. The card is then the larger of its own width and `width` wide,
 spanning `Q` to `max(Ri + K, Q + width)`, and the larger of `Hm` and
 `height` high; its member drawing keeps its place at the card's top left,
 so the request adds a margin to its right and below. The frame holding it

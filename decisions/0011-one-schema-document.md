@@ -1,6 +1,6 @@
 # 0011. One manifest shape in one schema document
 
-Date: 2026-10-15
+Date: 2026-10-15, amended 2026-10-20
 
 Status: accepted; supersedes [0010](0010-one-schema-document-per-file-kind.md)
 
@@ -34,7 +34,7 @@ sibling it targets.
 - One document whose root is a `oneOf` of a bare timeline and a manifest of
   several (one document, two root forms).
 - One shape: every manifest is `{timeskeleton, timelines, id?, name?, meta?,
-  groups?, graphical?}`, in one document.
+  groups?, measure_maps?, graphical?}`, in one document.
 - One shape with references between manifests (`timelines` items that point
   into other files).
 
@@ -53,29 +53,34 @@ There is no file kind.
   string for editors and is never read.
 - **Public definitions.** `TimeSkeleton`, `Timeline`, `Group`, `Graphical`,
   `ConversionMap`, `Coordinate`, `Number`, `Fraction`, `TimeUnit`,
-  `NumberType`, `Id` and `MeasureMapRow` may be referred to by a host as
+  `NumberType`, `Id`, `MeasureMap` and `MeasureMapRow` may be referred to by a host as
   `#/$defs/<name>`; within 0.7.x they change only by addition. A host may
   embed a whole manifest, marker included, or a bare `Timeline` and record the
   version itself. The document uses no `$anchor`: json-schema-to-typescript
   cannot follow one.
-- **Open objects with recorded unknown keys.** No object is closed with
-  `additionalProperties: false`. Every object definition with `type: object`
-  and `properties` (never a `oneOf` branch or an `if`/`else` arm) carries
-  `unevaluatedProperties: {"x-unknown-key": true}`. Every standard validator
-  ignores the unknown keyword and accepts the key; our validators give the
-  keyword a meaning (Ajv `addKeyword`, jsonschema `validators.extend`) and
-  report each such key through `unknownKeys` / `unknown_keys` instead of
-  refusing it, so a misspelt optional key is visible rather than silently
-  taken for its default. The free objects (`meta`, `metric_hierarchy`) say
-  `additionalProperties: true`.
+- **Open objects, unknown keys found in code.** Every object is open by
+  omission: no object carries `additionalProperties: false` or
+  `unevaluatedProperties: false`, and the document carries no custom
+  keyword and no `x-` key, so every standard validator accepts an
+  undeclared key and the document hides no signal that only our validators
+  read. The root description states the policy. Our validators find
+  undeclared keys in code: each builds in memory a copy of the document
+  that closes every object definition with `type: object` and `properties`
+  (never a `oneOf`/`anyOf` branch or an `if`/`then`/`else` arm, nor a base
+  that an `allOf` shares) with `unevaluatedProperties: false`, walks the
+  manifest with it, and reports each key that copy refuses through
+  `unknownKeys` / `unknown_keys` as a warning, never as an error, so a
+  misspelt optional key is visible rather than silently taken for its
+  default. The one free object, `Meta`, says `additionalProperties: true`,
+  and its keys are never reported.
 - **Defaults.** Every key with a default declares it with `default`, and a
   reader supplies it; `complete` and `minimal` convert between the form that
   writes every such key and the form that leaves out those equal to their
   default.
 - **Types.** The TypeScript types are generated from the one document with
   the generator's `additionalProperties: false`, so a misspelt key is a
-  compile error while `meta` stays free; conditionals and the unknown-key
-  annotation are left out of the view the generator reads.
+  compile error while `meta` stays free; conditionals are left out of the
+  view the generator reads.
 
 The schema keeps only the current version; there are no migrations. Older
 versions live in the git history and in their released packages.
@@ -88,9 +93,9 @@ versions live in the git history and in their released packages.
   merging still change the shape and rewrite addresses.
 - **A two-form root (`oneOf`)**: a validator reports an unknown key or any
   other mistake as one opaque `oneOf` error over both forms (Ajv also
-  reports a misleading missing `timelines`), and the unknown-key annotation
-  cannot tell which form an object belongs to; both forms would be frozen at
-  1.0.
+  reports a misleading missing `timelines`), and the walk that finds unknown
+  keys cannot tell which form an object belongs to; both forms would be
+  frozen at 1.0.
 - **References between manifests now**: validation would become
   asynchronous, browsers cannot portably resolve a relative path, and the
   semantics of a reference would be frozen with the format. Ids are
