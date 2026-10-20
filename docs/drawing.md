@@ -279,8 +279,8 @@ an element's address:
 So a region `region_1` of a timeline in the tree of root `score` is
 `score/region_1` and its label `score/region_1/label`, whether the manifest
 holds `score` alone or many roots, and also when a member below `score` is
-drawn as the root of its own member drawing; a jump origin `jump_1` of the
-root `score` itself is `score/jump_1`, its label `score/jump_1/label`. A band
+drawn as the root of its own member drawing; a jump origin `jump_from_1` of the
+root `score` itself is `score/jump_from_1`, its label `score/jump_from_1/label`. A band
 follows its timeline's own address: the regions band of a child `b` of
 `score` is `b/regions_1`. A timeline `perf` that the groups `g1` and `g2`
 both have as a member lies in the cards `g1/perf/card` and `g2/perf/card`,

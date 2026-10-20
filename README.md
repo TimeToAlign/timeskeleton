@@ -422,7 +422,6 @@ stable code:
 | A measure-map ID equals a timeline ID, a group ID or an earlier measure map's ID | `duplicate_id` | the measure map's `id` | `duplicate id '<id>', first at <pointer>` |
 | The manifest's ID equals a timeline ID, a group ID or a measure-map ID | `manifest_id` | `id` | `duplicate id '<id>', first at <pointer>`, the pointer naming the timeline, else the first such group, else the first such measure map |
 | A member names no timeline of the manifest | `group_member` | the member | `'<id>' names no timeline of this manifest` |
-| A member repeats an earlier member of its group | `group_member` | the later member | `duplicate member '<id>', first at <pointer>` |
 | A member lies inside an earlier member of its group, or contains one | `group_member` | the later member | `member '<id>' lies inside member '<earlier id>' of the same group` (`… contains member …`) |
 | A key of `graphical.order` names no group and no timeline | `order_key` | the key | `'<key>' names no group or timeline of this manifest` |
 | An entry of a display order is not a member of its group | `display_order` | the entry | `'<id>' is not a member of group '<group id>'` |

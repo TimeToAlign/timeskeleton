@@ -351,7 +351,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (6a98518f)"
+    "generator": "timetoalign 1.2.0 (636fd9ce)"
   },
   "name": null,
   "timelines": [
@@ -425,7 +425,7 @@
             6,
             1
           ],
-          "id": "jump_1",
+          "id": "jump_from_1",
           "label": "MC 3 → MC 1",
           "manifestation": "repeat_end",
           "meta": {},
@@ -438,7 +438,7 @@
             6,
             1
           ],
-          "id": "marker_3",
+          "id": "jump_to_3",
           "label": null,
           "manifestation": "repeat_start",
           "meta": {},
@@ -450,13 +450,13 @@
             9,
             1
           ],
-          "id": "jump_2",
+          "id": "jump_from_2",
           "label": "MC 5 → MC 4",
           "manifestation": "repeat_end",
           "meta": {},
           "name": null,
           "repeat_count": 1,
-          "target": "marker_3",
+          "target": "jump_to_3",
           "type": "jump_from"
         },
         {
@@ -464,7 +464,7 @@
             12,
             1
           ],
-          "id": "break_1",
+          "id": "flow_marker_1",
           "label": "fine at MC 7",
           "manifestation": "fine",
           "meta": {},
@@ -476,7 +476,7 @@
             16,
             1
           ],
-          "id": "marker_1",
+          "id": "jump_to_1",
           "label": null,
           "manifestation": "segno",
           "meta": {},
@@ -488,13 +488,13 @@
             28,
             1
           ],
-          "id": "jump_3",
+          "id": "jump_from_3",
           "label": "MC 11 → MC 9",
           "manifestation": "repeat_end",
           "meta": {},
           "name": null,
           "repeat_count": 1,
-          "target": "marker_1",
+          "target": "jump_to_1",
           "type": "jump_from"
         },
         {
@@ -502,7 +502,7 @@
             30,
             1
           ],
-          "id": "marker_2",
+          "id": "jump_to_2",
           "label": null,
           "manifestation": "coda",
           "meta": {},
@@ -514,7 +514,7 @@
             37,
             1
           ],
-          "id": "jump_4",
+          "id": "jump_from_4",
           "label": "MC 15 → start (MC 1)",
           "manifestation": "da_capo_al_fine",
           "meta": {},

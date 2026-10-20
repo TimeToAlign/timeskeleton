@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (6a98518f)"
+    "generator": "timetoalign 1.2.0 (636fd9ce)"
   },
   "timelines": [
     {
@@ -25,7 +25,7 @@
             6,
             1
           ],
-          "id": "marker_1",
+          "id": "jump_to_1",
           "manifestation": "segno",
           "type": "jump_to"
         }

@@ -15,7 +15,7 @@
               2,
               1
             ],
-            "id": "marker_1",
+            "id": "jump_to_1",
             "label": null,
             "manifestation": "repeat_start",
             "meta": {},
@@ -27,7 +27,7 @@
               8,
               1
             ],
-            "id": "jump_1",
+            "id": "jump_from_1",
             "label": "Repeat",
             "manifestation": "repeat_end",
             "meta": {
@@ -35,7 +35,7 @@
             },
             "name": null,
             "repeat_count": 2,
-            "target": "marker_1",
+            "target": "jump_to_1",
             "type": "jump_from"
           },
           {
@@ -43,7 +43,7 @@
               12,
               1
             ],
-            "id": "break_1",
+            "id": "flow_marker_1",
             "label": "Fine",
             "manifestation": "segno",
             "meta": {

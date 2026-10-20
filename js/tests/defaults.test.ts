@@ -418,7 +418,7 @@ describe("the typed forms", () => {
   const twins = fixtureFiles().filter((file) => file.endsWith(".minimal.json"));
 
   it("have a minimal twin for every fixture", () => {
-    expect(twins.length).toBe(63);
+    expect(twins.length).toBe(64);
     expect(twins.map((twin) => twin.replace(/\.minimal\.json$/, ".json"))).toEqual(
       fixtureFiles().filter((file) => !file.endsWith(".minimal.json")),
     );

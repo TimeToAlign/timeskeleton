@@ -1,0 +1,60 @@
+{
+  "graphical": {
+    "order": {
+      "g1": [
+        "t",
+        "u"
+      ],
+      "g2": [
+        "t",
+        "v"
+      ]
+    }
+  },
+  "groups": [
+    {
+      "id": "g1",
+      "members": [
+        "t",
+        "u"
+      ],
+      "name": "Performance"
+    },
+    {
+      "id": "g2",
+      "members": [
+        "t",
+        "v"
+      ],
+      "name": "Page"
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (636fd9ce)"
+  },
+  "name": "Shared",
+  "timelines": [
+    {
+      "id": "t",
+      "length": [
+        8,
+        1
+      ],
+      "name": "Score",
+      "unit": "quarters"
+    },
+    {
+      "id": "u",
+      "length": 4.0,
+      "name": "Performance",
+      "unit": "seconds"
+    },
+    {
+      "id": "v",
+      "length": 800,
+      "name": "Page",
+      "unit": "pixels"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

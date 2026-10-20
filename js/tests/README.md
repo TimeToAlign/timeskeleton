@@ -156,7 +156,7 @@ is the default only in type and value: `repeat_count: new JsonFloat(1)` (read
 from `1.0`) is not the default `1` and stays in the minimal form; the round
 trips compare `dumps` texts, which tell `1.0` from `1`. No result shares
 an object with `DEFAULTS`. The typed forms' oracle is the fixtures: each
-minimal twin completes to its fixture's text, keeps it in canonical order,
+minimal twin (64, one per fixture) completes to its fixture's text, keeps it in canonical order,
 and strips back to its own; a literal `CompleteTimeSkeleton` compiles, and
 keys whose default is absent (`id`, `graphical`, a root's `offset`) stay
 optional.

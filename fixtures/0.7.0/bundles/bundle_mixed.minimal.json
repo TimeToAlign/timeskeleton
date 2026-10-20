@@ -30,7 +30,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (6a98518f)"
+    "generator": "timetoalign 1.2.0 (636fd9ce)"
   },
   "name": "Mixed",
   "timelines": [
@@ -168,7 +168,7 @@
             8,
             1
           ],
-          "id": "jump_1",
+          "id": "jump_from_1",
           "label": "Repeat",
           "manifestation": "repeat_end",
           "type": "jump_from"

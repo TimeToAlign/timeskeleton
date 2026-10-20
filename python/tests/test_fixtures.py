@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import re
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -9,6 +11,7 @@ from timeskeleton import (
     complete,
     dumps,
     fixture_paths,
+    identity_problems,
     minimal,
     unknown_keys,
     validate,
@@ -270,3 +273,54 @@ def test_every_styled_score_item_is_visible() -> None:
         select for select, declaration in declarations if "content" in declaration
     ]
     assert content == [{"ids": ["score/name"]}]
+
+
+@pytest.mark.parametrize(
+    "name", ["bundle_shared_member.json", "bundle_shared_member.minimal.json"]
+)
+def test_a_timeline_in_two_groups_passes_every_rule(name: str) -> None:
+    value = _load(FIXTURES / "bundles" / name)
+    assert [(group["id"], group["members"]) for group in value["groups"]] == [
+        ("g1", ["t", "u"]),
+        ("g2", ["t", "v"]),
+    ]
+    validate(value)
+    assert identity_problems(value) == []
+
+
+def _flow_control(timeline: dict) -> list[tuple[str, str]]:
+    elements = [
+        (element["type"], element["id"]) for element in timeline.get("flow_control", [])
+    ]
+    for child in timeline.get("children", []):
+        elements += _flow_control(child)
+    return elements
+
+
+def test_generated_flow_control_ids_carry_their_type() -> None:
+    elements = [
+        element
+        for path in fixture_paths()
+        if not path.name.endswith(".minimal.json")
+        for root in _load(path)["timelines"]
+        for element in _flow_control(root)
+    ]
+    generated = Counter(
+        (kind, element_id)
+        for kind, element_id in elements
+        if re.fullmatch(r"[a-z_]+_[1-9][0-9]*", element_id)
+    )
+    assert all(element_id.startswith(f"{kind}_") for kind, element_id in generated)
+    assert generated == {
+        ("flow_marker", "flow_marker_1"): 3,
+        ("jump_from", "jump_from_1"): 6,
+        ("jump_from", "jump_from_2"): 2,
+        ("jump_from", "jump_from_3"): 1,
+        ("jump_from", "jump_from_4"): 1,
+        ("jump_to", "jump_to_1"): 3,
+        ("jump_to", "jump_to_2"): 2,
+        ("jump_to", "jump_to_3"): 1,
+    }
+    assert {element_id for kind, element_id in elements} - {
+        element_id for kind, element_id in generated
+    } == {"fine", "da-capo", "da_capo_al_fine", "dal_segno", "repeat", "segno"}

@@ -554,6 +554,24 @@ score's element addresses in the one address rule (`score/intro/label`,
 cascade ranking of `docs/drawing.md`, to thirteen distinct colours, and no
 statement hides anything but child `a`.
 
+Two properties of the emitted set are pinned because a hand-written document
+cannot prove that the emitter produces them:
+
+- **A timeline in several groups.** `bundles/bundle_shared_member.json` and
+  its twin hold the groups `g1` with the members `t`, `u` and `g2` with `t`,
+  `v`; besides passing the checks above, `identity_problems` finds nothing
+  in either form, so a member shared between groups, as the emitter writes
+  it, passes both the schema and the identity rules.
+- **Flow-control IDs by type.** Across the complete fixtures, every
+  flow-control element whose ID has the generated form `<prefix>_<N>`
+  carries its own `type` as the prefix: exactly `flow_marker_1` (three
+  elements), `jump_from_1` to `jump_from_4` (six, two, one and one) and
+  `jump_to_1` to `jump_to_3` (three, two and one). Every other flow-control
+  ID is one a builder names (`fine`, `da-capo`, `da_capo_al_fine`,
+  `dal_segno`, `repeat`, `segno`). A prefix taken from another type (a flow
+  marker `break_1`, a jump target `marker_1`, a jump origin `jump_1`) fails
+  the test.
+
 ## The graphical block
 
 `docs/drawing.md` section 4's defaults block (three styles, 30 statements),

@@ -608,7 +608,7 @@ def unknown_length_timeline() -> Timeline:
     """Build ``unknown_length``, a root of unknown length with content.
 
     The root ``score`` of unknown length holds the region ``region_1`` from 2
-    to 8, the jump target ``marker_1`` (a segno) at 6 and the child ``coda``
+    to 8, the jump target ``jump_to_1`` (a segno) at 6 and the child ``coda``
     (4 quarters) at 10; its content reaches 14. Every timeline is of quarters
     and unnamed.
     """
@@ -617,7 +617,7 @@ def unknown_length_timeline() -> Timeline:
         Marker(
             score.make_coordinate(6),
             control_type=FlowControlElement.segno,
-            id="marker_1",
+            id="jump_to_1",
         )
     )
     score.add_child(parts.quarters("coda", 4), 10)
