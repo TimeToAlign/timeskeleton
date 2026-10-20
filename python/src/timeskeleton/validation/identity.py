@@ -158,14 +158,6 @@ def _member_problems(
                 "group_member", at, f"{member!r} names no timeline of this manifest"
             )
             continue
-        if member in selected:
-            yield SchemaValidationError(
-                "group_member",
-                at,
-                f"duplicate member {member!r}, first at "
-                f"{json_pointer((*path, selected[member]))}",
-            )
-
         ancestors = _ancestors(member, parents)
         relation: tuple[int, str, str] | None = None
         for ancestor in ancestors:

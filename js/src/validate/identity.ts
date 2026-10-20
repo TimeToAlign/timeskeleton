@@ -173,15 +173,6 @@ function* memberProblems(
       );
       continue;
     }
-    const earlier = selected.get(member);
-    if (earlier !== undefined) {
-      yield new SchemaValidationError(
-        "group_member",
-        at,
-        `duplicate member ${JSON.stringify(member)}, first at ${jsonPointer([...path, earlier])}`,
-      );
-    }
-
     const ancestors = ancestorsOf(member, parents);
     let relation: { index: number; member: string; word: "lies inside" | "contains" } | null = null;
     for (const ancestor of ancestors) {

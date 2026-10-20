@@ -446,7 +446,7 @@ order: each root's own problems, roots in array order; then reserved IDs
 (the manifest's ID, then root by root in identity order followed by the
 IDs of the maps other maps hold, then the group IDs, then the measure-map
 IDs); repeated timeline IDs, group IDs,
-measure-map IDs, the manifest's ID, members (member by member: dangling, repeated, nested), and
+measure-map IDs, the manifest's ID, members (member by member: dangling, nested), and
 the entries of `graphical.order` in code-point order of their keys: an
 order's strangers first, in its order, then its missing entries, in the
 order of the group's `members` or of the default band order. `<pointer>`

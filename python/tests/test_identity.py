@@ -850,17 +850,6 @@ def test_members() -> None:
         ("groups", 0, "members", 0),
         "'tempo' names no timeline of this manifest",
     )
-    value = manifest(timeline("a"), groups=[group("g", "a", "a")])
-    assert [
-        (problem.code, problem.path, problem.message)
-        for problem in identity_problems(value)
-    ] == [
-        (
-            "group_member",
-            ("groups", 0, "members", 1),
-            "duplicate member 'a', first at #/groups/0/members/0",
-        )
-    ]
     piece = timeline("piece", children=[timeline("half", offset=(4, 1), length=(4, 1))])
     value = manifest(piece, groups=[group("g", "piece", "half")])
     assert _only(value) == (

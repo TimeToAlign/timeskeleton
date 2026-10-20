@@ -346,7 +346,7 @@ stops at the first. Python quotes IDs as `repr` does.
 | `reserved_id` | part words and band IDs are not IDs: the manifest's, then each root's tree, the maps a `ChainMap`, `PiecewiseMap` or `CombinationMap` holds after the tree's other IDs, then the groups', then the measure maps' | the ID | `id 'start' is reserved for the parts of an address`, `id 'regions_1' is reserved for the bands of a timeline` |
 | `duplicate_id` | timeline IDs unique across roots, group IDs unique among themselves and the timelines', measure-map IDs unique among themselves and the timelines' and groups' | the later ID | as above |
 | `manifest_id` | the manifest ID is not a timeline, group or measure-map ID | `id` | `duplicate id 'g2', first at #/groups/1/id` |
-| `group_member` | a member names a timeline, is listed once in its group, and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `duplicate member 'second', first at …`, `member 'b' lies inside member 'a' of the same group` |
+| `group_member` | a member names a timeline and neither contains nor lies inside another member of its group | the member | `'ghost' names no timeline of this manifest`, `member 'b' lies inside member 'a' of the same group` |
 | `order_key` | a `graphical.order` key names a group or a timeline | the key | `'g9' names no group or timeline of this manifest` |
 | `display_order` | a group's order permutes its members | the entry, then the order | `'x' is not a member of group 'g'`, `member 'b' of group 'g' is missing` |
 | `band_order` | a timeline's order permutes its ID and its five bands | the entry, then the order | `'score/regions_2' is not 'score' or one of its bands`, `'score/flow_control_1' is missing from the band order of 'score'` |
@@ -469,12 +469,9 @@ documents that bound each rule from the other side:
   none, a group without members and members of unknown length pass. A
   timeline that is a member of two groups (`t` in `g1` beside `u` and in
   `g2` beside `v`) is no problem for `identity_problems` and validates. A
-  member listed twice in one group (`a`, `a`) never reaches the identity
-  rules through `validate`, which refuses it by the schema at `members`
-  (the shared case `group_members_repeated`); `identity_problems` reads it
-  as one `group_member` at the later entry, `duplicate member 'a', first at
-  #/groups/0/members/0`. A band
-  order passes at a root and at a descendant (for the child `b` the reverse
+  member listed twice in one group (`a`, `a`) is the schema's rule, not an
+  identity rule: `validate` refuses it at `members` (the shared case
+  `group_members_repeated`). A band order passes at a root and at a descendant (for the child `b` the reverse
   of the default); each stranger (`score/regions_2`, `regions_1`,
   `b/regions_1`, `b`, `ghost`) is one problem at its entry, a missing band
   one at the order, an empty order its six missing addresses in the default

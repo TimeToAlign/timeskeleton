@@ -605,16 +605,6 @@ describe("identity", () => {
       ["groups", 0, "members", 0],
       '"tempo" names no timeline of this manifest',
     ]);
-    const twice = manifest([timeline("a")], { groups: [group("g", ["a", "a"])] });
-    expect(
-      identityProblems(twice).map((problem) => [problem.code, problem.path, problem.detail]),
-    ).toEqual([
-      [
-        "group_member",
-        ["groups", 0, "members", 1],
-        'duplicate member "a", first at #/groups/0/members/0',
-      ],
-    ]);
     const piece = () =>
       timeline("piece", "quarters", [8, 1], {
         children: [timeline("half", "quarters", [4, 1], { offset: [4, 1] })],
