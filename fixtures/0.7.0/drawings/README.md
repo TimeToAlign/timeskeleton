@@ -960,7 +960,7 @@ children, every child locked: `b` ("B", 6 at 0) with the map `ticks_b`
 holds `b1` ("B1", 4 at 1), which holds `b11` ("B11", 2 at 1); `d` ("D", 8
 at 8) holds `d1` ("D1", 4 at 2) with the maps `tempo_d1` and `ticks_d1`,
 which holds `d11` ("D11", 2 at 1) with the maps `tempo_d11` and
-`ticks_d11`. Maps lie in canonical order, by id, so each `tempo_*` (to
+`ticks_d11`. Maps lie in canonical order, by ID, so each `tempo_*` (to
 seconds, solid blue) lies nearest its line and each `ticks_*` (to ticks,
 green dashed `1 1`) beyond it (§2.1, §4). Every children band lies above
 its line, beyond the line's conversion maps band where it has one, and the

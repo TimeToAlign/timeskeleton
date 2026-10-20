@@ -153,10 +153,16 @@ Scaling, shifting and every conversion between two units of fixed ratio
 are linear maps. The last four are the **measure views**: each reads the
 measure map its `measure_map` names, from `quarters` (its constant
 `source_unit`) to `floating_measures` (`FloatingMeasureMap`) or to null
-(the other three, whose outputs are not positions on a time axis). A
-timeline in ticks or `whole_notes` reaches a measure view through a
-`ChainMap` whose first map is a `LinearMap` to quarters. The schema states
-the exact reading of every type.
+(the other three, whose outputs are not positions on a time axis).
+
+A map attached to a timeline converts from the timeline's axis: its
+`source_unit`, where not null, is the timeline's unit. A map that another
+map holds reads its holder's input: every map of a `PiecewiseMap` or a
+`CombinationMap`, and the first map of a `ChainMap`, has its holder's
+`source_unit` wherever both are stated. A timeline in ticks or
+`whole_notes` therefore reaches a measure view through a `ChainMap` whose
+first map is a `LinearMap` to quarters. The schema states the exact
+reading of every type.
 
 `measure_maps` holds the manifest's measure maps, each `{id, name?, meta?,
 rows}`. A measure map belongs to no timeline and is not drawn; its
@@ -382,7 +388,8 @@ pattern. The manifest's title, the top label of its drawing, is addressed
 `G/name`.
 
 The JSON Schema cannot express these rules, nor that a reference names an
-element, nor that a map's arrays agree, nor that a member names a timeline
+element, nor that a map converts from its timeline's unit or its
+holder's, nor that a map's arrays agree, nor that a member names a timeline
 of the manifest, nor that no member of a group lies inside another, nor
 that a child lies within its parent's known length, nor that a segment
 line's segments are contiguous and alike, nor the representation of
@@ -395,6 +402,7 @@ stable code:
 | An ID repeats within one root's tree | `duplicate_id` | the later occurrence | `duplicate id '<id>', first at <pointer>` |
 | A jump origin's `target` names no jump target of its timeline | `dangling_target` | the `target` | `'<target>' names no jump_to of this timeline` |
 | A measure view's `measure_map` names no entry of `measure_maps` | `dangling_target` | the `measure_map` | `'<id>' names no measure map of this manifest` |
+| A map's non-null `source_unit` is not its timeline's unit, or, for a map a `PiecewiseMap` or `CombinationMap` holds or a `ChainMap`'s first map, not its holder's non-null `source_unit` | `conversion_map` | the `source_unit` | `<type> '<id>' has source unit '<unit>', its timeline '<id>' has '<unit>'` (`… its <holder type> '<id>' has '<unit>'`) |
 | A `TableMap`'s `x_values` and `y_values` differ in length | `conversion_map` | the `y_values` | `TableMap '<id>' has <n> x values and <m> y values` |
 | An x value of a `TableMap`, or a break of a `PiecewiseMap`, does not exceed the one before it | `conversion_map` | the value | `x value <value> of TableMap '<id>' does not exceed the one before it` (`break <value> of PiecewiseMap …`) |
 | A `PiecewiseMap` does not have one map fewer than breaks | `conversion_map` | the `maps` | `PiecewiseMap '<id>' has <n> maps for <m> breaks; it needs <m − 1> maps` |
