@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "generator": "timetoalign 1.2.0 (ce979703)"
+  },
+  "timelines": [
+    {
+      "children": [
+        {
+          "flow_control": [
+            {
+              "coordinate": [
+                2,
+                1
+              ],
+              "id": "segno",
+              "manifestation": "segno",
+              "type": "jump_to"
+            },
+            {
+              "coordinate": [
+                4,
+                1
+              ],
+              "id": "repeat",
+              "label": "Repeat",
+              "manifestation": "repeat_end",
+              "repeat_count": 2,
+              "type": "jump_from"
+            },
+            {
+              "coordinate": [
+                8,
+                1
+              ],
+              "id": "dal_segno",
+              "label": "D.S.",
+              "manifestation": "dal_segno",
+              "target": "segno",
+              "type": "jump_from"
+            }
+          ],
+          "id": "verse",
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "name": "Verse",
+          "offset": [
+            4,
+            1
+          ],
+          "unit": "quarters"
+        }
+      ],
+      "id": "piece",
+      "length": [
+        16,
+        1
+      ],
+      "name": "Piece",
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

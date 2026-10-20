@@ -54,7 +54,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
@@ -67,7 +67,7 @@
           ],
           "source_unit": "pixels",
           "target_unit": "points",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
       "id": "page",
@@ -79,11 +79,10 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": 44100,
           "source_unit": "seconds",
           "target_unit": "samples",
-          "type": "SecondsToSamples"
+          "type": "LinearMap"
         }
       ],
       "id": "performance",
@@ -95,29 +94,24 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "ppq": 480,
           "scalar": 480,
           "source_unit": "quarters",
           "target_unit": "ticks",
-          "type": "QuartersToTicks"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "jumps": [
-          {
-            "from_coordinate": [
-              8,
-              1
-            ],
-            "id": "jump_1",
-            "label": "Repeat",
-            "to_coordinate": [
-              0,
-              1
-            ]
-          }
-        ]
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "type": "jump_from"
+        }
+      ],
       "id": "score",
       "length": [
         12,

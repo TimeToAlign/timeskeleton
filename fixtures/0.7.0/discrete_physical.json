@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -10,18 +11,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "dpt_2",
           "is_segment_line": false,
           "length": 11025,
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": null,
           "number_type": "int",
           "offset": 100,
@@ -31,18 +26,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "dpt_3",
           "is_segment_line": false,
           "length": 2205,
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": null,
           "number_type": "int",
           "offset": 20000,
@@ -51,18 +40,12 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "dpt_1",
       "is_segment_line": false,
       "length": 44100,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": null,
       "number_type": "int",
       "regions": [],

@@ -1,63 +1,83 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [
-          {
-            "condition": "after_dc_ds",
-            "control_type": "fine",
-            "coordinate": [
-              12,
-              1
-            ],
-            "id": "break_1",
-            "label": "Fine",
-            "meta": {
-              "source": "synthetic"
-            },
-            "name": "fine",
-            "repeat_count": 1
-          }
-        ],
-        "jumps": [
-          {
-            "condition": "first_n",
-            "control_type": "repeat_end",
-            "from_coordinate": [
-              8,
-              1
-            ],
-            "id": "jump_1",
-            "label": "Repeat",
-            "meta": {
-              "source": "synthetic"
-            },
-            "repeat_count": 2,
-            "target": "marker_1",
-            "to_coordinate": [
-              2,
-              1
-            ]
-          }
-        ],
-        "markers": [
-          {
-            "coordinate": [
-              2,
-              1
-            ],
-            "id": "marker_1",
-            "name": "repeat-start"
-          }
-        ]
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            2,
+            1
+          ],
+          "id": "marker_1",
+          "label": null,
+          "manifestation": "repeat_start",
+          "meta": {},
+          "name": "repeat-start",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            4,
+            1
+          ],
+          "id": "marker_2",
+          "label": null,
+          "manifestation": "segno",
+          "meta": {},
+          "name": "segno",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "meta": {
+            "source": "synthetic"
+          },
+          "name": null,
+          "repeat_count": 2,
+          "target": "marker_1",
+          "type": "jump_from"
+        },
+        {
+          "coordinate": [
+            12,
+            1
+          ],
+          "id": "break_1",
+          "label": "Fine",
+          "manifestation": "fine",
+          "meta": {
+            "source": "synthetic"
+          },
+          "name": "fine",
+          "type": "flow_marker"
+        },
+        {
+          "coordinate": [
+            16,
+            1
+          ],
+          "id": "jump_2",
+          "label": "D.S.",
+          "manifestation": "dal_segno",
+          "meta": {},
+          "name": null,
+          "target": "marker_2",
+          "type": "jump_from"
+        }
+      ],
       "id": "flow:quarters",
       "is_segment_line": false,
       "length": [
@@ -65,9 +85,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Flow control",
       "number_type": "fraction",
       "regions": [],

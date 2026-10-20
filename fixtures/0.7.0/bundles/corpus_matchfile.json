@@ -18,8 +18,9 @@
       "name": "score"
     }
   ],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -29,24 +30,19 @@
         {
           "id": "ticks_to_seconds:Chopin_op10_no3_p01",
           "name": "ticks_to_seconds",
+          "offset": 0,
           "scalar": 0.0010416666666666667,
           "source_unit": "ticks",
           "target_unit": "seconds",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:Chopin_op10_no3_p01:dlt_1",
       "is_segment_line": false,
       "length": 79900,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Chopin_op10_no3_p01",
       "number_type": "int",
       "regions": [],
@@ -58,10 +54,11 @@
         {
           "id": "quarters_to_divs",
           "name": "quarters_to_divs",
+          "offset": 0,
           "scalar": 480,
           "source_unit": "quarters",
           "target_unit": "ticks",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         },
         {
           "id": "raw_quarters",
@@ -70,16 +67,13 @@
             -1,
             2
           ],
+          "scalar": 1,
           "source_unit": "quarters",
           "target_unit": "quarters",
-          "type": "ShiftMap"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "score:clt_1",
       "is_segment_line": false,
       "length": [
@@ -87,9 +81,7 @@
         2
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Chopin_op10_no3",
       "number_type": "fraction",
       "regions": [],

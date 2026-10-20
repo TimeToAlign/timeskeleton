@@ -8,13 +8,16 @@ from timetoalign import (
     ContinuousLogicalTimeline,
     ContinuousPhysicalTimeline,
     DiscreteGraphicalTimeline,
+    DiscreteLogicalTimeline,
     DiscretePhysicalTimeline,
     TimelineGroup,
 )
 from timetoalign.loader.alignment.tilia import TiliaJsonLoader
+from timetoalign.maps import LinearMap
 from timetoalign.testdata import ensure_data
 
 from . import parts
+from .timelines import four_bars
 
 
 def number_types_group() -> TimelineGroup:
@@ -203,3 +206,32 @@ def group_unknown_length() -> TimelineGroup:
     return TimelineGroup(
         name="Edition", timelines=[performance, parts.quarters("score", Fraction(12))]
     )
+
+
+def group_measure_map() -> TimelineGroup:
+    """Build a group of a score and its MIDI rendering sharing one measure map.
+
+    The group "Edition" lists the score ``score`` ("Score", 16 quarters) and
+    the rendering ``midi`` ("MIDI", 7680 ticks). Both hold the measure map of
+    ``four_bars``, so the manifest writes one entry of ``measure_maps`` that
+    both name: ``score`` through its ``MeasureRecordMap``, ``midi`` through a
+    ``ChainMap`` of the ``LinearMap`` ``ppq`` of ticks to quarters (480 per
+    quarter) and its ``MeasureRecordMap``. Every other id of a map or of the
+    measure map is minted.
+    """
+    bars = four_bars()
+    score = parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(16))
+    score.add_measure_map(bars)
+    midi = DiscreteLogicalTimeline(
+        length=Fraction(7680), unit="ticks", uid="midi", name="MIDI"
+    )
+    midi.add_measure_map(
+        bars,
+        to_quarters=LinearMap(
+            scalar=Fraction(1, 480),
+            source_unit="ticks",
+            target_unit="quarters",
+            uid="ppq",
+        ),
+    )
+    return TimelineGroup(name="Edition", timelines=[score, midi])

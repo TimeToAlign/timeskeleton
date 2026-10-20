@@ -85,26 +85,21 @@
       "name": "perf:2023_Hewitt"
     }
   ],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Beethoven_Eroica_op35-cpjku",
   "timelines": [
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1966_Szegedi:cpt_1",
       "is_segment_line": false,
       "length": 73.06201814058957,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1966_Szegedi",
       "number_type": "float",
       "regions": [],
@@ -116,28 +111,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1966_Szegedi:dpt_1",
       "is_segment_line": false,
       "length": 3222035,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1966_Szegedi",
       "number_type": "int",
       "regions": [],
@@ -146,18 +135,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1970_Gould:cpt_1",
       "is_segment_line": false,
       "length": 122.89201814058957,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1970_Gould",
       "number_type": "float",
       "regions": [],
@@ -169,28 +152,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1970_Gould:dpt_1",
       "is_segment_line": false,
       "length": 5419538,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1970_Gould",
       "number_type": "int",
       "regions": [],
@@ -199,18 +176,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1971_Curzon:cpt_1",
       "is_segment_line": false,
       "length": 77.78290249433107,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1971_Curzon",
       "number_type": "float",
       "regions": [],
@@ -222,28 +193,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1971_Curzon:dpt_1",
       "is_segment_line": false,
       "length": 3430226,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1971_Curzon",
       "number_type": "int",
       "regions": [],
@@ -252,18 +217,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1985_Brendel:cpt_1",
       "is_segment_line": false,
       "length": 74.88201814058957,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1985_Brendel",
       "number_type": "float",
       "regions": [],
@@ -275,28 +234,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:1985_Brendel:dpt_1",
       "is_segment_line": false,
       "length": 3302297,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "1985_Brendel",
       "number_type": "int",
       "regions": [],
@@ -305,18 +258,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:2023_Hewitt:cpt_1",
       "is_segment_line": false,
       "length": 89.94301587301587,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "2023_Hewitt",
       "number_type": "float",
       "regions": [],
@@ -328,28 +275,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "perf:2023_Hewitt:dpt_1",
       "is_segment_line": false,
       "length": 3966486,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "2023_Hewitt",
       "number_type": "int",
       "regions": [],
@@ -358,11 +299,7 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "score:clt_1",
       "is_segment_line": false,
       "length": [
@@ -370,9 +307,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Beethoven_Eroica_op35-cpjku",
       "number_type": "fraction",
       "regions": [],
@@ -397,18 +332,12 @@
           "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "score:dlt_1",
       "is_segment_line": false,
       "length": 2064,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Beethoven_Eroica_op35-cpjku",
       "number_type": "int",
       "regions": [],

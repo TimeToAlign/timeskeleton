@@ -78,7 +78,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Beethoven_Eroica_op35-cpjku",
   "timelines": [
@@ -92,14 +92,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:1966_Szegedi:dpt_1",
@@ -117,14 +116,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:1970_Gould:dpt_1",
@@ -142,14 +140,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:1971_Curzon:dpt_1",
@@ -167,14 +164,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:1985_Brendel:dpt_1",
@@ -192,14 +188,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:2023_Hewitt:dpt_1",

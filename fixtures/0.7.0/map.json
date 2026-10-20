@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -13,18 +14,14 @@
             {
               "id": "ticks",
               "name": "Ticks",
-              "ppq": 480,
+              "offset": 0,
               "scalar": 480,
               "source_unit": "quarters",
               "target_unit": "ticks",
-              "type": "QuartersToTicks"
+              "type": "LinearMap"
             }
           ],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "phrase",
           "is_segment_line": false,
           "length": [
@@ -32,9 +29,7 @@
             1
           ],
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Phrase",
           "number_type": "fraction",
           "offset": [
@@ -49,20 +44,17 @@
         {
           "id": "tempo",
           "name": "Tempo",
+          "offset": 0,
           "scalar": [
             1,
             2
           ],
           "source_unit": "quarters",
           "target_unit": "seconds",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "melody",
       "is_segment_line": false,
       "length": [
@@ -70,9 +62,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Melody",
       "number_type": "fraction",
       "regions": [],

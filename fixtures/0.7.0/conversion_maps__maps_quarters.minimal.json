@@ -1,168 +1,103 @@
 {
+  "measure_maps": [
+    {
+      "id": "measuremap_1",
+      "rows": [
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 1,
+          "end_repeat": false,
+          "name": "1",
+          "next": [
+            "2"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 1,
+          "qstamp": [
+            0,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 4,
+          "end_repeat": false,
+          "name": "4",
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 4,
+          "qstamp": [
+            12,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        }
+      ]
+    }
+  ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
       "conversion_maps": [
         {
-          "beat_map_id": "cmap_1",
           "id": "cmap_1",
-          "meter_map": {
-            "id": "cmap_1",
-            "lengths": [
-              [
-                4,
-                1
-              ],
-              [
-                4,
-                1
-              ]
-            ],
-            "mcs": [
-              1,
-              2
-            ],
-            "mns": [
-              "1",
-              "2"
-            ],
-            "source_unit": "quarters",
-            "starts": [
-              [
-                0,
-                1
-              ],
-              [
-                4,
-                1
-              ]
-            ],
-            "target_unit": null,
-            "type": "MetricMap"
-          },
+          "measure_map": "measuremap_1",
           "source_unit": "quarters",
           "target_unit": null,
-          "type": "MetricalPositionMap"
-        },
-        {
-          "boundaries": [
-            [
-              0,
-              1
-            ],
-            [
-              4,
-              1
-            ]
-          ],
-          "id": "cmap_10",
-          "source_unit": "quarters",
-          "target_unit": null,
-          "type": "QuartersToMeasureNumber",
-          "values": [
-            "1",
-            "2"
-          ]
-        },
-        {
-          "id": "cmap_11",
-          "ppq": 480,
-          "scalar": 480,
-          "source_unit": "quarters",
-          "target_unit": "ticks",
-          "type": "QuartersToTicks"
-        },
-        {
-          "base": 1.0,
-          "id": "cmap_12",
-          "offset": 0.25,
-          "period": 4.0,
-          "scale": 0.5,
-          "source_unit": "quarters",
-          "target_unit": null,
-          "type": "RotationMap"
-        },
-        {
-          "id": "cmap_13",
-          "scalar": [
-            2,
-            3
-          ],
-          "source_unit": "quarters",
-          "target_unit": "seconds",
-          "type": "ScalarMap"
-        },
-        {
-          "id": "cmap_14",
-          "offset": [
-            1,
-            2
-          ],
-          "source_unit": "quarters",
-          "target_unit": null,
-          "type": "ShiftMap"
+          "type": "MeasureRecordMap"
         },
         {
           "id": "cmap_2",
-          "meter_map": {
-            "id": "cmap_1",
-            "lengths": [
-              [
-                3,
-                1
-              ],
-              [
-                3,
-                1
-              ]
-            ],
-            "mcs": [
-              1,
-              2
-            ],
-            "mns": [
-              "1",
-              "2"
-            ],
-            "source_unit": "quarters",
-            "starts": [
-              [
-                0,
-                1
-              ],
-              [
-                3,
-                1
-              ]
-            ],
-            "target_unit": null,
-            "type": "MetricMap"
-          },
+          "measure_map": "measuremap_1",
           "source_unit": "quarters",
           "target_unit": null,
-          "type": "BeatInMeasureMap"
+          "type": "MeasureNumberMap"
         },
         {
           "id": "cmap_3",
+          "measure_map": "measuremap_1",
+          "source_unit": "quarters",
+          "target_unit": null,
+          "type": "MeasureBeatMap"
+        },
+        {
+          "id": "cmap_4",
           "maps": [
             {
-              "id": "cmap_1",
+              "id": "lmap_1",
               "scalar": [
                 1,
                 2
               ],
               "source_unit": "quarters",
               "target_unit": "seconds",
-              "type": "ScalarMap"
+              "type": "LinearMap"
             },
             {
-              "id": "cmap_1",
-              "scalar": 60,
+              "id": "lmap_1",
+              "scalar": [
+                1,
+                60
+              ],
               "source_unit": "seconds",
               "target_unit": "minutes",
-              "type": "ScalarMap"
+              "type": "LinearMap"
             }
           ],
           "source_unit": "quarters",
@@ -170,19 +105,16 @@
           "type": "ChainMap"
         },
         {
-          "id": "cmap_4",
+          "id": "cmap_5",
           "maps": {
-            "beat": {
-              "base": 1.0,
+            "measure": {
               "id": "cmap_1",
-              "offset": 0.0,
-              "period": 4.0,
-              "scale": 1.0,
+              "measure_map": "measuremap_1",
               "source_unit": "quarters",
               "target_unit": null,
-              "type": "RotationMap"
+              "type": "MeasureNumberMap"
             },
-            "label": {
+            "section": {
               "id": "cmap_1",
               "source_unit": "quarters",
               "target_unit": null,
@@ -190,101 +122,16 @@
               "value": "verse"
             }
           },
-          "names": [
-            "label",
-            "beat"
-          ],
           "source_unit": "quarters",
           "target_unit": null,
           "type": "CombinationMap"
         },
         {
-          "id": "cmap_5",
+          "id": "cmap_6",
           "source_unit": "quarters",
           "target_unit": null,
           "type": "ConstantMap",
           "value": "section-a"
-        },
-        {
-          "base": 1,
-          "divisor": 4.0,
-          "id": "cmap_6",
-          "offset": 0.0,
-          "source_unit": "quarters",
-          "target_unit": null,
-          "type": "FloorMap"
-        },
-        {
-          "id": "cmap_7",
-          "source_coords": [
-            0.0,
-            8.0,
-            16.0
-          ],
-          "source_id": "maps:quarters",
-          "source_unit": "quarters",
-          "target_coords": [
-            0.0,
-            4.25,
-            9.0
-          ],
-          "target_id": "maps:seconds",
-          "target_unit": "seconds",
-          "type": "InterpolationMap"
-        },
-        {
-          "boundaries": [
-            [
-              0,
-              1
-            ],
-            [
-              8,
-              1
-            ]
-          ],
-          "id": "cmap_8",
-          "source_unit": "quarters",
-          "target_unit": null,
-          "type": "IntervalToConstantMap",
-          "values": [
-            "opening",
-            "closing"
-          ]
-        },
-        {
-          "id": "cmap_9",
-          "lengths": [
-            [
-              4,
-              1
-            ],
-            [
-              4,
-              1
-            ]
-          ],
-          "mcs": [
-            1,
-            2
-          ],
-          "mns": [
-            "1",
-            "2"
-          ],
-          "source_unit": "quarters",
-          "starts": [
-            [
-              0,
-              1
-            ],
-            [
-              4,
-              1
-            ]
-          ],
-          "target_unit": null,
-          "type": "MetricMap"
         },
         {
           "id": "lmap_1",
@@ -318,18 +165,18 @@
           "id": "pmap_1",
           "maps": [
             {
-              "id": "cmap_1",
+              "id": "lmap_1",
               "offset": 1,
-              "source_unit": null,
-              "target_unit": null,
-              "type": "ShiftMap"
+              "source_unit": "quarters",
+              "target_unit": "seconds",
+              "type": "LinearMap"
             },
             {
-              "id": "cmap_1",
+              "id": "lmap_1",
               "offset": 2,
-              "source_unit": null,
-              "target_unit": null,
-              "type": "ShiftMap"
+              "source_unit": "quarters",
+              "target_unit": "seconds",
+              "type": "LinearMap"
             }
           ],
           "source_unit": "quarters",
@@ -337,36 +184,15 @@
           "type": "PiecewiseMap"
         },
         {
-          "extrapolate": "extrapolate",
           "id": "tmap_1",
-          "kind": "linear",
+          "measure_map": "measuremap_1",
           "source_unit": "quarters",
           "target_unit": "floating_measures",
-          "type": "QuartersToFloatingMeasures",
-          "x_values": [
-            [
-              0,
-              1
-            ],
-            [
-              4,
-              1
-            ],
-            [
-              8,
-              1
-            ]
-          ],
-          "y_values": [
-            1.0,
-            2.0,
-            3.0
-          ]
+          "type": "FloatingMeasureMap"
         },
         {
           "extrapolate": "constant",
           "id": "tmap_2",
-          "kind": "linear",
           "source_unit": "quarters",
           "target_unit": "seconds",
           "type": "TableMap",
@@ -383,6 +209,53 @@
           "y_values": [
             0.0,
             2.5
+          ]
+        },
+        {
+          "id": "tmap_3",
+          "kind": "previous",
+          "source_unit": "quarters",
+          "target_unit": null,
+          "type": "TableMap",
+          "x_values": [
+            [
+              0,
+              1
+            ],
+            [
+              8,
+              1
+            ]
+          ],
+          "y_values": [
+            60,
+            72
+          ]
+        },
+        {
+          "extrapolate": "linear",
+          "id": "tmap_4",
+          "source_unit": "quarters",
+          "target_unit": "seconds",
+          "type": "TableMap",
+          "x_values": [
+            [
+              0,
+              1
+            ],
+            [
+              8,
+              1
+            ],
+            [
+              16,
+              1
+            ]
+          ],
+          "y_values": [
+            0.0,
+            4.25,
+            9.0
           ]
         }
       ],

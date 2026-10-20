@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -10,11 +11,7 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "coda",
           "is_segment_line": false,
           "length": [
@@ -22,9 +19,7 @@
             1
           ],
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": null,
           "number_type": "fraction",
           "offset": [
@@ -36,27 +31,25 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": [
-          {
-            "coordinate": [
-              6,
-              1
-            ],
-            "id": "marker_1",
-            "name": null
-          }
-        ]
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            6,
+            1
+          ],
+          "id": "marker_1",
+          "label": null,
+          "manifestation": "segno",
+          "meta": {},
+          "name": null,
+          "type": "jump_to"
+        }
+      ],
       "id": "score",
       "is_segment_line": false,
       "length": null,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": null,
       "number_type": "fraction",
       "regions": [

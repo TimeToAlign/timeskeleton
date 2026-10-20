@@ -1,25 +1,20 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "recording",
       "is_segment_line": false,
       "length": 30.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Recording",
       "number_type": "float",
       "offset": -2.5,

@@ -63,9 +63,9 @@ title; no other manifest has a `name` or an
 Every `data-address` follows §2.2: an element other than a timeline or a
 group is addressed through the root whose tree holds it, also in a manifest
 of one root (`melody/tempo`, `clt_1/region_1`, `flow:quarters/jump_1`,
-`score/intro/label`, and `piece/fine`, a break of the child `verse`), and a
-manifest's title, wherever one is drawn, is addressed `name`. A band draws
-nothing (§2.1), so no element carries a band's address.
+`score/intro/label`, and `piece/fine`, a flow marker of the child `verse`),
+and a manifest's title, wherever one is drawn, is addressed `name`. A band
+draws nothing (§2.1), so no element carries a band's address.
 
 - Constants (§6.2): padding `P` = 8 (also above and below a member
   drawing's content), card padding `K` = 8, frame padding `Q` = 8, gap
@@ -199,12 +199,13 @@ and `melody/ticks`.
 
 ## `flow_control`
 
-The root ("Flow control", 16 quarters) with a break, a jump and the marker
-the jump targets.
+The root ("Flow control", 16 quarters) with a flow marker, a jump origin and
+the jump target it names.
 
 - `N` = w(`Flow control`, 11) = 66.9775390625.
-- `x0` = 16 + 66.9775390625 + 8 = 90.9775390625 → 90.9775; the jump label,
-  centred on the midpoint 5 (`u` = 5/16), gives only −92.957763671875.
+- `x0` = 16 + 66.9775390625 + 8 = 90.9775390625 → 90.9775; the jump-origin
+  label, centred on the midpoint 5 (`u` = 5/16), gives only
+  −92.957763671875.
 - `R` = the end label `16 ♩` at 490.9775390625 + 18.55810546875 / 2 =
   500.256591796875, beyond the arrowhead tip 499.9775390625.
 - `Hm` = 84.33203125.
@@ -228,13 +229,13 @@ The root `clt_1` (12 quarters) with two children and the region `theme`
 ## `styled__score`
 
 The root `score` (8 quarters) with the children `a` (hidden) and `b`, the
-map `ticks`, the region `intro` and the jump `da-capo`, styled by its own
-statements: the root's line is 4 wide and its name, at size 12, reads
+map `ticks`, the region `intro` and the jump origin `da-capo`, styled by its
+own statements: the root's line is 4 wide and its name, at size 12, reads
 `Styled score`. Its band order `score/children_1`, `score/markers_1`,
 `score`, `score/conversion_maps_1`, `score/regions_1`,
 `score/flow_control_1` (§6.4) lays the markers band against the line above
-it and the children band beyond, and below it the conversion maps band,
-then the regions band and the flow control band.
+it and the children band beyond, and below it the conversion maps band, then
+the regions band and the flow control band.
 
 - `N` = max(w(`Styled score`, 12), w(`b`, 11)) = max(74.080078125,
   6.982421875) = 74.080078125.
@@ -416,13 +417,13 @@ ancestor lines, `movement` and `score`, both running on to the left.
 ## `unknown_length`
 
 The root `score` (quarters, length `null`) with the region `region_1` (2
-to 8), the marker `marker_1` at 6 and the locked child `coda` (4 at 10).
+to 8), the jump target `marker_1` at 6 and the locked child `coda` (4 at 10).
 No timeline has a name.
 
-- The reach is the end of `coda`, 10 + 4 = 14, beyond the region's end 8
-  and the marker 6, so `λ` = 14 and `u(t)` = `t / 14`, rounded once: `x(2)`
-  = 110.94168526785714 → 110.9417, `x(10)` = 339.5131138392857 →
-  339.5131. `coda` ends at 14, known, in its diamond at `x0 + L`.
+- The reach is the end of `coda`, 10 + 4 = 14, beyond the region's end 8 and
+  the jump target 6, so `λ` = 14 and `u(t)` = `t / 14`, rounded once: `x(2)`
+  = 110.94168526785714 → 110.9417, `x(10)` = 339.5131138392857 → 339.5131.
+  `coda` ends at 14, known, in its diamond at `x0 + L`.
 - `N` = w(`score`, 11) = 29.798828125.
 - `x0` = 16 + 29.798828125 + 8 = 53.798828125 → 53.7988; the start label
   `0 ♩` gives only 22.416015625.
@@ -554,35 +555,35 @@ absent (§6.4).
 
 The box "Sketches" of three ungrouped roots, in drawing order the segment
 line `pages` ("Pages", 5262 pixels, the segments `Page 1` to `Page 3` of
-1754 each, none a segment line and none with a map) with the map `cmap_1`
-to points, the root `recording` ("Recording", 441000 samples) with the map
+1754 each, none a segment line and none with a map) with the map `cmap_1` to
+points, the root `recording` ("Recording", 441000 samples) with the map
 `cmap_1` to seconds, and the root `score` ("Score", 16 quarters) with the
-map `cmap_1` to ticks, the break `break_1` ("Fine") at 8 and the jump
-`jump_1` ("D.C. al Fine") from 16 to 0. The place of `score` is stated as
-`{x: -60, y: -150, height: 120}`, left of the padding and above the
-title's slot. The three cards share one horizontal layout (§8.2), so they
-are equally wide; every place not stated takes its default (§8.6). Every
-position below is in item coordinates until it is drawn at its place, and
-in place coordinates until the place origin is added, last (§8.4).
+map `cmap_1` to ticks, the flow marker `break_1` ("Fine") at 8 and the jump
+origin `jump_1` ("D.C. al Fine") from 16 to 0. The place of `score` is
+stated as `{x: -60, y: -150, height: 120}`, left of the padding and above
+the title's slot. The three cards share one horizontal layout (§8.2), so
+they are equally wide; every place not stated takes its default (§8.6).
+Every position below is in item coordinates until it is drawn at its place,
+and in place coordinates until the place origin is added, last (§8.4).
 
 - The layout, in item coordinates: `n` = `K` = 8 (no frame); `N` =
   w(`Recording`, 11) = 55.70361328125, of `Pages` (32.85498046875),
   `Recording` and `Score` (31.05029296875); `s0` = `n + N + G'` = 8 +
   55.70361328125 + 8 = 71.70361328125, above the largest label term, the
   start label `0 smp` of `recording`, 8 + 13.8779296875 − 0 =
-  21.8779296875; the jump label `D.C. al Fine`, centred on `u` = 1/2,
+  21.8779296875; the jump-origin label `D.C. al Fine`, centred on `u` = 1/2,
   gives only 8 + 25.7958984375 − 200 = −166.2041015625. The shared end is
   `s0 + L` = 471.70361328125.
 - The right margin: the right edges are the end labels `5262 px` at
-  471.70361328125 + 18.402099609375 = 490.105712890625 (`pages`),
-  `441000 smp` at 471.70361328125 + 28.193115234375 = 499.896728515625
-  (`recording`) and `16 ♩` at 471.70361328125 + 9.279052734375 =
-  480.982666015625 (`score`), so `Mr` = 499.896728515625 − 471.70361328125
-  = 28.193115234375, from `recording`, and `Ri` = 471.70361328125 +
-  28.193115234375 = 499.896728515625 for every card. The maps end at the
-  shared end, the jump at its start `x(16)` = 471.70361328125, and the
-  break label `Fine` at 274.70361328125 + 18.91845703125 = 293.6220703125.
-  Each card spans 0 to `Ri + K` = 507.896728515625.
+  471.70361328125 + 18.402099609375 = 490.105712890625 (`pages`), `441000
+  smp` at 471.70361328125 + 28.193115234375 = 499.896728515625 (`recording`)
+  and `16 ♩` at 471.70361328125 + 9.279052734375 = 480.982666015625
+  (`score`), so `Mr` = 499.896728515625 − 471.70361328125 = 28.193115234375,
+  from `recording`, and `Ri` = 471.70361328125 + 28.193115234375 =
+  499.896728515625 for every card. The maps end at the shared end, the jump
+  origin at its start `x(16)` = 471.70361328125, and the flow-marker label
+  `Fine` at 274.70361328125 + 18.91845703125 = 293.6220703125. Each card
+  spans 0 to `Ri + K` = 507.896728515625.
 - The map stacks: each root's one map lies above its line (§4), 5.5 above
   it, its outline from 6.5 to 4.5 above it and from `s0` to `s0 + L`, and
   the stack reaches `e` = 6.5 (Shared quantities). Each map takes the
@@ -598,28 +599,27 @@ in place coordinates until the place origin is added, last (§8.4).
   63.453125. `recording` and `score` have their conversion maps band as
   their only band above, `Ea` = 6.5, so `y_root` = 14.5 (Shared
   quantities); `recording` has `Hm` = 49.4765625 → 49.4766.
-- The flow control band of `score` (§6.4) lies below at level −2, beyond
-  its markers band of 26.9765625 (its regions band is absent), from
-  26.9765625 + 4 = 30.9765625. The label `Fine` fills one break-label tier,
-  `T` = 1, so the flow row lies at `f0` = 30.9765625 + 10.4765625 =
-  41.453125; the jump fills one jump row, its apex at 41.453125 + 8 =
-  49.453125. The band is
-  10.4765625 + 8 + 0 + 2 + 10.4765625 = 30.953125 wide, so `Eb` =
+- The flow control band of `score` (§6.4) lies below at level −2, beyond its
+  markers band of 26.9765625 (its regions band is absent), from 26.9765625 +
+  4 = 30.9765625. The label `Fine` fills one flow-marker label tier, `T` =
+  1, so the flow row lies at `f0` = 30.9765625 + 10.4765625 = 41.453125; the
+  jump origin fills one jump row, its apex at 41.453125 + 8 = 49.453125. The
+  band is 10.4765625 + 8 + 0 + 2 + 10.4765625 = 30.953125 wide, so `Eb` =
   61.9296875, `Hm` = 14.5 + 61.9296875 + 8 = 84.4296875, and the card of
   `score` is max(84.4296875, 120) = 120 high.
-- The flow of `score`, in item coordinates: the break at `x(8)` =
+- The flow of `score`, in item coordinates: the flow marker at `x(8)` =
   71.70361328125 + 400 × 1/2 = 271.70361328125, from the flow row `yf` =
   14.5 + 41.453125 = 55.953125 to `P` = 8, its label from 274.70361328125
   with its baseline at `yf − d(9)` = 53.83056640625 (tier 1). The jump
-  from `Xf` = `x(16)` = 471.70361328125 to `Xt` = `x(0)` = 71.70361328125
-  (§6.6): `q` = −100, `ya` = 14.5 + 49.453125 = 63.953125, `yc` =
-  55.953125 + 4/3 × 8 = 66.61979166666667, `C1` = (371.70361328125, `yc`),
-  `C2` = (171.70361328125, `yc`); `ℓ` = 100.56727985670975, `(ux, uy)` =
-  (−0.9943592005519288, −0.10606498139220578), `Bh` = (75.68105008345772,
-  56.377384925568826) and the head's corners (75.4689201206733,
-  58.366103326672686) and (75.89318004624214, 54.388666524464966). Its
-  label is centred on `x(8)`, baseline (14.5 + (49.453125 + 2)) + `a(9)` =
-  74.30712890625.
+  origin from `Xf` = `x(16)` = 471.70361328125 to `Xt` = `x(0)` =
+  71.70361328125 (§6.6): `q` = −100, `ya` = 14.5 + 49.453125 = 63.953125,
+  `yc` = 55.953125 + 4/3 × 8 = 66.61979166666667, `C1` = (371.70361328125,
+  `yc`), `C2` = (171.70361328125, `yc`); `ℓ` = 100.56727985670975, `(ux,
+  uy)` = (−0.9943592005519288, −0.10606498139220578), `Bh` =
+  (75.68105008345772, 56.377384925568826) and the head's corners
+  (75.4689201206733, 58.366103326672686) and (75.89318004624214,
+  54.388666524464966). Its label is centred on `x(8)`, baseline (14.5 +
+  (49.453125 + 2)) + `a(9)` = 74.30712890625.
 - Places (§8.6): `pages` at (8, 28.8046875), the first item, `P + h(11) +
   F`; `recording` at (8, 100.2578125), the box's spacing 8 below the
   bottom edge `d` = 28.8046875 + 63.453125 = 92.2578125 of `pages`' card,
@@ -640,24 +640,23 @@ in place coordinates until the place origin is added, last (§8.4).
 - Drawn, each position plus (68, 178.8046875): the title at `x` 8 with its
   baseline at −160.59423828125 + 178.8046875 = 18.21044921875 → 18.2104,
   where it lies in a box with no places; the cards of `score` at (8,
-  28.8046875 → 28.8047), where the first item lies by default, of `pages`
-  at (76, 207.609375 → 207.6094) and of `recording` at (76, 279.0625),
-  each 507.896728515625 → 507.8967 wide; the starts (8 +
-  71.70361328125) + 68 = 147.70361328125 → 147.7036 (`pages`,
-  `recording`) and (−60 + 71.70361328125) + 68 = 79.70361328125 →
-  79.7036 (`score`); the lines at `y` 236.0859375 → 236.0859 (`pages`),
-  293.5625 (`recording`) and 43.3046875 → 43.3047 (`score`), and their
-  maps' outlines from 229.5859375 → 229.5859 to 231.5859375 → 231.5859,
-  from 287.0625 to 289.0625 and from 36.8046875 → 36.8047 to 38.8046875 →
-  38.8047; the boundaries of `pages` at `u` = 1/3 and 2/3, item x
-  205.03694661458331 and 338.37027994791663, → 281.0369 and 414.3703; the
-  break of `score` at `x` 279.70361328125 → 279.7036, from the flow row at
-  84.7578125 → 84.7578 to 36.8046875 → 36.8047, where the top of its
-  map's outline lies too, and its jump from (479.7036, 84.7578) to
-  (79.7036, 84.7578), its shaft ending at `Bh` (83.68105008345772,
-  85.18207242556883) → (83.6811, 85.1821). The shadow of `score`'s card
-  ends at 150.8046875, 56.8046875 above the card of `pages`, and no card
-  overlaps another or the title.
+  28.8046875 → 28.8047), where the first item lies by default, of `pages` at
+  (76, 207.609375 → 207.6094) and of `recording` at (76, 279.0625), each
+  507.896728515625 → 507.8967 wide; the starts (8 + 71.70361328125) + 68 =
+  147.70361328125 → 147.7036 (`pages`, `recording`) and (−60 +
+  71.70361328125) + 68 = 79.70361328125 → 79.7036 (`score`); the lines at
+  `y` 236.0859375 → 236.0859 (`pages`), 293.5625 (`recording`) and
+  43.3046875 → 43.3047 (`score`), and their maps' outlines from 229.5859375
+  → 229.5859 to 231.5859375 → 231.5859, from 287.0625 to 289.0625 and from
+  36.8046875 → 36.8047 to 38.8046875 → 38.8047; the boundaries of `pages` at
+  `u` = 1/3 and 2/3, item x 205.03694661458331 and 338.37027994791663, →
+  281.0369 and 414.3703; the flow marker of `score` at `x` 279.70361328125 →
+  279.7036, from the flow row at 84.7578125 → 84.7578 to 36.8046875 →
+  36.8047, where the top of its map's outline lies too, and its jump origin
+  from (479.7036, 84.7578) to (79.7036, 84.7578), its shaft ending at `Bh`
+  (83.68105008345772, 85.18207242556883) → (83.6811, 85.1821). The shadow of
+  `score`'s card ends at 150.8046875, 56.8046875 above the card of `pages`,
+  and no card overlaps another or the title.
 - Page 625.896728515625 × 370.5390625 → **625.8967 × 370.5391**.
 
 ## `bundle_ungrouped__scale`
@@ -731,23 +730,23 @@ places, only lower.
 - `score` (§6.4, §6.5): `Ea` = 6.5, its map stack's reach, so `y_root` =
   14.5, as at `S` = 4. Its flow control band starts at 26.9765625 + 8 =
   34.9765625, beyond its markers band; the label `Fine` fills one
-  break-label tier, `T` = 1, so the flow row lies at `f0` = 34.9765625 +
-  10.4765625 = 45.453125, and the jump fills one jump row, its apex at
-  45.453125 + (4 + 8) = 57.453125. The band is 10.4765625 + (4 + 8) + 0 +
+  flow-marker label tier, `T` = 1, so the flow row lies at `f0` = 34.9765625
+  + 10.4765625 = 45.453125, and the jump origin fills one jump row, its apex
+  at 45.453125 + (4 + 8) = 57.453125. The band is 10.4765625 + (4 + 8) + 0 +
   2 + 10.4765625 = 34.953125 wide, so `Eb` = 34.9765625 + 34.953125 =
   69.9296875 and `Hm` = 14.5 + 69.9296875 + 8 = 92.4296875 → 92.4297.
-- The flow of `score`, in item coordinates: the break at `x(8)` =
-  271.70361328125, from the flow row `yf` = 14.5 + 45.453125 = 59.953125
-  to `P` = 8, its label from 274.70361328125 with its baseline at `yf −
-  d(9)` = 57.83056640625. The jump from `Xf` = `x(16)` = 471.70361328125
-  to `Xt` = `x(0)` = 71.70361328125 (§6.6): `q` = −100, `ya` = 14.5 +
-  57.453125 = 71.953125, `yc` = 59.953125 + 4/3 × 12 = 75.953125 (the
-  double nearest 4/3, times 12, lies halfway between 16 and the double
-  below it and rounds to 16, ties to even), `C1` = (371.70361328125, `yc`),
-  `C2` = (171.70361328125, `yc`); `ℓ` = √(100 × 100 + 16 × 16) =
+- The flow of `score`, in item coordinates: the flow marker at `x(8)` =
+  271.70361328125, from the flow row `yf` = 14.5 + 45.453125 = 59.953125 to
+  `P` = 8, its label from 274.70361328125 with its baseline at `yf − d(9)` =
+  57.83056640625. The jump origin from `Xf` = `x(16)` = 471.70361328125 to
+  `Xt` = `x(0)` = 71.70361328125 (§6.6): `q` = −100, `ya` = 14.5 + 57.453125
+  = 71.953125, `yc` = 59.953125 + 4/3 × 12 = 75.953125 (the double nearest
+  4/3, times 12, lies halfway between 16 and the double below it and rounds
+  to 16, ties to even), `C1` = (371.70361328125, `yc`), `C2` =
+  (171.70361328125, `yc`); `ℓ` = √(100 × 100 + 16 × 16) =
   101.27191120937731, `(ux, uy)` = (−0.9874406319167053,
-  −0.15799050110667284), `Bh` = (75.65337580891682, 60.58508700442669)
-  and the head's corners (75.33739480670347, 62.5599682682601) and
+  −0.15799050110667284), `Bh` = (75.65337580891682, 60.58508700442669) and
+  the head's corners (75.33739480670347, 62.5599682682601) and
   (75.96935681113017, 58.61020574059328). Its label is centred on `x(8)`,
   baseline (14.5 + (57.453125 + 2)) + `a(9)` = 82.30712890625.
 - Places: `pages` at (8, 28.8046875), the first item, `P + h(11) + F`, its
@@ -768,14 +767,14 @@ places, only lower.
   134.5659; its labels at baseline 116.2578125 + ((14.5 + 16.5) +
   8.35400390625) = 155.61181640625 → 155.6118.
 - `score`, 32 lower than in a box with no places: its card at (8,
-  189.734375), 507.8967 wide and 92.4297 high, its shadow at (10,
-  191.734375 → 191.7344); its line at 189.734375 + 14.5 = 204.234375 →
-  204.2344, its map's outline from 197.734375 → 197.7344 to 199.734375 →
-  199.7344, its name's baseline at 208.04248046875 → 208.0425, its labels'
-  at 229.08837890625 → 229.0884, all as at `S` = 4; its flow row at
-  189.734375 + 59.953125 = 249.6875, the break from there to 189.734375 +
-  8 = 197.734375 → 197.7344 and its label's baseline at 189.734375 +
-  57.83056640625 = 247.56494140625 → 247.5649; the jump's controls at
+  189.734375), 507.8967 wide and 92.4297 high, its shadow at (10, 191.734375
+  → 191.7344); its line at 189.734375 + 14.5 = 204.234375 → 204.2344, its
+  map's outline from 197.734375 → 197.7344 to 199.734375 → 199.7344, its
+  name's baseline at 208.04248046875 → 208.0425, its labels' at
+  229.08837890625 → 229.0884, all as at `S` = 4; its flow row at 189.734375
+  + 59.953125 = 249.6875, the flow marker from there to 189.734375 + 8 =
+  197.734375 → 197.7344 and its label's baseline at 189.734375 +
+  57.83056640625 = 247.56494140625 → 247.5649; the jump origin's controls at
   189.734375 + 75.953125 = 265.6875, its shaft ending at `Bh`
   (83.65337580891682, 250.3194620044267) → (83.6534, 250.3195), the head's
   corners → (83.3374, 252.2943) and (83.9694, 248.3446), and its label's
@@ -808,17 +807,17 @@ its other bands (§4). `a` is hidden and takes no room.
   62.640625 → 62.6406 and `b`'s at 23.
 - Below: the conversion maps band lies at level −1 from `c` = 0. The map
   `ticks` is centred `w / 2 + (g + d) − d / 2` = 2 + 5 − 1 = 6 below the
-  line, its outline from 67.640625 → 67.6406 to 69.640625 → 69.6406, and
-  the band reaches `e` = 2 + 5 = 7. The flow control band lies at level −2
-  from 7 + 4 = 11. It has no break-label tier, so the flow row lies at 11
-  (73.640625 → 73.6406) and the jump's apex at 11 + 8 = 19 (81.640625).
-  The band is 0 + 8 + 2 + 11.640625 = 21.640625 wide, so its outer edge is
-  32.640625. The regions band lies at level −3 from 32.640625 + 4 =
-  36.640625. With `pr` = 6 + 2 + `h(10)` + 4 = 23.640625 it is 19.640625
-  wide, so `Eb` = 56.28125. The flow control and regions bands swap places
-  and widths with those of `styled__score`, so `Eb` and the height stay
-  that drawing's.
-- The jump `da-capo` runs from `Xf` = `x(8)` = 498.080078125 to `Xt` =
+  line, its outline from 67.640625 → 67.6406 to 69.640625 → 69.6406, and the
+  band reaches `e` = 2 + 5 = 7. The flow control band lies at level −2 from
+  7 + 4 = 11. It has no flow-marker label tier, so the flow row lies at 11
+  (73.640625 → 73.6406) and the jump origin's apex at 11 + 8 = 19
+  (81.640625). The band is 0 + 8 + 2 + 11.640625 = 21.640625 wide, so its
+  outer edge is 32.640625. The regions band lies at level −3 from 32.640625
+  + 4 = 36.640625. With `pr` = 6 + 2 + `h(10)` + 4 = 23.640625 it is
+  19.640625 wide, so `Eb` = 56.28125. The flow control and regions bands
+  swap places and widths with those of `styled__score`, so `Eb` and the
+  height stay that drawing's.
+- The jump origin `da-capo` runs from `Xf` = `x(8)` = 498.080078125 to `Xt` =
   `x(0)` = 98.080078125, with `w` = 2:
   - `q` = −100 and `yc` = 73.640625 + 4/3 × 8 = 84.30729166666667 →
     84.3073;
@@ -1058,34 +1057,34 @@ and then `form/region_2`, laid out by one first fit.
 ## `child_flow_control__flow-shown`
 
 The root `piece` ("Piece", 16 quarters) and its locked child `verse`
-("Verse", 8 at 4), which holds the break `fine` ("Fine") at 4 and the jump
-`da_capo_al_fine` ("D.C. al Fine") from 8 back to 0, on `piece`'s axis at 8
-and from 12 to 4. The application layer `[{"select": {"ids":
-["verse/flow_control_1"]}, "set": {"display": "inline"}}]` outranks the
-default that hides the flow control band of every timeline held by a band
-(§2.5, §4), so the break and the jump, addressed `piece/fine` and
-`piece/da_capo_al_fine` (§2.2), are drawn at `verse`'s own line (§6.4).
-`verse` has no band order of its own and follows `piece`'s default one band
-by band id, so its flow control band lies below its line. Its markers band
-and regions band draw nothing, so the flow control band is at level −1.
-`verse` has no map and no boundary, so its line reaches 0 below, less than
-`w / 2` = 1.5, and the band starts at `S` beyond `w / 2`: `c` = 1.5 + 4 =
-5.5.
+("Verse", 8 at 4), which holds the flow marker `fine` ("Fine") at 4 and the
+jump origin `da_capo_al_fine` ("D.C. al Fine") from 8 back to 0, on
+`piece`'s axis at 8 and from 12 to 4. The application layer `[{"select":
+{"ids": ["verse/flow_control_1"]}, "set": {"display": "inline"}}]` outranks
+the default that hides the flow control band of every timeline held by a
+band (§2.5, §4), so the flow marker and the jump origin, addressed
+`piece/fine` and `piece/da_capo_al_fine` (§2.2), are drawn at `verse`'s own
+line (§6.4). `verse` has no band order of its own and follows `piece`'s
+default one band by band id, so its flow control band lies below its line.
+Its markers band and regions band draw nothing, so the flow control band is
+at level −1. `verse` has no map and no boundary, so its line reaches 0
+below, less than `w / 2` = 1.5, and the band starts at `S` beyond `w / 2`:
+`c` = 1.5 + 4 = 5.5.
 
 - `N` = w(`Verse`, 11) = 31.3134765625, above w(`Piece`, 11) =
   29.2724609375.
 - `x0` = 16 + 31.3134765625 + 8 = 55.3134765625 → 55.3135; the start label
-  `0 ♩` gives only 22.416015625, and the jump label, centred on `u` = 8/16 =
-  1/2, 16 + 25.7958984375 − 200 = −158.2041015625. `x(4)` =
+  `0 ♩` gives only 22.416015625, and the jump-origin label, centred on `u` =
+  8/16 = 1/2, 16 + 25.7958984375 − 200 = −158.2041015625. `x(4)` =
   155.3134765625, `x(8)` = 255.3134765625 and `x(12)` = 355.3134765625.
 - `R` = the end label `16 ♩` at 455.3134765625 + 9.279052734375 =
   464.592529296875, beyond the arrowhead tip 464.3134765625; the diamond of
-  `verse` reaches 359.8134765625, the jump label 281.109375 and the break
-  label 258.3134765625 + 18.91845703125 = 277.23193359375.
+  `verse` reaches 359.8134765625, the jump-origin label 281.109375 and the
+  flow-marker label 258.3134765625 + 18.91845703125 = 277.23193359375.
 - The flow control band of `verse` (§6.4): the label `Fine` fills one
-  break-label tier, `T` = 1, so the flow row lies 5.5 + 10.4765625 =
-  15.9765625 below `verse`'s line; the jump fills one jump row, its apex at
-  15.9765625 + 8 = 23.9765625. The band is 10.4765625 + 8 + 0 + 2 +
+  flow-marker label tier, `T` = 1, so the flow row lies 5.5 + 10.4765625 =
+  15.9765625 below `verse`'s line; the jump origin fills one jump row, its
+  apex at 15.9765625 + 8 = 23.9765625. The band is 10.4765625 + 8 + 0 + 2 +
   10.4765625 = 30.953125 wide, so `verse`'s edge below is 5.5 + 30.953125 =
   36.453125. Its above side has no band, and its line reaches 0 there.
 - The children band of `piece` lies above it at level 1. `piece`'s line
@@ -1103,17 +1102,17 @@ and regions band draw nothing, so the flow control band is at level −1.
   at 66.453125 − 43.453125 = 23, the flow row at 23 + 15.9765625 =
   38.9765625 → 38.9766 and the apex at 23 + 23.9765625 = 46.9765625 →
   46.9766.
-- The break (§6.4, Breaks) at `x(8)`: `E` is the outer edge of `verse`'s
-  above side, 0, and `s` the name size 11 of its row, so `m` = max(0,
-  `h(11) / 2`) = 6.40234375. The break runs from the flow row up across
-  `verse`'s line to 23 − 6.40234375 = 16.59765625 → 16.5977, inside the
-  row's outer half of 7. Its label starts at 258.3134765625 → 258.3135,
-  with its baseline at `yf − d(9)` = 38.9765625 − 2.12255859375 =
-  36.85400390625 → 36.854 (tier 1), so the label's ascent ends at 28.5,
-  `S` below the edge of `verse`'s stroke at 24.5.
-- The jump (§6.6), from `Xf` = `x(12)` to `Xt` = `x(4)`, computed in item
-  coordinates and then drawn at the card's place (§8.6): `q` = −50, `yc` =
-  38.9765625 + 4/3 × 8 = 49.643229166666664 → 49.6432, `C1` =
+- The flow marker (§6.4, Flow markers) at `x(8)`: `E` is the outer edge of
+  `verse`'s above side, 0, and `s` the name size 11 of its row, so `m` =
+  max(0, `h(11) / 2`) = 6.40234375. The flow marker runs from the flow row
+  up across `verse`'s line to 23 − 6.40234375 = 16.59765625 → 16.5977,
+  inside the row's outer half of 7. Its label starts at 258.3134765625 →
+  258.3135, with its baseline at `yf − d(9)` = 38.9765625 − 2.12255859375 =
+  36.85400390625 → 36.854 (tier 1), so the label's ascent ends at 28.5, `S`
+  below the edge of `verse`'s stroke at 24.5.
+- The jump origin (§6.6), from `Xf` = `x(12)` to `Xt` = `x(4)`, computed in
+  item coordinates and then drawn at the card's place (§8.6): `q` = −50,
+  `yc` = 38.9765625 + 4/3 × 8 = 49.643229166666664 → 49.6432, `C1` =
   (305.3134765625, `yc`), `C2` = (205.3134765625, `yc`); `ℓ` =
   51.125118853434245, `(ux, uy)` = (−0.9779928364243076,
   −0.2086384717705189), `Bh` = (159.22544790819722, 39.81111638708208) →

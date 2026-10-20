@@ -24,8 +24,9 @@
       "name": "Exposition"
     }
   ],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -35,28 +36,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "audio",
       "is_segment_line": false,
       "length": 1323000,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Audio",
       "number_type": "int",
       "regions": [],
@@ -67,18 +62,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "system",
           "is_segment_line": false,
           "length": 600,
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "System",
           "number_type": "int",
           "offset": 0,
@@ -87,18 +76,12 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "page",
       "is_segment_line": false,
       "length": 1754,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Page",
       "number_type": "int",
       "regions": [],
@@ -112,25 +95,19 @@
             {
               "id": "cmap_1",
               "name": null,
-              "sample_rate": 44100,
+              "offset": 0,
               "scalar": 44100,
               "source_unit": "seconds",
               "target_unit": "samples",
-              "type": "SecondsToSamples"
+              "type": "LinearMap"
             }
           ],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "take",
           "is_segment_line": false,
           "length": 25.5,
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Take",
           "number_type": "float",
           "offset": 30.0,
@@ -139,18 +116,12 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "session",
       "is_segment_line": false,
       "length": 90.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Session",
       "number_type": "float",
       "regions": [],
@@ -161,11 +132,7 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "exposition",
           "is_segment_line": false,
           "length": [
@@ -173,9 +140,7 @@
             1
           ],
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Exposition",
           "number_type": "fraction",
           "offset": [
@@ -187,11 +152,7 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "sonata",
       "is_segment_line": false,
       "length": [
@@ -199,9 +160,7 @@
         1
       ],
       "locked": true,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Sonata",
       "number_type": "fraction",
       "regions": [],

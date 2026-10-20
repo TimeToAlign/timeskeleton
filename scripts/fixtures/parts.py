@@ -13,7 +13,7 @@ from timetoalign import (
     DiscretePhysicalTimeline,
     Timeline,
 )
-from timetoalign.core import ActivationCondition, FlowControlElement
+from timetoalign.core import FlowControlElement
 from timetoalign.maps import (
     QuartersToTicks,
     SamplesToSeconds,
@@ -68,15 +68,14 @@ def with_maps(timeline: Timeline, *maps: Any) -> Timeline:
 def with_repeat(timeline: Timeline, source: Any, destination: Any) -> Timeline:
     """Give ``timeline`` a jump from ``source`` back to ``destination``.
 
-    The jump is a repeat end taken the first time only (``first_n``, one
-    repeat), labelled "Repeat", its id minted.
+    The jump is a repeat end taken once (``repeat_count`` 1), labelled
+    "Repeat", its id minted.
     """
     timeline.flow_control.add_jump(
         Jump(
             from_coordinate=timeline.make_coordinate(source),
             to_coordinate=timeline.make_coordinate(destination),
             control_type=FlowControlElement.repeat_end,
-            condition=ActivationCondition.first_n,
             repeat_count=1,
             label="Repeat",
         )

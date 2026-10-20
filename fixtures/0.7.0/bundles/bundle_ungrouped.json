@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Sketches",
   "timelines": [
@@ -10,18 +11,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "page_1",
           "is_segment_line": false,
           "length": 1754,
           "locked": false,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Page 1",
           "number_type": "int",
           "offset": 0,
@@ -31,18 +26,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "page_2",
           "is_segment_line": false,
           "length": 1754,
           "locked": false,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Page 2",
           "number_type": "int",
           "offset": 1754,
@@ -52,18 +41,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "page_3",
           "is_segment_line": false,
           "length": 1754,
           "locked": false,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Page 3",
           "number_type": "int",
           "offset": 3508,
@@ -75,27 +58,22 @@
         {
           "id": "cmap_1",
           "name": null,
+          "offset": 0,
           "scalar": [
             3,
             4
           ],
           "source_unit": "pixels",
           "target_unit": "points",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "pages",
       "is_segment_line": true,
       "length": 5262,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Pages",
       "number_type": "int",
       "regions": [],
@@ -107,28 +85,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "recording",
       "is_segment_line": false,
       "length": 441000,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Recording",
       "number_type": "int",
       "regions": [],
@@ -140,50 +112,39 @@
         {
           "id": "cmap_1",
           "name": null,
-          "ppq": 480,
+          "offset": 0,
           "scalar": 480,
           "source_unit": "quarters",
           "target_unit": "ticks",
-          "type": "QuartersToTicks"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [
-          {
-            "condition": "after_dc_ds",
-            "control_type": "fine",
-            "coordinate": [
-              8,
-              1
-            ],
-            "id": "break_1",
-            "label": "Fine",
-            "meta": {},
-            "name": null,
-            "repeat_count": 1
-          }
-        ],
-        "jumps": [
-          {
-            "condition": "after_first",
-            "control_type": "da_capo_al_fine",
-            "from_coordinate": [
-              16,
-              1
-            ],
-            "id": "jump_1",
-            "label": "D.C. al Fine",
-            "meta": {},
-            "repeat_count": 1,
-            "target": null,
-            "to_coordinate": [
-              0,
-              1
-            ]
-          }
-        ],
-        "markers": []
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "break_1",
+          "label": "Fine",
+          "manifestation": "fine",
+          "meta": {},
+          "name": null,
+          "type": "flow_marker"
+        },
+        {
+          "coordinate": [
+            16,
+            1
+          ],
+          "id": "jump_1",
+          "label": "D.C. al Fine",
+          "manifestation": "da_capo_al_fine",
+          "meta": {},
+          "name": null,
+          "type": "jump_from"
+        }
+      ],
       "id": "score",
       "is_segment_line": false,
       "length": [
@@ -191,9 +152,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Score",
       "number_type": "fraction",
       "regions": [],

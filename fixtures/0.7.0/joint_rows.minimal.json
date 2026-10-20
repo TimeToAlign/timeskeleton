@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
@@ -41,11 +41,10 @@
           "conversion_maps": [
             {
               "id": "ticks_b",
-              "ppq": 480,
               "scalar": 480,
               "source_unit": "quarters",
               "target_unit": "ticks",
-              "type": "QuartersToTicks"
+              "type": "LinearMap"
             }
           ],
           "id": "b",
@@ -75,15 +74,14 @@
                       ],
                       "source_unit": "quarters",
                       "target_unit": "seconds",
-                      "type": "ScalarMap"
+                      "type": "LinearMap"
                     },
                     {
                       "id": "ticks_d11",
-                      "ppq": 480,
                       "scalar": 480,
                       "source_unit": "quarters",
                       "target_unit": "ticks",
-                      "type": "QuartersToTicks"
+                      "type": "LinearMap"
                     }
                   ],
                   "id": "d11",
@@ -109,15 +107,14 @@
                   ],
                   "source_unit": "quarters",
                   "target_unit": "seconds",
-                  "type": "ScalarMap"
+                  "type": "LinearMap"
                 },
                 {
                   "id": "ticks_d1",
-                  "ppq": 480,
                   "scalar": 480,
                   "source_unit": "quarters",
                   "target_unit": "ticks",
-                  "type": "QuartersToTicks"
+                  "type": "LinearMap"
                 }
               ],
               "id": "d1",

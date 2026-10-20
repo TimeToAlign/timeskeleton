@@ -1,20 +1,19 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 48000,
           "scalar": [
             1,
             48000
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "maps:samples",

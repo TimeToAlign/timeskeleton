@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -11,28 +12,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 48000,
+          "offset": 0,
           "scalar": [
             1,
             48000
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "maps:samples",
       "is_segment_line": false,
       "length": 96000,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Sample maps",
       "number_type": "int",
       "regions": [],

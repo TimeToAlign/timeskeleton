@@ -72,7 +72,7 @@ _STYLED_SCORE = {
             "set": "accent",
         },
         {
-            "select": {"class": "QuartersToTicks"},
+            "select": {"class": "LinearMap"},
             "set": {"stroke": "#7C3AED", "stroke-width": 1.5},
         },
         {
@@ -82,7 +82,7 @@ _STYLED_SCORE = {
         {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
         {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
         {
-            "select": {"element": "jump", "domain": "logical"},
+            "select": {"element": "jump_from", "domain": "logical"},
             "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
         },
         {
@@ -168,9 +168,9 @@ _LOGICAL = ("ContinuousLogicalTimeline", "logical", "continuous")
 _SCORE_ELEMENTS = [
     ("timeline", "score", "score", *_LOGICAL, None),
     ("child", "b", "b", *_LOGICAL, "score"),
-    ("map", "score/ticks", "score", "QuartersToTicks", "logical", "discrete", "score"),
+    ("map", "score/ticks", "score", "LinearMap", "logical", "discrete", "score"),
     ("region", "score/intro", "score", *_LOGICAL, "score"),
-    ("jump", "score/da-capo", "score", *_LOGICAL, "score"),
+    ("jump_from", "score/da-capo", "score", *_LOGICAL, "score"),
     ("wedge", "score/start", "score", *_LOGICAL, "score"),
     ("wedge", "score/end", "score", *_LOGICAL, "score"),
     ("name", "score/name", "score", *_LOGICAL, "score"),
@@ -250,7 +250,7 @@ def test_every_styled_score_item_has_its_own_colour() -> None:
     }
     assert len(set(colours.values())) == 13
     for element in _SCORE_ELEMENTS:
-        if element[0] in {"timeline", "child", "jump", "wedge"}:
+        if element[0] in {"timeline", "child", "jump_from", "wedge"}:
             assert _resolve(graphical, element, "fill") == colours[element[1]]
 
 

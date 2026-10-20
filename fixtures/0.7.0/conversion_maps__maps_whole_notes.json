@@ -1,0 +1,106 @@
+{
+  "groups": [],
+  "measure_maps": [
+    {
+      "id": "measuremap_1",
+      "meta": {},
+      "name": null,
+      "rows": [
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 1,
+          "end_repeat": false,
+          "name": "1",
+          "next": [
+            "2"
+          ],
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 1,
+          "qstamp": [
+            0,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        },
+        {
+          "actual_length": [
+            4,
+            1
+          ],
+          "count": 4,
+          "end_repeat": false,
+          "name": "4",
+          "nominal_length": [
+            4,
+            1
+          ],
+          "number": 4,
+          "qstamp": [
+            12,
+            1
+          ],
+          "start_repeat": false,
+          "time_signature": "4/4"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (ce979703)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [],
+      "conversion_maps": [
+        {
+          "id": "cmap_1",
+          "maps": [
+            {
+              "id": "lmap_1",
+              "name": null,
+              "offset": 0,
+              "scalar": 4,
+              "source_unit": "whole_notes",
+              "target_unit": "quarters",
+              "type": "LinearMap"
+            },
+            {
+              "id": "cmap_1",
+              "measure_map": "measuremap_1",
+              "name": null,
+              "source_unit": "quarters",
+              "target_unit": null,
+              "type": "MeasureRecordMap"
+            }
+          ],
+          "name": null,
+          "source_unit": "whole_notes",
+          "target_unit": null,
+          "type": "ChainMap"
+        }
+      ],
+      "flow_control": [],
+      "id": "maps:whole_notes",
+      "is_segment_line": false,
+      "length": [
+        4,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Whole-note maps",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "whole_notes"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

@@ -32,7 +32,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Beethoven_op35_1971Curzon_Var14only",
   "timelines": [
@@ -49,7 +49,7 @@
           "scalar": 0.0029024943310657597,
           "source_unit": "pixels",
           "target_unit": "seconds",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:dgt_1",
@@ -61,14 +61,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:dpt_1",
@@ -79,9 +78,8 @@
     {
       "conversion_maps": [
         {
-          "extrapolate": "extrapolate",
+          "extrapolate": "linear",
           "id": "tmap_1",
-          "kind": "linear",
           "source_unit": "quarters",
           "target_unit": "seconds",
           "type": "TableMap",
@@ -143,14 +141,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "ppq": 720,
           "scalar": [
             1,
             720
           ],
           "source_unit": "ticks",
           "target_unit": "quarters",
-          "type": "TicksToQuarters"
+          "type": "LinearMap"
         }
       ],
       "id": "score:dlt_1",

@@ -1,0 +1,89 @@
+{
+  "groups": [],
+  "measure_maps": [],
+  "meta": {
+    "generator": "timetoalign 1.2.0 (ce979703)"
+  },
+  "name": null,
+  "timelines": [
+    {
+      "children": [
+        {
+          "children": [],
+          "conversion_maps": [],
+          "flow_control": [
+            {
+              "coordinate": [
+                2,
+                1
+              ],
+              "id": "segno",
+              "label": null,
+              "manifestation": "segno",
+              "meta": {},
+              "name": null,
+              "type": "jump_to"
+            },
+            {
+              "coordinate": [
+                4,
+                1
+              ],
+              "id": "repeat",
+              "label": "Repeat",
+              "manifestation": "repeat_end",
+              "meta": {},
+              "name": null,
+              "repeat_count": 2,
+              "type": "jump_from"
+            },
+            {
+              "coordinate": [
+                8,
+                1
+              ],
+              "id": "dal_segno",
+              "label": "D.S.",
+              "manifestation": "dal_segno",
+              "meta": {},
+              "name": null,
+              "target": "segno",
+              "type": "jump_from"
+            }
+          ],
+          "id": "verse",
+          "is_segment_line": false,
+          "length": [
+            8,
+            1
+          ],
+          "locked": true,
+          "meta": {},
+          "name": "Verse",
+          "number_type": "fraction",
+          "offset": [
+            4,
+            1
+          ],
+          "regions": [],
+          "unit": "quarters"
+        }
+      ],
+      "conversion_maps": [],
+      "flow_control": [],
+      "id": "piece",
+      "is_segment_line": false,
+      "length": [
+        16,
+        1
+      ],
+      "locked": false,
+      "meta": {},
+      "name": "Piece",
+      "number_type": "fraction",
+      "regions": [],
+      "unit": "quarters"
+    }
+  ],
+  "timeskeleton": "0.7.0"
+}

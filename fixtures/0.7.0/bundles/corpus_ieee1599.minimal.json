@@ -66,7 +66,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "khomus",
   "timelines": [
@@ -123,17 +123,24 @@
       ],
       "conversion_maps": [
         {
-          "boundaries": [
-            0
+          "breaks": [
+            0,
+            16926
           ],
           "id": "cmap_1",
+          "maps": [
+            {
+              "id": "cmap_2",
+              "source_unit": "pixels",
+              "target_unit": null,
+              "type": "ConstantMap",
+              "value": "score_files/finale_transcription/khomus_finale_score.jpg"
+            }
+          ],
           "name": "file_name",
           "source_unit": "pixels",
           "target_unit": null,
-          "type": "IntervalToConstantMap",
-          "values": [
-            "score_files/finale_transcription/khomus_finale_score.jpg"
-          ]
+          "type": "PiecewiseMap"
         }
       ],
       "id": "finale_transcription:dgt_2",
@@ -250,17 +257,24 @@
       ],
       "conversion_maps": [
         {
-          "boundaries": [
-            0
+          "breaks": [
+            0,
+            7418
           ],
           "id": "cmap_1",
+          "maps": [
+            {
+              "id": "cmap_2",
+              "source_unit": "pixels",
+              "target_unit": null,
+              "type": "ConstantMap",
+              "value": "score_files/original_score/khomus_original_score.jpg"
+            }
+          ],
           "name": "file_name",
           "source_unit": "pixels",
           "target_unit": null,
-          "type": "IntervalToConstantMap",
-          "values": [
-            "score_files/original_score/khomus_original_score.jpg"
-          ]
+          "type": "PiecewiseMap"
         }
       ],
       "id": "original_score:dgt_1",

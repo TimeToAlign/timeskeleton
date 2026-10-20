@@ -30,7 +30,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Sonata",
   "timelines": [
@@ -67,7 +67,7 @@
                   ],
                   "source_unit": "quarters",
                   "target_unit": "seconds",
-                  "type": "ScalarMap"
+                  "type": "LinearMap"
                 }
               ],
               "id": "exposition_second",
@@ -86,11 +86,10 @@
           "conversion_maps": [
             {
               "id": "cmap_2",
-              "ppq": 480,
               "scalar": 480,
               "source_unit": "quarters",
               "target_unit": "ticks",
-              "type": "QuartersToTicks"
+              "type": "LinearMap"
             }
           ],
           "id": "exposition",
@@ -184,11 +183,10 @@
               "conversion_maps": [
                 {
                   "id": "cmap_4",
-                  "ppq": 480,
                   "scalar": 480,
                   "source_unit": "quarters",
                   "target_unit": "ticks",
-                  "type": "QuartersToTicks"
+                  "type": "LinearMap"
                 }
               ],
               "id": "recapitulation_second",
@@ -224,29 +222,24 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "ppq": 480,
           "scalar": 480,
           "source_unit": "quarters",
           "target_unit": "ticks",
-          "type": "QuartersToTicks"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "jumps": [
-          {
-            "from_coordinate": [
-              12,
-              1
-            ],
-            "id": "jump_1",
-            "label": "Repeat",
-            "to_coordinate": [
-              0,
-              1
-            ]
-          }
-        ]
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            12,
+            1
+          ],
+          "id": "jump_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "type": "jump_from"
+        }
+      ],
       "id": "score",
       "length": [
         32,
@@ -289,11 +282,10 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": 44100,
           "source_unit": "seconds",
           "target_unit": "samples",
-          "type": "SecondsToSamples"
+          "type": "LinearMap"
         }
       ],
       "id": "take_1",

@@ -1,56 +1,71 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
-      "flow_control": {
-        "breaks": [
-          {
-            "condition": "after_dc_ds",
-            "control_type": "fine",
-            "coordinate": [
-              12,
-              1
-            ],
-            "id": "break_1",
-            "label": "Fine",
-            "meta": {
-              "source": "synthetic"
-            },
-            "name": "fine"
-          }
-        ],
-        "jumps": [
-          {
-            "from_coordinate": [
-              8,
-              1
-            ],
-            "id": "jump_1",
-            "label": "Repeat",
-            "meta": {
-              "source": "synthetic"
-            },
-            "repeat_count": 2,
-            "target": "marker_1",
-            "to_coordinate": [
-              2,
-              1
-            ]
-          }
-        ],
-        "markers": [
-          {
-            "coordinate": [
-              2,
-              1
-            ],
-            "id": "marker_1",
-            "name": "repeat-start"
-          }
-        ]
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            2,
+            1
+          ],
+          "id": "marker_1",
+          "manifestation": "repeat_start",
+          "name": "repeat-start",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            4,
+            1
+          ],
+          "id": "marker_2",
+          "manifestation": "segno",
+          "name": "segno",
+          "type": "jump_to"
+        },
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "meta": {
+            "source": "synthetic"
+          },
+          "repeat_count": 2,
+          "target": "marker_1",
+          "type": "jump_from"
+        },
+        {
+          "coordinate": [
+            12,
+            1
+          ],
+          "id": "break_1",
+          "label": "Fine",
+          "manifestation": "fine",
+          "meta": {
+            "source": "synthetic"
+          },
+          "name": "fine",
+          "type": "flow_marker"
+        },
+        {
+          "coordinate": [
+            16,
+            1
+          ],
+          "id": "jump_2",
+          "label": "D.S.",
+          "manifestation": "dal_segno",
+          "target": "marker_2",
+          "type": "jump_from"
+        }
+      ],
       "id": "flow:quarters",
       "length": [
         16,

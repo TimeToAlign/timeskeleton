@@ -33,19 +33,16 @@
       "name": "Facsimile"
     }
   ],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Mixed",
   "timelines": [
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "annotations",
       "is_segment_line": false,
       "length": [
@@ -53,9 +50,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Annotations",
       "number_type": "fraction",
       "regions": [
@@ -94,27 +89,22 @@
         {
           "id": "cmap_1",
           "name": null,
+          "offset": 0,
           "scalar": [
             3,
             4
           ],
           "source_unit": "pixels",
           "target_unit": "points",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "page",
       "is_segment_line": false,
       "length": 1920,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Page",
       "number_type": "int",
       "regions": [],
@@ -126,25 +116,19 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": 44100,
           "source_unit": "seconds",
           "target_unit": "samples",
-          "type": "SecondsToSamples"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "performance",
       "is_segment_line": false,
       "length": 12.5,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Performance",
       "number_type": "float",
       "regions": [],
@@ -158,28 +142,22 @@
             {
               "id": "cmap_2",
               "name": null,
-              "sample_rate": 44100,
+              "offset": 0,
               "scalar": [
                 1,
                 44100
               ],
               "source_unit": "samples",
               "target_unit": "seconds",
-              "type": "SamplesToSeconds"
+              "type": "LinearMap"
             }
           ],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "excerpt",
           "is_segment_line": false,
           "length": 88200,
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Excerpt",
           "number_type": "int",
           "offset": 44100,
@@ -191,28 +169,22 @@
         {
           "id": "cmap_1",
           "name": null,
-          "sample_rate": 44100,
+          "offset": 0,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "recording",
       "is_segment_line": false,
       "length": 441000,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Recording",
       "number_type": "int",
       "regions": [],
@@ -224,47 +196,40 @@
         {
           "id": "cmap_1",
           "name": null,
-          "ppq": 480,
+          "offset": 0,
           "scalar": 480,
           "source_unit": "quarters",
           "target_unit": "ticks",
-          "type": "QuartersToTicks"
+          "type": "LinearMap"
         },
         {
           "id": "cmap_2",
           "name": null,
+          "offset": 0,
           "scalar": [
             1,
             2
           ],
           "source_unit": "quarters",
           "target_unit": "seconds",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [
-          {
-            "condition": "first_n",
-            "control_type": "repeat_end",
-            "from_coordinate": [
-              8,
-              1
-            ],
-            "id": "jump_1",
-            "label": "Repeat",
-            "meta": {},
-            "repeat_count": 1,
-            "target": null,
-            "to_coordinate": [
-              0,
-              1
-            ]
-          }
-        ],
-        "markers": []
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "jump_1",
+          "label": "Repeat",
+          "manifestation": "repeat_end",
+          "meta": {},
+          "name": null,
+          "repeat_count": 1,
+          "type": "jump_from"
+        }
+      ],
       "id": "score",
       "is_segment_line": false,
       "length": [
@@ -272,9 +237,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Score",
       "number_type": "fraction",
       "regions": [],

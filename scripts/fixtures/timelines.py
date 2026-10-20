@@ -5,7 +5,6 @@ from __future__ import annotations
 from fractions import Fraction
 from typing import Any
 
-import numpy as np
 from timetoalign import (
     AlignmentBundle,
     ContinuousGraphicalTimeline,
@@ -17,7 +16,7 @@ from timetoalign import (
     Ms3Loader,
     Timeline,
 )
-from timetoalign.core import ActivationCondition, FlowControlElement
+from timetoalign.core import FlowControlElement
 from timetoalign.loader.alignment import (
     ParangonadaLoader,
 )
@@ -25,30 +24,23 @@ from timetoalign.loader.graphical.iiif import IIIFManifestLoader
 from timetoalign.loader.midi.score import ScoreMidiLoader
 from timetoalign.loader.physical.audio import AudioLoader
 from timetoalign.maps import (
-    BeatInMeasureMap,
     ChainMap,
     CombinationMap,
     ConstantMap,
-    FloorMap,
-    InterpolationMap,
-    IntervalToConstantMap,
+    FloatingMeasureMap,
     LinearMap,
-    MetricalPositionMap,
-    MetricMap,
+    MeasureBeatMap,
+    MeasureNumberMap,
     PiecewiseMap,
-    QuartersToFloatingMeasures,
-    QuartersToMeasureNumber,
     QuartersToTicks,
-    RotationMap,
     SamplesToSeconds,
     ScalarMap,
     SecondsToSamples,
-    ShiftMap,
     TableMap,
     TicksToQuarters,
 )
 from timetoalign.testdata import ensure_data
-from timetoalign.timelines import SegmentLine
+from timetoalign.timelines import MeasureMap, SegmentLine
 from timetoalign.timelines.flowcontrol import Break, Jump, Marker
 
 from . import parts
@@ -138,63 +130,58 @@ def nested_timeline() -> Timeline:
     return nested
 
 
+def four_bars() -> MeasureMap:
+    """Return a measure map of four bars of 4/4, 16 quarters, its id minted."""
+    return MeasureMap.from_rows([{"count": 1, "time_signature": "4/4"}, {"count": 4}])
+
+
 def conversion_maps_quarters() -> Timeline:
-    """Build the quarter axis carrying every applicable registered map class.
+    """Build the quarter axis carrying every conversion-map type.
 
-    With the tick, sample and second axes it carries every registered
-    conversion-map class.
+    The timeline ``maps:quarters`` ("Quarter-note maps", 16 quarters) holds
+    the measure map of ``four_bars`` through its ``MeasureRecordMap`` and
+    reads it through the three other measure views, then carries a
+    ``ChainMap`` of quarters to seconds to minutes, a ``CombinationMap`` of
+    the outputs ``section`` (a ``ConstantMap``) and ``measure`` (a
+    ``MeasureNumberMap``), a ``ConstantMap``, a ``PiecewiseMap`` of two
+    ``LinearMap``s, a ``LinearMap``, and three ``TableMap``s: linear and
+    constant beyond its anchors, previous and undefined beyond them, linear
+    and linear beyond them. Every map id is minted.
     """
-    meter_for_position = MetricMap(
-        starts=[Fraction(0), Fraction(4)],
-        mcs=[1, 2],
-        mns=["1", "2"],
-        lengths=[Fraction(4), Fraction(4)],
-    )
-    # Construct this first so its implicit BeatInMeasureMap has the stable _1 id.
-    metrical_position = MetricalPositionMap(meter_for_position)
-    meter_for_beat = MetricMap(
-        starts=[Fraction(0), Fraction(3)],
-        mcs=[1, 2],
-        mns=["1", "2"],
-        lengths=[Fraction(3), Fraction(3)],
-    )
-
     quarters = ContinuousLogicalTimeline(
         length=16, unit="quarters", uid="maps:quarters", name="Quarter-note maps"
     )
+    quarters.add_measure_map(four_bars())
+    bars = quarters.measure_map
     quarter_maps = [
-        metrical_position,
-        BeatInMeasureMap(meter_for_beat),
+        MeasureNumberMap(bars),
+        FloatingMeasureMap(bars),
+        MeasureBeatMap(bars),
         ChainMap(
             [
-                ScalarMap(
-                    Fraction(1, 2),
-                    source_unit="quarters",
-                    target_unit="seconds",
+                LinearMap(
+                    scalar=Fraction(1, 2), source_unit="quarters", target_unit="seconds"
                 ),
-                ScalarMap(60, source_unit="seconds", target_unit="minutes"),
+                LinearMap(
+                    scalar=Fraction(1, 60), source_unit="seconds", target_unit="minutes"
+                ),
             ]
         ),
         CombinationMap(
             {
-                "label": ConstantMap(value="verse", source_unit="quarters"),
-                "beat": RotationMap(4, base=1, source_unit="quarters"),
+                "section": ConstantMap(value="verse", source_unit="quarters"),
+                "measure": MeasureNumberMap(bars),
             }
         ),
         ConstantMap(value="section-a", source_unit="quarters"),
-        FloorMap(4, base=1, source_unit="quarters"),
-        InterpolationMap(
-            source_coords=np.array([0.0, 8.0, 16.0]),
-            target_coords=np.array([0.0, 4.25, 9.0]),
-            source_id="maps:quarters",
-            target_id="maps:seconds",
+        PiecewiseMap(
+            breaks=[Fraction(0), Fraction(8), Fraction(16)],
+            maps=[
+                LinearMap(offset=1, source_unit="quarters", target_unit="seconds"),
+                LinearMap(offset=2, source_unit="quarters", target_unit="seconds"),
+            ],
             source_unit="quarters",
             target_unit="seconds",
-        ),
-        IntervalToConstantMap(
-            boundaries=[Fraction(0), Fraction(8)],
-            values=["opening", "closing"],
-            source_unit="quarters",
         ),
         LinearMap(
             scalar=Fraction(3, 2),
@@ -202,32 +189,26 @@ def conversion_maps_quarters() -> Timeline:
             source_unit="quarters",
             target_unit="seconds",
         ),
-        MetricMap(
-            starts=[Fraction(0), Fraction(4)],
-            mcs=[1, 2],
-            mns=["1", "2"],
-            lengths=[Fraction(4), Fraction(4)],
-        ),
-        PiecewiseMap(
-            breaks=[Fraction(0), Fraction(8), Fraction(16)],
-            maps=[ShiftMap(offset=1), ShiftMap(offset=2)],
-            source_unit="quarters",
-            target_unit="seconds",
-        ),
-        QuartersToFloatingMeasures(
-            x_values=[Fraction(0), Fraction(4), Fraction(8)],
-            y_values=[1.0, 2.0, 3.0],
-        ),
-        QuartersToMeasureNumber(boundaries=[Fraction(0), Fraction(4)], mns=["1", "2"]),
-        QuartersToTicks(ppq=480),
-        RotationMap(4, scale=0.5, base=1, offset=0.25, source_unit="quarters"),
-        ScalarMap(Fraction(2, 3), source_unit="quarters", target_unit="seconds"),
-        ShiftMap(offset=Fraction(1, 2), source_unit="quarters"),
         TableMap(
             x_values=[Fraction(0), Fraction(4)],
             y_values=[0.0, 2.5],
             kind="linear",
             extrapolate="constant",
+            source_unit="quarters",
+            target_unit="seconds",
+        ),
+        TableMap(
+            x_values=[Fraction(0), Fraction(8)],
+            y_values=[60, 72],
+            kind="previous",
+            extrapolate="error",
+            source_unit="quarters",
+        ),
+        TableMap(
+            x_values=[Fraction(0), Fraction(8), Fraction(16)],
+            y_values=[0.0, 4.25, 9.0],
+            kind="linear",
+            extrapolate="extrapolate",
             source_unit="quarters",
             target_unit="seconds",
         ),
@@ -265,19 +246,29 @@ def conversion_maps_seconds() -> Timeline:
 
 
 def flow_control_timeline() -> Timeline:
-    """Build one timeline with a break, and a jump to a named marker."""
+    """Build one timeline with every element type of flow control.
+
+    The root ``flow:quarters`` ("Flow control", 16 quarters) holds the jump
+    target ``repeat-start`` (a repeat start) at 2, the flow marker ``fine``
+    ("Fine") at 12, the jump origin "Repeat" at 8, a repeat end back to
+    ``repeat-start`` taken twice, the jump target ``segno`` at 4 and the jump
+    origin "D.S." at 16, a dal segno to ``segno``. The elements' ids are
+    minted.
+    """
     timeline = ContinuousLogicalTimeline(
         length=16, unit="quarters", uid="flow:quarters", name="Flow control"
     )
     marker = timeline.flow_control.add_marker(
-        Marker(timeline.make_coordinate(2), name="repeat-start")
+        Marker(
+            timeline.make_coordinate(2),
+            name="repeat-start",
+            control_type=FlowControlElement.repeat_start,
+        )
     )
     timeline.flow_control.add_break(
         Break(
             coordinate=timeline.make_coordinate(12),
             control_type=FlowControlElement.fine,
-            condition=ActivationCondition.after_dc_ds,
-            repeat_count=1,
             label="Fine",
             name="fine",
             meta={"source": "synthetic"},
@@ -288,11 +279,26 @@ def flow_control_timeline() -> Timeline:
             from_coordinate=timeline.make_coordinate(8),
             to_coordinate=timeline.make_coordinate(2),
             control_type=FlowControlElement.repeat_end,
-            condition=ActivationCondition.first_n,
             repeat_count=2,
             target=marker.id,
             label="Repeat",
             meta={"source": "synthetic"},
+        )
+    )
+    segno = timeline.flow_control.add_marker(
+        Marker(
+            timeline.make_coordinate(4),
+            name="segno",
+            control_type=FlowControlElement.segno,
+        )
+    )
+    timeline.flow_control.add_jump(
+        Jump(
+            from_coordinate=timeline.make_coordinate(16),
+            to_coordinate=timeline.make_coordinate(4),
+            control_type=FlowControlElement.dal_segno,
+            target=segno.id,
+            label="D.S.",
         )
     )
     return timeline
@@ -345,12 +351,12 @@ def map_timeline() -> Timeline:
 def styled_score_timeline() -> Timeline:
     """Build ``styled__score``, the logical timeline of the styled fixture.
 
-    It holds children, a map, a region and a jump.
+    It holds children, a map, a region and a jump origin.
 
     The root ``score`` ("Score", 8 quarters) holds the children ``a`` and ``b``
     (4 quarters each) at 0 and 4, and carries the map to ticks ``ticks``
-    ("Ticks"), the region ``intro`` from 0 to 2 and the da capo ``da-capo``
-    ("D.C.") from 8 back to 0.
+    ("Ticks"), the region ``intro`` from 0 to 2 and the jump origin
+    ``da-capo`` ("D.C."), a da capo from 8 back to the start without a target.
     """
     score = ContinuousLogicalTimeline(
         length=8, unit="quarters", uid="score", name="Score"
@@ -364,8 +370,6 @@ def styled_score_timeline() -> Timeline:
             from_coordinate=score.make_coordinate(8),
             to_coordinate=score.make_coordinate(0),
             control_type=FlowControlElement.da_capo,
-            condition=ActivationCondition.always,
-            repeat_count=1,
             target=None,
             label="D.C.",
             id="da-capo",
@@ -604,11 +608,18 @@ def unknown_length_timeline() -> Timeline:
     """Build ``unknown_length``, a root of unknown length with content.
 
     The root ``score`` of unknown length holds the region ``region_1`` from 2
-    to 8, the marker ``marker_1`` at 6 and the child ``coda`` (4 quarters) at
-    10; its content reaches 14. Every timeline is of quarters and unnamed.
+    to 8, the jump target ``marker_1`` (a segno) at 6 and the child ``coda``
+    (4 quarters) at 10; its content reaches 14. Every timeline is of quarters
+    and unnamed.
     """
     score = parts.with_region(parts.quarters("score", None), 2, 8, "region_1")
-    score.flow_control.add_marker(Marker(score.make_coordinate(6), id="marker_1"))
+    score.flow_control.add_marker(
+        Marker(
+            score.make_coordinate(6),
+            control_type=FlowControlElement.segno,
+            id="marker_1",
+        )
+    )
     score.add_child(parts.quarters("coda", 4), 10)
     return score
 
@@ -711,10 +722,10 @@ def child_flow_control_timeline() -> Timeline:
     """Build a root whose one child holds flow control, the root none.
 
     The root ``piece`` ("Piece", 16 quarters) holds the child ``verse``
-    ("Verse", 8 quarters) at 4, which carries a da capo al fine: the break
-    ``fine`` ("Fine") at 4, a fine taken after a da capo or dal segno, and the
-    jump ``da_capo_al_fine`` ("D.C. al Fine") from 8 back to 0, taken after
-    the first pass, one repeat. The defaults hide the flow control band of a
+    ("Verse", 8 quarters) at 4, which carries a da capo al fine: the flow
+    marker ``fine`` ("Fine") at 4 and the jump origin ``da_capo_al_fine``
+    ("D.C. al Fine") from 8 back to 0, which names no target. The defaults
+    hide the flow control band of a
     child, so a drawing shows them only under a statement that displays the
     band ``verse/flow_control_1``.
     """
@@ -728,7 +739,6 @@ def child_flow_control_timeline() -> Timeline:
         Break(
             coordinate=verse.make_coordinate(4),
             control_type=FlowControlElement.fine,
-            condition=ActivationCondition.after_dc_ds,
             label="Fine",
             id="fine",
         )
@@ -738,10 +748,69 @@ def child_flow_control_timeline() -> Timeline:
             from_coordinate=verse.make_coordinate(8),
             to_coordinate=verse.make_coordinate(0),
             control_type=FlowControlElement.da_capo_al_fine,
-            condition=ActivationCondition.after_first,
-            repeat_count=1,
             label="D.C. al Fine",
             id="da_capo_al_fine",
+        )
+    )
+    return piece
+
+
+def conversion_maps_whole_notes() -> Timeline:
+    """Build the whole-note axis reading a measure map through a ``ChainMap``.
+
+    The timeline ``maps:whole_notes`` ("Whole-note maps", 4 whole notes)
+    holds the measure map of ``four_bars``: its ``MeasureRecordMap`` follows
+    the ``LinearMap`` of whole notes to quarters (times 4) in a ``ChainMap``.
+    Every map id is minted.
+    """
+    whole_notes = ContinuousLogicalTimeline(
+        length=4, unit="whole_notes", uid="maps:whole_notes", name="Whole-note maps"
+    )
+    whole_notes.add_measure_map(four_bars())
+    return whole_notes
+
+
+def child_jumps_timeline() -> Timeline:
+    """Build a root whose one child holds jumps to a target and to its start.
+
+    The root ``piece`` ("Piece", 16 quarters) holds the child ``verse``
+    ("Verse", 8 quarters) at 4, which carries the jump target ``segno`` (a
+    segno) at 2, the jump origin ``repeat`` ("Repeat") at 4, a repeat end
+    taken twice back to the child's start without a target, and the jump
+    origin ``dal_segno`` ("D.S.") at 8, a dal segno to ``segno``; the root
+    holds no flow control.
+    """
+    piece = parts.named(ContinuousLogicalTimeline, "piece", "Piece", Fraction(16))
+    verse = parts.holding(
+        piece,
+        parts.named(ContinuousLogicalTimeline, "verse", "Verse", Fraction(8)),
+        Fraction(4),
+    )
+    segno = verse.flow_control.add_marker(
+        Marker(
+            verse.make_coordinate(2),
+            control_type=FlowControlElement.segno,
+            id="segno",
+        )
+    )
+    verse.flow_control.add_jump(
+        Jump(
+            from_coordinate=verse.make_coordinate(4),
+            to_coordinate=verse.make_coordinate(0),
+            control_type=FlowControlElement.repeat_end,
+            repeat_count=2,
+            label="Repeat",
+            id="repeat",
+        )
+    )
+    verse.flow_control.add_jump(
+        Jump(
+            from_coordinate=verse.make_coordinate(8),
+            to_coordinate=verse.make_coordinate(2),
+            control_type=FlowControlElement.dal_segno,
+            target=segno.id,
+            label="D.S.",
+            id="dal_segno",
         )
     )
     return piece

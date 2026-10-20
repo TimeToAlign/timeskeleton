@@ -12,7 +12,7 @@
     }
   },
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
@@ -22,11 +22,10 @@
             {
               "id": "ticks",
               "name": "Ticks",
-              "ppq": 480,
               "scalar": 480,
               "source_unit": "quarters",
               "target_unit": "ticks",
-              "type": "QuartersToTicks"
+              "type": "LinearMap"
             }
           ],
           "id": "phrase",
@@ -53,7 +52,7 @@
           ],
           "source_unit": "quarters",
           "target_unit": "seconds",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
       "id": "melody",

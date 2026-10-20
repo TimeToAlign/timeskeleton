@@ -30,26 +30,21 @@
       "name": "Bruckner5_Scherzo"
     }
   ],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Bruckner5_Scherzo",
   "timelines": [
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "cpt_1",
       "is_segment_line": false,
       "length": 788.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Form (Harnoncourt)",
       "number_type": "float",
       "regions": [],
@@ -58,18 +53,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "cpt_2",
       "is_segment_line": false,
       "length": 788.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Themen",
       "number_type": "float",
       "regions": [],
@@ -78,18 +67,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "cpt_3",
       "is_segment_line": false,
       "length": 788.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Topik",
       "number_type": "float",
       "regions": [],
@@ -98,18 +81,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "cpt_4",
       "is_segment_line": false,
       "length": 788.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Takte",
       "number_type": "float",
       "regions": [],
@@ -118,18 +95,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "cpt_5",
       "is_segment_line": false,
       "length": 788.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Tempo",
       "number_type": "float",
       "regions": [],
@@ -138,18 +109,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "cpt_6",
       "is_segment_line": false,
       "length": 788.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Dramaturgie",
       "number_type": "float",
       "regions": [],
@@ -158,18 +123,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "cpt_7",
       "is_segment_line": false,
       "length": 788.0,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Partitur (PDF)",
       "number_type": "float",
       "regions": [],

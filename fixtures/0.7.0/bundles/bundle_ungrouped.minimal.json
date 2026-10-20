@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "Sketches",
   "timelines": [
@@ -37,7 +37,7 @@
           ],
           "source_unit": "pixels",
           "target_unit": "points",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
       "id": "pages",
@@ -50,14 +50,13 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "sample_rate": 44100,
           "scalar": [
             1,
             44100
           ],
           "source_unit": "samples",
           "target_unit": "seconds",
-          "type": "SamplesToSeconds"
+          "type": "LinearMap"
         }
       ],
       "id": "recording",
@@ -69,43 +68,34 @@
       "conversion_maps": [
         {
           "id": "cmap_1",
-          "ppq": 480,
           "scalar": 480,
           "source_unit": "quarters",
           "target_unit": "ticks",
-          "type": "QuartersToTicks"
+          "type": "LinearMap"
         }
       ],
-      "flow_control": {
-        "breaks": [
-          {
-            "condition": "after_dc_ds",
-            "control_type": "fine",
-            "coordinate": [
-              8,
-              1
-            ],
-            "id": "break_1",
-            "label": "Fine"
-          }
-        ],
-        "jumps": [
-          {
-            "condition": "after_first",
-            "control_type": "da_capo_al_fine",
-            "from_coordinate": [
-              16,
-              1
-            ],
-            "id": "jump_1",
-            "label": "D.C. al Fine",
-            "to_coordinate": [
-              0,
-              1
-            ]
-          }
-        ]
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            8,
+            1
+          ],
+          "id": "break_1",
+          "label": "Fine",
+          "manifestation": "fine",
+          "type": "flow_marker"
+        },
+        {
+          "coordinate": [
+            16,
+            1
+          ],
+          "id": "jump_1",
+          "label": "D.C. al Fine",
+          "manifestation": "da_capo_al_fine",
+          "type": "jump_from"
+        }
+      ],
       "id": "score",
       "length": [
         16,

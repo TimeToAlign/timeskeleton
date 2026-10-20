@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -14,11 +15,7 @@
                 {
                   "children": [],
                   "conversion_maps": [],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
+                  "flow_control": [],
                   "id": "b11",
                   "is_segment_line": false,
                   "length": [
@@ -26,9 +23,7 @@
                     1
                   ],
                   "locked": true,
-                  "measure_map": null,
                   "meta": {},
-                  "metric_hierarchy": null,
                   "name": "B11",
                   "number_type": "fraction",
                   "offset": [
@@ -40,11 +35,7 @@
                 }
               ],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "b1",
               "is_segment_line": false,
               "length": [
@@ -52,9 +43,7 @@
                 1
               ],
               "locked": true,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "B1",
               "number_type": "fraction",
               "offset": [
@@ -69,18 +58,14 @@
             {
               "id": "ticks_b",
               "name": null,
-              "ppq": 480,
+              "offset": 0,
               "scalar": 480,
               "source_unit": "quarters",
               "target_unit": "ticks",
-              "type": "QuartersToTicks"
+              "type": "LinearMap"
             }
           ],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "b",
           "is_segment_line": false,
           "length": [
@@ -88,9 +73,7 @@
             1
           ],
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "B",
           "number_type": "fraction",
           "offset": [
@@ -110,29 +93,26 @@
                     {
                       "id": "tempo_d11",
                       "name": null,
+                      "offset": 0,
                       "scalar": [
                         1,
                         2
                       ],
                       "source_unit": "quarters",
                       "target_unit": "seconds",
-                      "type": "ScalarMap"
+                      "type": "LinearMap"
                     },
                     {
                       "id": "ticks_d11",
                       "name": null,
-                      "ppq": 480,
+                      "offset": 0,
                       "scalar": 480,
                       "source_unit": "quarters",
                       "target_unit": "ticks",
-                      "type": "QuartersToTicks"
+                      "type": "LinearMap"
                     }
                   ],
-                  "flow_control": {
-                    "breaks": [],
-                    "jumps": [],
-                    "markers": []
-                  },
+                  "flow_control": [],
                   "id": "d11",
                   "is_segment_line": false,
                   "length": [
@@ -140,9 +120,7 @@
                     1
                   ],
                   "locked": true,
-                  "measure_map": null,
                   "meta": {},
-                  "metric_hierarchy": null,
                   "name": "D11",
                   "number_type": "fraction",
                   "offset": [
@@ -157,29 +135,26 @@
                 {
                   "id": "tempo_d1",
                   "name": null,
+                  "offset": 0,
                   "scalar": [
                     1,
                     2
                   ],
                   "source_unit": "quarters",
                   "target_unit": "seconds",
-                  "type": "ScalarMap"
+                  "type": "LinearMap"
                 },
                 {
                   "id": "ticks_d1",
                   "name": null,
-                  "ppq": 480,
+                  "offset": 0,
                   "scalar": 480,
                   "source_unit": "quarters",
                   "target_unit": "ticks",
-                  "type": "QuartersToTicks"
+                  "type": "LinearMap"
                 }
               ],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "d1",
               "is_segment_line": false,
               "length": [
@@ -187,9 +162,7 @@
                 1
               ],
               "locked": true,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "D1",
               "number_type": "fraction",
               "offset": [
@@ -201,11 +174,7 @@
             }
           ],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "d",
           "is_segment_line": false,
           "length": [
@@ -213,9 +182,7 @@
             1
           ],
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "D",
           "number_type": "fraction",
           "offset": [
@@ -227,11 +194,7 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "piece",
       "is_segment_line": false,
       "length": [
@@ -239,9 +202,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Piece",
       "number_type": "fraction",
       "regions": [],

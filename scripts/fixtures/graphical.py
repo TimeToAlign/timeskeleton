@@ -30,7 +30,7 @@ _STYLED_SCORE: dict[str, Any] = {
             "set": "accent",
         },
         {
-            "select": {"class": "QuartersToTicks"},
+            "select": {"class": "LinearMap"},
             "set": {"stroke": "#7C3AED", "stroke-width": 1.5},
         },
         {
@@ -40,7 +40,7 @@ _STYLED_SCORE: dict[str, Any] = {
         {"select": {"element": "region"}, "set": {"stroke": "#800000"}},
         {"select": {"element": "region"}, "set": {"stroke": "#0F766E"}},
         {
-            "select": {"element": "jump", "domain": "logical"},
+            "select": {"element": "jump_from", "domain": "logical"},
             "set": {"stroke": "#DB2777", "fill": "#DB2777", "stroke-width": 2},
         },
         {
@@ -190,14 +190,14 @@ In ``styled__score`` every drawn element and every text takes its own colour
 under the cascade of ``docs/drawing.md`` (statements numbered from 0 in the
 list, the two shared ones first):
 
-==========================  =========  ==========================================
+==========================  =========  =============================================
 Item                        Colour     Set by
-==========================  =========  ==========================================
+==========================  =========  =============================================
 root line ``score``         #1D4ED8    4, the style ``accent`` (class and element)
 child line ``b``            #EA580C    13 (element ``child`` within ``b``)
-map ``score/ticks``         #7C3AED    5 (class ``QuartersToTicks``)
+map ``score/ticks``         #7C3AED    5 (class ``LinearMap``)
 brace ``score/intro``       #0F766E    8, which outranks 7 by its position
-jump ``score/da-capo``      #DB2777    9 (element ``jump``, domain ``logical``)
+jump ``score/da-capo``      #DB2777    9 (element ``jump_from``, domain ``logical``)
 wedge ``score/start``       #65A30D    10 (element ``wedge`` within ``score``)
 wedge ``score/end``         #B45309    11 (``ids``)
 name ``score/name``         #111827    18 (``ids``; also ``content``)
@@ -206,7 +206,7 @@ label of ``score/start``    #4D7C0F    14 (element ``label`` within ``score``)
 label of ``score/end``      #A16207    15 (``ids``)
 label of ``score/intro``    #0E7490    16 (``ids``)
 label of ``score/da-capo``  #9D174D    17 (``ids``)
-==========================  =========  ==========================================
+==========================  =========  =============================================
 
 A stroke and the fill of one element share its colour. Statement 12 displays
 every child of ``score``; statement 2, which names ``ids``, outranks it and

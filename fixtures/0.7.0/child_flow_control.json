@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -10,43 +11,32 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [
-              {
-                "condition": "after_dc_ds",
-                "control_type": "fine",
-                "coordinate": [
-                  4,
-                  1
-                ],
-                "id": "fine",
-                "label": "Fine",
-                "meta": {},
-                "name": null,
-                "repeat_count": 1
-              }
-            ],
-            "jumps": [
-              {
-                "condition": "after_first",
-                "control_type": "da_capo_al_fine",
-                "from_coordinate": [
-                  8,
-                  1
-                ],
-                "id": "da_capo_al_fine",
-                "label": "D.C. al Fine",
-                "meta": {},
-                "repeat_count": 1,
-                "target": null,
-                "to_coordinate": [
-                  0,
-                  1
-                ]
-              }
-            ],
-            "markers": []
-          },
+          "flow_control": [
+            {
+              "coordinate": [
+                4,
+                1
+              ],
+              "id": "fine",
+              "label": "Fine",
+              "manifestation": "fine",
+              "meta": {},
+              "name": null,
+              "type": "flow_marker"
+            },
+            {
+              "coordinate": [
+                8,
+                1
+              ],
+              "id": "da_capo_al_fine",
+              "label": "D.C. al Fine",
+              "manifestation": "da_capo_al_fine",
+              "meta": {},
+              "name": null,
+              "type": "jump_from"
+            }
+          ],
           "id": "verse",
           "is_segment_line": false,
           "length": [
@@ -54,9 +44,7 @@
             1
           ],
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Verse",
           "number_type": "fraction",
           "offset": [
@@ -68,11 +56,7 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "piece",
       "is_segment_line": false,
       "length": [
@@ -80,9 +64,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Piece",
       "number_type": "fraction",
       "regions": [],

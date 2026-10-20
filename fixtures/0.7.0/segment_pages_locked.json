@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -10,18 +11,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "page_1",
           "is_segment_line": false,
           "length": 1754,
           "locked": false,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Page 1",
           "number_type": "int",
           "offset": 0,
@@ -31,18 +26,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "page_2",
           "is_segment_line": false,
           "length": 1754,
           "locked": false,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Page 2",
           "number_type": "int",
           "offset": 1754,
@@ -52,18 +41,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "page_3",
           "is_segment_line": false,
           "length": 1754,
           "locked": false,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Page 3",
           "number_type": "int",
           "offset": 3508,
@@ -73,18 +56,12 @@
         {
           "children": [],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "page_4",
           "is_segment_line": false,
           "length": 1754,
           "locked": false,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": "Page 4",
           "number_type": "int",
           "offset": 5262,
@@ -93,18 +70,12 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "pages",
       "is_segment_line": true,
       "length": 7016,
       "locked": true,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Pages",
       "number_type": "int",
       "regions": [],

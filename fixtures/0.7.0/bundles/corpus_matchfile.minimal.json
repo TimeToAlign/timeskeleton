@@ -16,7 +16,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
@@ -27,7 +27,7 @@
           "scalar": 0.0010416666666666667,
           "source_unit": "ticks",
           "target_unit": "seconds",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         }
       ],
       "id": "perf:Chopin_op10_no3_p01:dlt_1",
@@ -43,7 +43,7 @@
           "scalar": 480,
           "source_unit": "quarters",
           "target_unit": "ticks",
-          "type": "ScalarMap"
+          "type": "LinearMap"
         },
         {
           "id": "raw_quarters",
@@ -54,7 +54,7 @@
           ],
           "source_unit": "quarters",
           "target_unit": "quarters",
-          "type": "ShiftMap"
+          "type": "LinearMap"
         }
       ],
       "id": "score:clt_1",

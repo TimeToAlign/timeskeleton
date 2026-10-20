@@ -16,7 +16,7 @@ from timetoalign import (
     DiscretePhysicalTimeline,
     Timeline,
 )
-from timetoalign.core import ActivationCondition, FlowControlElement
+from timetoalign.core import FlowControlElement
 from timetoalign.loader.alignment import (
     Ieee1599Loader,
     ListenHereLoader,
@@ -62,7 +62,7 @@ def bundle_mixed() -> AlignmentBundle:
     ``bundle_mixed`` ("Mixed") holds two groups, a score with its performance
     and a page with an excerpt of a recording, and one ungrouped timeline. The
     score ``score`` (12 quarters) carries a map to ticks, then a tempo map to
-    seconds (half a second per quarter), and a repeat jump from 8 back to 0;
+    seconds (half a second per quarter), and a repeat from 8 back to 0;
     the performance ``performance`` (12.5 seconds) a map to samples; the page
     ``page`` (1920 pixels) a map to points; the recording ``recording``
     (441000 samples) and its excerpt ``excerpt`` (88200 samples at 44100) a
@@ -123,7 +123,7 @@ def bundle_shared_parent() -> AlignmentBundle:
     """Build a bundle whose two groups hold two children of one root.
 
     The score ``score`` ("Score", 32 quarters) carries a map to ticks, the
-    region "Development" from 12 to 20 and a repeat jump from 12 back to 0. It
+    region "Development" from 12 to 20 and a repeat from 12 back to 0. It
     holds two segment lines: the exposition ``exposition`` ("Exposition", 12
     quarters) at 0, which carries a map to ticks, of the segments
     ``exposition_first`` ("First theme") and ``exposition_second`` ("Second
@@ -236,12 +236,12 @@ def bundle_ungrouped() -> AlignmentBundle:
     the recording ``recording`` ("Recording", 441000 samples) and the
     segment line ``pages`` of ``pages_timeline`` with three pages (5262
     pixels), and no group; the manifest writes them by id, ``pages`` first.
-    The score carries a map to ticks and a da capo al fine: the break "Fine"
-    at 8 (control type ``fine``, taken after a da capo or dal segno) and the
-    jump "D.C. al Fine" from 16 back to 0 (control type ``da_capo_al_fine``,
-    taken after the first pass, one repeat). The recording carries a map to
+    The score carries a map to ticks and a da capo al fine: the flow marker
+    "Fine" at 8 (manifestation ``fine``) and the jump origin "D.C. al Fine"
+    from 16 back to 0 (manifestation ``da_capo_al_fine``), which names no
+    target. The recording carries a map to
     seconds, the segment line ``pages`` a map to points; its pages carry
-    none. Every id of a map, break or jump is minted.
+    none. Every id of a map or flow-control element is minted.
     """
     score = parts.with_maps(
         parts.named(ContinuousLogicalTimeline, "score", "Score", Fraction(16)),
@@ -251,7 +251,6 @@ def bundle_ungrouped() -> AlignmentBundle:
         Break(
             coordinate=score.make_coordinate(8),
             control_type=FlowControlElement.fine,
-            condition=ActivationCondition.after_dc_ds,
             label="Fine",
         )
     )
@@ -260,7 +259,6 @@ def bundle_ungrouped() -> AlignmentBundle:
             from_coordinate=score.make_coordinate(16),
             to_coordinate=score.make_coordinate(0),
             control_type=FlowControlElement.da_capo_al_fine,
-            condition=ActivationCondition.after_first,
             repeat_count=1,
             label="D.C. al Fine",
         )

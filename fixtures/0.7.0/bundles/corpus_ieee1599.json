@@ -73,8 +73,9 @@
       "name": "khomus_video:cpt_2"
     }
   ],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": "khomus",
   "timelines": [
@@ -85,18 +86,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_7",
               "is_segment_line": false,
               "length": 4264,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_1",
               "number_type": "int",
               "offset": 0,
@@ -106,18 +101,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_8",
               "is_segment_line": false,
               "length": 4372,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_2",
               "number_type": "int",
               "offset": 4264,
@@ -127,18 +116,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_9",
               "is_segment_line": false,
               "length": 4180,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_3",
               "number_type": "int",
               "offset": 8636,
@@ -148,18 +131,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_10",
               "is_segment_line": false,
               "length": 4110,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_4",
               "number_type": "int",
               "offset": 12816,
@@ -168,16 +145,11 @@
             }
           ],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "dgt_6",
           "is_segment_line": true,
           "length": 16926,
           "locked": true,
-          "measure_map": null,
           "meta": {
             "page": {
               "encoding_format": "image_jpeg",
@@ -187,7 +159,6 @@
               "position_in_group": 1
             }
           },
-          "metric_hierarchy": null,
           "name": "page_1",
           "number_type": "int",
           "offset": 0,
@@ -197,29 +168,32 @@
       ],
       "conversion_maps": [
         {
-          "boundaries": [
-            0
+          "breaks": [
+            0,
+            16926
           ],
           "id": "cmap_1",
+          "maps": [
+            {
+              "id": "cmap_2",
+              "name": null,
+              "source_unit": "pixels",
+              "target_unit": null,
+              "type": "ConstantMap",
+              "value": "score_files/finale_transcription/khomus_finale_score.jpg"
+            }
+          ],
           "name": "file_name",
           "source_unit": "pixels",
           "target_unit": null,
-          "type": "IntervalToConstantMap",
-          "values": [
-            "score_files/finale_transcription/khomus_finale_score.jpg"
-          ]
+          "type": "PiecewiseMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "finale_transcription:dgt_2",
       "is_segment_line": true,
       "length": 16926,
       "locked": true,
-      "measure_map": null,
       "meta": {
         "description": "Finale transcription",
         "pages": [
@@ -232,7 +206,6 @@
           }
         ]
       },
-      "metric_hierarchy": null,
       "name": "Finale transcription",
       "number_type": "int",
       "regions": [],
@@ -241,16 +214,11 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "khomus_audio:cpt_1",
       "is_segment_line": false,
       "length": 46.98,
       "locked": false,
-      "measure_map": null,
       "meta": {
         "encoding_format": "audio_wav",
         "file_format": "audio_wav",
@@ -263,7 +231,6 @@
         ],
         "timing_type": "seconds"
       },
-      "metric_hierarchy": null,
       "name": "khomus_audio",
       "number_type": "float",
       "regions": [],
@@ -272,16 +239,11 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "khomus_video:cpt_2",
       "is_segment_line": false,
       "length": 45.88,
       "locked": false,
-      "measure_map": null,
       "meta": {
         "encoding_format": "video_avi",
         "file_format": "video_avi",
@@ -294,7 +256,6 @@
         ],
         "timing_type": "seconds"
       },
-      "metric_hierarchy": null,
       "name": "khomus_video",
       "number_type": "float",
       "regions": [],
@@ -303,18 +264,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "los:dlt_2",
       "is_segment_line": false,
       "length": 48128,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Logically organised symbols",
       "number_type": "int",
       "regions": [],
@@ -327,18 +282,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_2",
               "is_segment_line": false,
               "length": 1843,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_1",
               "number_type": "int",
               "offset": 0,
@@ -348,18 +297,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_3",
               "is_segment_line": false,
               "length": 1943,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_2",
               "number_type": "int",
               "offset": 1843,
@@ -369,18 +312,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_4",
               "is_segment_line": false,
               "length": 1804,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_3",
               "number_type": "int",
               "offset": 3786,
@@ -390,18 +327,12 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "dgt_5",
               "is_segment_line": false,
               "length": 1828,
               "locked": false,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": "accolade_4",
               "number_type": "int",
               "offset": 5590,
@@ -410,16 +341,11 @@
             }
           ],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "dgt_1",
           "is_segment_line": true,
           "length": 7418,
           "locked": true,
-          "measure_map": null,
           "meta": {
             "page": {
               "encoding_format": "image_jpeg",
@@ -429,7 +355,6 @@
               "position_in_group": 1
             }
           },
-          "metric_hierarchy": null,
           "name": "page_1",
           "number_type": "int",
           "offset": 0,
@@ -439,29 +364,32 @@
       ],
       "conversion_maps": [
         {
-          "boundaries": [
-            0
+          "breaks": [
+            0,
+            7418
           ],
           "id": "cmap_1",
+          "maps": [
+            {
+              "id": "cmap_2",
+              "name": null,
+              "source_unit": "pixels",
+              "target_unit": null,
+              "type": "ConstantMap",
+              "value": "score_files/original_score/khomus_original_score.jpg"
+            }
+          ],
           "name": "file_name",
           "source_unit": "pixels",
           "target_unit": null,
-          "type": "IntervalToConstantMap",
-          "values": [
-            "score_files/original_score/khomus_original_score.jpg"
-          ]
+          "type": "PiecewiseMap"
         }
       ],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "original_score:dgt_1",
       "is_segment_line": true,
       "length": 7418,
       "locked": true,
-      "measure_map": null,
       "meta": {
         "description": "Original score",
         "pages": [
@@ -474,7 +402,6 @@
           }
         ]
       },
-      "metric_hierarchy": null,
       "name": "Original score",
       "number_type": "int",
       "regions": [],
@@ -483,18 +410,12 @@
     {
       "children": [],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "spine:dlt_1",
       "is_segment_line": false,
       "length": 48128,
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": "Spine",
       "number_type": "int",
       "regions": [],

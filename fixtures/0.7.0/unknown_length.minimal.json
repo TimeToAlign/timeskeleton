@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "timelines": [
     {
@@ -19,17 +19,17 @@
           "unit": "quarters"
         }
       ],
-      "flow_control": {
-        "markers": [
-          {
-            "coordinate": [
-              6,
-              1
-            ],
-            "id": "marker_1"
-          }
-        ]
-      },
+      "flow_control": [
+        {
+          "coordinate": [
+            6,
+            1
+          ],
+          "id": "marker_1",
+          "manifestation": "segno",
+          "type": "jump_to"
+        }
+      ],
       "id": "score",
       "length": null,
       "regions": [

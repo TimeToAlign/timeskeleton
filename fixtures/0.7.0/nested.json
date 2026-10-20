@@ -1,7 +1,8 @@
 {
   "groups": [],
+  "measure_maps": [],
   "meta": {
-    "generator": "timetoalign 1.2.0 (4aacfe8e)"
+    "generator": "timetoalign 1.2.0 (ce979703)"
   },
   "name": null,
   "timelines": [
@@ -12,11 +13,7 @@
             {
               "children": [],
               "conversion_maps": [],
-              "flow_control": {
-                "breaks": [],
-                "jumps": [],
-                "markers": []
-              },
+              "flow_control": [],
               "id": "clt_2",
               "is_segment_line": false,
               "length": [
@@ -24,9 +21,7 @@
                 1
               ],
               "locked": true,
-              "measure_map": null,
               "meta": {},
-              "metric_hierarchy": null,
               "name": null,
               "number_type": "fraction",
               "offset": [
@@ -38,11 +33,7 @@
             }
           ],
           "conversion_maps": [],
-          "flow_control": {
-            "breaks": [],
-            "jumps": [],
-            "markers": []
-          },
+          "flow_control": [],
           "id": "clt_3",
           "is_segment_line": false,
           "length": [
@@ -50,9 +41,7 @@
             1
           ],
           "locked": true,
-          "measure_map": null,
           "meta": {},
-          "metric_hierarchy": null,
           "name": null,
           "number_type": "fraction",
           "offset": [
@@ -64,11 +53,7 @@
         }
       ],
       "conversion_maps": [],
-      "flow_control": {
-        "breaks": [],
-        "jumps": [],
-        "markers": []
-      },
+      "flow_control": [],
       "id": "clt_1",
       "is_segment_line": false,
       "length": [
@@ -76,9 +61,7 @@
         1
       ],
       "locked": false,
-      "measure_map": null,
       "meta": {},
-      "metric_hierarchy": null,
       "name": null,
       "number_type": "fraction",
       "regions": [],
