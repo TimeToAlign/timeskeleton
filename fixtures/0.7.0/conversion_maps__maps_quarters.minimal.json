@@ -50,7 +50,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (ce979703)"
+    "generator": "timetoalign 1.2.0 (6a98518f)"
   },
   "timelines": [
     {
@@ -90,7 +90,7 @@
               "type": "LinearMap"
             },
             {
-              "id": "lmap_1",
+              "id": "lmap_2",
               "scalar": [
                 1,
                 60
@@ -108,14 +108,14 @@
           "id": "cmap_5",
           "maps": {
             "measure": {
-              "id": "cmap_1",
+              "id": "cmap_7",
               "measure_map": "measuremap_1",
               "source_unit": "quarters",
               "target_unit": null,
               "type": "MeasureNumberMap"
             },
             "section": {
-              "id": "cmap_1",
+              "id": "cmap_6",
               "source_unit": "quarters",
               "target_unit": null,
               "type": "ConstantMap",
@@ -127,14 +127,14 @@
           "type": "CombinationMap"
         },
         {
-          "id": "cmap_6",
+          "id": "cmap_8",
           "source_unit": "quarters",
           "target_unit": null,
           "type": "ConstantMap",
           "value": "section-a"
         },
         {
-          "id": "lmap_1",
+          "id": "lmap_5",
           "offset": [
             1,
             3
@@ -165,14 +165,14 @@
           "id": "pmap_1",
           "maps": [
             {
-              "id": "lmap_1",
+              "id": "lmap_3",
               "offset": 1,
               "source_unit": "quarters",
               "target_unit": "seconds",
               "type": "LinearMap"
             },
             {
-              "id": "lmap_1",
+              "id": "lmap_4",
               "offset": 2,
               "source_unit": "quarters",
               "target_unit": "seconds",

@@ -50,7 +50,7 @@
     }
   ],
   "meta": {
-    "generator": "timetoalign 1.2.0 (ce979703)"
+    "generator": "timetoalign 1.2.0 (6a98518f)"
   },
   "timelines": [
     {
@@ -66,7 +66,7 @@
               "type": "LinearMap"
             },
             {
-              "id": "cmap_1",
+              "id": "cmap_2",
               "measure_map": "measuremap_1",
               "source_unit": "quarters",
               "target_unit": null,
