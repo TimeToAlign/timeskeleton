@@ -287,7 +287,7 @@ defaults hide: `unknown_length_child` on the band `movement/regions_1`
 (`unknown_length_child__regions-shown`), `unknown_length_segments` on every
 regions band, `{"element": "band", "class": "regions"}`
 (`unknown_length_segments__regions-shown`), and `child_flow_control` on the
-band `verse/flow_control_1` (`child_flow_control__flow-shown`): 66 drawings
+band `verse/flow_control_1` (`child_flow_control__flow-shown`): 69 drawings
 in all. No variant sets a band order: band orders are the manifests' own,
 in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
 `map_child_band_order`, `map_root_band_order`). Each directory holds:
@@ -347,8 +347,8 @@ code with the case's. The cases cover every code:
 | `child_offset` | a child starts within its parent's known length | `child_offset_beyond_parent` |
 | `child_end` | a child ends within its parent's known length | `child_end_beyond_parent` |
 | `segment_line` | segments run contiguously from 0 to the line's length, with one `is_segment_line` value | `segment_line_not_from_zero`, `segment_line_gap`, `segment_line_gap_in_later_root`, `segment_line_short_of_length`, `segment_line_segment_flag` |
-| `reserved_id` | the part words and the band IDs are no ID, nor the ID of a map another map holds | `part_word_timeline_id`, `part_word_region_card`, `part_word_region_label`, `part_word_one_root`, `band_id_region`, `nested_map_id_reserved` |
-| `manifest_id` | the manifest's ID is no timeline, group or measure-map ID | `manifest_id_is_group_id`, `manifest_id_is_descendant_id`, `manifest_id_is_measure_map_id` |
+| `reserved_id` | no ID, that of a map another map holds included, is a part word or matches the band-ID pattern | `part_word_timeline_id`, `part_word_region_card`, `part_word_region_label`, `part_word_one_root`, `band_id_region`, `nested_map_id_reserved` |
+| `manifest_id` | the manifest's ID is not a timeline, group or measure-map ID | `manifest_id_is_group_id`, `manifest_id_is_descendant_id`, `manifest_id_is_measure_map_id` |
 | `group_member` | a member names a timeline, lies in one group, and neither contains nor lies inside another member of its group | `member_dangling`, `member_in_two_groups`, `members_contain_member`, `members_inside_member` |
 | `order_key` | a key of `graphical.order` names a group or a timeline | `order_unknown_group` |
 | `display_order` | a group's display order is a permutation of its members | `group_order_not_member`, `order_missing_member` |

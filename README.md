@@ -129,8 +129,8 @@ optional keys are `name`, `number_type`, `offset`, `locked`,
 
 A conversion map is a function from a position on its timeline's axis to a
 value, discriminated by its `type`. Every map carries `type`, `id`, `name`,
-`source_unit` and `target_unit`, a unit being null where that side is no
-time axis. A map is an abstract type, independent of any number type: each
+`source_unit` and `target_unit`, a unit being null where that side is not
+a time axis. A map is an abstract type, independent of any number type: each
 of its numbers is an int, a float or a Fraction pair, whatever the
 implementation computes in. Its domain and modality, which the drawing
 styles it by, are those of its `target_unit`. There are ten types:
@@ -153,7 +153,7 @@ Scaling, shifting and every conversion between two units of fixed ratio
 are linear maps. The last four are the **measure views**: each reads the
 measure map its `measure_map` names, from `quarters` (its constant
 `source_unit`) to `floating_measures` (`FloatingMeasureMap`) or to null
-(the other three, whose outputs are no positions on a time axis). A
+(the other three, whose outputs are not positions on a time axis). A
 timeline in ticks or `whole_notes` reaches a measure view through a
 `ChainMap` whose first map is a `LinearMap` to quarters. The schema states
 the exact reading of every type.
@@ -420,7 +420,9 @@ stable code:
 
 Within one root's tree, IDs are visited in identity order (a timeline,
 then its conversion maps, regions and flow-control elements, then its
-children in array order); duplicates come first, then dangling targets
+children in array order), and after them the IDs of the maps a
+`ChainMap`, `PiecewiseMap` or `CombinationMap` holds, timeline by timeline
+in the same order, each map before the maps it holds; duplicates come first, then dangling targets
 (timeline by timeline, its jump origins' targets before its measure views),
 then the conversion-map rules (a timeline's maps in array order, each
 before the maps it holds, the outputs of a `CombinationMap` in code-point
@@ -430,8 +432,9 @@ own children: its unit, then an offset beyond its parent's known length
 or else an end beyond it), then segment lines, whose
 segments are visited in canonical order and compared by exact value. Across the manifest, the problems come in this
 order: each root's own problems, roots in array order; then reserved IDs
-(the manifest's ID, then root by root in identity order, then the group
-IDs, then the measure-map IDs); repeated timeline IDs, group IDs,
+(the manifest's ID, then root by root in identity order followed by the
+IDs of the maps other maps hold, then the group IDs, then the measure-map
+IDs); repeated timeline IDs, group IDs,
 measure-map IDs, the manifest's ID, members (member by member: dangling, repeated, nested), and
 the entries of `graphical.order` in code-point order of their keys: an
 order's strangers first, in its order, then its missing entries, in the
@@ -573,7 +576,7 @@ order keys cannot express are put in this order:
 - `regions` by start, then end, then ID;
 - `flow_control` by coordinate, then ID.
 
-Ids are unique within their scope, so no two entries tie. Coordinates
+IDs are unique within their scope, so no two entries tie. Coordinates
 compare by exact numeric value, never by JSON spelling. Strings compare by
 Unicode code point. No other array is reordered: `graphical` statements,
 display orders, conversion-map payloads, and measure-map rows keep their

@@ -360,7 +360,7 @@ other sections refer to it:
 
 No other element hides another. A frame or card that is not displayed
 keeps everything drawn in it (section 8.4); a member's line keeps its
-ancestor lines, which are no part of its timeline's drawing; and no band
+ancestor lines, which are not part of its timeline's drawing; and no band
 takes its `display` from another: hiding `score/regions_1` hides the
 regions of `score` alone, and the regions of a child of `score` are drawn,
 at the child's own line, only when the child's own regions band is
@@ -628,7 +628,7 @@ it), the text at font size `s` has
 
 A name may hold any code point. Every code point from U+0000 to U+001F in a
 text becomes a space before it is measured or written, since SVG and TeX
-cannot carry most of them. Ids hold none: the schema refuses them.
+cannot carry most of them. IDs hold none: the schema refuses them.
 
 ### 5.2 Coordinates
 
