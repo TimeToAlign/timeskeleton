@@ -148,7 +148,6 @@ def _member_problems(
     group: Mapping[str, Any],
     path: _Path,
     parents: Mapping[str, str | None],
-    first_member: dict[str, _Path],
 ) -> Iterator[SchemaValidationError]:
     selected: dict[str, int] = {}
     earliest_descendant: dict[str, tuple[int, str]] = {}
@@ -159,15 +158,13 @@ def _member_problems(
                 "group_member", at, f"{member!r} names no timeline of this manifest"
             )
             continue
-        if member in first_member:
+        if member in selected:
             yield SchemaValidationError(
                 "group_member",
                 at,
                 f"duplicate member {member!r}, first at "
-                f"{json_pointer(first_member[member])}",
+                f"{json_pointer((*path, selected[member]))}",
             )
-        else:
-            first_member[member] = at
 
         ancestors = _ancestors(member, parents)
         relation: tuple[int, str, str] | None = None
@@ -278,9 +275,6 @@ def identity_problems(
             )
 
     parents = _parents(roots)
-    first_member: dict[str, _Path] = {}
     for index, group in enumerate(groups):
-        yield from _member_problems(
-            group, ("groups", index, "members"), parents, first_member
-        )
+        yield from _member_problems(group, ("groups", index, "members"), parents)
     yield from order_problems(value, timelines, first_group)

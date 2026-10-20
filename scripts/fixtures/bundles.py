@@ -15,6 +15,7 @@ from timetoalign import (
     DiscreteGraphicalTimeline,
     DiscretePhysicalTimeline,
     Timeline,
+    TimelineGroup,
 )
 from timetoalign.core import FlowControlElement
 from timetoalign.loader.alignment import (
@@ -274,6 +275,26 @@ def bundle_ungrouped() -> AlignmentBundle:
         )
     )
     bundle.add_timeline(parts.with_maps(pages_timeline(3), parts.to_points()))
+    return bundle
+
+
+def bundle_shared_member() -> AlignmentBundle:
+    """Build a bundle whose two groups share one member.
+
+    The score ``t`` ("Score", 8 quarters) is a member of the group ``g1``
+    ("Performance") beside the performance ``u`` ("Performance", 4.0 seconds)
+    and of the group ``g2`` ("Page") beside the page ``v`` ("Page", 800
+    pixels). The bundle "Shared" holds the three roots and the two groups;
+    ``t`` is drawn once in each group's frame, in a card of its own.
+    """
+    score = parts.named(ContinuousLogicalTimeline, "t", "Score", Fraction(8))
+    performance = parts.named(ContinuousPhysicalTimeline, "u", "Performance", 4.0)
+    page = parts.named(DiscreteGraphicalTimeline, "v", "Page", Fraction(800))
+    bundle = AlignmentBundle(name="Shared")
+    bundle.add_group(
+        TimelineGroup(id="g1", name="Performance", timelines=[score, performance])
+    )
+    bundle.add_group(TimelineGroup(id="g2", name="Page", timelines=[score, page]))
     return bundle
 
 

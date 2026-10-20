@@ -123,6 +123,7 @@ CATALOGUE = (
     _bundle("corpus_ieee1599", bundles.corpus_ieee1599_bundle),
     _bundle("corpus_listen_here", bundles.corpus_listen_here_bundle),
     _bundle("corpus_tilia", bundles.corpus_tilia_bundle),
+    _bundle("bundle_shared_member", bundles.bundle_shared_member),
 )
 """The fixture cases in emission order; append new cases within their directory."""
 

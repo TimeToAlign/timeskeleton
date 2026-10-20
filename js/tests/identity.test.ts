@@ -605,12 +605,15 @@ describe("identity", () => {
       ["groups", 0, "members", 0],
       '"tempo" names no timeline of this manifest',
     ]);
-    const twice = manifest([timeline("a"), timeline("b")], {
-      groups: [group("g", ["a"]), group("h", ["b", "a"])],
-    });
-    expect(only(twice)).toEqual([
-      ["groups", 1, "members", 1],
-      'duplicate member "a", first at #/groups/0/members/0',
+    const twice = manifest([timeline("a")], { groups: [group("g", ["a", "a"])] });
+    expect(
+      identityProblems(twice).map((problem) => [problem.code, problem.path, problem.detail]),
+    ).toEqual([
+      [
+        "group_member",
+        ["groups", 0, "members", 1],
+        'duplicate member "a", first at #/groups/0/members/0',
+      ],
     ]);
     const piece = () =>
       timeline("piece", "quarters", [8, 1], {
@@ -633,6 +636,14 @@ describe("identity", () => {
     (((value.graphical as unknown as JsonObject).order as JsonObject).group_1 as string[]).push(
       "recording",
     );
+    validate(value);
+  });
+
+  it("accepts a timeline in two groups", () => {
+    const value = manifest([timeline("t"), timeline("u"), timeline("v")], {
+      groups: [group("g1", ["t", "u"]), group("g2", ["t", "v"])],
+    });
+    expect(problems(value)).toEqual([]);
     validate(value);
   });
 
@@ -1044,7 +1055,6 @@ describe("identity", () => {
       [["measure_maps", 0, "id"], 'duplicate id "first", first at #/timelines/0/id'],
       [["id"], 'duplicate id "g2", first at #/groups/1/id'],
       [["groups", 0, "members", 0], '"ghost" names no timeline of this manifest'],
-      [["groups", 1, "members", 0], 'duplicate member "second", first at #/groups/0/members/1'],
       [["graphical", "order", "g2", 0], '"stranger" is not a member of group "g2"'],
       [["graphical", "order", "g2"], 'member "second" of group "g2" is missing'],
       [["graphical", "order", "kid", 4], '"kid/regions_2" is not "kid" or one of its bands'],
@@ -1060,7 +1070,7 @@ describe("identity", () => {
       ...Array<string>(2).fill("reserved_id"),
       ...Array<string>(3).fill("duplicate_id"),
       "manifest_id",
-      ...Array<string>(2).fill("group_member"),
+      "group_member",
       ...Array<string>(2).fill("display_order"),
       ...Array<string>(2).fill("band_order"),
       "order_key",

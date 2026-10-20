@@ -850,13 +850,17 @@ def test_members() -> None:
         ("groups", 0, "members", 0),
         "'tempo' names no timeline of this manifest",
     )
-    value = manifest(
-        timeline("a"), timeline("b"), groups=[group("g", "a"), group("h", "b", "a")]
-    )
-    assert _only(value) == (
-        ("groups", 1, "members", 1),
-        "duplicate member 'a', first at #/groups/0/members/0",
-    )
+    value = manifest(timeline("a"), groups=[group("g", "a", "a")])
+    assert [
+        (problem.code, problem.path, problem.message)
+        for problem in identity_problems(value)
+    ] == [
+        (
+            "group_member",
+            ("groups", 0, "members", 1),
+            "duplicate member 'a', first at #/groups/0/members/0",
+        )
+    ]
     piece = timeline("piece", children=[timeline("half", offset=(4, 1), length=(4, 1))])
     value = manifest(piece, groups=[group("g", "piece", "half")])
     assert _only(value) == (
@@ -875,6 +879,17 @@ def test_a_child_and_its_root_in_other_groups_or_none() -> None:
     validate(value)
     value["groups"][0]["members"].append("recording")
     value["graphical"]["order"]["group_1"].append("recording")
+    validate(value)
+
+
+def test_a_timeline_in_two_groups() -> None:
+    value = manifest(
+        timeline("t"),
+        timeline("u"),
+        timeline("v"),
+        groups=[group("g1", "t", "u"), group("g2", "t", "v")],
+    )
+    assert _problems(value) == []
     validate(value)
 
 
@@ -1105,10 +1120,6 @@ def test_every_step_in_order() -> None:
         ),
         (("id",), "duplicate id 'g2', first at #/groups/1/id"),
         (("groups", 0, "members", 0), "'ghost' names no timeline of this manifest"),
-        (
-            ("groups", 1, "members", 0),
-            "duplicate member 'second', first at #/groups/0/members/1",
-        ),
         (("graphical", "order", "g2", 0), "'stranger' is not a member of group 'g2'"),
         (("graphical", "order", "g2"), "member 'second' of group 'g2' is missing"),
         (
@@ -1133,7 +1144,7 @@ def test_every_step_in_order() -> None:
         *["reserved_id"] * 3,
         *["duplicate_id"] * 3,
         "manifest_id",
-        *["group_member"] * 2,
+        "group_member",
         *["display_order"] * 2,
         *["band_order"] * 2,
         "order_key",

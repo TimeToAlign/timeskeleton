@@ -20,7 +20,7 @@ from timeskeleton import (
     validate,
 )
 
-from .conftest import manifest, respellable, timeline
+from .conftest import group, manifest, respellable, timeline
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 SMALLEST = {
@@ -86,7 +86,6 @@ REJECTIONS = [
     "measure_view_dangling",
     "measure_view_source_unit_ticks",
     "member_dangling",
-    "member_in_two_groups",
     "members_contain_member",
     "members_inside_member",
     "nan_offset",
@@ -629,6 +628,19 @@ def test_card_inside_and_shadow_validate(statement: dict) -> None:
 def test_band_selectors_validate(select: dict) -> None:
     statement = {"select": select, "set": {"display": "none"}}
     validate(manifest(timeline("score"), graphical={"statements": [statement]}))
+
+
+def test_a_selector_names_a_card_in_one_of_several_groups() -> None:
+    statement = {"select": {"ids": ["g1/t/card"]}, "set": {"stroke": "#B8BEC8"}}
+    validate(
+        manifest(
+            timeline("t"),
+            timeline("u"),
+            timeline("v"),
+            groups=[group("g1", "t", "u"), group("g2", "t", "v")],
+            graphical={"statements": [statement]},
+        )
+    )
 
 
 @pytest.mark.parametrize(

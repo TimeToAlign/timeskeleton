@@ -20,6 +20,7 @@ import {
 } from "../src/index.js";
 import type { JsonObject } from "../src/json/value.js";
 import {
+  group,
   manifest,
   rejectionCase,
   rejectionFileNames,
@@ -92,7 +93,6 @@ const REJECTIONS = [
   "measure_view_dangling",
   "measure_view_source_unit_ticks",
   "member_dangling",
-  "member_in_two_groups",
   "members_contain_member",
   "members_inside_member",
   "nan_offset",
@@ -594,6 +594,16 @@ describe("the graphical block", () => {
     })),
   ])("accepts %o", (statement) => {
     validate(manifest([timeline("score")], { graphical: { statements: [statement] } }));
+  });
+
+  it("accepts a selector naming a card in one of several groups", () => {
+    const statement = { select: { ids: ["g1/t/card"] }, set: { stroke: "#B8BEC8" } };
+    validate(
+      manifest([timeline("t"), timeline("u"), timeline("v")], {
+        groups: [group("g1", ["t", "u"]), group("g2", ["t", "v"])],
+        graphical: { statements: [statement] },
+      }),
+    );
   });
 
   const ENTRY =

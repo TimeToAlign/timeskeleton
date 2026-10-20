@@ -160,7 +160,6 @@ function* memberProblems(
   group: JsonObject,
   path: readonly PathSegment[],
   parents: ReadonlyMap<string, string | null>,
-  firstMember: Map<string, PathSegment[]>,
 ): Generator<SchemaValidationError> {
   const selected = new Map<string, number>();
   const earliestDescendant = new Map<string, { index: number; member: string }>();
@@ -174,14 +173,14 @@ function* memberProblems(
       );
       continue;
     }
-    const earlier = firstMember.get(member);
+    const earlier = selected.get(member);
     if (earlier !== undefined) {
       yield new SchemaValidationError(
         "group_member",
         at,
-        `duplicate member ${JSON.stringify(member)}, first at ${jsonPointer(earlier)}`,
+        `duplicate member ${JSON.stringify(member)}, first at ${jsonPointer([...path, earlier])}`,
       );
-    } else firstMember.set(member, at);
+    }
 
     const ancestors = ancestorsOf(member, parents);
     let relation: { index: number; member: string; word: "lies inside" | "contains" } | null = null;
@@ -288,9 +287,8 @@ export function* identityProblems(manifest: JsonObject): Generator<SchemaValidat
   }
 
   const parents = parentsOf(roots);
-  const firstMember = new Map<string, PathSegment[]>();
   for (const [index, group] of groups.entries()) {
-    yield* memberProblems(group, ["groups", index, "members"], parents, firstMember);
+    yield* memberProblems(group, ["groups", index, "members"], parents);
   }
   yield* orderProblems(manifest, timelines, firstGroup);
 }
