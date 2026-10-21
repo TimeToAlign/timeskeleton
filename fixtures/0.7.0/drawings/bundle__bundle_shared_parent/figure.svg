@@ -4,8 +4,8 @@
 <text data-address="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Sonata</text>
 <rect data-address="group_1" x="8" y="28.8047" width="567.3901" height="209.1875" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_1/name" x="16" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Exposition</text>
-<rect data-address="exposition/card" x="18" y="55.6094" width="551.3901" height="104.9297" rx="5" fill="#B8BEC8"/>
-<rect data-address="exposition/card" x="16" y="53.6094" width="551.3901" height="104.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/exposition/card" x="18" y="55.6094" width="551.3901" height="104.9297" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/exposition/card" x="16" y="53.6094" width="551.3901" height="104.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="score/cmap_2" points="135.3901,117.0625 535.3901,117.0625 535.3901,119.0625 135.3901,119.0625" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <polygon data-address="score/cmap_3" points="335.3901,112.0625 535.3901,112.0625 535.3901,114.0625 335.3901,114.0625" fill="none" stroke="#0050EF" stroke-width="1"/>
 <line data-address="score" x1="135.3901" y1="88.5859" x2="547.3901" y2="88.5859" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
@@ -28,8 +28,8 @@
 <text data-address="exposition/end/label" x="535.3901" y="148.4165" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
 <text data-address="exposition_first/label" x="235.3901" y="107.9399" text-anchor="middle" font-size="9" fill="#000000">First theme</text>
 <text data-address="exposition_second/label" x="435.3901" y="107.9399" text-anchor="middle" font-size="9" fill="#000000">Second theme</text>
-<rect data-address="take_1/card" x="18" y="168.5391" width="551.3901" height="63.4531" rx="5" fill="#B8BEC8"/>
-<rect data-address="take_1/card" x="16" y="166.5391" width="551.3901" height="63.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/take_1/card" x="18" y="168.5391" width="551.3901" height="63.4531" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/take_1/card" x="16" y="166.5391" width="551.3901" height="63.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="take_1/cmap_1" points="135.3901,188.5156 535.3901,188.5156 535.3901,190.5156 135.3901,190.5156" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
 <line data-address="take_1" x1="135.3901" y1="195.0156" x2="535.3901" y2="195.0156" stroke="#0050EF" stroke-width="3"/>
 <circle data-address="take_1" cx="135.3901" cy="195.0156" r="3" fill="#0050EF"/>
@@ -44,8 +44,8 @@
 <text data-address="take_1_second/label" x="428.7235" y="182.8931" text-anchor="middle" font-size="9" fill="#000000">Second theme</text>
 <rect data-address="group_2" x="8" y="245.9922" width="567.3901" height="224.0898" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_2/name" x="16" y="264.2026" text-anchor="start" font-size="11" fill="#000000">Recapitulation</text>
-<rect data-address="recapitulation/card" x="18" y="272.7969" width="551.3901" height="133.9062" rx="5" fill="#B8BEC8"/>
-<rect data-address="recapitulation/card" x="16" y="270.7969" width="551.3901" height="133.9062" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_2/recapitulation/card" x="18" y="272.7969" width="551.3901" height="133.9062" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_2/recapitulation/card" x="16" y="270.7969" width="551.3901" height="133.9062" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="score/cmap_4" points="335.3901,330.75 535.3901,330.75 535.3901,332.75 335.3901,332.75" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <line data-address="score" x1="123.3901" y1="305.7734" x2="535.3901" y2="305.7734" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
 <polyline data-address="score" points="120.3901,301.2734 115.8901,305.7734 120.3901,310.2734" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
@@ -79,8 +79,8 @@
 <text data-address="recapitulation_second/label" x="435.3901" y="357.604" text-anchor="middle" font-size="9" fill="#000000">Second theme</text>
 <text data-address="recapitulation_second_1/label" x="385.3901" y="325.1274" text-anchor="middle" font-size="9" fill="#000000">Phrase 1</text>
 <text data-address="recapitulation_second_2/label" x="485.3901" y="325.1274" text-anchor="middle" font-size="9" fill="#000000">Phrase 2</text>
-<rect data-address="take_2/card" x="18" y="414.7031" width="551.3901" height="49.3789" rx="5" fill="#B8BEC8"/>
-<rect data-address="take_2/card" x="16" y="412.7031" width="551.3901" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_2/take_2/card" x="18" y="414.7031" width="551.3901" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_2/take_2/card" x="16" y="412.7031" width="551.3901" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="take_2" x1="135.3901" y1="427.1055" x2="535.3901" y2="427.1055" stroke="#0050EF" stroke-width="3"/>
 <circle data-address="take_2" cx="135.3901" cy="427.1055" r="3" fill="#0050EF"/>
 <polygon data-address="take_2" points="544.3901,427.1055 535.3901,422.6055 535.3901,431.6055" fill="#0050EF"/>

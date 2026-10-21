@@ -31,10 +31,10 @@
 <text data-address="recording/end/label" x="547.7036" y="318.4165" text-anchor="middle" font-size="9" fill="#000000">441000 smp</text>
 <rect data-address="score/card" x="10" y="30.8047" width="507.8967" height="120" rx="5" fill="#B8BEC8"/>
 <rect data-address="score/card" x="8" y="28.8047" width="507.8967" height="120" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
-<line data-address="score/break_1" x1="279.7036" y1="84.7578" x2="279.7036" y2="36.8047" stroke="#FF0000" stroke-width="1.5" stroke-dasharray="2 2"/>
+<line data-address="score/flow_marker_1" x1="279.7036" y1="84.7578" x2="279.7036" y2="36.8047" stroke="#FF0000" stroke-width="1.5" stroke-dasharray="2 2"/>
 <polygon data-address="score/cmap_1" points="79.7036,36.8047 479.7036,36.8047 479.7036,38.8047 79.7036,38.8047" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
-<path data-address="score/jump_1" d="M479.7036 84.7578C379.7036 95.4245 179.7036 95.4245 83.6811 85.1821" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
-<polygon data-address="score/jump_1" points="79.7036,84.7578 83.4689,87.1708 83.8932,83.1934" fill="#000000"/>
+<path data-address="score/jump_from_1" d="M479.7036 84.7578C379.7036 95.4245 179.7036 95.4245 83.6811 85.1821" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="score/jump_from_1" points="79.7036,84.7578 83.4689,87.1708 83.8932,83.1934" fill="#000000"/>
 <line data-address="score" x1="79.7036" y1="43.3047" x2="479.7036" y2="43.3047" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="score" cx="79.7036" cy="43.3047" r="3" fill="#00CC00"/>
 <polygon data-address="score" points="488.7036,43.3047 479.7036,38.8047 479.7036,47.8047" fill="#00CC00"/>
@@ -43,7 +43,7 @@
 <text data-address="score/name" x="16" y="47.1128" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-address="score/start/label" x="79.7036" y="68.1587" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-address="score/end/label" x="479.7036" y="68.1587" text-anchor="middle" font-size="9" fill="#000000">16 ♩</text>
-<text data-address="score/jump_1/label" x="279.7036" y="103.1118" text-anchor="middle" font-size="9" fill="#000000">D.C. al Fine</text>
-<text data-address="score/break_1/label" x="282.7036" y="82.6353" text-anchor="start" font-size="9" fill="#000000">Fine</text>
+<text data-address="score/jump_from_1/label" x="279.7036" y="103.1118" text-anchor="middle" font-size="9" fill="#000000">D.C. al Fine</text>
+<text data-address="score/flow_marker_1/label" x="282.7036" y="82.6353" text-anchor="start" font-size="9" fill="#000000">Fine</text>
 </g>
 </svg>

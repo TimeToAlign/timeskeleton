@@ -1,6 +1,6 @@
 # Hand-derived drawings
 
-Twenty-eight of the 69 drawings in this directory are derived by hand from
+Twenty-eight of the 70 drawings in this directory are derived by hand from
 the [drawing specification](../../../docs/drawing.md) and the font metrics
 alone. Their `figure.svg` files are never regenerated: the emitting script
 compares each with its writer's output instead. Every other figure in this
@@ -62,7 +62,7 @@ title; no other manifest has a `name` or an
 
 Every `data-address` follows §2.2: an element other than a timeline or a
 group is addressed through the root whose tree holds it, also in a manifest
-of one root (`melody/tempo`, `clt_1/region_1`, `flow:quarters/jump_1`,
+of one root (`melody/tempo`, `clt_1/region_1`, `flow:quarters/jump_from_1`,
 `score/intro/label`, and `piece/fine`, a flow marker of the child `verse`),
 and a manifest's title, wherever one is drawn, is addressed `name`. A band
 draws nothing (§2.1), so no element carries a band's address.
@@ -200,10 +200,10 @@ and `melody/ticks`.
 ## `flow_control`
 
 The root `flow:quarters` ("Flow control", 16 quarters) with the jump
-targets `marker_1` (repeat start) at 2 and `marker_2` (segno) at 4, which
-draw nothing, the jump origin `jump_1` ("Repeat") from 8 to `marker_1`, the
-flow marker `break_1` ("Fine") at 12 and the jump origin `jump_2` ("D.S.")
-from 16 to `marker_2`. Above the line no band is present; below it lie the
+targets `jump_to_1` (repeat start) at 2 and `jump_to_2` (segno) at 4, which
+draw nothing, the jump origin `jump_from_1` ("Repeat") from 8 to `jump_to_1`, the
+flow marker `flow_marker_1` ("Fine") at 12 and the jump origin `jump_from_2` ("D.S.")
+from 16 to `jump_to_2`. Above the line no band is present; below it lie the
 markers band at level −1 and the flow control band at level −2 (its
 regions band is absent).
 
@@ -214,7 +214,7 @@ regions band is absent).
   give only −92.957763671875 and −224.817626953125.
 - `R` = the end label `16 ♩` at 490.9775390625 + 18.55810546875 / 2 =
   500.256591796875, beyond the arrowhead tip 499.9775390625; the arc of
-  `jump_2` reaches no further right than its from `x(16)` = 490.9775390625,
+  `jump_from_2` reaches no further right than its from `x(16)` = 490.9775390625,
   and the label `Fine` ends at `x(12)` + 3 + 18.91845703125 =
   412.89599609375.
 - Above: no band, so `Ea` = 0 and `y_root` = max(8 + 0, 8 + 6.40234375) =
@@ -223,9 +223,9 @@ regions band is absent).
   control band from 26.9765625 + 4 = 30.9765625. The label `Fine` fills one
   flow-marker label tier, `T` = 1, so the flow row lies at `f0` =
   30.9765625 + 10.4765625 = 41.453125. The jump origins, sorted by span,
-  are `jump_1` (span 6) and `jump_2` (span 12). `jump_1`'s extent is [50,
+  are `jump_from_1` (span 6) and `jump_from_2` (span 12). `jump_from_1`'s extent is [50,
   200], its label's [107.957763671875, 142.042236328125] inside it: row 1.
-  `jump_2`'s is [100, 400] and conflicts with it: row 2. With `pj` = 6 + 4
+  `jump_from_2`'s is [100, 400] and conflicts with it: row 2. With `pj` = 6 + 4
   + 10.4765625 = 20.4765625 the apexes lie at 41.453125 + 8 = 49.453125
   and 49.453125 + 20.4765625 = 69.9296875. The band is 10.4765625 + 8 +
   20.4765625 + 2 + 10.4765625 = 51.4296875 wide, so `Eb` = 82.40625.
@@ -236,7 +236,7 @@ regions band is absent).
 - The flow marker at `x(12)` = 390.9775390625 → 390.9775, from the flow row
   to `P`, drawn at 16; its label from 393.9775390625 → 393.9775 with its
   baseline at 63.85546875 − 2.12255859375 = 61.73291015625 → 61.7329.
-- `jump_1` from `Xf` = `x(8)` = 290.9775390625 to `Xt` = `x(2)` =
+- `jump_from_1` from `Xf` = `x(8)` = 290.9775390625 to `Xt` = `x(2)` =
   140.9775390625 (§6.6), in item coordinates: `q` = −37.5, `yc` =
   55.85546875 + 4/3 × 8 = 66.52213541666667, `C1` = (253.4775390625,
   `yc`), `C2` = (178.4775390625, `yc`); `ℓ` = 38.98753362009166, `(ux, uy)`
@@ -246,7 +246,7 @@ regions band is absent).
   (145.3721, 63.0261), its label centred on `x(5)` = 215.9775390625 with
   its baseline at 8 + ((14.40234375 + (49.453125 + 2)) + 8.35400390625) =
   82.20947265625 → 82.2095.
-- `jump_2` from `Xf` = `x(16)` = 490.9775390625 to `Xt` = `x(4)` =
+- `jump_from_2` from `Xf` = `x(16)` = 490.9775390625 to `Xt` = `x(4)` =
   190.9775390625: `q` = −75, `ya` = 14.40234375 + 69.9296875 =
   84.33203125, `yc` = 55.85546875 + 4/3 × 28.4765625 = 93.82421875, `C1` =
   (415.9775390625, `yc`), `C2` = (265.9775390625, `yc`); `ℓ` =
@@ -465,7 +465,7 @@ ancestor lines, `movement` and `score`, both running on to the left.
 ## `unknown_length`
 
 The root `score` (quarters, length `null`) with the region `region_1` (2
-to 8), the jump target `marker_1` at 6 and the locked child `coda` (4 at 10).
+to 8), the jump target `jump_to_1` at 6 and the locked child `coda` (4 at 10).
 No timeline has a name.
 
 - The reach is the end of `coda`, 10 + 4 = 14, beyond the region's end 8 and
@@ -606,8 +606,8 @@ line `pages` ("Pages", 5262 pixels, the segments `Page 1` to `Page 3` of
 1754 each, none a segment line and none with a map) with the map `cmap_1` to
 points, the root `recording` ("Recording", 441000 samples) with the map
 `cmap_1` to seconds, and the root `score` ("Score", 16 quarters) with the
-map `cmap_1` to ticks, the flow marker `break_1` ("Fine") at 8 and the jump
-origin `jump_1` ("D.C. al Fine") from 16 to 0. The place of `score` is
+map `cmap_1` to ticks, the flow marker `flow_marker_1` ("Fine") at 8 and the jump
+origin `jump_from_1` ("D.C. al Fine") from 16 to 0. The place of `score` is
 stated as `{x: -60, y: -150, height: 120}`, left of the padding and above
 the title's slot. The three cards share one horizontal layout (§8.2), so
 they are equally wide; every place not stated takes its default (§8.6).

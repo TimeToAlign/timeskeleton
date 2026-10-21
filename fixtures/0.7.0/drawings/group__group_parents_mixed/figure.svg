@@ -3,8 +3,8 @@
 <rect x="0" y="0" width="568.0864" height="377.6406" rx="10" fill="#F3F4F6"/>
 <rect data-address="group_1" x="8" y="8" width="552.0864" height="361.6406" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_1/name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Exposition</text>
-<rect data-address="exposition/card" x="18" y="34.8047" width="536.0864" height="83.9531" rx="5" fill="#B8BEC8"/>
-<rect data-address="exposition/card" x="16" y="32.8047" width="536.0864" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/exposition/card" x="18" y="34.8047" width="536.0864" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/exposition/card" x="16" y="32.8047" width="536.0864" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="sonata" x1="101.0303" y1="67.7812" x2="513.0303" y2="67.7812" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
 <polyline data-address="sonata" points="98.0303,63.2812 93.5303,67.7812 98.0303,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
 <polyline data-address="sonata" points="93.5303,63.2812 89.0303,67.7812 93.5303,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
@@ -22,8 +22,8 @@
 <text data-address="exposition/end/label" x="513.0303" y="49.1587" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">48 ♩</text>
 <text data-address="exposition/start/label" x="113.0303" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-address="exposition/end/label" x="513.0303" y="106.6353" text-anchor="middle" font-size="9" fill="#000000">32 ♩</text>
-<rect data-address="take/card" x="18" y="126.7578" width="536.0864" height="87.4531" rx="5" fill="#B8BEC8"/>
-<rect data-address="take/card" x="16" y="124.7578" width="536.0864" height="87.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/take/card" x="18" y="126.7578" width="536.0864" height="87.4531" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/take/card" x="16" y="124.7578" width="536.0864" height="87.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="session/cmap_1" points="113.0303,170.7344 513.0303,170.7344 513.0303,172.7344 113.0303,172.7344" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
 <line data-address="session" x1="101.0303" y1="159.7344" x2="525.0303" y2="159.7344" stroke="#0050EF" stroke-width="3" opacity="0.35"/>
 <polyline data-address="session" points="98.0303,155.2344 93.5303,159.7344 98.0303,164.2344" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
@@ -43,8 +43,8 @@
 <text data-address="take/end/label" x="513.0303" y="141.1118" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">55.5 s</text>
 <text data-address="take/start/label" x="113.0303" y="202.0884" text-anchor="middle" font-size="9" fill="#000000">0.0 s</text>
 <text data-address="take/end/label" x="513.0303" y="202.0884" text-anchor="middle" font-size="9" fill="#000000">25.5 s</text>
-<rect data-address="system/card" x="18" y="222.2109" width="536.0864" height="83.9531" rx="5" fill="#B8BEC8"/>
-<rect data-address="system/card" x="16" y="220.2109" width="536.0864" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/system/card" x="18" y="222.2109" width="536.0864" height="83.9531" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/system/card" x="16" y="220.2109" width="536.0864" height="83.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="page" x1="113.0303" y1="255.1875" x2="525.0303" y2="255.1875" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3" opacity="0.35"/>
 <circle data-address="page" cx="113.0303" cy="255.1875" r="3" fill="#FF0000" opacity="0.35"/>
 <polyline data-address="page" points="528.0303,250.6875 532.5303,255.1875 528.0303,259.6875" fill="none" stroke="#FF0000" stroke-width="1.5" opacity="0.35"/>
@@ -62,8 +62,8 @@
 <text data-address="system/end/label" x="513.0303" y="236.5649" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">600 px</text>
 <text data-address="system/start/label" x="113.0303" y="294.0415" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
 <text data-address="system/end/label" x="513.0303" y="294.0415" text-anchor="middle" font-size="9" fill="#000000">600 px</text>
-<rect data-address="audio/card" x="18" y="314.1641" width="536.0864" height="49.4766" rx="5" fill="#B8BEC8"/>
-<rect data-address="audio/card" x="16" y="312.1641" width="536.0864" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/audio/card" x="18" y="314.1641" width="536.0864" height="49.4766" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/audio/card" x="16" y="312.1641" width="536.0864" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="audio/cmap_1" points="113.0303,320.1641 513.0303,320.1641 513.0303,322.1641 113.0303,322.1641" fill="none" stroke="#0050EF" stroke-width="1"/>
 <line data-address="audio" x1="113.0303" y1="326.6641" x2="513.0303" y2="326.6641" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3"/>
 <circle data-address="audio" cx="113.0303" cy="326.6641" r="3" fill="#0050EF"/>

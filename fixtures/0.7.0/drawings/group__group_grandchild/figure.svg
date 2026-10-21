@@ -3,8 +3,8 @@
 <rect x="0" y="0" width="559.7036" height="224.1133" rx="10" fill="#F3F4F6"/>
 <rect data-address="group_1" x="8" y="8" width="543.7036" height="208.1133" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_1/name" x="16" y="26.2104" text-anchor="start" font-size="11" fill="#000000">Theme</text>
-<rect data-address="theme/card" x="18" y="34.8047" width="527.7036" height="117.9297" rx="5" fill="#B8BEC8"/>
-<rect data-address="theme/card" x="16" y="32.8047" width="527.7036" height="117.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/theme/card" x="18" y="34.8047" width="527.7036" height="117.9297" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/theme/card" x="16" y="32.8047" width="527.7036" height="117.9297" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="score" x1="99.7036" y1="67.7812" x2="523.7036" y2="67.7812" stroke="#00CC00" stroke-width="3" opacity="0.35"/>
 <polyline data-address="score" points="96.7036,63.2812 92.2036,67.7812 96.7036,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
 <polyline data-address="score" points="92.2036,63.2812 87.7036,67.7812 92.2036,72.2812" fill="none" stroke="#00CC00" stroke-width="1.5" opacity="0.35"/>
@@ -32,8 +32,8 @@
 <text data-address="theme/end/label" x="511.7036" y="83.1353" text-anchor="middle" font-size="9" fill="#000000" opacity="0.35">16 ♩</text>
 <text data-address="theme/start/label" x="111.7036" y="140.6118" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-address="theme/end/label" x="511.7036" y="140.6118" text-anchor="middle" font-size="9" fill="#000000">8 ♩</text>
-<rect data-address="recording/card" x="18" y="160.7344" width="527.7036" height="49.3789" rx="5" fill="#B8BEC8"/>
-<rect data-address="recording/card" x="16" y="158.7344" width="527.7036" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/recording/card" x="18" y="160.7344" width="527.7036" height="49.3789" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/recording/card" x="16" y="158.7344" width="527.7036" height="49.3789" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <line data-address="recording" x1="111.7036" y1="173.1367" x2="511.7036" y2="173.1367" stroke="#0050EF" stroke-width="3"/>
 <circle data-address="recording" cx="111.7036" cy="173.1367" r="3" fill="#0050EF"/>
 <polygon data-address="recording" points="520.7036,173.1367 511.7036,168.6367 511.7036,177.6367" fill="#0050EF"/>

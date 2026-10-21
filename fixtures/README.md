@@ -288,8 +288,11 @@ defaults hide: `unknown_length_child` on the band `movement/regions_1`
 (`unknown_length_child__regions-shown`), `unknown_length_segments` on every
 regions band, `{"element": "band", "class": "regions"}`
 (`unknown_length_segments__regions-shown`), and `child_flow_control` on the
-band `verse/flow_control_1` (`child_flow_control__flow-shown`): 69 drawings
-in all. No variant sets a band order: band orders are the manifests' own,
+band `verse/flow_control_1` (`child_flow_control__flow-shown`): 70 drawings
+in all. `bundle__bundle_shared_member` draws the timeline `t`, a member of
+both `g1` and `g2`, once in each frame: in the cards `g1/t/card` and
+`g2/t/card`, every other element of its two drawings carrying the same
+address in both. No variant sets a band order: band orders are the manifests' own,
 in their `graphical.order` (`styled__score`, `styled_score_flow_inner`,
 `map_child_band_order`, `map_root_band_order`). Each directory holds:
 

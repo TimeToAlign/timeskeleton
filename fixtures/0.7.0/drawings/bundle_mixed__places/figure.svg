@@ -4,12 +4,12 @@
 <text data-address="name" x="8" y="18.2104" text-anchor="start" font-size="11" fill="#000000">Mixed</text>
 <rect data-address="group_1" x="46" y="28.8047" width="562.4846" height="169.2344" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_1/name" x="54" y="47.0151" text-anchor="start" font-size="11" fill="#000000">Performance</text>
-<rect data-address="score/card" x="56" y="55.6094" width="546.4846" height="78.9531" rx="5" fill="#B8BEC8"/>
-<rect data-address="score/card" x="54" y="53.6094" width="546.4846" height="78.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_1/score/card" x="56" y="55.6094" width="546.4846" height="78.9531" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/score/card" x="54" y="53.6094" width="546.4846" height="78.9531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="score/cmap_1" points="164.2915,66.6094 564.2915,66.6094 564.2915,68.6094 164.2915,68.6094" fill="none" stroke="#00CC00" stroke-width="1" stroke-dasharray="1 1"/>
 <polygon data-address="score/cmap_2" points="164.2915,61.6094 564.2915,61.6094 564.2915,63.6094 164.2915,63.6094" fill="none" stroke="#0050EF" stroke-width="1"/>
-<path data-address="score/jump_1" d="M430.9582 104.0859C364.2915 114.7526 230.9582 114.7526 168.2413 104.7179" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
-<polygon data-address="score/jump_1" points="164.2915,104.0859 167.9253,106.6928 168.5572,102.743" fill="#000000"/>
+<path data-address="score/jump_from_1" d="M430.9582 104.0859C364.2915 114.7526 230.9582 114.7526 168.2413 104.7179" fill="none" stroke="#000000" stroke-width="1" stroke-dasharray="1 1"/>
+<polygon data-address="score/jump_from_1" points="164.2915,104.0859 167.9253,106.6928 168.5572,102.743" fill="#000000"/>
 <line data-address="score" x1="164.2915" y1="73.1094" x2="564.2915" y2="73.1094" stroke="#00CC00" stroke-width="3"/>
 <circle data-address="score" cx="164.2915" cy="73.1094" r="3" fill="#00CC00"/>
 <polygon data-address="score" points="573.2915,73.1094 564.2915,68.6094 564.2915,77.6094" fill="#00CC00"/>
@@ -18,9 +18,9 @@
 <text data-address="score/name" x="62" y="76.9175" text-anchor="start" font-size="11" fill="#000000">Score</text>
 <text data-address="score/start/label" x="164.2915" y="97.9634" text-anchor="middle" font-size="9" fill="#000000">0 ♩</text>
 <text data-address="score/end/label" x="564.2915" y="97.9634" text-anchor="middle" font-size="9" fill="#000000">12 ♩</text>
-<text data-address="score/jump_1/label" x="297.6248" y="122.4399" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
-<rect data-address="performance/card" x="56" y="142.5625" width="546.4846" height="49.4766" rx="5" fill="#B8BEC8"/>
-<rect data-address="performance/card" x="54" y="140.5625" width="546.4846" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<text data-address="score/jump_from_1/label" x="297.6248" y="122.4399" text-anchor="middle" font-size="9" fill="#000000">Repeat</text>
+<rect data-address="group_1/performance/card" x="56" y="142.5625" width="546.4846" height="49.4766" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_1/performance/card" x="54" y="140.5625" width="546.4846" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="performance/cmap_1" points="164.2915,148.5625 564.2915,148.5625 564.2915,150.5625 164.2915,150.5625" fill="none" stroke="#0050EF" stroke-width="1" stroke-dasharray="1 1"/>
 <line data-address="performance" x1="164.2915" y1="155.0625" x2="564.2915" y2="155.0625" stroke="#0050EF" stroke-width="3"/>
 <circle data-address="performance" cx="164.2915" cy="155.0625" r="3" fill="#0050EF"/>
@@ -32,8 +32,8 @@
 <text data-address="performance/end/label" x="564.2915" y="179.9165" text-anchor="middle" font-size="9" fill="#000000">12.5 s</text>
 <rect data-address="group_2" x="78" y="200" width="700" height="177.7344" rx="6" fill="#FFFFFF" stroke="#D1D5DB" stroke-width="1"/>
 <text data-address="group_2/name" x="86" y="218.2104" text-anchor="start" font-size="11" fill="#000000">Facsimile</text>
-<rect data-address="page/card" x="88" y="226.8047" width="684" height="49.4766" rx="5" fill="#B8BEC8"/>
-<rect data-address="page/card" x="86" y="224.8047" width="684" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_2/page/card" x="88" y="226.8047" width="684" height="49.4766" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_2/page/card" x="86" y="224.8047" width="684" height="49.4766" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="page/cmap_1" points="196.2915,232.8047 596.2915,232.8047 596.2915,234.8047 196.2915,234.8047" fill="none" stroke="#FF0000" stroke-width="1"/>
 <line data-address="page" x1="196.2915" y1="239.3047" x2="596.2915" y2="239.3047" stroke="#FF0000" stroke-width="3" stroke-dasharray="3 3"/>
 <circle data-address="page" cx="196.2915" cy="239.3047" r="3" fill="#FF0000"/>
@@ -43,8 +43,8 @@
 <text data-address="page/name" x="94" y="243.1128" text-anchor="start" font-size="11" fill="#000000">Page</text>
 <text data-address="page/start/label" x="196.2915" y="264.1587" text-anchor="middle" font-size="9" fill="#000000">0 px</text>
 <text data-address="page/end/label" x="596.2915" y="264.1587" text-anchor="middle" font-size="9" fill="#000000">1920 px</text>
-<rect data-address="excerpt/card" x="88" y="284.2812" width="684" height="87.4531" rx="5" fill="#B8BEC8"/>
-<rect data-address="excerpt/card" x="86" y="282.2812" width="684" height="87.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
+<rect data-address="group_2/excerpt/card" x="88" y="284.2812" width="684" height="87.4531" rx="5" fill="#B8BEC8"/>
+<rect data-address="group_2/excerpt/card" x="86" y="282.2812" width="684" height="87.4531" rx="5" fill="#FFFFFF" stroke="#C4C9D1" stroke-width="0.75"/>
 <polygon data-address="recording/cmap_2" points="196.2915,328.2578 596.2915,328.2578 596.2915,330.2578 196.2915,330.2578" fill="none" stroke="#0050EF" stroke-width="1"/>
 <line data-address="recording" x1="184.2915" y1="317.2578" x2="608.2915" y2="317.2578" stroke="#0050EF" stroke-width="3" stroke-dasharray="3 3" opacity="0.35"/>
 <polyline data-address="recording" points="181.2915,312.7578 176.7915,317.2578 181.2915,321.7578" fill="none" stroke="#0050EF" stroke-width="1.5" opacity="0.35"/>
